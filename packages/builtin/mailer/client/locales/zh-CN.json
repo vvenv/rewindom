@@ -15,7 +15,8 @@
     "sourcePlatform": "平台默认",
     "driver": "通道",
     "from": "发件人",
-    "notSet": "未设置"
+    "notSet": "未设置",
+    "logWarning": "当前通道不会真的发出邮件，只写进服务端日志"
   },
   "config": {
     "heading": "发信通道设置",
@@ -37,7 +38,8 @@
     "smtpPasswordCurrent": "已保存 {{hint}}",
     "smtpPasswordHint": "留空表示不修改；要清掉本站密码请填一个空格后保存",
     "save": "保存",
-    "saved": "发信配置已保存"
+    "saved": "发信配置已保存",
+    "driverInheritResolved": "跟随平台默认（当前：{{driver}}）"
   },
   "test": {
     "trigger": "发送测试邮件",
@@ -72,7 +74,9 @@
     "error": "最近错误",
     "sentAt": "送达时间",
     "retry": "重试",
-    "retried": "已重新投递"
+    "retried": "已重新投递",
+    "driver": "通道",
+    "notReallySent": "未真正发出"
   },
   "empty": {
     "title": "还没有任何投递记录"

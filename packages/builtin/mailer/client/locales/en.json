@@ -15,7 +15,8 @@
     "sourcePlatform": "Platform default",
     "driver": "Transport",
     "from": "From",
-    "notSet": "Not set"
+    "notSet": "Not set",
+    "logWarning": "This transport never sends anything; it only writes to the server log"
   },
   "config": {
     "heading": "Mail transport settings",
@@ -37,7 +38,8 @@
     "smtpPasswordCurrent": "Stored {{hint}}",
     "smtpPasswordHint": "Leave blank to keep it unchanged; save a single space to clear the site password",
     "save": "Save",
-    "saved": "Mail transport saved"
+    "saved": "Mail transport saved",
+    "driverInheritResolved": "Follow platform default (currently: {{driver}})"
   },
   "test": {
     "trigger": "Send test email",
@@ -72,7 +74,9 @@
     "error": "Last error",
     "sentAt": "Delivered",
     "retry": "Retry",
-    "retried": "Delivery retried"
+    "retried": "Delivery retried",
+    "driver": "Transport",
+    "notReallySent": "Not actually sent"
   },
   "empty": {
     "title": "No deliveries yet"

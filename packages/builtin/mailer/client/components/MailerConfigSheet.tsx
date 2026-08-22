@@ -103,7 +103,13 @@ function ConfigForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent position="popper" align="start">
-              <SelectItem value={INHERIT}>{t("config.driverInherit")}</SelectItem>
+              <SelectItem value={INHERIT}>
+                {status.resolved_driver
+                  ? t("config.driverInheritResolved", {
+                      driver: status.resolved_driver,
+                    })
+                  : t("config.driverInherit")}
+              </SelectItem>
               <SelectItem value="smtp">{t("config.driverSmtp")}</SelectItem>
               <SelectItem value="log">{t("config.driverLog")}</SelectItem>
             </SelectContent>

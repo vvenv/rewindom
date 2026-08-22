@@ -53,19 +53,27 @@ export function MailerTestSendDialog({ children }: { children?: ReactNode }) {
         {children ?? <Button variant="outline">{t("test.trigger")}</Button>}
       </DialogTrigger>
       <DialogContent>
-        <form onSubmit={(e) => void submit(e)}>
-          <DialogHeader>
-            <DialogTitle>{t("test.heading")}</DialogTitle>
-            <DialogDescription>{t("test.description")}</DialogDescription>
-          </DialogHeader>
+        {/*
+          header 与 form 必须是 DialogContent 的**兄弟**：`gap-4` 只作用于直接子元素，
+          把 header 塞进 form 里就没有那道间距了。
+          正文也**不要**再补 `px-4`——DialogContent 自带 `p-4`（这点和 SheetContent 相反，
+          Sheet 才需要正文自己补），补了会让表单比标题多缩进一格。
+        */}
+        <DialogHeader>
+          <DialogTitle>{t("test.heading")}</DialogTitle>
+          <DialogDescription>{t("test.description")}</DialogDescription>
+        </DialogHeader>
 
-          <FieldGroup className="px-4">
+        <form onSubmit={(e) => void submit(e)}>
+          {/* mb-4 隔开表单与页脚：DialogFooter 用负 margin 贴到卡片边缘，自己不带上间距 */}
+          <FieldGroup className="mb-4">
             <Field>
               <FieldLabel htmlFor="mailer_test_to">{t("test.to")}</FieldLabel>
               <Input
                 id="mailer_test_to"
                 type="email"
                 autoComplete="off"
+                placeholder="you@example.com"
                 value={to}
                 onChange={(e) => setTo(e.target.value)}
                 required
@@ -74,6 +82,13 @@ export function MailerTestSendDialog({ children }: { children?: ReactNode }) {
           </FieldGroup>
 
           <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
+              {t("common:cancel")}
+            </Button>
             <Button type="submit" disabled={send.isPending || !to.trim()}>
               {send.isPending ? <Spinner className="size-4" /> : null}
               {t("test.send")}

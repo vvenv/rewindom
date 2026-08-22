@@ -136,9 +136,19 @@ function buildColumns(
         const status = delivery.status;
         return (
           <div className="flex flex-col gap-1">
-            <Badge variant={STATUS_VARIANTS[status]}>
-              {t(`deliveryStatus.${status}`)}
-            </Badge>
+            <div className="flex flex-wrap items-center gap-1">
+              <Badge variant={STATUS_VARIANTS[status]}>
+                {t(`deliveryStatus.${status}`)}
+              </Badge>
+              {/*
+                log driver 的「已发出」是假象：它只把全文写进日志就成功返回。
+                不在这里说破，开发者会拿着一条绿色的「已发出」去查收件箱——
+                这正是本模块第一次真实使用时踩到的坑。
+              */}
+              {delivery.driver === "log" ? (
+                <Badge variant="destructive">{t("table.notReallySent")}</Badge>
+              ) : null}
+            </div>
             {/*
               失败原因必须常驻可见：投递记录页存在的理由就是回答「为什么没收到」，
               把它藏进详情等于每次排障多点一次。
@@ -151,6 +161,16 @@ function buildColumns(
           </div>
         );
       },
+    },
+    {
+      accessorKey: "driver",
+      header: t("table.driver"),
+      enableSorting: false,
+      cell: ({ row }) => (
+        <span className="text-muted-foreground font-mono text-xs">
+          {row.getValue("driver")}
+        </span>
+      ),
     },
     {
       accessorKey: "attempt_count",

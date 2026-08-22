@@ -57,6 +57,10 @@ export function MailerStatusPanel({
         <span className="text-muted-foreground">
           {t("status.driver")}：{status.resolved_driver ?? t("status.notSet")}
         </span>
+        {/* 「可用」+ log 通道是最容易误读的组合：看起来一切正常，信一封都出不去 */}
+        {status.resolved_driver === "log" ? (
+          <Badge variant="destructive">{t("status.logWarning")}</Badge>
+        ) : null}
         <span className="text-muted-foreground">
           {t("status.from")}：{status.resolved_from ?? t("status.notSet")}
         </span>
