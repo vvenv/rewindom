@@ -13,8 +13,10 @@
 按「当前语言 vs 站点主语言」补（SSR `md(body, ctx)`、SPA `MarkdownProse`），与 section
 设置里的链接同一口径。写死 `/en/docs/…` 的话，站点主语言换成 `en` 之后那条链接就指向
 一个不存在的入口。`docs/usage/<locale>/*.md` 这套内置文档同样照这个写。
-存量库里写死了前缀的正文，用 `apps/server/scripts/backfill-site-doc-locale-hrefs.ts` 剥掉
-（判定与出厂正文的比对在 `server/seed-body-links.ts`）。
+存量库里写死前缀的正文由迁移 `20260822120000_strip_site_doc_locale_hrefs` 自动剥掉
+（只剥与文档自身语言相同的那一段——同语言前缀是冗余的，跨语言前缀是租户有意写的）。
+跨语言那部分要人工过一遍时用 `apps/server/scripts/backfill-site-doc-locale-hrefs.ts`
+（与出厂正文的比对在 `server/seed-body-links.ts`）。
 
 ## 面划分
 

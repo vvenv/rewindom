@@ -22,6 +22,11 @@
  *
  * 重复执行安全：剥过前缀的正文再剥一次不变。
  *
+ * **常规情况不用跑这个脚本**：迁移 `20260822120000_strip_site_doc_locale_hrefs` 已经在
+ * 每次部署时自动剥掉「与文档自身语言相同」的那一段前缀（同语言前缀在任何一份正文里都
+ * 是冗余的，所以那一步不需要比对出厂正文）。留着它是为了兜住迁移**故意不碰**的那部分：
+ * 跨语言前缀（`en` 文档里的 `/zh-CN/docs/x`）——那多半是租户有意写的，要不要改得人看。
+ *
  * 用法：
  *   pnpm --filter server exec tsx scripts/backfill-site-doc-locale-hrefs.ts --dry-run
  *   pnpm --filter server exec tsx scripts/backfill-site-doc-locale-hrefs.ts
