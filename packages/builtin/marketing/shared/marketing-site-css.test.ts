@@ -28,6 +28,10 @@ describe("marketing-site-css", () => {
   it("常驻部分带着 base 与段共用原子", () => {
     expect(MARKETING_SITE_CSS_BASE).toContain(".btn{");
     expect(MARKETING_SITE_CSS_BASE).toContain(".sec-band");
+    // 通栏光晕动画 scale(1.06) 必须裁在色块里，否则会撑出横向滚动条
+    expect(MARKETING_SITE_CSS_BASE).toMatch(
+      /\.sec-band\.has-glow\{[^}]*overflow:hidden/,
+    );
     expect(MARKETING_SITE_CSS_BASE).toContain(".marketing-site-root");
     expect(MARKETING_SITE_CSS_BASE).toContain(".page-missing{");
     expect(MARKETING_SITE_CSS_BASE).toContain(".page-missing-code{");

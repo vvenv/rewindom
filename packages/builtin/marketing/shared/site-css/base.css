@@ -372,10 +372,14 @@ dl {
   }
 }
 /* 光晕跟着色块走：顶到 section 容器上沿（含上留白）。isolation 不能少——
-   z-index:-1 没有自己的层叠上下文会掉到祖先背景之后 */
+   z-index:-1 没有自己的层叠上下文会掉到祖先背景之后。
+   overflow 也不能少：`.sec-glow` 会 scale(1.06)，通栏色块已经贴着视口边，
+   不裁切就会把 document 撑出横向滚动条。overflow 写在色块上而不是 html /
+   `.marketing-site-root`——后者会把 sticky 页头变成「贴自己而不是贴视口」。 */
 .sec-band.has-glow {
   position: relative;
   isolation: isolate;
+  overflow: hidden;
 }
 .sec-glow {
   position: absolute;
