@@ -118,12 +118,25 @@
  * 全大写走 CSS，不改 `brand_text` 存的值：站名同时喂 <title> 与 og:site_name，
  * 存成大写会把它们一起污染。字距跟着大小写一起给——全大写不配字距会挤成一坨，
  * 混排配了字距又会散架，所以不给字距单开设置位。
+ *
+ * 垂直居中走墨迹，不走 em 盒。全大写没有下伸，flex 按行盒对齐会把字抬到 logo
+ * 上半（Newsreader 16px 实测中心偏高 ~2.5px）。裁到 cap → 基线之后，
+ * `.brand` 的 `align-items: center` 才对得上旁边那块标。
+ * 没有 `text-box` 的浏览器用 0.12em 近似同一挪动；有的话清掉，避免叠两次。
  */
 .brand.brand-upper span {
   text-transform: uppercase;
   letter-spacing: 0.14em;
+  translate: 0 0.12em;
+}
+@supports (text-box: trim-both cap alphabetic) {
+  .brand.brand-upper span {
+    text-box: trim-both cap alphabetic;
+    translate: 0;
+  }
 }
 .logo {
+  display: block;
   height: 1.5rem;
   width: auto;
   flex-shrink: 0;

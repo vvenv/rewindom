@@ -45,6 +45,8 @@ describe("marketing-site-css", () => {
     expect(MARKETING_SITE_CSS_BASE).toContain("white-space:nowrap");
     expect(MARKETING_SITE_CSS_BASE).toContain("--site-brand-font");
     expect(MARKETING_SITE_CSS_BASE).toContain(".brand.brand-upper span");
+    // 全大写字标按墨迹垂直居中，不按 em 盒（否则会抬到 logo 上半）
+    expect(MARKETING_SITE_CSS_BASE).toContain("text-box:trim-both cap alphabetic");
     expect(MARKETING_SITE_CSS_BASE).toContain(
       ".chrome-row:not(:has(.chrome-zone-center))",
     );
