@@ -37,6 +37,7 @@ import {
   EVENTS_NAV_SOURCES,
   eventsNavTopicOptions,
 } from "../../shared/nav-sources.js";
+import { EVENTS_CONTEXT_SECTION_TYPES } from "../../shared/section-types.js";
 import { renderEventsDetailHtml } from "../../shared/sections/detail-html.js";
 import { renderEventsEntityHtml } from "../../shared/sections/entity-html.js";
 import { renderEventsEntityIndexHtml } from "../../shared/sections/entity-index-html.js";
@@ -75,12 +76,7 @@ function wantsAny(
  */
 function registerEventsContextProvider(): void {
   registerSectionContextProvider({
-    sectionTypes: [
-      ...EVENTS_FEED_CONTEXT_TYPES,
-      EVENTS_ENTITY_STRIP_SECTION_TYPE,
-      EVENTS_HERO_SECTION_TYPE,
-      ...EVENTS_NAV_SOURCES,
-    ],
+    sectionTypes: EVENTS_CONTEXT_SECTION_TYPES,
     provide: async (input) => {
       const t = (
         key: string,

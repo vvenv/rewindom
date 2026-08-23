@@ -9,12 +9,15 @@ import { getEnabledTopics } from "../event/topic-settings.service.js";
 
 import { eventsContextEntry } from "../../shared/index.js";
 import { withEventsNavTopics } from "../../shared/nav-sources.js";
+import { EVENTS_CONTEXT_SECTION_TYPES } from "../../shared/section-types.js";
 
+import { resolvePageContributed } from "@rewindom/builtin/marketing/server/page-contributed.js";
 import { resolveSiteAccountEntry } from "@rewindom/builtin/marketing/server/site-account-entry.js";
 import { resolveSectionEntitlements } from "@rewindom/builtin/marketing/server/site-entitlements.js";
 import {
   getPublishedTemplatePage,
   getSiteChromeOrFallback,
+  resolveVisitorHomePath,
 } from "@rewindom/builtin/marketing/server/site.service.js";
 import { renderMarketingHtml } from "@rewindom/builtin/marketing/server/ssr-render.js";
 import { buildPresetSections } from "@rewindom/builtin/marketing/shared/page-presets.js";
@@ -25,6 +28,7 @@ import { normalizeLocale, type AppLocale } from "@rewindom/module-sdk";
 import type { EventsRenderContext } from "../../shared/index.js";
 import type { PagePreset } from "@rewindom/builtin/marketing/shared/page-presets.types.js";
 import type { SiteSection } from "@rewindom/builtin/marketing/shared/section-schema.js";
+import type { SitePathHandlerInput } from "@rewindom/builtin/marketing/shared/site-path-handlers.js";
 
 export async function renderEventsTemplatePage(input: {
   tenantId: string;
@@ -58,6 +62,14 @@ export async function renderEventsTemplatePage(input: {
   omitHreflang?: boolean;
   /** 覆盖 canonical 的逻辑路径（默认语言、无前缀）。 */
   canonicalPath?: string;
+  /**
+   * 当前请求：页头页脚上**别的模块**的贡献块按它取数（购物车按 cookie、
+   * 站内链接按首页挂载）。path handler 的输入原样传进来即可。
+   */
+  request?: Pick<
+    SitePathHandlerInput,
+    "cookies" | "query" | "homePath" | "homeLayoutKey"
+  >;
 }): Promise<string> {
   const locale = normalizeLocale(input.locale);
 
@@ -92,6 +104,39 @@ export async function renderEventsTemplatePage(input: {
     getEnabledTopics(input.tenantId),
   ]);
 
+  /*
+   * 页头页脚上别的模块的块（购物车入口、文档目录）与 CMS 页一条口径，见
+   * `marketing/server/page-contributed.ts`。**跳过事件自己那组 type**：feed 与实体
+   * 是 path handler 直接带进来的，provider 再查一遍白打一轮库；主题格仍由
+   * `withEventsNavTopics` 补。
+   */
+  const home =
+    input.request?.homePath === undefined
+      ? await resolveVisitorHomePath({
+          tenantId: input.tenantId,
+          path: input.path,
+          entitlements,
+        })
+      : {
+          homePath: input.request.homePath,
+          homeLayoutKey: input.request.homeLayoutKey,
+        };
+  const contributed = await resolvePageContributed({
+    tenantId: input.tenantId,
+    locale,
+    defaultLocale: site.default_locale,
+    site,
+    sections: template.sections,
+    own: eventsContextEntry(
+      withEventsNavTopics(input.events, locale, enabledTopics),
+    ),
+    skipSectionTypes: EVENTS_CONTEXT_SECTION_TYPES,
+    cookies: input.request?.cookies,
+    query: input.request?.query,
+    homePath: home.homePath,
+    homeLayoutKey: home.homeLayoutKey,
+  });
+
   const title = input.title ?? template.title;
   const description = input.description || template.description || undefined;
 
@@ -125,9 +170,7 @@ export async function renderEventsTemplatePage(input: {
     },
     accountEntryHtml: accountEntry.html,
     enabledEntitlements: entitlements,
-    contributed: eventsContextEntry(
-      withEventsNavTopics(input.events, locale, enabledTopics),
-    ),
+    contributed,
     servedPath: input.servedPath,
     omitHreflang: input.omitHreflang,
     canonicalPath: input.canonicalPath,

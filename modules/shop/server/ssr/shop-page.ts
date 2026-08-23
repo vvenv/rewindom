@@ -10,12 +10,15 @@ import {
   shopStorefrontAlternates,
   type ShopRenderContext,
 } from "../../shared/shop-section-context.js";
+import { SHOP_CONTEXT_SECTION_TYPES } from "../../shared/section-types.js";
 
+import { resolvePageContributed } from "@rewindom/builtin/marketing/server/page-contributed.js";
 import { resolveSiteAccountEntry } from "@rewindom/builtin/marketing/server/site-account-entry.js";
 import { resolveSectionEntitlements } from "@rewindom/builtin/marketing/server/site-entitlements.js";
 import {
   getPublishedTemplatePage,
   getSiteChromeOrFallback,
+  resolveVisitorHomePath,
 } from "@rewindom/builtin/marketing/server/site.service.js";
 import { renderMarketingHtml } from "@rewindom/builtin/marketing/server/ssr-render.js";
 import { buildPresetSections } from "@rewindom/builtin/marketing/shared/page-presets.js";
@@ -37,6 +40,13 @@ export async function renderShopTemplatePage(input: {
   title?: string;
   description?: string;
   noindex?: boolean;
+  /** 页头页脚上别的模块的块要用（购物车 cookie 之外的那些）。 */
+  cookies?: { get(name: string): string | undefined };
+  query?: Readonly<Record<string, unknown>>;
+  memberId?: string | null;
+  /** path handler 的输入里本来就有；自挂路由的那几条不传，下面自己解析。 */
+  homePath?: string;
+  homeLayoutKey?: string;
 }): Promise<string> {
   const locale = normalizeLocale(input.locale);
   const collections =
@@ -70,6 +80,37 @@ export async function renderShopTemplatePage(input: {
     resolveSectionEntitlements(input.tenantId),
   ]);
 
+  /*
+   * 页头页脚上的贡献块与 CMS 页一条口径（见 `marketing/server/page-contributed.ts`）：
+   * 不跑这一步，店面页的页头就只剩兜底——事件主题格会把租户关掉的格子也挂出来。
+   *
+   * **跳过店铺自己那组 type**：这张页手上已经带着完整的购物车、商品与分类树
+   * （`input.shop`），provider 再查一遍是白打一轮库，而且 `ShopRenderContext` 是
+   * 满形状对象，自己这份的空值本来就会盖掉 provider 那份。
+   */
+  const home =
+    input.homePath === undefined
+      ? await resolveVisitorHomePath({
+          tenantId: input.tenantId,
+          path: input.path,
+          entitlements,
+        })
+      : { homePath: input.homePath, homeLayoutKey: input.homeLayoutKey };
+  const contributed = await resolvePageContributed({
+    tenantId: input.tenantId,
+    locale,
+    defaultLocale: site.default_locale,
+    site,
+    sections: template.sections,
+    own: shopContextEntry(shop),
+    skipSectionTypes: SHOP_CONTEXT_SECTION_TYPES,
+    cookies: input.cookies,
+    query: input.query,
+    memberId: input.memberId,
+    homePath: home.homePath,
+    homeLayoutKey: home.homeLayoutKey,
+  });
+
   return renderMarketingHtml({
     origin: input.origin,
     tenant_id: input.tenantId,
@@ -96,7 +137,7 @@ export async function renderShopTemplatePage(input: {
     },
     accountEntryHtml: accountEntry.html,
     enabledEntitlements: entitlements,
-    contributed: shopContextEntry(shop),
+    contributed,
     servedPath: input.servedPath,
   });
 }

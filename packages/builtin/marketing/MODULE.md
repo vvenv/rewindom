@@ -466,6 +466,25 @@ nginx / vite 代理三处对齐，由 `nginx-spa-prefixes.test.ts` 守住）。
 section type，通用 SSR 路由在渲染前按**页面实际用到的段**调用并合并进 `contributed`。
 没摆那些段就一次查询都不发；单个 provider 抛错也只让它那一段不渲染，不炸整页。
 
+#### 模块自有 SSR 页也要跑这一步：`resolvePageContributed`
+
+店面、文档库、会员三张、订阅三张、事件模板页**不走**通用管线，是各自调
+`renderMarketingHtml` 的。它们以前只传自己那份 `contributed`，于是**页头页脚上的贡献块
+全部拿不到数据、各自退回兜底**——`/subscribe` 的页头挂着租户早就关掉的事件主题格，而
+同一张页的 `/zh-CN/subscribe`（落到通用管线）只挂启用的那几格。**贡献上下文属于「这张
+页面摆了哪些段」，不属于哪条路由。**
+
+`server/page-contributed.ts` 是这些入口的共用一步：收集本页 header / footer / sections
+的段 type → 跑用得上的 provider → 与渲染方自己那份**键内合并**（自己那份只盖同名字段，
+不整键替换，否则页头又被打回兜底）。渲染方已经自己查过的那几段用 `skipSectionTypes`
+跳过（店面手里已有整个购物车，事件页已有 feed），别让 provider 再打一轮同样的库。
+
+**新写一个自有 SSR 页就要调它**，`contributed` 不许再直接塞自己那份。
+
+不把 contributed 塞进 `SitePathHandlerInput` 的原因：provider 要按本页摆了哪些段决定跑
+不跑，而版式（模板页或预设兜底）只有 handler 自己知道，marketing 调 handler 那一刻还
+没有 sections。
+
 主题编辑器那一半是 `client/editor-context-providers.ts`（`registerEditorContextProvider`），
 同一套 `sectionTypes` / 按需 / 抛错兜底口径。**两端要么都登记要么都不登记**：只有 SSR
 那边预览就是空白，只有预览那边线上直接不渲染。

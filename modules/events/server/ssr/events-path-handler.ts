@@ -160,6 +160,7 @@ async function renderEntityIndex(
   const href = entityIndexPath();
 
   return renderEventsTemplatePage({
+    request: input,
     tenantId: input.tenantId,
     tenantSlug: input.tenantSlug,
     siteName: input.tenantSlug,
@@ -189,6 +190,7 @@ async function renderEntity(
   const t = translator(locale);
   const href = entityPath(entity.slug);
   return renderEventsTemplatePage({
+    request: input,
     tenantId: input.tenantId,
     tenantSlug: input.tenantSlug,
     siteName: input.tenantSlug,
@@ -233,6 +235,7 @@ async function renderTopic(
   const pagePath = topicPath(topic);
 
   return renderEventsTemplatePage({
+    request: input,
     tenantId: input.tenantId,
     tenantSlug: input.tenantSlug,
     siteName: input.tenantSlug,
@@ -268,6 +271,7 @@ async function renderListing(
 
   const listing = eventsListingPreset(source, topic);
   return renderEventsTemplatePage({
+    request: input,
     tenantId: input.tenantId,
     tenantSlug: input.tenantSlug,
     siteName: input.tenantSlug,
@@ -314,6 +318,7 @@ async function renderDetail(
   const t = translator(locale);
   const href = eventPath(slug);
   return renderEventsTemplatePage({
+    request: input,
     tenantId: input.tenantId,
     tenantSlug: input.tenantSlug,
     siteName: input.tenantSlug,

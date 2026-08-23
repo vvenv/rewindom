@@ -22,6 +22,7 @@ import {
   type PublicDocSummary,
 } from "../shared/site-doc.js";
 import { siteDocsContextEntry } from "../shared/site-docs-context.js";
+import { SITE_DOCS_CONTEXT_SECTION_TYPES } from "../shared/section-types.js";
 
 import { registerSitePathHandler } from "@rewindom/builtin/marketing/shared/site-path-handlers.js";
 import { type SiteSection } from "@rewindom/builtin/marketing/shared/section-schema.js";
@@ -32,7 +33,11 @@ import {
   type PublicMarketingPage,
   type PublicMarketingSite,
 } from "@rewindom/builtin/marketing/shared/site-cms.js";
-import { getPublishedTemplatePage, getPublishedPublicSite } from "@rewindom/builtin/marketing/server/site.service.js";
+import {
+  getPublishedTemplatePage,
+  getPublishedPublicSite,
+} from "@rewindom/builtin/marketing/server/site.service.js";
+import { resolvePageContributed } from "@rewindom/builtin/marketing/server/page-contributed.js";
 import { renderMarketingHtml } from "@rewindom/builtin/marketing/server/ssr-render.js";
 import { createStarterTranslator } from "@rewindom/builtin/marketing/server/starter-i18n.js";
 
@@ -107,6 +112,9 @@ export async function renderDocLibrary(input: {
   servedPath?: string;
   locale: AppLocale | null;
   query?: Record<string, string>;
+  cookies?: { get(name: string): string | undefined };
+  homePath?: string;
+  homeLayoutKey?: string;
 }): Promise<string | null> {
   const { site, path, locale } = input;
   if (!site) return null;
@@ -116,16 +124,35 @@ export async function renderDocLibrary(input: {
     path === DOCS_INDEX_PATH ? null : path.slice(DOCS_INDEX_PATH.length + 1);
   const query = input.query?.q?.trim() || undefined;
 
-  const render = (
+  const render = async (
     page: PublicMarketingPage,
     docs: PublicDocSummary[],
     doc?: PublicDocDetail,
-  ): string => {
-    const contributed = siteDocsContextEntry({
-      docs,
-      doc,
-      docsIndexPath: DOCS_INDEX_PATH,
-      query,
+  ): Promise<string> => {
+    /*
+     * 页头页脚上别的模块的贡献块也要按请求取数（见
+     * `marketing/server/page-contributed.ts`）：只传自己那份的话，文档页的页头就只剩
+     * 兜底——事件主题格会把租户关掉的格子也挂出来，购物车入口的件数恒为空。
+     *
+     * **跳过文档自己那组 type**：目录与正文这一步已经查过了，provider 再查一遍白打。
+     */
+    const contributed = await resolvePageContributed({
+      tenantId: input.tenantId,
+      locale: page.locale,
+      defaultLocale,
+      site,
+      sections: page.sections,
+      own: siteDocsContextEntry({
+        docs,
+        doc,
+        docsIndexPath: DOCS_INDEX_PATH,
+        query,
+      }),
+      skipSectionTypes: SITE_DOCS_CONTEXT_SECTION_TYPES,
+      cookies: input.cookies,
+      query: input.query,
+      homePath: input.homePath,
+      homeLayoutKey: input.homeLayoutKey,
     });
     return renderMarketingHtml({
       origin: input.origin,
@@ -150,9 +177,8 @@ export async function renderDocLibrary(input: {
       DOCS_INDEX_PAGE_KIND,
       effectiveLocale,
     );
-    const alternateLocales =
-      locales.length > 0 ? locales : [effectiveLocale];
-    return render(
+    const alternateLocales = locales.length > 0 ? locales : [effectiveLocale];
+    return await render(
       synthesizeDocPage({
         path,
         locale: effectiveLocale,
@@ -182,7 +208,7 @@ export async function renderDocLibrary(input: {
   const alternateLocales =
     siblingLocales.length > 0 ? siblingLocales : [result.locale];
 
-  return render(
+  return await render(
     synthesizeDocPage({
       path: docPath(result.doc.slug),
       locale: result.locale,
@@ -220,6 +246,9 @@ async function renderDocsPath(
     servedPath: input.servedPath,
     locale: input.locale,
     query: input.query,
+    cookies: input.cookies,
+    homePath: input.homePath,
+    homeLayoutKey: input.homeLayoutKey,
   });
 }
 

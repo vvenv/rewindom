@@ -6,8 +6,17 @@ import { listPublishedCollections } from "../catalog/collection.service.js";
 import { cartCookieName, peekCart } from "../cart/cart.service.js";
 import { listLivePromoDiscounts } from "../discount/discount.service.js";
 import { getShopSetting } from "../payment/credentials.js";
-import { toCartView, toCollectionCard, toProductCard, toPromoView } from "../ssr/shop-view.js";
-import { cartLinkBlock, cartSection, SHOP_CART_LINK_BLOCK_TYPE } from "../../shared/cart-section.js";
+import {
+  toCartView,
+  toCollectionCard,
+  toProductCard,
+  toPromoView,
+} from "../ssr/shop-view.js";
+import {
+  cartLinkBlock,
+  cartSection,
+  SHOP_CART_LINK_BLOCK_TYPE,
+} from "../../shared/cart-section.js";
 import { checkoutSection } from "../../shared/checkout-section.js";
 import { orderListSection, orderSection } from "../../shared/order-section.js";
 import {
@@ -15,20 +24,33 @@ import {
   SHOP_COLLECTION_LIST_SECTION_TYPE,
 } from "../../shared/collection-list-section.js";
 import { collectionProductsSection } from "../../shared/collection-products-section.js";
-import { SHOP_COLLECTION_NAV_SOURCE, SHOP_NAV_SOURCE } from "../../shared/nav-sources.js";
+import {
+  SHOP_COLLECTION_NAV_SOURCE,
+  SHOP_NAV_SOURCE,
+} from "../../shared/nav-sources.js";
 import { pickShopPromo, type ShopPromoView } from "../../shared/promo.js";
-import { promoSection, SHOP_PROMO_SECTION_TYPE } from "../../shared/promo-section.js";
+import {
+  promoSection,
+  SHOP_PROMO_SECTION_TYPE,
+} from "../../shared/promo-section.js";
 import { renderPromoHtml } from "../../shared/sections/promo-html.js";
+import { SHOP_CONTEXT_SECTION_TYPES } from "../../shared/section-types.js";
 import {
   productGridSection,
   SHOP_PRODUCT_GRID_SECTION_TYPE,
 } from "../../shared/product-grid-section.js";
 import { productSection } from "../../shared/product-section.js";
-import { renderCartHtml, renderCartLinkHtml } from "../../shared/sections/cart-html.js";
+import {
+  renderCartHtml,
+  renderCartLinkHtml,
+} from "../../shared/sections/cart-html.js";
 import { renderCheckoutHtml } from "../../shared/sections/checkout-html.js";
 import { renderCollectionListHtml } from "../../shared/sections/collection-list-html.js";
 import { renderCollectionProductsHtml } from "../../shared/sections/collection-products-html.js";
-import { renderOrderHtml, renderOrderListHtml } from "../../shared/sections/order-html.js";
+import {
+  renderOrderHtml,
+  renderOrderListHtml,
+} from "../../shared/sections/order-html.js";
 import { renderProductHtml } from "../../shared/sections/product-html.js";
 import { renderProductGridHtml } from "../../shared/sections/product-grid-html.js";
 import {
@@ -68,14 +90,7 @@ async function resolvePromo(
  */
 function registerShopContextProvider(): void {
   registerSectionContextProvider({
-    sectionTypes: [
-      SHOP_PRODUCT_GRID_SECTION_TYPE,
-      SHOP_COLLECTION_LIST_SECTION_TYPE,
-      SHOP_CART_LINK_BLOCK_TYPE,
-      SHOP_NAV_SOURCE,
-      SHOP_COLLECTION_NAV_SOURCE,
-      SHOP_PROMO_SECTION_TYPE,
-    ],
+    sectionTypes: SHOP_CONTEXT_SECTION_TYPES,
     provide: async (input) => {
       if (!(await isShopEnabled(input.tenantId))) return {};
       const used = input.usedTypes;
@@ -98,21 +113,22 @@ function registerShopContextProvider(): void {
             toCollectionCard(row, input.locale),
           )
         : [];
-      const domainCart =
-        wantCart
-          ? await peekCart({
-              tenant_id: input.tenantId,
-              cart_id: input.cookies?.get(cartCookieName()) ?? null,
-              member_id: input.memberId ?? null,
-              locale: input.locale,
-            })
-          : null;
+      const domainCart = wantCart
+        ? await peekCart({
+            tenant_id: input.tenantId,
+            cart_id: input.cookies?.get(cartCookieName()) ?? null,
+            member_id: input.memberId ?? null,
+            locale: input.locale,
+          })
+        : null;
       return shopContextEntry(
         emptyShopContext({
           products,
           collections,
           cart: domainCart ? toCartView(domainCart, input.locale) : null,
-          promo: wantPromo ? await resolvePromo(input.tenantId, input.locale) : null,
+          promo: wantPromo
+            ? await resolvePromo(input.tenantId, input.locale)
+            : null,
         }),
       );
     },

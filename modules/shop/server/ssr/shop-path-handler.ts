@@ -69,6 +69,10 @@ async function renderShopPath(
         products: products.map((product) => toProductCard(product, locale)),
         cart: cartView,
       }),
+      cookies: input.cookies,
+      query: input.query,
+      homePath: input.homePath,
+      homeLayoutKey: input.homeLayoutKey,
     });
   }
 
@@ -88,6 +92,10 @@ async function renderShopPath(
         cart: cartView,
         product: toProductDetail(product, locale),
       }),
+      cookies: input.cookies,
+      query: input.query,
+      homePath: input.homePath,
+      homeLayoutKey: input.homeLayoutKey,
     });
   } catch (error) {
     if (error instanceof NotFoundError) return null;

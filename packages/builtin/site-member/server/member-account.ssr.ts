@@ -18,13 +18,16 @@
  */
 
 import { AppError } from "@rewindom/server-kernel/lib/app-errors.js";
-import { normalizeLocale, type AppLocale  } from "@rewindom/shared";
+import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
 import { resolveSiteAccountEntry } from "../../marketing/server/site-account-entry.js";
 import { resolveSectionEntitlements } from "../../marketing/server/site-entitlements.js";
+import { resolvePageContributed } from "../../marketing/server/page-contributed.js";
+import { cookiesFromHeader } from "../../marketing/server/section-context-providers.js";
 import {
   getPublishedTemplatePage,
   getSiteChromeOrFallback,
+  resolveVisitorHomePath,
   resolveVisitorPageLocale,
 } from "../../marketing/server/site.service.js";
 import {
@@ -195,6 +198,30 @@ async function renderAccountPage(
     intent: state.intent,
   };
 
+  /*
+   * 页头页脚上的贡献块与 CMS 页一条口径（见 `marketing/server/page-contributed.ts`）：
+   * 不跑这一步，这张页的页头就只剩兜底——事件主题格会把租户关掉的格子也挂出来，
+   * 购物车入口的件数恒为空。
+   */
+  const home = await resolveVisitorHomePath({
+    tenantId: hostTenant.tenant_id,
+    path: MEMBER_ACCOUNT_PATH,
+    entitlements,
+  });
+  const contributed = await resolvePageContributed({
+    tenantId: hostTenant.tenant_id,
+    locale,
+    defaultLocale: site.default_locale,
+    site,
+    sections: template.sections,
+    own: memberAccountContextEntry(accountContext),
+    cookies: cookiesFromHeader(request.headers.cookie),
+    query: request.query as Record<string, unknown>,
+    memberId: session.id,
+    homePath: home.homePath,
+    homeLayoutKey: home.homeLayoutKey,
+  });
+
   sendHtml(
     reply,
     state.status,
@@ -223,7 +250,7 @@ async function renderAccountPage(
       },
       accountEntryHtml: accountEntry.html,
       enabledEntitlements: entitlements,
-      contributed: memberAccountContextEntry(accountContext),
+      contributed,
     }),
   );
   return true;

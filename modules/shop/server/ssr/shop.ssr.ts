@@ -5,6 +5,7 @@ import {
   resolveRequestHostname,
   translateServerMessage,
 } from "@rewindom/module-sdk/server";
+import { cookiesFromHeader } from "@rewindom/builtin/marketing/server/section-context-providers.js";
 import { renderUnavailableHtml } from "@rewindom/builtin/marketing/server/ssr-render.js";
 import { resolveVisitorPageLocale } from "@rewindom/builtin/marketing/server/site.service.js";
 import { parseMarketingSsrPath } from "@rewindom/builtin/marketing/shared/site-locale.js";
@@ -24,7 +25,11 @@ import {
 } from "../catalog/catalog.service.js";
 import { getPublishedCollectionBySlug } from "../catalog/collection.service.js";
 import { isShopEnabled } from "../lib/entitlement.js";
-import { createCheckout, getOrderByNumber, listMemberOrders } from "../order/order.service.js";
+import {
+  createCheckout,
+  getOrderByNumber,
+  listMemberOrders,
+} from "../order/order.service.js";
 import { listShippingZones } from "../shipping/shipping.service.js";
 import { formatMoney } from "../lib/format.js";
 import { cartRequiresShipping } from "../../shared/index.js";
@@ -73,9 +78,7 @@ import type { ShopRenderContext } from "../../shared/shop-section-context.js";
 const GUEST_ORDER_COOKIE = "shop_guest_token";
 
 function requestOrigin(request: FastifyRequest): string {
-  return (
-    requestOriginFromHeaders(request) ?? `http://${request.hostname}`
-  );
+  return requestOriginFromHeaders(request) ?? `http://${request.hostname}`;
 }
 
 async function ensureHostTenant(request: FastifyRequest): Promise<void> {
@@ -171,11 +174,15 @@ async function resolveMember(
 
 function errorText(error: unknown, locale: AppLocale): string {
   const code =
-    error instanceof AppError && error.code ? error.code : "common.internal_error";
+    error instanceof AppError && error.code
+      ? error.code
+      : "common.internal_error";
   return translateServerMessage(locale, { code, message: code });
 }
 
-export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> {
+export async function shopStorefrontRoutes(
+  app: FastifyInstance,
+): Promise<void> {
   formBodyParser(app);
 
   async function withShop(
@@ -289,6 +296,9 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
         title: spec.title,
         description: spec.description,
         noindex: spec.noindex,
+        // 页头页脚上别的模块的块也要按请求取数（`page-contributed.ts`）
+        cookies: cookiesFromHeader(request.headers.cookie),
+        query: request.query as Record<string, unknown>,
       }),
     );
   }
@@ -308,7 +318,9 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
         path: SHOP_INDEX_PATH,
         preset: SHOP_INDEX_TEMPLATE_PRESET,
         shop: buildShopContext({
-          products: products.map((product) => toProductCard(product, host.locale)),
+          products: products.map((product) =>
+            toProductCard(product, host.locale),
+          ),
           cart: toCartView(cart, host.locale),
         }),
       });
@@ -462,7 +474,11 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
             zone.rates.map((rate) => ({
               id: rate.id,
               label: `${zone.name} · ${rate.name}`,
-              price: formatMoney(rate.price_cents, latest.currency, host.locale),
+              price: formatMoney(
+                rate.price_cents,
+                latest.currency,
+                host.locale,
+              ),
             })),
           );
           await sendShopPage(request, reply, host, {

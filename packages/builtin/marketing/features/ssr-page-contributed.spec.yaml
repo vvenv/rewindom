@@ -1,0 +1,91 @@
+# 模块自有 SSR 页的**页头页脚**丢了贡献上下文（修 bug，一次修完五个贡献方）。
+#
+# 通用管线（`ssr.routes.ts` 的 `renderLogicalPath`）渲染前会
+# `collectSectionTypes(header/footer/page.sections)` → `resolveSectionContexts`，
+# 把各模块的按请求数据合进 `contributed`。而**自己挂路由 / 自己接 path handler**
+# 的那些页（店面、文档库、会员三张、订阅三张）各自直接调 `renderMarketingHtml`，
+# 只传了自己那一份——页头页脚上的贡献块于是全部拿不到数据，各自退回兜底。
+#
+# 现场：`/subscribe` 的页头挂着七个事件主题格（events 拿不到 `nav_topics` 时兜底
+# 显示全部七格，失效方向刻意选了宁可多显示），而同一张页的 `/zh-CN/subscribe`
+# 落到通用管线、跑过 provider，只挂租户实际启用的三格。同一张页两个样子。
+# 已在 newsletter 单独修过一轮（`modules/newsletter/features/ssr-page-section-contexts`），
+# 那一版把「收集 + 跑 provider + 合并」写在了贡献方自己的文件里——其余四个贡献方
+# 照抄一遍就是五份会各自漂的实现。本次把它上收成 marketing 的一个渲染入口 helper。
+#
+# **不是**把 contributed 塞进 `SitePathHandlerInput`：provider 要按「这张页面摆了
+# 哪些段」决定跑不跑，而页面版式（模板页 / 预设兜底）只有 handler 自己知道，
+# marketing 在调 handler 那一刻还没有 sections。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr]
+goal: |
+  marketing 新增 `resolvePageContributed()`（收集本页段 type → 跑 provider →
+  与渲染方自己那份**键内合并**），并让五个自有 SSR 入口都改走它：
+  newsletter 三张事务页、shop 店面、site-docs 文档库、site-member 认证 / 账户页、
+  site-billing 会员账单页。events 一并接上（它自己那份 `withEventsNavTopics`
+  只补了自家主题格，页头上别的模块的块照样是空的）。
+gold: packages/builtin/marketing/server/ssr.routes.ts # renderLogicalPath 里 collect + resolve 那一段就是被上收的原型
+touch:
+  - packages/builtin/marketing/features/ssr-page-contributed.spec.yaml
+  - packages/builtin/marketing/server/page-contributed.ts
+  - packages/builtin/marketing/server/page-contributed.test.ts
+  - packages/builtin/site-member/server/member-auth.ssr.ts
+  - packages/builtin/site-member/server/member-account.ssr.ts
+  - packages/builtin/site-billing/server/member-billing.ssr.ts
+  - modules/newsletter/server/newsletter.ssr.ts # 删掉上一轮那份本地实现
+  - modules/newsletter/server/newsletter.ssr.test.ts # 用例上收到 marketing
+  - modules/newsletter/features/ssr-page-section-contexts.spec.yaml # 回指本 spec
+  - modules/shop/server/ssr/shop-page.ts
+  - modules/shop/server/ssr/shop-path-handler.ts
+  - modules/shop/server/ssr/shop.ssr.ts
+  - modules/shop/shared/section-types.ts # 跳过清单与 provider 登记共用一份
+  - modules/shop/server/sections/register.ts # 改用那份清单
+  - modules/site-docs/server/docs.ssr.ts
+  - modules/events/server/ssr/events-page.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/shared/section-types.ts
+  - modules/events/server/sections/register.ts
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - 改 `ssr.routes.ts` 那三处 call site（通用管线本来就是对的；顺手重构它 = 把风险
+    引进唯一一条正常工作的路径。helper 的注释指回去，不动代码）
+  - 会员会话：`/subscribe` 这三张页至今按未登录渲染账户入口，是另一个问题
+  - events 的「拿不到 `nav_topics` 就显示七格」兜底方向（它是对的）
+  - 段渲染器本身、任何段的 HTML
+  - 店面页上的优惠公告段（`shop.promo`）：店面自有路由从来没填过 `promo`，跳过清单
+    保持了这个现状。那是另一个缺口，别在本次顺手改
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/builtin test
+  - pnpm --filter @rewindom/newsletter test
+  - pnpm --filter @rewindom/shop test
+  - pnpm --filter @rewindom/site-docs test
+  - pnpm --filter @rewindom/events test
+  - pnpm check:modules
+
+# ---------- 可选 ----------
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. **合并粒度是模块键内部。** `mergeContributedRecords` 是后来者整键替换；
+#    渲染方那份（token、这次点的结果、当前这篇文档）与 provider 那份（页头块要的
+#    数据、同页别的段要的数据）说的是两件事，整键盖掉就把页头又打回兜底了。
+#    只合一层：`{...provider那份, ...自己那份}`，同名字段自己赢。
+#
+# 2. **`skipSectionTypes`：自己已经查过的，不许 provider 再查一遍。**
+#    店面页已经带着完整购物车与商品，文档页已经带着 docs，事件页已经带着 feed。
+#    不跳过就是每张页多打一轮同样的库。newsletter **刻意不跳过**——订阅段的文案表
+#    与 `?list=` 范围以 provider 那份为唯一来源（见 newsletter 那份 spec 的要点 2）。
+#
+# 3. **provider 炸了不许让页面 500。** `resolveSectionContexts` 已经按 provider 吞
+#    异常，helper 不再加自己的兜底。退订页少一块页头，好过读者退不掉订阅。
+#
+# 4. **`memberId` 能给就给。** 会员账户 / 账单页知道当前会员，页头上的贡献块
+#    （绑到会员的购物车）要按它查。认证页是访客，不传。
+#
+# 5. **helper 不自己解析 home mount。** path handler 的输入里本来就有
+#    `homePath` / `homeLayoutKey`；自挂路由的那几张页各自 `resolveVisitorHomePath`
+#    （它们手上已经有 entitlements）。helper 里再查一遍等于每张页多一次读。

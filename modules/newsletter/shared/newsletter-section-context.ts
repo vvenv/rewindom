@@ -4,8 +4,10 @@
  * 这两张页的段渲染器要知道「token 是什么、这次点的结果是什么、这个人订了哪些列表」，
  * 而这些按请求变，塞不进段的 settings，也不该让 marketing 认识它们的形状。
  *
- * **不登记 `registerSectionContextProvider`**：这两张页不走 CMS 页面管线，是本模块
- * 自己的 SSR 路由在渲染，`contributed` 由那条路由直接传给 `renderMarketingHtml`。
+ * **这一份没有 provider**：token 与「这次点的结果」只有本模块那条 SSR 路由知道，
+ * `SectionContextInput` 里没有这些东西。路由把它合进 `contributed` 再交给
+ * `renderMarketingHtml`（见 `server/newsletter.ssr.ts` 的 `resolvePanelContributed`）。
+ * 注意合并是**键内合并**——同一张页上摆着订阅段时，provider 算的那份文案表要留着。
  * 编辑器预览拿不到上下文——渲染器把 `undefined` 当成「表单态」，那正是预览该显示的
  * 样子，所以也不需要 `registerEditorContextProvider`。
  */

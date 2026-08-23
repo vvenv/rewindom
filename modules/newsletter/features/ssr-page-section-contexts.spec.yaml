@@ -1,0 +1,78 @@
+# 三张事务页的**页头页脚**丢了贡献上下文（修 bug）。
+#
+# 现象：`/subscribe` 页头挂着七个事件主题格，`/zh-CN/subscribe` 只挂租户实际启用的
+# 三格。差别不在语言——在承接者：`/subscribe` 是本模块的静态路由（比 marketing 的
+# `/:first` 更具体，先命中），`/zh-CN/subscribe` 落到 marketing 的通用管线。
+#
+# 通用管线渲染前会 `collectSectionTypes(header/footer/page.sections)` 再跑
+# `resolveSectionContexts`，把各模块的按请求数据合进 `contributed`；本模块这条路由
+# 只传了自己那一份，于是页头的 chrome 块拿不到上下文，各自退回兜底——events 的
+# 兜底就是「七格全显示」（`nav-sources.ts` 的 `enabledTopicsFromContext`，
+# 失效方向刻意选了宁可多显示）。租户关掉的主题因此挂在页头上，点进去是空页。
+#
+# 这不是 events 一家的事：页头页脚上任何依赖 `contributed` 的块（shop 购物车、
+# site-docs 目录）在这三张页上都是同一个症状。所以修在渲染入口，不在某个块里。
+#
+# 顺带收掉一处重复查询：订阅页的 labels / `?list=` 以前由路由自己调
+# `buildNewsletterSectionContext` 算一遍，而页面上摆着订阅段、provider 本来就会
+# 再算一遍。删掉路由那份，两条路径共用 provider 这一个来源。
+
+# ---------- 必填 ----------
+module: newsletter
+surfaces: [ssr]
+goal: |
+  `/subscribe`、`/newsletter/confirm`、`/newsletter/unsubscribe` 渲染前跑一遍
+  marketing 的 `resolveSectionContexts`（按本页 header/footer/sections 收集到的段
+  type），与本模块自己的按请求上下文合并后交给 `renderMarketingHtml`，
+  让这三张页的页头页脚与 CMS 页一条口径。
+gold: packages/builtin/marketing/server/ssr.routes.ts # renderLogicalPath 里 collect + resolve + 传 contributed 那一段
+touch:
+  - modules/newsletter/features/ssr-page-section-contexts.spec.yaml
+  - modules/newsletter/server/newsletter.ssr.ts
+  - modules/newsletter/server/newsletter.ssr.test.ts # 后续上收到 marketing（见下）
+  - modules/newsletter/shared/newsletter-section-context.ts # 只改文件头注释里已过时的那句
+  - modules/newsletter/MODULE.md
+out_of_scope:
+  - 改 marketing 内核（helper 写在贡献方；通用管线那三处 call site 不动）
+  - 其余贡献方的同类缺口（shop / site-docs / site-member / site-billing 的自有 SSR 页
+    也不跑 provider，各自修，别在本次一起改）
+  # ↑ 这两条后来都推翻了：五个贡献方各抄一份「收集 + 跑 provider + 合并」就是五份会各自
+  #   漂的实现，于是把这一步上收成 marketing 的 `resolvePageContributed`，本模块改走它。
+  #   见 packages/builtin/marketing/features/ssr-page-contributed.spec.yaml，
+  #   本 spec 的用例也一并挪去了 marketing/server/page-contributed.test.ts。
+  - 会员会话（`resolveSiteMemberSsrSession`）：这三张页至今按未登录渲染账户入口，
+    是另一个已存在的口径问题，不在本次范围
+  - events 那个「拿不到就显示七格」的兜底方向（它是对的，别为了这个 bug 去改成七格全关）
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/newsletter test
+  - node scripts/verify-module.mjs newsletter
+  - pnpm check:modules
+  - curl -sH 'Accept: text/html' http://yestino.localhost:7300/subscribe | grep -c '/topics/' # 与 /zh-CN/subscribe 同数
+
+# ---------- 可选 ----------
+entitlement: newsletter
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. **合并粒度是模块键内部，不是整键覆盖。**
+#    `mergeContributedRecords` 后来者整键替换。本模块自己那份（token / 这次点的结果）
+#    要盖在 provider 那份（labels / `?list=` 范围）之上，但不能把它整个顶掉——
+#    确认页上同时摆着订阅段时两者都要在。所以先 `{...providerNewsletter, ...own}`
+#    再交给 merge。
+#
+# 2. **订阅页不再自己算 labels。** 页面上摆着订阅段，provider 会算；路由再算一遍
+#    等于每次请求多打一轮 `listAvailableLists`。`?list=` 的校验早就收在 provider 里
+#    （见 `section-context.ts` 文件头），路由这份留着只会让两条路径慢慢漂。
+#
+# 3. **provider 失败不许让退订页 500。** `resolveSectionContexts` 内部已经按 provider
+#    吞异常，这里不要再加自己的 try/catch 兜底逻辑；页头少一块，退订照样能点。
+#
+# 4. **`homePath` / `homeLayoutKey` 要传。** 贡献段按它拼站内链接（事件枢纽当首页时
+#    详情落在 `/:slug`）。用 `resolveVisitorHomePath`——这三张页的 path 都不是 `/`，
+#    它只会回当前的 home mount，不改写路径。
+#
+# 5. **测试不拉整站。** 测的是「收集 + 合并」这一步：假注册一个 provider，
+#    断言 header 上的块拿得到它的数据、且本模块自己那份仍然盖得住同名字段。
+#    整条路由要 prisma，不在单测里拉起来。

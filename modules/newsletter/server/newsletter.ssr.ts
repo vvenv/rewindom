@@ -15,14 +15,12 @@
 import { maskEmail } from "./subscriber-query.service.js";
 import { resolveSiteOrigin } from "./site-origin.js";
 import { createNewsletterPresetTranslator } from "./preset-i18n.js";
-import { buildNewsletterSectionContext } from "./section-context.js";
 import {
   confirmSubscription,
   findByUnsubscribeToken,
   unsubscribe,
 } from "./subscriber.service.js";
 
-import { findNewsletterSource } from "../shared/newsletter-source.js";
 import { newsletterContextEntry } from "../shared/newsletter-section-context.js";
 import {
   NEWSLETTER_CONFIRM_PATH,
@@ -36,11 +34,14 @@ import { NEWSLETTER_CONFIRM_PAGE_KIND } from "../shared/sections/confirm/definit
 import { NEWSLETTER_SUBSCRIBE_PAGE_KIND } from "../shared/sections/subscribe/definition.js";
 import { NEWSLETTER_UNSUBSCRIBE_PAGE_KIND } from "../shared/sections/unsubscribe/definition.js";
 
+import { resolvePageContributed } from "@rewindom/builtin/marketing/server/page-contributed.js";
+import { cookiesFromHeader } from "@rewindom/builtin/marketing/server/section-context-providers.js";
 import { resolveSiteAccountEntry } from "@rewindom/builtin/marketing/server/site-account-entry.js";
 import { resolveSectionEntitlements } from "@rewindom/builtin/marketing/server/site-entitlements.js";
 import {
   getPublishedTemplatePage,
   getSiteChromeOrFallback,
+  resolveVisitorHomePath,
 } from "@rewindom/builtin/marketing/server/site.service.js";
 import {
   renderMarketingHtml,
@@ -56,10 +57,7 @@ import {
   resolveRequestHostname,
 } from "@rewindom/module-sdk/server";
 
-import type {
-  NewsletterRenderContext,
-  NewsletterSubscribeScope,
-} from "../shared/newsletter-section-context.js";
+import type { NewsletterRenderContext } from "../shared/newsletter-section-context.js";
 import type { PagePreset } from "@rewindom/builtin/marketing/shared/page-presets.types.js";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
@@ -144,10 +142,11 @@ async function renderPanelPage(
   request: FastifyRequest,
   reply: FastifyReply,
   spec: PageSpec,
-  buildContext: (
-    locale: string,
-    tenantId: string,
-  ) => NewsletterRenderContext | Promise<NewsletterRenderContext>,
+  /**
+   * 本模块自己的按请求状态。订阅页留空：页面上摆着订阅段，文案表与 `?list=` 范围
+   * 由本模块登记的 provider 算（`register.ts`），路由再算一遍只会让两条路径慢慢漂。
+   */
+  own: NewsletterRenderContext = {},
 ): Promise<FastifyReply> {
   await ensureHostTenant(request);
   const hostTenant = request.hostTenantContext;
@@ -189,6 +188,32 @@ async function renderPanelPage(
     resolveSectionEntitlements(hostTenant.tenant_id),
   ]);
   /*
+   * 贡献段按 home mount 拼站内链接（事件枢纽当首页时详情落在 `/:slug`）。这三张页的
+   * path 都不是 `/`，`resolveVisitorHomePath` 只会回当前挂载点，不改写路径。
+   */
+  const home = await resolveVisitorHomePath({
+    tenantId: hostTenant.tenant_id,
+    path: spec.path,
+    entitlements,
+  });
+  /*
+   * 页头页脚上的贡献块要的数据与 CMS 页同一条口径（见 `page-contributed.ts`）。
+   * **不跳过订阅段**：那份文案表与 `?list=` 范围以本模块登记的 provider 为唯一来源，
+   * 路由再算一遍只会让两条路径慢慢漂。
+   */
+  const contributed = await resolvePageContributed({
+    tenantId: hostTenant.tenant_id,
+    locale,
+    defaultLocale: site.default_locale,
+    site,
+    sections: template.sections,
+    own: newsletterContextEntry(own),
+    cookies: cookiesFromHeader(request.headers.cookie),
+    query: request.query as Record<string, unknown>,
+    homePath: home.homePath,
+    homeLayoutKey: home.homeLayoutKey,
+  });
+  /*
    * 请求头拿不到 origin（代理没透传 Host 之类）时回落到按租户解析的站点地址——
    * 这两张页的 canonical / og 都靠它，空着会让整页的绝对地址全错。
    */
@@ -218,9 +243,7 @@ async function renderPanelPage(
       },
       accountEntryHtml: accountEntry.html,
       enabledEntitlements: entitlements,
-      contributed: newsletterContextEntry(
-        await buildContext(locale, hostTenant.tenant_id),
-      ),
+      contributed,
     }),
   );
 }
@@ -231,20 +254,8 @@ export async function newsletterSsrRoutes(app: FastifyInstance): Promise<void> {
     url: NEWSLETTER_SUBSCRIBE_PATH,
     context: "NewsletterSubscribePage",
     errorCode: "NEWSLETTER_SUBSCRIBE_PAGE_FAILED",
-    handler: async (request, reply) => {
-      const requested = (request.query as { list?: string }).list?.trim() ?? "";
-      return renderPanelPage(
-        request,
-        reply,
-        SUBSCRIBE_SPEC,
-        async (locale, tenantId) =>
-          buildNewsletterSectionContext({
-            tenant_id: tenantId,
-            locale,
-            requested_list: requested,
-          }),
-      );
-    },
+    handler: async (request, reply) =>
+      renderPanelPage(request, reply, SUBSCRIBE_SPEC),
   });
 
   defineRoute(app, {
@@ -254,14 +265,14 @@ export async function newsletterSsrRoutes(app: FastifyInstance): Promise<void> {
     errorCode: "NEWSLETTER_CONFIRM_PAGE_FAILED",
     handler: async (request, reply) => {
       const token = queryToken(request);
-      return renderPanelPage(request, reply, CONFIRM_SPEC, () => ({
+      return renderPanelPage(request, reply, CONFIRM_SPEC, {
         confirm: {
           // 没有 token 的裸访问直接给失效态，不出一个点了没反应的按钮
           result: token ? "form" : "invalid",
           token,
           action: NEWSLETTER_CONFIRM_PATH,
         },
-      }));
+      });
     },
   });
 
@@ -282,14 +293,14 @@ export async function newsletterSsrRoutes(app: FastifyInstance): Promise<void> {
           ? await confirmSubscription(hostTenant.tenant_id, token)
           : false;
 
-      return renderPanelPage(request, reply, CONFIRM_SPEC, () => ({
+      return renderPanelPage(request, reply, CONFIRM_SPEC, {
         // 失效与不存在给同一个状态：不透露某个 token 是否真的存在过
         confirm: {
           result: ok ? "ok" : "invalid",
           token,
           action: NEWSLETTER_CONFIRM_PATH,
         },
-      }));
+      });
     },
   });
 
@@ -302,7 +313,7 @@ export async function newsletterSsrRoutes(app: FastifyInstance): Promise<void> {
       const token = queryToken(request);
       const found = token ? await findByUnsubscribeToken(token) : null;
 
-      return renderPanelPage(request, reply, UNSUBSCRIBE_SPEC, () => ({
+      return renderPanelPage(request, reply, UNSUBSCRIBE_SPEC, {
         unsubscribe: {
           result: found ? "form" : "invalid",
           token,
@@ -311,7 +322,7 @@ export async function newsletterSsrRoutes(app: FastifyInstance): Promise<void> {
           email: found ? maskEmail(found.target.email) : "",
           lists: found?.target.lists ?? [],
         },
-      }));
+      });
     },
   });
 
@@ -325,7 +336,7 @@ export async function newsletterSsrRoutes(app: FastifyInstance): Promise<void> {
       const listKeys = bodyField(request, "list_keys");
       const ok = token ? await unsubscribe(token, listKeys) : false;
 
-      return renderPanelPage(request, reply, UNSUBSCRIBE_SPEC, () => ({
+      return renderPanelPage(request, reply, UNSUBSCRIBE_SPEC, {
         unsubscribe: {
           result: ok ? "ok" : "invalid",
           token,
@@ -333,7 +344,7 @@ export async function newsletterSsrRoutes(app: FastifyInstance): Promise<void> {
           email: "",
           lists: [],
         },
-      }));
+      });
     },
   });
 }

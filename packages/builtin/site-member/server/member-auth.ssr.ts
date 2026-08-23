@@ -22,9 +22,12 @@ import { normalizeLocale } from "@rewindom/shared";
 import { AuditAction } from "../../audit/shared/index.js";
 import { resolveSiteAccountEntry } from "../../marketing/server/site-account-entry.js";
 import { resolveSectionEntitlements } from "../../marketing/server/site-entitlements.js";
+import { resolvePageContributed } from "../../marketing/server/page-contributed.js";
+import { cookiesFromHeader } from "../../marketing/server/section-context-providers.js";
 import {
   getPublishedTemplatePage,
   getSiteChromeOrFallback,
+  resolveVisitorHomePath,
   resolveVisitorPageLocale,
 } from "../../marketing/server/site.service.js";
 import {
@@ -66,7 +69,6 @@ import {
   isSiteMemberEnabledForHost,
   resolveSiteTenant,
 } from "./site-member-tenant.js";
-
 
 import type { PagePreset } from "../../marketing/shared/page-presets.types.js";
 import type { SiteMemberCaptchaInput } from "../shared/site-member.js";
@@ -218,6 +220,30 @@ async function renderAuthPage(
     captcha_challenge_path: "/api/captcha/challenge",
   };
 
+  /*
+   * 页头页脚上的贡献块与 CMS 页一条口径（见 `marketing/server/page-contributed.ts`）：
+   * 不跑这一步，这张页的页头就只剩兜底——事件主题格会把租户关掉的格子也挂出来，
+   * 购物车入口的件数恒为空。
+   */
+  const home = await resolveVisitorHomePath({
+    tenantId: hostTenant.tenant_id,
+    path: spec.path,
+    entitlements,
+  });
+  const contributed = await resolvePageContributed({
+    tenantId: hostTenant.tenant_id,
+    locale,
+    defaultLocale: site.default_locale,
+    site,
+    sections: template.sections,
+    own: memberAuthContextEntry(authContext),
+    cookies: cookiesFromHeader(request.headers.cookie),
+    query: request.query as Record<string, unknown>,
+    memberId: null,
+    homePath: home.homePath,
+    homeLayoutKey: home.homeLayoutKey,
+  });
+
   sendHtml(
     reply,
     state.status,
@@ -242,7 +268,7 @@ async function renderAuthPage(
       },
       accountEntryHtml: accountEntry.html,
       enabledEntitlements: entitlements,
-      contributed: memberAuthContextEntry(authContext),
+      contributed,
     }),
   );
 }

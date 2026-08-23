@@ -132,9 +132,17 @@ chrome 块是**链接**不是内嵌输入框：页头页脚那一排寸土寸金
 那些链接就全废了。`auto_init: false`：不给存量站点凭空多两张删不掉的空版式。
 
 按请求的状态（token、这次点的结果、订了哪些列表）走 `contributed["newsletter"]`，
-由本模块自己的 SSR 路由传给 `renderMarketingHtml`——这两张页不走 CMS 页面管线，
-所以**不需要** `registerSectionContextProvider`。编辑器预览拿不到上下文，渲染器把
+由本模块自己的 SSR 路由传给 `renderMarketingHtml`：这一份没有 provider，因为
+`SectionContextInput` 里根本没有 token 这种东西。编辑器预览拿不到上下文，渲染器把
 `undefined` 当表单态，那正是预览该显示的样子。
+
+**但页头页脚的贡献块要的上下文，仍然得跑一遍 marketing 的 `resolveSectionContexts`**
+（`resolvePanelContributed`）。不跑的后果：`/subscribe` 的页头挂着租户已经关掉的事件
+主题格（events 拿不到 `nav_topics` 时兜底显示全部七格），而同一张页的
+`/zh-CN/subscribe` 落到 marketing 通用管线、跑过 provider，只挂启用的那几格——同一张
+页两个样子。**贡献上下文属于「这张页面摆了哪些段」，不属于哪条路由。**
+自己那份按请求状态**键内合并**盖在 provider 那份之上（确认页上也可能摆着订阅段，
+两者都要在），而不是整键替换。
 
 站点没发布、版式没落库都要能打开（`requireSite: false` + 预设兜底）：
 退订不能因为站长把官网下线、或还没点过「初始化版式」就失效。
