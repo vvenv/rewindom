@@ -20,6 +20,8 @@ export * from "@rewindom/server-kernel/runtime/job-registry.js";
 export * from "@rewindom/server-kernel/runtime/register-tenant-gated-routes.js";
 export * from "@rewindom/server-kernel/runtime/audit-log-emit.js";
 export * from "@rewindom/server-kernel/http/define-route.js";
+/* 公开面的表单页要自己登记 urlencoded 解析器，否则真 `<form method="post">` 被挡成 415 */
+export * from "@rewindom/server-kernel/http/form-body.js";
 export * from "@rewindom/server-kernel/http/list-sort.js";
 export * from "@rewindom/server-kernel/http/multipart-upload.js";
 export * from "@rewindom/server-kernel/http/pagination.js";

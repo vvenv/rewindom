@@ -1,0 +1,63 @@
+# 确认页 / 退订页的表单提交全部回 415（修 bug）。
+#
+# 现场（生产）：`https://yestino.com/newsletter/confirm` 点「确认订阅」，回的是
+# `{"error":"Unsupported Media Type","code":"FST_ERR_CTP_INVALID_MEDIA_TYPE"}`。
+#
+# 原因：Fastify 默认只认 `application/json` / `text/plain`，真 `<form method="post">`
+# 发的是 `application/x-www-form-urlencoded`。site-member（`formBodyParser`）与 shop
+# 都各自在自己的作用域里登记过这条解析器，**newsletter 从交付起就没登记**——两张页的
+# POST 在进 handler 之前就被挡掉了，一次都没成功过。
+#
+# 影响面比「点了没反应」更大：一键退订（`List-Unsubscribe-Post`）是邮件服务商的服务器
+# 发来的 `List-Unsubscribe=One-Click` 表单 POST，同样被 415 挡掉。读者退不掉订阅就会去
+# 点「举报垃圾邮件」，那会烧掉整个发信域的声誉——MODULE.md 里写着的那条底线。
+#
+# 解析器上收到 server-kernel：这是第三个需要它的模块了，再抄一份就是三份各自漂的实现。
+
+# ---------- 必填 ----------
+module: newsletter
+surfaces: [ssr]
+goal: |
+  server-kernel 提供 `registerFormBodyParser(app)`（经 module-sdk/server 导出），
+  newsletter 的 SSR 插件在自己的作用域里登记一次，让确认页 / 退订页的表单提交与
+  一键退订都能进 handler。
+gold: packages/builtin/site-member/server/member-ssr-common.ts # 已有的 formBodyParser 与作用域口径
+touch:
+  - modules/newsletter/features/form-post-body-parser.spec.yaml
+  - packages/server-kernel/src/http/form-body.ts
+  - packages/server-kernel/src/http/form-body.test.ts
+  - packages/module-sdk/src/server.ts # 导出给外部模块
+  - modules/newsletter/server/newsletter.ssr.ts # 登记一次
+  - modules/newsletter/MODULE.md
+out_of_scope:
+  - 把 site-member / shop 那两份改成用新 helper：它们用的是
+    `Object.fromEntries(new URLSearchParams(...))`（同名字段只留最后一个），
+    而新 helper 保留数组（退订页勾多个列表要用）。语义不同，迁移要单独评估，
+    不能顺手改——会悄悄改掉结算表单的行为
+  - 在组装层给所有路由一次性挂解析器：同作用域重复登记同一 content-type 会抛，
+    而且会把 JSON-only 的 API 口也变成能收表单
+  - 确认 / 退订的业务口径（同源校验、token 语义、一律不区分失效与不存在）一律不动
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/server-kernel exec vitest --run src/http/form-body.test.ts
+  - pnpm --filter @rewindom/newsletter test
+  - pnpm check:modules
+  # 线上口径：POST 表单不再是 415
+  - curl -si -X POST -H 'Content-Type:application/x-www-form-urlencoded' --data 'token=x' https://yestino.com/newsletter/confirm
+
+# ---------- 可选 ----------
+entitlement: newsletter
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. **登记在插件作用域里，不在组装层。** `module.ts` 走的是
+#    `app.register(newsletterSsrRoutes)`，解析器只对这几条路由生效；同一作用域重复
+#    登记同一种 content-type 会抛 `FST_ERR_CTP_ALREADY_PRESENT`。
+#
+# 2. **同名字段保留数组。** 退订页的列表复选框是 `list_keys` 重复出现；
+#    `Object.fromEntries` 只留最后一个 = 读者勾了三个列表只退掉一个。
+#    路由侧的 `bodyField()` 本来就同时认字符串与数组。
+#
+# 3. **退订 POST 仍然不校验同源**（一键退订来自邮件服务商的服务器，没有我们的 Origin）。
+#    本次只放开 body 解析，那条口径不动。

@@ -52,6 +52,7 @@ import { parseMarketingSsrPath } from "@rewindom/builtin/marketing/shared/site-l
 import {
   defineRoute,
   normalizeLocale,
+  registerFormBodyParser,
   requestOriginFromHeaders,
   resolveHostTenant,
   resolveRequestHostname,
@@ -249,6 +250,20 @@ async function renderPanelPage(
 }
 
 export async function newsletterSsrRoutes(app: FastifyInstance): Promise<void> {
+  /*
+   * 确认页与退订页是真 `<form method="post">`（无 JS 也必须能用）。Fastify 默认只认
+   * JSON——不登记这一条，两张页的提交在进 handler 之前就被挡成 415
+   * `FST_ERR_CTP_INVALID_MEDIA_TYPE`：读者点「确认订阅」看到的是一段报错 JSON。
+   *
+   * 一键退订更要命：`List-Unsubscribe-Post` 是邮件服务商的服务器发来的
+   * `List-Unsubscribe=One-Click` 表单 POST，同样被 415 挡掉——读者退不掉，只能去点
+   * 「举报垃圾邮件」。
+   *
+   * 登记在本插件作用域里（`module.ts` 用的是 `app.register(newsletterSsrRoutes)`）：
+   * 同一作用域重复登记同一种 content-type 会抛，所以每个提供表单页的插件各自调一次。
+   */
+  registerFormBodyParser(app);
+
   defineRoute(app, {
     method: "GET",
     url: NEWSLETTER_SUBSCRIBE_PATH,

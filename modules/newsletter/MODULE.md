@@ -52,6 +52,12 @@ Gmail 的图片代理能把整个名单退光。
 **无 JS 也要能确认和退订。** 两张页都是真 `<form method="post">`。订阅入口可以依赖 JS
 （enhance 脚本），退订不行。
 
+**因此 SSR 插件必须登记 `registerFormBodyParser(app)`**（module-sdk/server）。Fastify 默认
+只认 JSON，不登记的话表单提交在进 handler 之前就被挡成 415
+`FST_ERR_CTP_INVALID_MEDIA_TYPE`——读者点「确认订阅」看到的是一段报错 JSON；一键退订
+（`List-Unsubscribe-Post` 发的也是 urlencoded 表单）同样退不掉。解析器登记在本插件的
+封装作用域里：同一作用域重复登记同一种 content-type 会抛。
+
 **退订 POST 不校验同源。** `List-Unsubscribe-Post` 的一键退订是邮件服务商的服务器发来的
 POST，没有我们的 Origin。token 本身就是凭证（32 字节随机量），而且退订是「宁可多退，
 不可退不掉」的操作。确认页则校验同源。
