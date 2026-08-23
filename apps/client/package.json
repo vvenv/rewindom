@@ -22,6 +22,7 @@
     "@rewindom/builtin": "workspace:*",
     "@rewindom/client-kit": "workspace:*",
     "@rewindom/events": "workspace:*",
+    "@rewindom/newsletter": "workspace:*",
     "@rewindom/note": "workspace:*",
     "@rewindom/shared": "workspace:*",
     "@rewindom/shop": "workspace:*",

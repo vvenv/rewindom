@@ -36,6 +36,7 @@
     "@rewindom/bookmark": "workspace:*",
     "@rewindom/builtin": "workspace:*",
     "@rewindom/events": "workspace:*",
+    "@rewindom/newsletter": "workspace:*",
     "@rewindom/note": "workspace:*",
     "@rewindom/server-kernel": "workspace:*",
     "@rewindom/shared": "workspace:*",

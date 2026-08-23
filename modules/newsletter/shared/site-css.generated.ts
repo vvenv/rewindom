@@ -1,0 +1,7 @@
+/**
+ * GENERATED — do not edit.
+ * Source: co-located `.css` files under `shared/site-css/`.
+ * Regenerate: `pnpm --filter @rewindom/builtin assemble:module-css`
+ */
+
+export const NEWSLETTER_CSS = `.newsletter-subscribe{display:flex;flex-direction:column;gap:.5rem}.newsletter-row{display:flex;flex-wrap:wrap;gap:.5rem;align-items:stretch}.newsletter-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.newsletter-input{flex:1 1 16rem;min-width:0;padding:.625rem .875rem;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--fg);font:inherit}.newsletter-input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}.newsletter-submit{flex:0 0 auto}.newsletter-hint{margin:0;color:var(--muted-fg);font-size:.8125rem}.newsletter-message:empty{display:none}.newsletter-message{margin:0;font-size:.875rem}.newsletter-message[data-tone=error]{color:var(--destructive, #d33)}.newsletter-message[data-tone=success]{color:var(--accent)}`;

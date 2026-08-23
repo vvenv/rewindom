@@ -1,0 +1,75 @@
+{
+  "nav": {
+    "newsletter": "Newsletter"
+  },
+  "page": {
+    "title": "Newsletter",
+    "description": "Who subscribed, and how each digest run went"
+  },
+  "lists": {
+    "heading": "Available lists",
+    "description": "When the subscribe section leaves the list blank, visitors subscribe to all of these",
+    "empty": "No content source has registered a subscribable list yet",
+    "lastRun": "Last run",
+    "never": "Never run",
+    "items": "{{count}} items",
+    "recipients": "{{count}} recipients",
+    "runNow": "Run now",
+    "ran": "Finished a run: {{sent}} group(s) sent",
+    "export": "Export list"
+  },
+  "status": {
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "unsubscribed": "Unsubscribed",
+    "bounced": "Bounced"
+  },
+  "cadence": {
+    "daily": "Daily",
+    "weekly": "Weekly"
+  },
+  "filters": {
+    "q": "Search email",
+    "status": "Status",
+    "allStatuses": "All statuses"
+  },
+  "table": {
+    "email": "Email",
+    "status": "Status",
+    "lists": "Lists",
+    "locale": "Locale",
+    "source": "Source page",
+    "created": "Subscribed",
+    "confirmed": "Confirmed",
+    "delete": "Delete",
+    "deleted": "Subscriber deleted",
+    "none": "None"
+  },
+  "empty": {
+    "title": "No subscribers yet",
+    "hint": "Drop the Newsletter section onto a site page so visitors can sign up"
+  },
+  "confirmDelete": {
+    "title": "Delete this subscriber?",
+    "description": "Their subscriptions are removed too. This cannot be undone."
+  },
+  "section": {
+    "subscribe": {
+      "label": "Newsletter signup",
+      "group": "Subscription",
+      "listKey": "List",
+      "listKeyInfo": "Leave blank to subscribe to every list on this site (usually what you want). To target one list, use a key from the Available lists panel.",
+      "cadence": "Digest frequency",
+      "placeholder": "Input placeholder",
+      "submitLabel": "Button label",
+      "hint": "Supporting line",
+      "hintInfo": "A small line under the input, e.g. \"No account needed, unsubscribe any time\"",
+      "successMessage": "Message after submitting"
+    }
+  },
+  "form": {
+    "emailPlaceholder": "your@email.com",
+    "submit": "Subscribe",
+    "successDefault": "Check your inbox and click the confirmation link"
+  }
+}

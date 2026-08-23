@@ -20,6 +20,7 @@
     "@napi-rs/canvas": "^1.0.7",
     "@rewindom/builtin": "workspace:*",
     "@rewindom/module-sdk": "workspace:*",
+    "@rewindom/newsletter": "workspace:*",
     "@rewindom/ui": "workspace:*",
     "@tanstack/react-query": "^5.101.4",
     "lucide-react": "^1.33.0",
@@ -49,7 +50,8 @@
       "rbac",
       "audit",
       "platform",
-      "marketing"
+      "marketing",
+      "newsletter"
     ]
   }
 }

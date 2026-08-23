@@ -98,6 +98,9 @@ export const AuditAction = {
   MAILER_CONFIG_UPDATE: "MAILER_CONFIG_UPDATE",
   MAILER_TEST_SEND: "MAILER_TEST_SEND",
   MAILER_DELIVERY_RETRY: "MAILER_DELIVERY_RETRY",
+  NEWSLETTER_SUBSCRIBER_DELETE: "NEWSLETTER_SUBSCRIBER_DELETE",
+  NEWSLETTER_SUBSCRIBER_EXPORT: "NEWSLETTER_SUBSCRIBER_EXPORT",
+  NEWSLETTER_DIGEST_RUN: "NEWSLETTER_DIGEST_RUN",
 } as const;
 
 export type AuditActionType = (typeof AuditAction)[keyof typeof AuditAction];
@@ -256,6 +259,9 @@ export const AUDIT_ACTION_LABELS: Record<AuditActionType, string> = {
   [AuditAction.MAILER_CONFIG_UPDATE]: "更新发信配置",
   [AuditAction.MAILER_TEST_SEND]: "发送测试邮件",
   [AuditAction.MAILER_DELIVERY_RETRY]: "重试失败投递",
+  [AuditAction.NEWSLETTER_SUBSCRIBER_DELETE]: "删除订阅者",
+  [AuditAction.NEWSLETTER_SUBSCRIBER_EXPORT]: "导出订阅者名单",
+  [AuditAction.NEWSLETTER_DIGEST_RUN]: "手动触发摘要投递",
 };
 
 export const AUDIT_ACTION_GROUPS = [
@@ -404,6 +410,14 @@ export const AUDIT_ACTION_GROUPS = [
       AuditAction.MAILER_CONFIG_UPDATE,
       AuditAction.MAILER_TEST_SEND,
       AuditAction.MAILER_DELIVERY_RETRY,
+    ],
+  },
+  {
+    label: "邮件订阅",
+    actions: [
+      AuditAction.NEWSLETTER_SUBSCRIBER_DELETE,
+      AuditAction.NEWSLETTER_SUBSCRIBER_EXPORT,
+      AuditAction.NEWSLETTER_DIGEST_RUN,
     ],
   },
 ] as const;

@@ -33,8 +33,18 @@ entitlement:
 
 # ---------- 必填 · 权限 ----------
 permissions:
-  - { key: newsletter.read, label: 查看订阅者, group: 邮件订阅, description: 查看订阅者名单与摘要投递记录 }
-  - { key: newsletter.write, label: 管理订阅, group: 邮件订阅, description: 删除订阅者、导出名单、手动触发摘要 }
+  - {
+      key: newsletter.read,
+      label: 查看订阅者,
+      group: 邮件订阅,
+      description: 查看订阅者名单与摘要投递记录,
+    }
+  - {
+      key: newsletter.write,
+      label: 管理订阅,
+      group: 邮件订阅,
+      description: 删除订阅者、导出名单、手动触发摘要,
+    }
 
 # ---------- 必填 · 数据模型 ----------
 models:
@@ -71,7 +81,13 @@ models:
       # 贡献方登记的列表标识，如 events:topic:ai。本模块只当它是字符串
       - { name: list_key, type: String, required: true, label: 订阅列表 }
       # daily | weekly —— 摘要周期跟订阅走，同一个人可以按不同频率订不同列表
-      - { name: cadence, type: String, required: true, default: "weekly", label: 周期 }
+      - {
+          name: cadence,
+          type: String,
+          required: true,
+          default: "weekly",
+          label: 周期,
+        }
     indexes:
       - [tenant_id, subscriber_id, list_key]
       - [tenant_id, list_key, cadence]
@@ -84,8 +100,20 @@ models:
       # 进程重启、任务漏跑、时钟漂移都会让时间窗算错，游标不会
       - { name: cursor, type: String, required: false }
       - { name: last_run_at, type: DateTime, required: false, label: 上次投递 }
-      - { name: item_count, type: String, required: true, default: "0", label: 条目数 }
-      - { name: recipient_count, type: String, required: true, default: "0", label: 收件数 }
+      - {
+          name: item_count,
+          type: String,
+          required: true,
+          default: "0",
+          label: 条目数,
+        }
+      - {
+          name: recipient_count,
+          type: String,
+          required: true,
+          default: "0",
+          label: 收件数,
+        }
     indexes:
       - [tenant_id, list_key, cadence]
       - [tenant_id, last_run_at]
@@ -181,7 +209,8 @@ registry:
 jobs:
   - {
       id: newsletter-digest,
-      note: 按 cadence 扫到期的 (list_key, cadence)，拉条目 → 组装 → 逐人投递 → 推进游标,
+      note: 按 cadence 扫到期的 (list_key,
+      cadence)，拉条目 → 组装 → 逐人投递 → 推进游标,
     }
 
 # ---------- 设计要点（实现时按此，偏离先改本 spec）----------

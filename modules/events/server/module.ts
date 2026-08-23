@@ -18,6 +18,7 @@ import "./ssr/events-preset-i18n.js";
 
 import { EVENTS_ENTITLEMENT, eventsReservedSlugs } from "../shared/index.js";
 import { registerEventsPageTemplates } from "../shared/events-page-templates.js";
+import { registerEventsNewsletterSource } from "./newsletter-source.provider.js";
 import { registerEventsNavSources } from "../shared/nav-sources.js";
 
 export const eventsServerModule: ServerAppModule = {
@@ -26,7 +27,7 @@ export const eventsServerModule: ServerAppModule = {
   label: "Events",
   kind: "business",
   description: "跨来源发现事件、重建时间线并持续追踪",
-  requires: ["rbac", "audit", "platform", "marketing"],
+  requires: ["rbac", "audit", "platform", "marketing", "newsletter"],
   tenantEntitlements: [EVENTS_ENTITLEMENT],
   shared: {
     permissions: [
@@ -78,6 +79,8 @@ export const eventsServerModule: ServerAppModule = {
      */
     onBoot: async () => {
       registerEventsPageTemplates();
+      // 把本站的主题登记成可订阅列表；newsletter 不认识 events，只认 list_key
+      registerEventsNewsletterSource();
       registerEventsNavSources();
       registerEventsSections();
       registerEventsPathHandler();

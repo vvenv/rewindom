@@ -186,6 +186,24 @@ export type MarketingAsset = Prisma.MarketingAssetModel
  */
 export type MarketingPageVersion = Prisma.MarketingPageVersionModel
 /**
+ * Model NewsletterSubscriber
+ * 订阅者：一个站点内一个邮箱一行。
+ * 访客是匿名的，所以身份全靠两个 token——确认用一次性的，退订用长期有效的。
+ */
+export type NewsletterSubscriber = Prisma.NewsletterSubscriberModel
+/**
+ * Model NewsletterSubscription
+ * 订阅关系：订阅者 × 列表。
+ * `list_key` 是贡献方登记的标识（如 `events:topic:ai`），本模块只当它是字符串——
+ * 这正是解耦的落点：newsletter 永远不认识内容来自哪个模块。
+ */
+export type NewsletterSubscription = Prisma.NewsletterSubscriptionModel
+/**
+ * Model NewsletterDigestRun
+ * 摘要投递的游标。一个 (list_key, cadence) 一行。
+ */
+export type NewsletterDigestRun = Prisma.NewsletterDigestRunModel
+/**
  * Model Note
  * 
  */

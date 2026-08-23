@@ -2,6 +2,7 @@
 // 外部模块（modules/*）的 client manifest 聚合。
 import { bookmarkClientModule } from "@rewindom/bookmark/client/module.js";
 import { eventsClientModule } from "@rewindom/events/client/module.js";
+import { newsletterClientModule } from "@rewindom/newsletter/client/module.js";
 import { noteClientModule } from "@rewindom/note/client/module.js";
 import { shopClientModule } from "@rewindom/shop/client/module.js";
 import { siteDocsClientModule } from "@rewindom/site-docs/client/module.js";
@@ -13,6 +14,7 @@ import type { ClientAppModule } from "@rewindom/client-kit";
 export const EXTERNAL_CLIENT_MODULES = [
   bookmarkClientModule,
   eventsClientModule,
+  newsletterClientModule,
   noteClientModule,
   shopClientModule,
   siteDocsClientModule,

@@ -79,6 +79,9 @@ export const ModelName = {
   MarketingRedirect: 'MarketingRedirect',
   MarketingAsset: 'MarketingAsset',
   MarketingPageVersion: 'MarketingPageVersion',
+  NewsletterSubscriber: 'NewsletterSubscriber',
+  NewsletterSubscription: 'NewsletterSubscription',
+  NewsletterDigestRun: 'NewsletterDigestRun',
   Note: 'Note',
   Notification: 'Notification',
   NotificationLog: 'NotificationLog',
@@ -631,6 +634,56 @@ export const MarketingPageVersionScalarFieldEnum = {
 } as const
 
 export type MarketingPageVersionScalarFieldEnum = (typeof MarketingPageVersionScalarFieldEnum)[keyof typeof MarketingPageVersionScalarFieldEnum]
+
+
+export const NewsletterSubscriberScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  email: 'email',
+  locale: 'locale',
+  status: 'status',
+  confirm_token: 'confirm_token',
+  confirm_token_expires_at: 'confirm_token_expires_at',
+  confirmed_at: 'confirmed_at',
+  unsubscribe_token: 'unsubscribe_token',
+  unsubscribed_at: 'unsubscribed_at',
+  source_path: 'source_path',
+  ip: 'ip',
+  user_agent: 'user_agent',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type NewsletterSubscriberScalarFieldEnum = (typeof NewsletterSubscriberScalarFieldEnum)[keyof typeof NewsletterSubscriberScalarFieldEnum]
+
+
+export const NewsletterSubscriptionScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  subscriber_id: 'subscriber_id',
+  list_key: 'list_key',
+  cadence: 'cadence',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type NewsletterSubscriptionScalarFieldEnum = (typeof NewsletterSubscriptionScalarFieldEnum)[keyof typeof NewsletterSubscriptionScalarFieldEnum]
+
+
+export const NewsletterDigestRunScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  list_key: 'list_key',
+  cadence: 'cadence',
+  cursor: 'cursor',
+  last_run_at: 'last_run_at',
+  item_count: 'item_count',
+  recipient_count: 'recipient_count',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type NewsletterDigestRunScalarFieldEnum = (typeof NewsletterDigestRunScalarFieldEnum)[keyof typeof NewsletterDigestRunScalarFieldEnum]
 
 
 export const NoteScalarFieldEnum = {

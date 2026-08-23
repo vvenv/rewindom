@@ -1,0 +1,75 @@
+// 外部模块的 Prisma schema——由 gen:external-modules 符号链接到
+// apps/server/prisma/models/newsletter.prisma，汇入全局 schema。
+// 刻意不声明到 Tenant 的 relation：租户隔离由 tenant-guard 自动注入。
+
+/// 订阅者：一个站点内一个邮箱一行。
+/// 访客是匿名的，所以身份全靠两个 token——确认用一次性的，退订用长期有效的。
+model NewsletterSubscriber {
+  id                       String    @id @default(uuid())
+  tenant_id                String
+  email                    String
+  /// 订阅那一刻的页面语言，决定确认信 / 摘要 / 退订页说哪种话；不跟着站点默认语言改
+  locale                   String
+  /// pending | confirmed | unsubscribed | bounced
+  status                   String
+  /// 双重确认：未确认的地址不发任何摘要。一次性，确认后清空
+  confirm_token            String?
+  confirm_token_expires_at DateTime?
+  confirmed_at             DateTime?
+  /// 退订 token **长期有效且不清空**：它进每一封摘要的 List-Unsubscribe 头，
+  /// 读者半年后翻出旧邮件点退订也必须能退。与 confirm_token 是两个字段，不复用
+  unsubscribe_token        String    @unique
+  unsubscribed_at          DateTime?
+  /// 订阅来源页，用于站长判断哪个入口有效
+  source_path              String?
+  ip                       String
+  user_agent               String
+  created_at               DateTime  @default(now())
+  updated_at               DateTime  @updatedAt
+
+  subscriptions NewsletterSubscription[]
+
+  @@unique([tenant_id, email])
+  @@index([tenant_id, status])
+  @@index([tenant_id, created_at])
+  @@index([confirm_token])
+}
+
+/// 订阅关系：订阅者 × 列表。
+/// `list_key` 是贡献方登记的标识（如 `events:topic:ai`），本模块只当它是字符串——
+/// 这正是解耦的落点：newsletter 永远不认识内容来自哪个模块。
+model NewsletterSubscription {
+  id            String   @id @default(uuid())
+  tenant_id     String
+  subscriber_id String
+  list_key      String
+  /// daily | weekly —— 周期跟订阅走，同一个人可以按不同频率订不同列表
+  cadence       String   @default("weekly")
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  /// 同一物理包内的聚合关系，允许 relation（跨限界上下文才禁止）
+  subscriber NewsletterSubscriber @relation(fields: [subscriber_id], references: [id], onDelete: Cascade)
+
+  @@unique([tenant_id, subscriber_id, list_key])
+  @@index([tenant_id, list_key, cadence])
+}
+
+/// 摘要投递的游标。一个 (list_key, cadence) 一行。
+model NewsletterDigestRun {
+  id              String    @id @default(uuid())
+  tenant_id       String
+  list_key        String
+  cadence         String
+  /// 上一轮取到哪条为止。下一轮从这里往后要，**不靠「现在减去七天」算窗口**——
+  /// 进程重启、任务漏跑、时钟漂移都会让时间窗算错，游标不会
+  cursor          String?
+  last_run_at     DateTime?
+  item_count      Int       @default(0)
+  recipient_count Int       @default(0)
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  @@unique([tenant_id, list_key, cadence])
+  @@index([tenant_id, last_run_at])
+}

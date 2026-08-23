@@ -35,8 +35,18 @@ entitlement:
 
 # ---------- 必填 · 权限 ----------
 permissions:
-  - { key: mailer.read, label: 查看发信配置, group: 邮件发送, description: 查看发信通道状态与投递记录 }
-  - { key: mailer.write, label: 管理发信配置, group: 邮件发送, description: 配置发信通道、发送测试邮件、重试失败投递 }
+  - {
+      key: mailer.read,
+      label: 查看发信配置,
+      group: 邮件发送,
+      description: 查看发信通道状态与投递记录,
+    }
+  - {
+      key: mailer.write,
+      label: 管理发信配置,
+      group: 邮件发送,
+      description: 配置发信通道、发送测试邮件、重试失败投递,
+    }
 
 # ---------- 必填 · 数据模型 ----------
 # 配置**不在这里**：SMTP 主机/账号/密钥走 TenantSetting + tenant-secret-crypto，
@@ -106,9 +116,21 @@ options:
 
 # ---------- 手写面（gen-module 不生成，实现时补）----------
 extra_routes:
-  - { method: GET, path: /api/mailer/config, note: 回 status 形状，绝不回密钥明文 }
-  - { method: PUT, path: /api/mailer/config, note: 写 TenantSetting（加密），留审计 }
-  - { method: POST, path: /api/mailer/test, note: 往当前登录用户邮箱发一封测试信 }
+  - {
+      method: GET,
+      path: /api/mailer/config,
+      note: 回 status 形状，绝不回密钥明文,
+    }
+  - {
+      method: PUT,
+      path: /api/mailer/config,
+      note: 写 TenantSetting（加密），留审计,
+    }
+  - {
+      method: POST,
+      path: /api/mailer/test,
+      note: 往当前登录用户邮箱发一封测试信,
+    }
   - {
       method: POST,
       path: "/api/mailer/deliveries/:deliveryId/retry",
@@ -132,10 +154,7 @@ provider_contract:
     }): Promise<{ delivery_id: string; status: "queued" | "sent" }>;
     isConfigured(tenant_id: string): Promise<boolean>;
 drivers:
-  - {
-      id: smtp,
-      note: nodemailer；任何服务商与自建都能接，先做这个,
-    }
+  - { id: smtp, note: nodemailer；任何服务商与自建都能接，先做这个 }
   - {
       id: log,
       note: 邮件全文进日志/落盘；开发环境的零配置默认，NODE_ENV=production 下禁用,

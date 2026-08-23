@@ -1,0 +1,75 @@
+{
+  "nav": {
+    "newsletter": "邮件订阅"
+  },
+  "page": {
+    "title": "邮件订阅",
+    "description": "访客留下的订阅名单，以及每一轮摘要的投递结果"
+  },
+  "lists": {
+    "heading": "可订阅列表",
+    "description": "订阅段留空时，访客订的就是这里全部的列表",
+    "empty": "本站还没有任何内容源登记可订阅列表",
+    "lastRun": "上次投递",
+    "never": "尚未投递",
+    "items": "{{count}} 条",
+    "recipients": "{{count}} 人",
+    "runNow": "立即投递",
+    "ran": "已跑完一轮：{{sent}} 组发出",
+    "export": "导出名单"
+  },
+  "status": {
+    "pending": "待确认",
+    "confirmed": "已确认",
+    "unsubscribed": "已退订",
+    "bounced": "退信"
+  },
+  "cadence": {
+    "daily": "每日",
+    "weekly": "每周"
+  },
+  "filters": {
+    "q": "搜索邮箱",
+    "status": "状态",
+    "allStatuses": "全部状态"
+  },
+  "table": {
+    "email": "邮箱",
+    "status": "状态",
+    "lists": "订阅列表",
+    "locale": "语言",
+    "source": "来源页",
+    "created": "订阅时间",
+    "confirmed": "确认时间",
+    "delete": "删除",
+    "deleted": "已删除订阅者",
+    "none": "无"
+  },
+  "empty": {
+    "title": "还没有订阅者",
+    "hint": "把「邮件订阅」段拖到官网页面上，访客就能留邮箱了"
+  },
+  "confirmDelete": {
+    "title": "删除这个订阅者？",
+    "description": "会同时删掉他的全部订阅关系，且不可恢复。"
+  },
+  "section": {
+    "subscribe": {
+      "label": "邮件订阅",
+      "group": "订阅设置",
+      "listKey": "订阅列表",
+      "listKeyInfo": "留空即订阅本站全部可订阅列表（多数站点就该留空）。只想订某一个时，填工作台「可订阅列表」里的 key。",
+      "cadence": "摘要周期",
+      "placeholder": "输入框提示",
+      "submitLabel": "按钮文案",
+      "hint": "补充说明",
+      "hintInfo": "摆在输入框下面的一行小字，比如「不需要注册账号，随时可退订」",
+      "successMessage": "提交成功后说什么"
+    }
+  },
+  "form": {
+    "emailPlaceholder": "你的邮箱地址",
+    "submit": "订阅",
+    "successDefault": "确认邮件已发出，请到收件箱点确认链接"
+  }
+}

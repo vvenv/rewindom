@@ -1,0 +1,71 @@
+/* 邮件订阅段。真源是这个文件，assemble 后进 shared/site-css.generated.ts。 */
+
+.newsletter-subscribe {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* 窄屏堆叠、宽屏一行：订阅框摆在正文流里，不该在手机上把按钮挤成一条缝 */
+.newsletter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.newsletter-label {
+  /* 标签只给读屏软件；视觉上由 placeholder 承担 */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.newsletter-input {
+  flex: 1 1 16rem;
+  min-width: 0;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+}
+
+.newsletter-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.newsletter-submit {
+  flex: 0 0 auto;
+}
+
+.newsletter-hint {
+  margin: 0;
+  color: var(--muted-fg);
+  font-size: 0.8125rem;
+}
+
+/* 空消息节点不占位：aria-live 容器要常驻在 DOM 里，但没内容时不该撑出一行空白 */
+.newsletter-message:empty {
+  display: none;
+}
+
+.newsletter-message {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.newsletter-message[data-tone="error"] {
+  color: var(--destructive, #d33);
+}
+
+.newsletter-message[data-tone="success"] {
+  color: var(--accent);
+}

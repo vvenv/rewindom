@@ -52,5 +52,8 @@
   "tenantApiKey": "tenant_id",
   "tenantSetting": "tenant_id",
   "todo": "tenant_id",
-  "user": "tenant_id"
+  "user": "tenant_id",
+  "newsletterSubscriber": "tenant_id",
+  "newsletterSubscription": "tenant_id",
+  "newsletterDigestRun": "tenant_id"
 }

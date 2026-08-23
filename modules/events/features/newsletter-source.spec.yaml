@@ -24,17 +24,20 @@ touch:
   - modules/events/server/newsletter-source.provider.ts
   - modules/events/server/newsletter-source.provider.test.ts
   - modules/events/server/module.ts # onBoot 注册
-  - modules/events/client/locales/en.json
-  - modules/events/client/locales/zh-CN.json
-  - apps/server/scripts/lib/module-manifest.ts # requires 图同步
+  # 列表标签走 **server** i18n（`server/i18n.ts`），不是 client locales：
+  # 摘要投递是后台任务，拿不到 i18next 实例，只能用 translateServerMessage
+  - modules/events/server/i18n.ts
 out_of_scope:
   - 订阅表单 / 订阅入口 UI（那是 newsletter 贡献的段，本模块一行不写）
   - 邮件正文模板与发信（newsletter + mailer 的事）
   - 「事件有新进展」的追更摘要（见设计要点 3，第二期）
   - 实体列表进选择器候选（见设计要点 2）
   - 个人化摘要 / 按关注实体推送（那是登录态，订阅是匿名的）
+  # 取数只做一次，用这一组订阅者里占多数的语言。条目标题是数据、不翻译，
+  # 所以多语言订阅者拿到的内容本来就一样，差别只在链接的语言前缀。
+  - 按语言分别取数（多语言站点的链接前缀统一用多数语言）
   - 即时推送（第二期独立通道）
-i18n: code # 列表 label 走文案表；事件标题是数据，不翻译（与 public-rss 同口径）
+i18n: code # 列表 label 走 server 文案表；事件标题是数据，不翻译（与 public-rss 同口径）
 acceptance:
   - pnpm --filter @rewindom/events exec vitest --run server/newsletter-source.provider.test.ts
   - pnpm --filter @rewindom/events exec vitest --run
@@ -48,6 +51,7 @@ entitlement: events
 permissions: [] # 不新增；这条路径上没有登录态
 models: [] # 不落库，游标存在 newsletter 侧的 NewsletterDigestRun 上
 
+
 # ---------- 设计要点（实现时按此，偏离先改本 spec）----------
 # 1. **依赖方向单向：events → newsletter。**
 #    契约（NewsletterSource 类型 + registerNewsletterSource）住在 newsletter 的 shared，
@@ -55,8 +59,10 @@ models: [] # 不落库，游标存在 newsletter 侧的 NewsletterDigestRun 上
 #    在 onBoot 里注册自己。newsletter 永远不认识 events——它拿到的只是一串 list_key
 #    和一堆 { title, url, summary, published_at }。这与本模块给 translation 注册
 #    TranslationTermsProvider 是同一套做法，抄那份即可。
-#    package.json 的 `rewindom.requires` 与 module-manifest.ts 都要加 newsletter，
-#    否则 check:deps 报缺声明；requires 图必须无环，newsletter 那边不许反向声明 events。
+#    package.json 的 `rewindom.requires` 要加 newsletter，否则 check:deps 报缺声明。
+#    module-manifest.ts **不要手改**：外部模块那几行由 gen:external-modules 扫
+#    package.json 生成，手写进去下一次重生成会被覆盖。
+#    requires 图必须无环，newsletter 那边不许反向声明 events。
 #
 # 2. **列表粒度：全站 + 已启用主题进候选，实体只解析不进候选。**
 #    list_key 形状：`events:all` / `events:topic:<topic>` / `events:entity:<slug>`。
@@ -74,9 +80,11 @@ models: [] # 不落库，游标存在 newsletter 侧的 NewsletterDigestRun 上
 #    比游标复杂一个量级——记进 out_of_scope，第二期做。
 #    复合游标而不是纯时间戳：同一毫秒多条事件时纯时间戳会漏发或重发。
 #
-# 4. **URL 必须是绝对地址。** 邮件里没有 base，相对路径直接死。走
-#    events-public-paths + marketing 的 siteHref 拿站点绝对地址，
-#    并带上订阅者的 locale 前缀（NewsletterSource 的入参里有 locale）。
+# 4. **URL 只出相对路径，绝对化归 newsletter。** 邮件里没有 base，相对路径直接死，
+#    但站点公开 origin 是 newsletter 的知识（它为了确认信已经解析过一次），
+#    内容源不该被迫去认识它。本模块只保证**语言前缀正确**：
+#    `withSiteLocale(eventPath(slug), locale, siteDefaultLocale)`。
+#    契约上 `NewsletterItem.url` 两种都收，以 `/` 开头的由 digest 拼上 origin。
 #
 # 5. **summary 用现成字段，不为邮件另跑一次 LLM。** llm-cost-trim 那条口径继续生效：
 #    摘要邮件是派生视图，不是新的分析入口。没有 summary 就只给标题。
