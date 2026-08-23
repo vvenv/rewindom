@@ -2,12 +2,12 @@
 #
 # 不接受粘贴整段 HTML：那是 XSS 面，也没法跟站点明暗切换。租户从 snippet 里抄
 # 图片 URL、链接、替代文字三项即可。chrome_button 也不合适——页头控件是 2rem
-# 工具栏密度，这类图通常 54px 高，是宣传图不是图标按钮。
+# 工具栏密度，这类图通常 54px 高，显示一律压成 32px，是宣传图不是图标按钮。
 
 # ---------- 必填 ----------
 module: marketing
 surfaces: [ssr, tenant]
-goal: 内置 badges 段，可重复摆第三方目录 badge（图 + 外链 + 可选深色图）；页面 / 页头 / 页脚都能放。
+goal: 内置 badges 段，可重复摆第三方目录 badge（图 + 外链 + 可选深色图）；页面 / 页头 / 页脚都能放。高度固定 32px，不提供租户可调。
 gold: packages/builtin/marketing/shared/sections/feature-grid/
 touch:
   - packages/builtin/marketing/features/site-badges-section.spec.yaml
@@ -29,6 +29,7 @@ out_of_scope:
   - 粘贴原始 HTML / 自定义脚本
   - 把 badge 做成 chrome 块（密度对不上页头工具栏）
   - 预置某个目录站的 badge 到产品站或 yestino（租户在编辑器里自己加）
+  - 租户可调徽章高度（一律 32px）
 i18n: code
 acceptance:
   - pnpm --filter @rewindom/builtin assemble:marketing-css

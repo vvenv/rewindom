@@ -39,8 +39,24 @@ describe("renderBadgesHtml", () => {
       'src="https://newtool.site/badges/newtool-light.svg"',
     );
     expect(html).toContain('aria-label="Featured on NewTool.site"');
-    expect(html).toContain("--bdg-h:32px");
+    expect(html).not.toContain("height=");
+    expect(html).not.toContain("--bdg-h");
     expect(html).toContain("bdg center");
+  });
+
+  it("ignores leftover height settings; size lives in CSS", () => {
+    const section = badges({
+      settings: { height: 80 },
+      blocks: [
+        createBlock("badges", "badge", {
+          image: "https://example.com/badge.svg",
+          href: "https://example.com/",
+        }),
+      ],
+    });
+    const html = renderBadgesHtml(section, {});
+    expect(html).not.toContain("height=");
+    expect(html).not.toContain("--bdg-h");
   });
 
   it("swaps light/dark images when a dark variant is set", () => {
@@ -77,7 +93,7 @@ describe("renderBadgesHtml", () => {
 describe("空徽标条", () => {
   it("一个图都没填时只出抬头，不出空的 .bdg 容器", () => {
     /*
-     * 空容器带 `gap` 与 `--bdg-h`，在公开站上会撑出一条莫名的空白；
+     * 空容器带 `gap`，在公开站上会撑出一条莫名的空白；
      * 而且 SPA 视图一直是 `items.length > 0` 才渲染，两端结构就此对不齐
      *（`section-structure.test.tsx` 抓的正是这个）。
      */

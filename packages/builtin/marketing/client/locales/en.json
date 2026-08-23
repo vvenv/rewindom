@@ -562,7 +562,6 @@
       "badge_image_dark": "Used when the site is in dark mode. Leave empty to use the same image in both modes.",
       "badge_href": "The link from the snippet. http(s) URLs open in a new tab.",
       "badge_alt": "Accessible name, e.g. Featured on NewTool.site.",
-      "badge_height": "Directory snippets usually specify 54px.",
       "visible_on": "Leave unchecked to show on every page. Checking pages limits this section to those pages; a template such as a docs article matches every article of that kind."
     },
     "unit": {
@@ -621,7 +620,6 @@
       "stat_detail": "Stat detail",
       "icon": "Icon",
       "icon_only": "Icon only",
-      "badge_height": "Badge height",
       "image": "Image",
       "image_dark": "Dark-mode image",
       "image_alt": "Image alt text",

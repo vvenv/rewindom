@@ -1,7 +1,6 @@
 import { escapeHtml } from "../../html.js";
 import {
   isIconImageUrl,
-  settingNumber,
   settingText,
   type SiteBlock,
 } from "../../section-schema.js";
@@ -12,15 +11,14 @@ import type { SectionHtmlRenderer } from "../render-context.js";
 function badgeImage(
   src: string,
   className: string,
-  height: number,
   decorative: boolean,
   alt: string,
 ): string {
   const altAttr = decorative ? "" : escapeHtml(alt);
-  return `<img class="${className}" src="${escapeHtml(src)}" alt="${altAttr}" height="${height}" />`;
+  return `<img class="${className}" src="${escapeHtml(src)}" alt="${altAttr}" />`;
 }
 
-function renderBadge(block: SiteBlock, height: number): string {
+function renderBadge(block: SiteBlock): string {
   const image = settingText(block.settings, "image").trim();
   if (!isIconImageUrl(image)) return "";
   const dark = settingText(block.settings, "image_dark").trim();
@@ -33,13 +31,10 @@ function renderBadge(block: SiteBlock, height: number): string {
   const images = `${badgeImage(
     image,
     hasDark ? "bdg-img bdg-img-light" : "bdg-img",
-    height,
     decorative,
     alt,
   )}${
-    hasDark
-      ? badgeImage(dark, "bdg-img bdg-img-dark", height, decorative, alt)
-      : ""
+    hasDark ? badgeImage(dark, "bdg-img bdg-img-dark", decorative, alt) : ""
   }`;
   if (href) {
     const label = alt ? ` aria-label="${escapeHtml(alt)}"` : "";
@@ -50,10 +45,9 @@ function renderBadge(block: SiteBlock, height: number): string {
 
 export const renderBadgesHtml: SectionHtmlRenderer = (section) => {
   const s = section.settings;
-  const height = settingNumber(s, "height", 32);
   const align = settingText(s, "align");
   const items = section.blocks
-    .map((block) => renderBadge(block, height))
+    .map((block) => renderBadge(block))
     .filter(Boolean)
     .join("");
   const heading = sectionHeading(s);
@@ -72,10 +66,10 @@ export const renderBadgesHtml: SectionHtmlRenderer = (section) => {
    * 一个徽标都没有时**不出容器**，只留抬头。
    *
    * 原来无条件输出，于是「有抬头、块里还没填图」的段会在公开站上渲染出一个空的
-   * `.bdg`——它带 `gap` 与 `--bdg-h`，实际会撑出一条莫名的空白。SPA 视图那边一直是
+   * `.bdg`——它带 `gap`，实际会撑出一条莫名的空白。SPA 视图那边一直是
    * `items.length > 0` 才渲染，两端由此结构不一致：首屏与水合后长得不一样，
    * React 接管时会重建这一片。`section-structure.test.tsx` 抓的就是这个。
    */
   if (!items) return heading;
-  return `${heading}<div class="${classes}" style="--bdg-h:${height}px">${items}</div>`;
+  return `${heading}<div class="${classes}">${items}</div>`;
 };

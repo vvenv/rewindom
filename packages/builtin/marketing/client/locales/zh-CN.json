@@ -562,7 +562,6 @@
       "badge_image_dark": "站点切到深色时用这张。留空则两态共用上面那张。",
       "badge_href": "snippet 里的链接。http(s) 外链会在新标签打开。",
       "badge_alt": "读屏名称，例如 Featured on NewTool.site。",
-      "badge_height": "目录站 snippet 通常写 54px。",
       "visible_on": "不勾选则所有页面都显示。勾选后只出现在选中的页面上；文档文章这类模板页代表那一类全部详情。"
     },
     "unit": {
@@ -621,7 +620,6 @@
       "stat_detail": "指标说明",
       "icon": "图标",
       "icon_only": "只显示图标",
-      "badge_height": "徽章高度",
       "image": "图片",
       "image_dark": "深色模式图片",
       "image_alt": "图片替代文字",

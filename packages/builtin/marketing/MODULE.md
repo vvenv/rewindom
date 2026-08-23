@@ -509,7 +509,7 @@ section type，通用 SSR 路由在渲染前按**页面实际用到的段**调�
 | `prose`        | body_md                                                                                                                            | —                                                                                                                   |
 | `group`        | columns_layout(12 栏份额), column_gap, align_items                                                                                 | `column`{sticky, show_divider + 线型/粗细/颜色, stack_order}，最多 4；**容器 block**，见下                          |
 | `band`         | headline\*, body, align, primary/secondary 按钮                                                                                    | —                                                                                                                   |
-| `badges`       | 抬头（可空）, align, height(32–80，默认 54)                                                                                        | `badge`{image, image_dark, href, alt}，最多 12；新建预置 1 枚。外链新标签打开；深色图按 `data-site-color-mode` 切换 |
+| `badges`       | 抬头（可空）, align；高度固定 32px                                                                                                 | `badge`{image, image_dark, href, alt}，最多 12；新建预置 1 枚。外链新标签打开；深色图按 `data-site-color-mode` 切换 |
 
 `*` = `required`，为空时该 section 校验失败。
 

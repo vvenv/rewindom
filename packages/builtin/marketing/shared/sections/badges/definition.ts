@@ -9,7 +9,7 @@ import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
  * 第三方目录 badge：一张外链图 + 一条外链，可重复。
  *
  * Product Hunt / NewTool 这类站点发的是「Featured on」SVG，不是页头那排 2rem
- * 图标。摆进页面或页脚，高度默认 54px（目录站 snippet 的惯用值）。
+ * 图标。摆进页面或页脚，高度固定 32px（宣传图，不是工具栏控件）。
  */
 export const badgesSection: SectionDefinition = {
   type: "badges",
@@ -20,17 +20,6 @@ export const badgesSection: SectionDefinition = {
   settings: [
     ...headingSettings(),
     ...contentLayoutSettings({ alignDefault: "center" }),
-    {
-      type: "range",
-      id: "height",
-      label: "editor.setting.badge_height",
-      min: 32,
-      max: 80,
-      step: 2,
-      default: 32,
-      unit: "editor.unit.px",
-      info: "editor.info.badge_height",
-    },
     ...layoutSettings({ padding_top: 24, padding_bottom: 24 }),
   ],
   max_blocks: 12,
