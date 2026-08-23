@@ -953,11 +953,33 @@ OpenAI 报 `prompt_tokens_details.cached_tokens`）。系统提示词与响应�
 
 ## 采集源
 
-内置目录在 `server/ingest/feed-catalog.ts`，101 个源，每个 topic 至少 3 个。
-ai / tech / business 三格比其余更密：跨源印证主要发生在这三格。
-world / gaming / entertainment / sports 也按同一口径补过报道与一手源
-（Steam 是 gaming 里少有的 official；娱乐与体育仍然没有当事方公告的等价物）。
+内置目录在 `server/ingest/feed-catalog.ts`，**229 个源**，每个 topic 至少 3 个，
+且**每个 topic 都有一手来源**（`feed-catalog.test.ts` 钉住）。清一色报道的格子里，
+事件永远判不到 confirmed，只能等第二家媒体跟进。
+
+分布：tech 112 / ai 31 / business 24 / world 18 / gaming 17 / entertainment 17 / sports 10；
+按类型 official 74 / news 68 / release 45 / status 32 / filing 8 / community 2。
+tech 那格看着大，是因为 release 与 status 天然都落在它下面。
+
+sports 与 entertainment 曾经清一色是 news，这里也曾写着「没有当事方公告的等价物」——
+**那句话是错的**：联盟（MLB / Formula 1）、片方与流媒体（Disney / Paramount /
+Spotify Newsroom / Sundance）都有第一方 RSS。准确的说法是**只有一部分联盟发 RSS**：
+NBA / NFL / NHL / FIFA / UEFA / 英超 / 世界田联实测 403、404 或返回 JSON。
+
 Anthropic 与 Meta AI 官网没有官方 RSS，不进目录（第三方刮来的镜像挂了整格都空）。
+
+**同一出版社的父 feed 不加**，这条是实测出来的：`blog.google/rss/` 与目录里已有的
+`blog.google/technology/ai/rss/` 20 条里有 2 条是同一篇文章 URL。两个都进的话，
+Google 一家会以两个 `source_name` 落进同一个事件（canonical_url 相同直接归并），
+`source_count` 虚增到 2——而 Rising 排的就是跨源扩散。这不是多一个源，
+是**给热度排序注入假数据**。同社不同刊则无妨（Apple Newsroom / Apple Developer News、
+Yahoo Finance / Yahoo Sports、WSJ Tech / MarketWatch、NYT World / The Athletic
+实测两两零重叠）。判过不该进的地址记在 `feed-catalog.test.ts` 的 `REJECTED` 里。
+
+**源必须按时间倒序**：`rss.connector` 的 `ITEM_LIMIT = 40` 是从头切的，源要是不按
+时间排，每轮切到的永远是陈旧条目（Elastic Blog 因此被剔除）。全量归档型的源
+（Supabase 420 条、Deno 249、Astro 184、Bun 177）实测都是倒序，可以进——代价是
+首次种植灌入 40 条历史条目，它们落在热度窗口之外，只沉在语料里，不上公开面。
 
 种植按**目录项的 key**（`connector:url`）记账，记录存在 `TenantSetting`
 的 `events.seeded_feed_keys` 上：每轮采集前把该站点从没种过的补进去。
@@ -981,9 +1003,15 @@ Anthropic 与 Meta AI 官网没有官方 RSS，不进目录（第三方刮来的
 host，不落库。推不出 host 或取图失败时用 globe fallback 占位，不把图标摘掉。
 至少留一格。源仍可增删改（名称、地址、类型、默认主题）。
 
-> 目录里每个 URL 都实际请求验证过。`GitHub Blog` 与 `Hugging Face` 在部分网络环境下
-> 会 `terminated`（连接被中断，不是 404，既有目录里就有这个现象）；单个源失败不影响
-> 整轮采集，错误记在 `EventFeed.last_error` 上。
+> 目录里每个 URL 都实际请求验证过，口径是 **HTTP 2xx + 用本模块的 `parseFeed`
+> 能解析出条目**——只看状态码不够：有一批状态页返回 200 但 301 到 HTML 或空 body
+> （Notion / Linear / PagerDuty / Hugging Face / Mistral），进目录后表现为「永远抓不到
+> 东西」，而 `last_error` 是空的（没报错，就是没条目）。
+>
+> 2026-08-23 全目录跑过一遍：**228 个 rss 源全部 2xx 且解析出条目，0 失败**——
+> `GitHub Blog` 与 `Hugging Face` 此前在部分网络环境下会 `terminated`（连接被中断，
+> 不是 404），这次没有复现。单个源失败不影响整轮采集，错误记在
+> `EventFeed.last_error` 上。
 
 一期两个 connector：
 
@@ -1001,11 +1029,11 @@ HN 讨论页、PDF、图片不抓。单篇失败不影响整轮；旧的空摘�
 
 目录里除了新闻站与官方博客，还有三类**非新闻源**：
 
-| `source_kind` | 是什么                    | 目录里的例子                                                                                                   |
-| ------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `release`     | changelog / release notes | kubernetes / rust / node / go / cpython / TypeScript / React / Redis / Linux kernel                            |
-| `status`      | 状态页事故记录            | GitHub / Cloudflare / npm / Slack / OpenAI / Anthropic，外加 AWS / Google Cloud / Vercel / Discord / Atlassian |
-| `filing`      | 监管与公告文件            | SEC、FTC、FDA 新闻稿；欧央行新闻稿走 official（与美联储同档）                                                  |
+| `source_kind` | 是什么                    | 目录里的例子                                                                                                                                                                                                                                                                                                                                                                |
+| ------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `release`     | changelog / release notes | 45 个：运行时（node / deno / bun / go / cpython / php / ruby / swift / kotlin / zig）、框架（react / vue / angular / svelte / next.js / django / rails / laravel）、基础设施（kubernetes / terraform / kafka / nginx / elasticsearch / clickhouse / duckdb）、AI 栈（pytorch / tensorflow / transformers / vllm / ollama / langchain）                                      |
+| `status`      | 状态页事故记录            | 32 个：云与平台（AWS / Google Cloud / Cloudflare / GitHub / Oracle Cloud / DigitalOcean / Vercel / Netlify / Render / Fly.io / Heroku）、SaaS（Slack / Discord / Atlassian / Datadog / Twilio / Zoom / Sentry / Figma / MongoDB / Supabase / Dropbox / Reddit / npm）、模型厂商（OpenAI / Anthropic / Cohere / Groq / Perplexity / Replicate）、游戏（Twitch / Epic Games） |
+| `filing`      | 监管与公告文件            | 8 个：SEC、FTC、FDA、DOJ、CFPB 新闻稿，CISA 安全公告，英国 CMA，欧盟委员会；欧央行新闻稿走 official（与美联储同档）                                                                                                                                                                                                                                                         |
 
 **为什么加这一类**：在「新闻覆盖面」上比不过 Google News 与 Techmeme，那是它们最强的
 一条线。而聚合器结构上不收 changelog 与状态页——它们不是「新闻」。对读者来说
@@ -1160,6 +1188,28 @@ chrome 块这条路是走了两版才到的，两次都是被真实版式打回�
 `events-ingest` 注册在内核 `JobRegistry` 上，进程级调度、按站点执行
 （每个开通事件雷达的站点抓自己的源），
 默认每 15 分钟一轮，启动后 20 秒跑第一轮。上一轮没结束时本轮直接跳过，不叠加。
+
+#### 单轮耗时：并发已经是下一项，不再是「以后再说」
+
+`ingest.service.ts` 的抓取仍是**串行 `for` 循环**（一个源抓完再抓下一个）。
+2026-08-23 在目录扩到 229 个源后量过一遍全目录串行抓取：
+
+| 指标         | 值                                   |
+| ------------ | ------------------------------------ |
+| rss 源数     | 228（HN 走另一个 connector）         |
+| 单轮串行抓取 | **249s ≈ 4.2 分钟**                  |
+| 单源均值     | 1093ms                               |
+| 失败 / 空    | 0                                    |
+| 最慢一条     | Washington Post World 9.6s（2 条目） |
+
+对照 `EVENTS_INGEST_INTERVAL_MINUTES` 默认 15 分钟：**单站点占掉 28%**，光抓取还没算
+空摘录补齐、聚类、embedding 与事件刷新。而这个数**按站点线性叠加**——
+前几期定的规矩是「超过周期一半就单独立项做并发」，按 4.2 分钟算，
+**第二个开通事件雷达的站点就会越过这条线**。
+
+所以并发不再是「以后再说」：它是目录之后的下一项。做的时候注意两件事——
+单源失败必须仍然只影响它自己（现在靠 try/catch 逐源兜住），
+以及 `EventFeed.last_fetched_at` / `last_error` 的写入不能因为并发而互相覆盖。
 
 **多实例部署**：每个实例都会跑。写入路径幂等，重复抓取只浪费带宽，不会产生重复事件；
 真要收敛成单实例，用 `EVENTS_INGEST_ENABLED=false` 关掉其余实例即可。

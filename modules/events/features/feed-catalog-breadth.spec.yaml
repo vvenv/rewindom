@@ -1,0 +1,145 @@
+# 目录 101 个源之后的第三轮扩容。前两轮（feed-catalog-expansion → 8→68、
+# feed-catalog-more-sources → 68→101）都只回答「跨源印证够不够」。这一轮的落点不同：
+#
+# 1. **非新闻源仍然太薄**。status 只有 11 家、release 只有 9 个仓库，而这是
+#    MODULE.md 写明的差异化落点（聚合器结构上不收 changelog 与状态页）。
+#    「昨天哪家云挂了、我依赖的运行时发了什么版」这个问题，目录现在答不全。
+# 2. **sports / entertainment 至今没有一手来源**。MODULE.md 现在写着「娱乐与体育
+#    仍然没有当事方公告的等价物，硬凑一个不如空着」——这句话是错的：联盟（MLB /
+#    F1）、片方与流媒体（Disney / Spotify / Paramount / Sundance）都有第一方 RSS，
+#    实际请求验证过。两格从「清一色 news」变成有一手来源，confirmed 判定才用得上。
+# 3. ai / tech 上一轮判死的几个源现在活了（Stripe Blog、Mistral、Databricks、
+#    Allen AI 换了地址），属于查漏补缺。
+#
+# 种植仍走现成的 ensureDefaultFeeds：新 key 补给存量站点，已种过的不复活。
+# 本 spec 不改 feed-seed.ts。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant]
+goal: 内置目录从 101 扩到 229 个源——补齐 status / release 两类非新闻源，给 sports / entertainment 补上第一批一手来源，并补 ai / tech / business / world / gaming 的缺位；每个新增 URL 实际请求验证（HTTP 2xx + 用仓库自己的 parseFeed 能解析出条目）后再进目录。
+gold: modules/events/server/ingest/feed-catalog.ts
+touch:
+  - modules/events/features/feed-catalog-breadth.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/server/ingest/feed-catalog.ts
+  - modules/events/server/ingest/feed-catalog.test.ts
+out_of_scope:
+  - 新 connector（仍只有 hackernews 与 rss）
+  - 采集并发（仍是 ingest.service.ts 的串行 for 循环，见设计要点 6——本轮量一次耗时记进 MODULE.md，单独立项做并发）
+  - http.ts 的 UA 白名单（403 的那批实测浏览器 UA 也是 Access Denied，加进去没用，见设计要点 5）
+  - 中文源（跨语言阈值要单独校准，见 MODULE.md「后续」）
+  - 第三方刮来的镜像与 RSSHub
+  - 招聘源（要第三个 connector）
+  - 改采集周期、保留期与并发
+  - 工作台上的「从目录添加源」选择器
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/ingest/feed-catalog.test.ts server/ingest/feed-seed.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - 新增目录项逐条请求验证（HTTP 2xx + parseFeed 能解析出条目）
+  - 量一次全目录串行抓取耗时并记进 MODULE.md
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. 验收口径比前两轮更严：不是 curl 拿个 200 就算过，而是**用仓库自己的
+#    `parseFeed` 解析、条目数 > 0**。这一轮 174 个候选里有 11 个是「HTTP 200 但
+#    解析不出条目」——Notion / Linear / PagerDuty / Hugging Face / Mistral 的状态页
+#    都是这一类（301 到 HTML，或空 body）。只看状态码会把它们全放进来，
+#    然后在生产上表现为「源永远抓不到东西」，而 `last_error` 是空的（没报错，就是没条目）。
+#
+# 2. **同一出版社的父 feed 不加**——这一轮实测出了后果。`blog.google/rss/` 与目录里
+#    已有的 `blog.google/technology/ai/rss/` 20 条里有 2 条是**同一篇文章 URL**。
+#    进目录的话，同一家公司会以两个 `source_name` 落进同一个事件（canonical_url 相同
+#    直接归并），`source_count` 虚增到 2 —— 而 Rising 排的就是跨源扩散。
+#    这不是「多一个源」，是**给热度排序注入假数据**。已剔除。
+#    另外五对同社不同刊实测零重叠，可以共存：Apple Newsroom / Apple Developer News、
+#    Yahoo Finance / Yahoo Sports、WSJ Tech / MarketWatch、NYT World / The Athletic、
+#    Microsoft Source / Microsoft DevBlogs。
+#
+# 3. **feed 必须按时间倒序**。`rss.connector` 的 `ITEM_LIMIT = 40` 是从头切的，
+#    源要是不按时间排，每轮切到的就永远是陈旧条目。Elastic Blog 因此被剔除
+#    （40 条里首条 2024-05、末条 2025-07，整段没有近期内容）。
+#    全量归档型的源（Supabase 420 条、Deno 249、Astro 184、Bun 177、Apple Developer
+#    News 141）实测都是倒序，前 40 条覆盖到一年多以前，可以进——目录里
+#    OpenAI / Hugging Face 早就是这个形态。代价是首次种植会灌入 40 条历史条目，
+#    它们落在热度窗口之外，只沉在语料里，不上公开面。
+#
+# 4. sports / entertainment 的一手来源：MLB / Formula 1（联盟）、Disney /
+#    Paramount / Spotify Newsroom / Sundance（片方与流媒体）。
+#    **NBA / NFL / NHL / FIFA / UEFA / Premier League / Olympics / 世界田联全部没进**
+#    ——403、404 或返回 JSON。要 MODULE.md 把「没有等价物」改写成「有，但只有一部分
+#    联盟提供第一方 RSS」，别再写成结构性缺失。
+#
+# 5. 403 的那批（Fastly / xAI 状态页、NBA、FCC、IMF、BLS、Netflix Newsroom、
+#    Bleacher Report）实测**换浏览器 UA 也是 Access Denied**（Akamai，与 ftc.gov
+#    那条同一机制但更严）。所以 `isBrowserUserAgentHost` 不扩，http.ts 不动。
+#
+# 6. 采集耗时：目录到 229 个源，仍是串行 for 循环（ingest.service.ts:172）。
+#    本轮必须量一次全目录串行耗时记进 MODULE.md。**这个数已经逼近
+#    `EVENTS_INGEST_INTERVAL_MINUTES`（默认 15）的一半**，且多站点是线性叠加的
+#    ——并发已经从「以后再说」变成「下一项」。本 spec 不做，但要把结论写进 MODULE.md，
+#    别让下一个人再从头量一遍。
+#
+# 7. 测试口径跟着改：feed-catalog.test.ts 的每 topic 下限按新分布抬。
+#    额外钉两条这一轮才有的不变量：
+#      - **每个 topic 都有一手来源**（第 4 条）。清一色报道的格子里，事件永远
+#        判不到 confirmed，只能等第二家媒体跟进 —— 防止 sports / entertainment
+#        被删回原状。
+#      - **判定不该进目录的地址没被加回来**（第 2、3 条），以显式 REJECTED 清单落地。
+#        这里刻意不写成结构规则：Google 那个案例在路径上看不出父子关系
+#        （`/rss/` 与 `/technology/ai/rss/` 谁也不是谁的前缀），
+#        「同 host 路径前缀」这类判据抓不到它，还会误伤 github.com 上 36 个
+#        release 源。抓不到的规则不如把结论钉死。
+#
+# ---------- 验证记录（2026-08-23，逐条实际请求 + parseFeed）----------
+# 候选 174 + 备用地址 44；进目录 128，其中：
+#   status  +21   Datadog / Twilio / Zoom / Netlify / DigitalOcean / Supabase /
+#                 MongoDB / Sentry / Figma / Reddit / Dropbox / Oracle Cloud /
+#                 Render / Fly.io / Heroku（tech），Twitch / Epic Games（gaming），
+#                 Cohere / Groq / Perplexity / Replicate（ai）
+#   release +36   Deno / Bun / Next.js / Vue / Angular / Svelte / Django / Rails /
+#                 Laravel / Kafka / Terraform / Ansible / Moby / Electron / Swift /
+#                 Kotlin / PHP / Vite / Tailwind / Prisma / pnpm / Nginx /
+#                 Elasticsearch / ClickHouse / DuckDB / Zig / VS Code / Grafana /
+#                 Git / Ruby（tech），PyTorch / TensorFlow / Transformers / vLLM /
+#                 Ollama / LangChain（ai）
+#   filing  +5    CISA 安全公告、DOJ、CFPB、UK CMA（business/tech）、欧盟委员会（world）
+#   official +43  ai 7（Mistral / Databricks / Allen AI / Apple ML / BAIR / MIT News /
+#                 Ollama Blog）、tech 22（Stripe / Supabase / Deno / Bun / Astro /
+#                 Fly.io / PlanetScale / HashiCorp / Grafana / JetBrains / Discord /
+#                 Dropbox / Slack / Spotify Eng / Android Developers / Apple Developer /
+#                 Mozilla / W3C / PostgreSQL / Intel / Samsung / Raspberry Pi）、
+#                 business 4、world 2、gaming 2、entertainment 4、sports 2
+#   news    +23   world 5、business 5、gaming 4、entertainment 6、sports 2、
+#                 （tech / ai 不加报道源，那两格已经最密）
+#
+# 没进目录的原因分布（52 条）：
+#   404 / 405 / 406        Stripe Status、Auth0 / Okta / Zendesk / Shopify 状态页、
+#                          Anthropic（确认仍无官方 RSS）、Figma Blog、Uber / LinkedIn
+#                          Engineering、Unity Blog、NATO、AP、World Bank、Bank of
+#                          England 旧址、ReliefWeb（406）、EPA（405）、NBA / NFL /
+#                          NHL / Premier League / 世界田联 / Nintendo / Blizzard /
+#                          Warner Bros. Discovery / Sony Pictures / A24 / Riot Games
+#   403（浏览器 UA 亦然）  Fastly / xAI 状态页、FCC、IMF、BLS、Netflix Newsroom、
+#                          Bleacher Report
+#   200 但解析不出条目      Notion / Linear / PagerDuty / Hugging Face / Mistral 状态页、
+#                          FIFA / UEFA / Ubisoft、Stability AI、Cohere Blog、
+#                          LangChain Blog、Shopify Engineering、Stanford HAI
+#   连接层失败（两次重试）  HBR、AP（TLS SSL_ERROR_SYSCALL）、CBC、Olympics
+#                          （HTTP/2 INTERNAL_ERROR）、US Treasury（30s 超时）
+#                          —— 沿用「不可达不进目录」，与 GitHub Blog / Hugging Face
+#                          那两条既有项不同：那两条是先验证过、后来才在本地不可达的
+#   刻意剔除                blog.google 父 feed（设计要点 2）、Elastic Blog（设计要点 3）、
+#                          Cloudflare 状态页的 atom 变体（与已有项同一个源）
+#
+# ---------- 后续（明确不在本期）----------
+# - **采集并发**：见设计要点 6，这一轮之后是最高优先级的一项
+# - 目录分层：229 个源全种给每个新站点未必合理，可能要「核心集 + 可选集」
+# - 中文源、招聘源、按类型订阅：口径见 MODULE.md「后续」
