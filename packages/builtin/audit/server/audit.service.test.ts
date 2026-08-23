@@ -255,7 +255,8 @@ describe("AuditService", () => {
 
       expect(prisma.auditLog.findMany).toHaveBeenCalledWith({
         where: {
-          AND: [{ user_id: "user-123" }, { tenant_slug: "rewindom" }],
+          // 服务端对 slug 不做改写，给什么过什么（`{ tenant_slug: tenantSlug }`）
+          AND: [{ user_id: "user-123" }, { tenant_slug: "default" }],
         },
         orderBy: { created_at: "desc" },
         take: 100,
@@ -502,9 +503,13 @@ describe("AuditService", () => {
 
       await AuditService.getAuditLogsCount({ tenantSlug: "default" });
 
+      /*
+       * 与 error-log 那条同源：断言原本写的是 `"rewindom"`，是 be-water → rewindom
+       * 那次批量重命名把字面量顺手换掉留下的，与测试自己的名字（exact slug only）矛盾。
+       */
       expect(prisma.auditLog.count).toHaveBeenCalledWith({
         where: {
-          AND: [{ tenant_slug: "rewindom" }],
+          AND: [{ tenant_slug: "default" }],
         },
       });
     });

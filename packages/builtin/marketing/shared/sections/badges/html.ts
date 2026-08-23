@@ -68,5 +68,14 @@ export const renderBadgesHtml: SectionHtmlRenderer = (section) => {
   ]
     .filter(Boolean)
     .join(" ");
+  /*
+   * 一个徽标都没有时**不出容器**，只留抬头。
+   *
+   * 原来无条件输出，于是「有抬头、块里还没填图」的段会在公开站上渲染出一个空的
+   * `.bdg`——它带 `gap` 与 `--bdg-h`，实际会撑出一条莫名的空白。SPA 视图那边一直是
+   * `items.length > 0` 才渲染，两端由此结构不一致：首屏与水合后长得不一样，
+   * React 接管时会重建这一片。`section-structure.test.tsx` 抓的就是这个。
+   */
+  if (!items) return heading;
   return `${heading}<div class="${classes}" style="--bdg-h:${height}px">${items}</div>`;
 };

@@ -1,7 +1,6 @@
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-
 import { ErrorService, type ErrorLogRow } from "./error.service.js";
 
 // Mock prisma
@@ -496,9 +495,14 @@ describe("ErrorService", () => {
 
       await ErrorService.getErrorLogsCount({ tenantSlug: "default" });
 
+      /*
+       * 就是给什么过什么——服务端对 slug **不做任何改写**（`{ tenant_slug: tenantSlug }`）。
+       * 这条断言原本写的是 `"rewindom"`，是 be-water → rewindom 那次批量重命名把字面量
+       * 顺手换掉留下的：它与测试自己的名字（exact slug only）也是矛盾的。
+       */
       expect(prisma.errorLog.count).toHaveBeenCalledWith({
         where: {
-          AND: [{ tenant_slug: "rewindom" }],
+          AND: [{ tenant_slug: "default" }],
         },
       });
     });
@@ -605,8 +609,14 @@ describe("ErrorService", () => {
       errorCode: Array<[string | null, number]>,
       total: number,
     ) => {
-      const rows = <K extends string>(key: K, pairs: Array<[string | null, number]>) =>
-        pairs.map(([value, count]) => ({ [key]: value, _count: { id: count } }));
+      const rows = <K extends string>(
+        key: K,
+        pairs: Array<[string | null, number]>,
+      ) =>
+        pairs.map(([value, count]) => ({
+          [key]: value,
+          _count: { id: count },
+        }));
       vi.mocked(prisma.errorLog.count).mockResolvedValue(total);
       vi.mocked(prisma.errorLog.groupBy)
         .mockResolvedValueOnce(rows("level", level) as never)
@@ -616,9 +626,18 @@ describe("ErrorService", () => {
 
     it("should get error statistics", async () => {
       mockStats(
-        [["error", 2], ["warn", 1]],
-        [["/api/test", 2], ["/api/other", 1]],
-        [["ERR_001", 2], ["ERR_002", 1]],
+        [
+          ["error", 2],
+          ["warn", 1],
+        ],
+        [
+          ["/api/test", 2],
+          ["/api/other", 1],
+        ],
+        [
+          ["ERR_001", 2],
+          ["ERR_002", 1],
+        ],
         3,
       );
 
@@ -639,11 +658,9 @@ describe("ErrorService", () => {
 
       expect(prisma.errorLog.findMany).not.toHaveBeenCalled();
       expect(prisma.errorLog.groupBy).toHaveBeenCalledTimes(3);
-      expect(vi.mocked(prisma.errorLog.groupBy).mock.calls.map((c) => c[0].by)).toEqual([
-        ["level"],
-        ["route"],
-        ["error_code"],
-      ]);
+      expect(
+        vi.mocked(prisma.errorLog.groupBy).mock.calls.map((c) => c[0].by),
+      ).toEqual([["level"], ["route"], ["error_code"]]);
     });
 
     it("should get error statistics with space-formatted dates", async () => {
@@ -664,7 +681,9 @@ describe("ErrorService", () => {
           },
         ],
       };
-      expect(prisma.errorLog.count).toHaveBeenCalledWith({ where: expectedWhere });
+      expect(prisma.errorLog.count).toHaveBeenCalledWith({
+        where: expectedWhere,
+      });
       expect(prisma.errorLog.groupBy).toHaveBeenCalledWith({
         by: ["level"],
         where: expectedWhere,
@@ -697,9 +716,18 @@ describe("ErrorService", () => {
     it("should get error statistics with null route and error_code", async () => {
       // groupBy 会把 NULL 单独分一组，这些行不该进入分布
       mockStats(
-        [["error", 1], ["warn", 1]],
-        [[null, 1], ["/api/test", 1]],
-        [[null, 1], ["ERR_001", 1]],
+        [
+          ["error", 1],
+          ["warn", 1],
+        ],
+        [
+          [null, 1],
+          ["/api/test", 1],
+        ],
+        [
+          [null, 1],
+          ["ERR_001", 1],
+        ],
         2,
       );
 
