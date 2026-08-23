@@ -5,12 +5,21 @@
  * 拿它当 favicon 会在「Hacker News」旁边画出被链站点的标。
  *
  * 取图地址是本站 `/events/icons/{host}`：访客不打 Google，由服务端去源站拉。
+ * 推不出 host 或取图失败时用 globe fallback 占位。
  */
 
-const FEED_HOST_PREFIXES = new Set(["feeds", "feed", "rss", "search"]);
+const FEED_HOST_PREFIXES = new Set([
+  "feeds",
+  "feed",
+  "rss",
+  "search",
+  "blog",
+  "blogs",
+  "status",
+]);
 
 /**
- * 剥完 feeds. 前缀仍不是品牌域的，显式改写。
+ * 剥完 feeds./blog./status. 前缀仍不是品牌域的，显式改写。
  * 只收目录里真实出现过的别名，不猜。
  */
 const ICON_HOST_ALIAS: Record<string, string> = {
@@ -23,6 +32,36 @@ const ICON_HOST_ALIAS: Record<string, string> = {
   "status.anthropic.com": "anthropic.com",
   "status.slack.com": "slack.com",
   "status.npmjs.org": "npmjs.com",
+  "status.cloud.google.com": "google.com",
+  "engineering.fb.com": "facebook.com",
+  "hacks.mozilla.org": "mozilla.org",
+  "devblogs.microsoft.com": "microsoft.com",
+  "about.gitlab.com": "gitlab.com",
+  "stackoverflow.blog": "stackoverflow.com",
+  "github.blog": "github.com",
+  "netflixtechblog.com": "netflix.com",
+  "news.xbox.com": "xbox.com",
+  "news.un.org": "un.org",
+  "store.steampowered.com": "steampowered.com",
+  "research.google": "google.com",
+  "blog.google": "google.com",
+  "spectrum.ieee.org": "ieee.org",
+  "vercel-status.com": "vercel.com",
+  "discordstatus.com": "discord.com",
+};
+
+/**
+ * GitHub releases.atom 的发行人是那个项目。只收目录里出现过的仓库。
+ */
+const GITHUB_REPO_ICON_HOST: Record<string, string> = {
+  "kubernetes/kubernetes": "kubernetes.io",
+  "rust-lang/rust": "rust-lang.org",
+  "nodejs/node": "nodejs.org",
+  "golang/go": "go.dev",
+  "python/cpython": "python.org",
+  "microsoft/typescript": "typescriptlang.org",
+  "facebook/react": "react.dev",
+  "redis/redis": "redis.io",
 };
 
 const BLOCKED_ICON_TLDS = new Set([
@@ -35,6 +74,19 @@ const BLOCKED_ICON_TLDS = new Set([
   "corp",
   "private",
 ]);
+
+/**
+ * 取不到发行人 favicon 时用。Lucide Globe，跟着前景色走。
+ * 公开面 HTML 与工作台 React 同一份 path，避免两套图形漂。
+ */
+export const SOURCE_ICON_FALLBACK_INNER =
+  '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 1 0 20 14.5 14.5 0 0 1 0-20"/><path d="M2 12h20"/>';
+
+export function sourceIconFallbackSvg(
+  className = "events-source-icon-fallback",
+): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="${className}">${SOURCE_ICON_FALLBACK_INNER}</svg>`;
+}
 
 /**
  * 公网主机名才给去抓。拒 IP、localhost、内网 TLD——路径上的 host 会进出站请求。
@@ -75,25 +127,42 @@ export function bindSourceIconUrl(
 }
 
 export function iconHostFromUrl(url: string): string | null {
-  let host: string;
+  let parsed: URL;
   try {
-    host = new URL(url).hostname.toLowerCase();
+    parsed = new URL(url);
   } catch {
     return null;
   }
+  let host = parsed.hostname.toLowerCase();
   if (host.startsWith("www.")) {
     host = host.slice(4);
   }
   const aliased = ICON_HOST_ALIAS[host];
   if (aliased) {
-    return aliased;
+    host = aliased;
+  } else {
+    const labels = host.split(".");
+    const prefix = labels[0];
+    if (labels.length >= 3 && prefix && FEED_HOST_PREFIXES.has(prefix)) {
+      host = labels.slice(1).join(".");
+    }
   }
-  const labels = host.split(".");
-  const prefix = labels[0];
-  if (labels.length >= 3 && prefix && FEED_HOST_PREFIXES.has(prefix)) {
-    host = labels.slice(1).join(".");
+  if (host === "github.com") {
+    const fromRepo = githubRepoIconHost(parsed.pathname);
+    if (fromRepo) {
+      host = fromRepo;
+    }
   }
   return isIconHost(host) ? host : null;
+}
+
+function githubRepoIconHost(pathname: string): string | null {
+  const parts = pathname.split("/").filter(Boolean);
+  if (parts.length < 2) {
+    return null;
+  }
+  const key = `${parts[0]}/${parts[1]}`.toLowerCase();
+  return GITHUB_REPO_ICON_HOST[key] ?? null;
 }
 
 export function sourceIconHost(feed: {

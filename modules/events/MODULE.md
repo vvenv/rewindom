@@ -977,7 +977,8 @@ Anthropic 与 Meta AI 官网没有官方 RSS，不进目录（第三方刮来的
 关掉一格，页头不再出现它，这一组源**暂停采集**（不改源自己的 `enabled`，主题开回来按原开关恢复）。
 来源名旁边的 favicon 是本站 `/events/icons/{host}`：访客不打 Google（那个地址不是全球可达），
 由服务端用采集那条 HTTP 出口去源站拉图并缓存。host 从采集源 URL + connector 推（HN 永远是
-`news.ycombinator.com`，不拿文章域名），只代理本站源列表里的 host，不落库。
+`news.ycombinator.com`，不拿文章域名；GitHub releases 映到项目域名），只代理本站源列表里的
+host，不落库。推不出 host 或取图失败时用 globe fallback 占位，不把图标摘掉。
 至少留一格。源仍可增删改（名称、地址、类型、默认主题）。
 
 > 目录里每个 URL 都实际请求验证过。`GitHub Blog` 与 `Hugging Face` 在部分网络环境下

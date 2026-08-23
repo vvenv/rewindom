@@ -6,6 +6,7 @@ import {
   isIconHost,
   resolveSourceIconUrl,
   sourceIconApiUrl,
+  sourceIconFallbackSvg,
   sourceIconHost,
   sourceIconUrl,
   sourceIconUrlFromHost,
@@ -36,6 +37,49 @@ describe("iconHostFromUrl", () => {
     expect(iconHostFromUrl("https://status.openai.com/history.rss")).toBe(
       "openai.com",
     );
+    expect(iconHostFromUrl("https://engineering.fb.com/feed/")).toBe(
+      "facebook.com",
+    );
+    expect(iconHostFromUrl("https://github.blog/feed/")).toBe("github.com");
+    expect(iconHostFromUrl("https://www.vercel-status.com/history.rss")).toBe(
+      "vercel.com",
+    );
+    expect(iconHostFromUrl("https://discordstatus.com/history.rss")).toBe(
+      "discord.com",
+    );
+    expect(iconHostFromUrl("https://about.gitlab.com/atom.xml")).toBe(
+      "gitlab.com",
+    );
+    expect(iconHostFromUrl("https://blog.google/technology/ai/rss/")).toBe(
+      "google.com",
+    );
+  });
+
+  it("剥 blog / blogs / status 前缀", () => {
+    expect(iconHostFromUrl("https://blog.cloudflare.com/rss/")).toBe(
+      "cloudflare.com",
+    );
+    expect(iconHostFromUrl("https://blogs.nvidia.com/feed/")).toBe("nvidia.com");
+    expect(iconHostFromUrl("https://blog.rust-lang.org/feed.xml")).toBe(
+      "rust-lang.org",
+    );
+    expect(iconHostFromUrl("https://status.aws.amazon.com/rss/all.rss")).toBe(
+      "aws.amazon.com",
+    );
+  });
+
+  it("GitHub releases 映到项目域名，未列出的仓库仍用 github.com", () => {
+    expect(
+      iconHostFromUrl(
+        "https://github.com/kubernetes/kubernetes/releases.atom",
+      ),
+    ).toBe("kubernetes.io");
+    expect(
+      iconHostFromUrl("https://github.com/facebook/react/releases.atom"),
+    ).toBe("react.dev");
+    expect(
+      iconHostFromUrl("https://github.com/acme/unknown/releases.atom"),
+    ).toBe("github.com");
   });
 
   it("非法 URL 返回 null", () => {
@@ -147,5 +191,15 @@ describe("resolveSourceIconUrl", () => {
         url: "https://techcrunch.com/2026/08/01/story",
       }),
     ).toContain("techcrunch.com");
+  });
+});
+
+describe("sourceIconFallbackSvg", () => {
+  it("是本站 globe，不引用外链", () => {
+    const svg = sourceIconFallbackSvg();
+    expect(svg).toContain("viewBox=\"0 0 24 24\"");
+    expect(svg).toContain("events-source-icon-fallback");
+    expect(svg).not.toContain("https://");
+    expect(svg).not.toContain("google.com");
   });
 });

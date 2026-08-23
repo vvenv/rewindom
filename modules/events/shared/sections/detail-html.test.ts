@@ -129,6 +129,7 @@ describe("renderEventsDetailHtml timeline", () => {
       label: "Adds a $2B earnout in the deal.",
       source_name: "The Verge",
       source_kind: "news",
+      icon_url: null,
       url: "https://example.com/story",
       incident_updates: [],
       ...overrides,

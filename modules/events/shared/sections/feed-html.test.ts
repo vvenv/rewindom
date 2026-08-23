@@ -384,7 +384,20 @@ describe("renderEventsFeedHtml", () => {
     ]);
     expect(html).toContain('src="/events/icons/openai.com"');
     expect(html).toContain('class="events-source-icon"');
+    expect(html).toContain("events-source-icon-fallback");
     expect(html).not.toContain("google.com/s2");
+  });
+
+  it("没有 icon URL 时仍画 fallback 占位", () => {
+    const html = renderCards([
+      card("a", {
+        source_names: ["OpenAI"],
+        source_icon_urls: [null],
+      }),
+    ]);
+    expect(html).toContain("events-source-icon-slot");
+    expect(html).toContain("events-source-icon-fallback");
+    expect(html).not.toContain("<img");
   });
 });
 

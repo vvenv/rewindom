@@ -1,0 +1,65 @@
+# 目录扩到 ~100 个源之后，ICON_HOST_ALIAS 还只收了 BBC / WSJ / 几条 status。
+# 大量 blog.* / GitHub releases.atom / 非 status. 前缀的状态页推出来的 host
+# 根本不是品牌域（engineering.fb.com、github.blog、vercel-status.com），源站
+# 又经常只有 SVG favicon——我们不代理 SVG，取图 404，onerror 把 img 摘掉，
+# 卡片上来源名旁边就空一截。
+#
+# 补目录里真实出现过的别名；解析失败或取图失败用同一个 globe fallback 占位。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 内置目录每个源都能推出品牌域 icon host；取不到 favicon 时用 globe fallback 占位，不再摘掉图标。
+gold: modules/events/shared/source-icon.ts
+touch:
+  - modules/events/features/source-icon-coverage.spec.yaml
+  - modules/events/features/source-icons.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/source-icon.ts
+  - modules/events/shared/source-icon.test.ts
+  - modules/events/shared/source-icon-html.ts
+  - modules/events/shared/source-icon-html.test.ts
+  - modules/events/shared/site-css/events.css
+  - modules/events/shared/site-css.generated.ts
+  - modules/events/shared/sections/feed-html.test.ts
+  - modules/events/shared/sections/detail-html.test.ts
+  - modules/events/client/components/SourceIcon.tsx
+  - modules/events/server/ingest/feed-catalog.test.ts
+out_of_scope:
+  - 把 favicon 落进 EventFeed 列或对象存储
+  - 代理源站 SVG（字节从本站发出等于跑来源的代码）
+  - Google s2 / DuckDuckGo / 任何第三方图标 CDN
+  - 按 source_kind 画不同 lucide 图标
+  - 工作台采集源表单加「上传图标」
+  - 新模型字段 / migration
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/source-icon.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run shared/source-icon-html.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run server/ingest/feed-catalog.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run shared/sections/feed-html.test.ts
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点 ----------
+#
+# 1. 别名只收目录里真实出现过的 host，不猜。
+#    在原有 feeds./feed./rss./search. 之外，剥 blog. / blogs. / status.
+#    （labels.length >= 3 才剥，blog.google 这种品牌域不动）。
+#    剥完仍不是品牌域的进 ICON_HOST_ALIAS：github.blog → github.com、
+#    engineering.fb.com → facebook.com、vercel-status.com → vercel.com 等。
+#
+# 2. GitHub releases.atom 的发行人是那个项目，不是 GitHub。
+#    pathname 前两段（owner/repo）对照目录里出现过的仓库，映到项目域名
+#    （kubernetes/kubernetes → kubernetes.io）。未列出的仓库仍用 github.com。
+#
+# 3. fallback 是 Lucide Globe（currentColor），公开面与工作台同一份路径。
+#    解析不出 host、或 <img> onerror：摘掉 img，底下 / 旁边的 globe 露出来。
+#    来源行始终占 12–16px，不再「有的有标、有的空一截」。
+#
+# 4. SSRF / 不代理 SVG / 本站 /events/icons/{host} 口径不变。
+#    fallback 是我们自己写的 SVG，不经代理、不进出站。

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { EVENT_TOPICS } from "../../shared/index.js";
+import { EVENT_TOPICS, isIconHost, sourceIconHost } from "../../shared/index.js";
 
 import { DEFAULT_FEEDS, feedCatalogKey } from "./feed-catalog.js";
 
@@ -28,5 +28,13 @@ describe("DEFAULT_FEEDS", () => {
     expect(counts.gaming).toBeGreaterThanOrEqual(8);
     expect(counts.entertainment).toBeGreaterThanOrEqual(6);
     expect(counts.sports).toBeGreaterThanOrEqual(6);
+  });
+
+  it("每个目录源都能推出公网 icon host", () => {
+    for (const feed of DEFAULT_FEEDS) {
+      const host = sourceIconHost(feed);
+      expect(host, feed.name).toBeTruthy();
+      expect(isIconHost(host ?? ""), feed.name).toBe(true);
+    }
   });
 });
