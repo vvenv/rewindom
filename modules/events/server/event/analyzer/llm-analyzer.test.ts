@@ -38,7 +38,11 @@ describe("parseAnalyzerResponse", () => {
         timeline: [
           { signal_index: 0, label: "Official announcement" },
           // 模型自作主张给的时间戳必须被忽略
-          { signal_index: 1, label: "HN discussion", occurred_at: "1999-01-01T00:00:00Z" },
+          {
+            signal_index: 1,
+            label: "HN discussion",
+            occurred_at: "1999-01-01T00:00:00Z",
+          },
         ],
       }),
       SIGNALS,
@@ -72,7 +76,11 @@ describe("parseAnalyzerResponse", () => {
 
   it("缺 label 时回落到按来源类型的 code 文案", () => {
     const result = parseAnalyzerResponse(
-      JSON.stringify({ title: "t", summary: "s", timeline: [{ signal_index: 1 }] }),
+      JSON.stringify({
+        title: "t",
+        summary: "s",
+        timeline: [{ signal_index: 1 }],
+      }),
       SIGNALS,
     );
     expect(result.timeline[0].label_text).toBeNull();
@@ -81,7 +89,10 @@ describe("parseAnalyzerResponse", () => {
 
   it("缺 title 时回落到首条信号标题", () => {
     const result = parseAnalyzerResponse(
-      JSON.stringify({ summary: "s", timeline: [{ signal_index: 0, label: "a" }] }),
+      JSON.stringify({
+        summary: "s",
+        timeline: [{ signal_index: 0, label: "a" }],
+      }),
       SIGNALS,
     );
     expect(result.title).toBe("OpenAI publishes GPT-6 announcement");
@@ -89,12 +100,17 @@ describe("parseAnalyzerResponse", () => {
 
   it("时间线为空视为失败——上层据此退回规则分析器", () => {
     expect(() =>
-      parseAnalyzerResponse(JSON.stringify({ title: "t", timeline: [] }), SIGNALS),
+      parseAnalyzerResponse(
+        JSON.stringify({ title: "t", timeline: [] }),
+        SIGNALS,
+      ),
     ).toThrow();
   });
 
   it("返回不是 JSON 时抛错", () => {
-    expect(() => parseAnalyzerResponse("Sure! Here you go:", SIGNALS)).toThrow();
+    expect(() =>
+      parseAnalyzerResponse("Sure! Here you go:", SIGNALS),
+    ).toThrow();
   });
 
   it("丢掉 changelog 署名、commit SHA 与 PR 号", () => {
@@ -127,7 +143,10 @@ describe("parseAnalyzerResponse", () => {
       }),
       SIGNALS,
     );
-    expect(result.timeline.map((e) => e.label_text)).toEqual(["earlier", "later"]);
+    expect(result.timeline.map((e) => e.label_text)).toEqual([
+      "earlier",
+      "later",
+    ]);
   });
 
   it("角色徽章与新细节可以同时有", () => {
@@ -194,7 +213,9 @@ describe("parseAnalyzerResponse", () => {
       JSON.stringify({
         title: "t",
         summary: "s",
-        timeline: [{ signal_index: 0, label: "OpenAI announced GPT-6.", role: "plot" }],
+        timeline: [
+          { signal_index: 0, label: "OpenAI announced GPT-6.", role: "plot" },
+        ],
       }),
       SIGNALS,
     );

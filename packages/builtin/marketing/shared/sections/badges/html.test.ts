@@ -39,7 +39,7 @@ describe("renderBadgesHtml", () => {
       'src="https://newtool.site/badges/newtool-light.svg"',
     );
     expect(html).toContain('aria-label="Featured on NewTool.site"');
-    expect(html).toContain("--bdg-h:54px");
+    expect(html).toContain("--bdg-h:32px");
     expect(html).toContain("bdg center");
   });
 

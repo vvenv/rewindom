@@ -28,12 +28,12 @@ describe("createStarterTranslator", () => {
       "zh-CN": { account: { title: "我的订阅" } },
       en: { account: { title: "My subscription" } },
     });
-    expect(createStarterTranslator("zh-CN")("starter-i18n-test:account.title")).toBe(
-      "我的订阅",
-    );
-    expect(createStarterTranslator("en")("starter-i18n-test:account.title")).toBe(
-      "My subscription",
-    );
+    expect(
+      createStarterTranslator("zh-CN")("starter-i18n-test:account.title"),
+    ).toBe("我的订阅");
+    expect(
+      createStarterTranslator("en")("starter-i18n-test:account.title"),
+    ).toBe("My subscription");
     expect(createStarterTranslator("zh-CN")("unknown-ns:account.title")).toBe(
       "unknown-ns:account.title",
     );

@@ -30,7 +30,9 @@ export async function resolveSectionEntitlements(
   if (keys.length === 0) return new Set();
 
   const flags = await Promise.all(
-    keys.map(async (key) => [key, await isTenantModuleEnabled(tenantId, key)] as const),
+    keys.map(
+      async (key) => [key, await isTenantModuleEnabled(tenantId, key)] as const,
+    ),
   );
   return new Set(flags.filter(([, on]) => on).map(([key]) => key));
 }

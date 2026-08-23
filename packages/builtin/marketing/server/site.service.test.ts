@@ -435,7 +435,9 @@ describe("saveEditorDraft", () => {
       vi.mocked(prisma.marketingSite.findFirst).mockResolvedValue(
         siteRow as never,
       );
-      vi.mocked(prisma.marketingSite.update).mockResolvedValue(siteRow as never);
+      vi.mocked(prisma.marketingSite.update).mockResolvedValue(
+        siteRow as never,
+      );
     });
 
     it("updates only chrome draft columns", async () => {
@@ -495,7 +497,9 @@ describe("saveEditorDraft", () => {
         theme_settings: { primary_color: "#0369a1" },
         theme_settings_draft: { primary_color: "#c026d3" },
       } as never);
-      vi.mocked(prisma.marketingSite.update).mockResolvedValue(siteRow as never);
+      vi.mocked(prisma.marketingSite.update).mockResolvedValue(
+        siteRow as never,
+      );
     });
 
     /** 主题与页头页脚同一条链：一次发布把三样一起送上线。 */
@@ -524,12 +528,16 @@ describe("saveEditorDraft", () => {
         ...siteRow,
         nav_json: [{ type: "header", settings: {}, blocks: [] }],
         footer_json: [{ type: "footer", settings: {}, blocks: [] }],
-        nav_draft_json: [{ type: "header", settings: { sticky: false }, blocks: [] }],
+        nav_draft_json: [
+          { type: "header", settings: { sticky: false }, blocks: [] },
+        ],
         footer_draft_json: [],
         theme_settings: { primary_color: "#0369a1" },
         theme_settings_draft: { primary_color: "#c026d3" },
       } as never);
-      vi.mocked(prisma.marketingSite.update).mockResolvedValue(siteRow as never);
+      vi.mocked(prisma.marketingSite.update).mockResolvedValue(
+        siteRow as never,
+      );
     });
 
     it("copies the published chrome and theme back onto the draft columns", async () => {
@@ -839,7 +847,11 @@ describe("getPublishedSitemapEntries", () => {
   }
 
   function pageRow(overrides: Record<string, unknown>) {
-    return sourceRow({ status: "published", visibility: "public", ...overrides });
+    return sourceRow({
+      status: "published",
+      visibility: "public",
+      ...overrides,
+    });
   }
 
   beforeEach(() => {

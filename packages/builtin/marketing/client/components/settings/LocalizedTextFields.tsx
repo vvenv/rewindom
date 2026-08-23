@@ -63,9 +63,7 @@ export function LocalizedTextFields({
                 id={`${id}-${locale}`}
                 disabled={disabled}
                 value={text}
-                placeholder={
-                  !isPrimary && primary ? primary : undefined
-                }
+                placeholder={!isPrimary && primary ? primary : undefined}
                 required={isPrimary && requiredPrimary}
                 onChange={(event) =>
                   onChange(

@@ -118,3 +118,19 @@
 .newsletter-subscribe-link {
   text-decoration: none;
 }
+
+/*
+ * 「订阅范围：AI · 每天一封摘要」——表单下面的常驻说明。
+ *
+ * 与 hint 同一档字号：它是说明不是标题。范围加粗，因为那是读者最需要先确认的那半句
+ *（尤其是从主题页点过来的时候）。
+ */
+.newsletter-meta {
+  margin: 0;
+  color: var(--muted-fg);
+  font-size: 0.8125rem;
+}
+
+.newsletter-meta-scope {
+  font-weight: 600;
+}

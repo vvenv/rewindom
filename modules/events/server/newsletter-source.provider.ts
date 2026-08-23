@@ -136,8 +136,13 @@ export const eventsNewsletterSource: NewsletterSource = {
     // 事件雷达关掉的站点不该出现在订阅候选里（两道 entitlement 各管各的）
     if (!(await isEventsEnabled(tenant_id))) return [];
 
+    const sourceLabel = translateServerMessage(normalizeLocale(locale), {
+      code: "events.list.sourceLabel",
+    });
+
     const lists: NewsletterList[] = [
       {
+        source_label: sourceLabel,
         list_key: EVENTS_LIST_ALL,
         label: listLabel(EVENTS_LIST_ALL, locale),
         description: translateServerMessage(normalizeLocale(locale), {
@@ -154,6 +159,7 @@ export const eventsNewsletterSource: NewsletterSource = {
      * 排在具体主题之前：主题页上摆订阅段，九成想要的就是它。
      */
     lists.push({
+      source_label: sourceLabel,
       list_key: `${TOPIC_PREFIX}{topic_slug}`,
       label: translateServerMessage(normalizeLocale(locale), {
         code: "events.list.currentTopic",
@@ -163,17 +169,42 @@ export const eventsNewsletterSource: NewsletterSource = {
 
     for (const topic of await getEnabledTopics(tenant_id)) {
       const listKey = eventsTopicList(topic);
-      lists.push({ list_key: listKey, label: listLabel(listKey, locale) });
+      lists.push({
+        source_label: sourceLabel,
+        list_key: listKey,
+        label: listLabel(listKey, locale),
+      });
     }
     return lists;
   },
 
+  /**
+   * 主题走文案表；实体查一次名字——它不在候选清单里，但订阅页要显示得出来。
+   */
+  async describeList({ tenant_id, list_key, locale }): Promise<string | null> {
+    if (!eventsNewsletterSource.ownsList(list_key)) return null;
+    if (!list_key.startsWith(ENTITY_PREFIX)) return listLabel(list_key, locale);
+
+    const slug = list_key.slice(ENTITY_PREFIX.length);
+    const entity = await prisma.eventEntity.findFirst({
+      where: withTenantScope(tenant_id, { slug }),
+      select: { name: true },
+    });
+    // 查不到就回 null：与其显示一串 slug，不如让调用方决定怎么兜底
+    return entity?.name ?? null;
+  },
+
   ownsList(listKey: string): boolean {
-    return (
-      listKey === EVENTS_LIST_ALL ||
-      listKey.startsWith(TOPIC_PREFIX) ||
-      listKey.startsWith(ENTITY_PREFIX)
-    );
+    if (listKey === EVENTS_LIST_ALL) return true;
+    /*
+     * **后缀不能为空**：`events:topic:` 是 `{topic_slug}` 在没有主题的页面上
+     * 插值后的残骸。认下来的话读者会订上一个永远不会有内容的列表——
+     * 而链接里的 token 收不干净这种事，迟早会发生。
+     */
+    for (const prefix of [TOPIC_PREFIX, ENTITY_PREFIX]) {
+      if (listKey.startsWith(prefix)) return listKey.length > prefix.length;
+    }
+    return false;
   },
 
   /**

@@ -25,8 +25,7 @@ const FETCH_TIMEOUT_MS = 5_000;
 const MAX_BYTES = 64 * 1024;
 
 const LINK_TAG_RE = /<link\b[^>]*>/giu;
-const ATTR_RE =
-  /\b(rel|href)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/giu;
+const ATTR_RE = /\b(rel|href)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/giu;
 
 type CacheEntry =
   | { kind: "hit"; body: Buffer; content_type: string; until: number }
@@ -49,7 +48,10 @@ export function iconHrefFromHtml(html: string, baseUrl: string): string | null {
     if (!absolute) {
       continue;
     }
-    if (/\bsvg\+xml\b/iu.test(attrs.type ?? "") || /\.svg(?:[?#]|$)/iu.test(href)) {
+    if (
+      /\bsvg\+xml\b/iu.test(attrs.type ?? "") ||
+      /\.svg(?:[?#]|$)/iu.test(href)
+    ) {
       continue;
     }
     if (/\bapple-touch-icon\b/u.test(rel)) {
@@ -61,7 +63,11 @@ export function iconHrefFromHtml(html: string, baseUrl: string): string | null {
   return fallback;
 }
 
-function readLinkAttrs(tag: string): { rel?: string; href?: string; type?: string } {
+function readLinkAttrs(tag: string): {
+  rel?: string;
+  href?: string;
+  type?: string;
+} {
   const attrs: Record<string, string> = {};
   const typeRe = /\btype\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/iu;
   const typeMatch = typeRe.exec(tag);
@@ -96,10 +102,20 @@ export function sniffImageType(bytes: Uint8Array): string | null {
   if (bytes.length < 4) {
     return null;
   }
-  if (bytes[0] === 0x00 && bytes[1] === 0x00 && bytes[2] === 0x01 && bytes[3] === 0x00) {
+  if (
+    bytes[0] === 0x00 &&
+    bytes[1] === 0x00 &&
+    bytes[2] === 0x01 &&
+    bytes[3] === 0x00
+  ) {
     return "image/x-icon";
   }
-  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+  if (
+    bytes[0] === 0x89 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x4e &&
+    bytes[3] === 0x47
+  ) {
     return "image/png";
   }
   if (bytes[0] === 0xff && bytes[1] === 0xd8) {
@@ -164,7 +180,10 @@ export async function renderSourceIcon(input: {
   }
 }
 
-async function isTenantIconHost(tenantId: string, host: string): Promise<boolean> {
+async function isTenantIconHost(
+  tenantId: string,
+  host: string,
+): Promise<boolean> {
   const rows = await prisma.eventFeed.findMany({
     where: withTenantScope(tenantId),
     select: { name: true, url: true, connector: true },
@@ -172,7 +191,10 @@ async function isTenantIconHost(tenantId: string, host: string): Promise<boolean
   return rows.some((row) => sourceIconHost(row) === host);
 }
 
-async function loadAndCache(key: string, host: string): Promise<SitePathResponse | null> {
+async function loadAndCache(
+  key: string,
+  host: string,
+): Promise<SitePathResponse | null> {
   const fetched = await fetchPublisherIcon(host);
   if (!fetched) {
     remember(key, { kind: "miss", until: Date.now() + MISS_TTL_MS });

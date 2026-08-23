@@ -108,9 +108,9 @@ describe("theme settings", () => {
     expect(
       parseThemeSettings({ brand_font_family: "newsreader" }).brand_font_family,
     ).toBe("newsreader");
-    expect(parseThemeSettings({ brand_font_family: "" }).brand_font_family).toBe(
-      null,
-    );
+    expect(
+      parseThemeSettings({ brand_font_family: "" }).brand_font_family,
+    ).toBe(null);
     expect(
       parseThemeSettings({ brand_font_family: null }).brand_font_family,
     ).toBe(null);
@@ -129,9 +129,9 @@ describe("theme settings", () => {
       apple_touch_icon_url: "/uploads/apple.png",
       maskable_icon_url: "https://cdn.example/mask.png",
     });
-    expect(parseThemeSettings({ apple_touch_icon_url: "" }).apple_touch_icon_url).toBe(
-      null,
-    );
+    expect(
+      parseThemeSettings({ apple_touch_icon_url: "" }).apple_touch_icon_url,
+    ).toBe(null);
     expect(() =>
       parseThemeSettings({ apple_touch_icon_url: "javascript:alert(1)" }),
     ).toThrow("site.theme_settings_invalid");

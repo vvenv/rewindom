@@ -67,9 +67,9 @@ function readLink(block: string): string | null {
   if (text?.startsWith("http")) {
     return text;
   }
-  const candidates = [
-    ...block.matchAll(/<link\b([^>]*)\/?>/giu),
-  ].map((m) => m[1]);
+  const candidates = [...block.matchAll(/<link\b([^>]*)\/?>/giu)].map(
+    (m) => m[1],
+  );
   for (const attrs of candidates) {
     const rel = /\brel\s*=\s*["']([^"']*)["']/iu.exec(attrs)?.[1];
     if (rel && rel !== "alternate") {
@@ -145,15 +145,19 @@ const NAMED_ENTITIES: Record<string, string> = {
 };
 
 function decodeEntities(value: string): string {
-  return value.replace(/&(#x?[0-9a-f]+|[a-z]+);/giu, (whole, entity: string) => {
-    if (entity.startsWith("#")) {
-      const code = entity.startsWith("#x") || entity.startsWith("#X")
-        ? parseInt(entity.slice(2), 16)
-        : parseInt(entity.slice(1), 10);
-      return Number.isFinite(code) ? String.fromCodePoint(code) : whole;
-    }
-    return NAMED_ENTITIES[entity.toLowerCase()] ?? whole;
-  });
+  return value.replace(
+    /&(#x?[0-9a-f]+|[a-z]+);/giu,
+    (whole, entity: string) => {
+      if (entity.startsWith("#")) {
+        const code =
+          entity.startsWith("#x") || entity.startsWith("#X")
+            ? parseInt(entity.slice(2), 16)
+            : parseInt(entity.slice(1), 10);
+        return Number.isFinite(code) ? String.fromCodePoint(code) : whole;
+      }
+      return NAMED_ENTITIES[entity.toLowerCase()] ?? whole;
+    },
+  );
 }
 
 function escapeForRegExp(value: string): string {

@@ -24,7 +24,9 @@ export function SiteMedia() {
           <MediaUploadTrigger>
             <DraggableFabTrigger storageKey="site_media_upload_fab">
               <Upload className="size-6 md:size-4" />
-              <span className="hidden md:inline">{t("editor.uploadImage")}</span>
+              <span className="hidden md:inline">
+                {t("editor.uploadImage")}
+              </span>
             </DraggableFabTrigger>
           </MediaUploadTrigger>
         ) : null

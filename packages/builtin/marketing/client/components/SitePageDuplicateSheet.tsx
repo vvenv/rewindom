@@ -47,7 +47,6 @@ import {
 import { siteLocaleOrder } from "../../shared/site-locale.js";
 import { useSite, useSiteMutations, useSitePages } from "../hooks/useSite.js";
 
-
 /**
  * 复制的源页面：列表项与详情都能满足。
  *
@@ -104,8 +103,7 @@ export function SitePageDuplicateSheet({
   const defaultLocale = normalizeLocale(siteQuery.data?.default_locale);
   const existing = translatedLocales(pagesQuery.data, page);
   /** 首页 / 文档模板页 slug 固定，同语言不能再复制一份。 */
-  const fixedSlug =
-    page.kind === "home" || isTemplatePageKind(page.kind);
+  const fixedSlug = page.kind === "home" || isTemplatePageKind(page.kind);
   /** 默认选**还没建**的那门语言——复制的常见用途就是补译文。 */
   const suggestedLocale =
     siteLocaleOrder(defaultLocale).find((slug) => !existing.has(slug)) ??
@@ -229,10 +227,7 @@ export function SitePageDuplicateSheet({
                 {t("common:cancel")}
               </Button>
             </SheetClose>
-            <Button
-              type="submit"
-              disabled={duplicatePage.isPending || blocked}
-            >
+            <Button type="submit" disabled={duplicatePage.isPending || blocked}>
               {duplicatePage.isPending ? <Spinner className="size-4" /> : null}
               {t("cms.duplicate")}
             </Button>

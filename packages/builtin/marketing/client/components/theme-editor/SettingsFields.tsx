@@ -161,6 +161,7 @@ export function SettingsFields({
           <SettingField
             key={`${def.id}:${localized ? locale : ""}`}
             def={def}
+            pageKind={pageKind}
             locale={locale}
             defaultLocale={defaultLocale}
             columnCount={columnCount}
@@ -221,6 +222,11 @@ export function SettingsFields({
 
 interface SettingFieldProps {
   def: InputSettingDef;
+  /**
+   * 正在编辑的页面 kind。目前只有 `link` 控件用得上——按它过滤掉值里嵌了页面级
+   * token 的候选（主题页上不该能选到「订阅当前实体」）。
+   */
+  pageKind?: string;
   value: SettingValue | undefined;
   /*
    * 正在编辑的语言。字段值本身已经由上面按语言拆过了（`value` 是当前语言的槽位），
@@ -242,6 +248,7 @@ interface SettingFieldProps {
 
 function SettingField({
   def,
+  pageKind,
   value,
   locale,
   defaultLocale,
@@ -313,6 +320,7 @@ function SettingField({
       )}
       <SettingControl
         def={def}
+        pageKind={pageKind}
         fieldId={fieldId}
         value={value}
         locale={locale}
@@ -332,6 +340,7 @@ function SettingField({
 
 function SettingControl({
   def,
+  pageKind,
   fieldId,
   value,
   locale,
@@ -363,6 +372,7 @@ function SettingControl({
     case "link":
       return (
         <SiteLinkField
+          pageKind={pageKind}
           id={fieldId}
           value={text}
           disabled={disabled}

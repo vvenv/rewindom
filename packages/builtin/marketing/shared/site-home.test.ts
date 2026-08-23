@@ -154,7 +154,9 @@ describe("首页选择器", () => {
   });
 
   it("编解码 layout / page 值", () => {
-    expect(parseHomeSelectorValue(encodeHomeSelectorLayout("events.home"))).toEqual({
+    expect(
+      parseHomeSelectorValue(encodeHomeSelectorLayout("events.home")),
+    ).toEqual({
       type: "layout",
       key: "events.home",
     });
@@ -191,7 +193,9 @@ describe("首页选择器", () => {
       new Set(["demo"]),
     );
     expect(
-      options.filter((option) => option.type === "layout").map((option) => option.key),
+      options
+        .filter((option) => option.type === "layout")
+        .map((option) => option.key),
     ).toContain("test.radar");
     expect(
       options
@@ -207,12 +211,12 @@ describe("首页选择器", () => {
     expect(
       homeSelectorValue("/demo", "marketing.default", new Set(["demo"])),
     ).toBe(encodeHomeSelectorLayout("test.radar"));
-    expect(
-      homeSelectorValue("/", "test.radar", new Set(["demo"])),
-    ).toBe(encodeHomeSelectorLayout("test.radar"));
-    expect(
-      homeSelectorValue("/about", "test.radar", new Set(["demo"])),
-    ).toBe(encodeHomeSelectorPage("/about"));
+    expect(homeSelectorValue("/", "test.radar", new Set(["demo"]))).toBe(
+      encodeHomeSelectorLayout("test.radar"),
+    );
+    expect(homeSelectorValue("/about", "test.radar", new Set(["demo"]))).toBe(
+      encodeHomeSelectorPage("/about"),
+    );
   });
 
   it("版式已接管站点根时枢纽行不再「设为首页」", () => {

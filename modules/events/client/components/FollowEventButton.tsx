@@ -4,7 +4,10 @@ import { toast } from "@rewindom/ui/toast";
 import { Bell, BellOff } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { useFollowEvent, useUnfollowEvent } from "../hooks/useFollowMutations.js";
+import {
+  useFollowEvent,
+  useUnfollowEvent,
+} from "../hooks/useFollowMutations.js";
 
 /**
  * 关注按钮。MVP §8 把它当成留存机制的核心，所以放在详情页最显眼的动作位，

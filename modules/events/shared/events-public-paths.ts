@@ -89,9 +89,7 @@ export function eventPath(
   );
 }
 
-export function entityIndexPath(
-  prefix: string = EVENTS_MODULE_PREFIX,
-): string {
+export function entityIndexPath(prefix: string = EVENTS_MODULE_PREFIX): string {
   return withEventsPrefix(`/${EVENTS_ENTITY_SEGMENT}`, prefix);
 }
 
@@ -143,11 +141,7 @@ export function eventsReservedSlugs(
 ): readonly string[] {
   const base = eventsModuleBase(prefix);
   if (base) return [base.slice(1)];
-  return [
-    EVENTS_TOPICS_SEGMENT,
-    EVENTS_EVENTS_SEGMENT,
-    EVENTS_ENTITY_SEGMENT,
-  ];
+  return [EVENTS_TOPICS_SEGMENT, EVENTS_EVENTS_SEGMENT, EVENTS_ENTITY_SEGMENT];
 }
 
 export interface EventsIndexQuery {

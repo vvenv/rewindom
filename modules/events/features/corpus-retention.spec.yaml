@@ -37,6 +37,7 @@ entitlement: events
 permissions: []
 models: [] # 只删行，不改结构
 
+
 # ---------- 设计要点（实现时按此，偏离先改本 spec）----------
 # 1. 新 job `events-retention` 注册在同一个 JobRegistry 上，按天跑，
 #    与 events-ingest 一样按「开通了事件雷达的站点」循环。

@@ -10,7 +10,10 @@ import { registerSectionCss } from "../../../shared/load-marketing-site-css.js";
 import { registerChromeBlock } from "../../../shared/sections/_common/chrome-blocks.js";
 import { registerBlockIcon } from "../theme-editor/section-icons.js";
 
-import type { BlockDefinition, SiteBlock } from "../../../shared/section-schema.js";
+import type {
+  BlockDefinition,
+  SiteBlock,
+} from "../../../shared/section-schema.js";
 import type { LucideIcon } from "lucide-react";
 
 export interface ChromeBlockViewProps {

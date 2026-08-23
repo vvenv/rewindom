@@ -27,7 +27,9 @@
   },
   "cadence": {
     "daily": "每日",
-    "weekly": "每周"
+    "weekly": "每周",
+    "dailyDigest": "每天一封摘要",
+    "weeklyDigest": "每周一封摘要"
   },
   "filters": {
     "q": "搜索邮箱",
@@ -109,6 +111,9 @@
     },
     "unsubscribe": {
       "label": "取消订阅页"
+    },
+    "subscribe": {
+      "label": "订阅页"
     }
   },
   "confirm": {
@@ -129,5 +134,13 @@
     "hard_bounce": "地址不存在",
     "soft_bounce": "连续退信，已暂停",
     "complaint": "被举报为垃圾邮件"
+  },
+  "subscribe": {
+    "title": "订阅更新",
+    "subtitle": "留个邮箱，新的进展就送到你的收件箱。不需要注册账号，随时可退订。"
+  },
+  "scope": {
+    "line": "订阅范围：{{list}}",
+    "all": "本站全部更新"
   }
 }

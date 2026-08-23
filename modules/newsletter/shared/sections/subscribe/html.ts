@@ -1,3 +1,4 @@
+import { readNewsletterContext } from "../../newsletter-section-context.js";
 import {
   DEFAULT_DIGEST_CADENCE,
   NEWSLETTER_ALL_LISTS,
@@ -18,7 +19,30 @@ import type { SectionHtmlRenderer } from "@rewindom/builtin/marketing/shared/sec
  *
  * `data-list-key` 留空是有意义的值，表示「本站全部可订阅列表」，由服务端解析。
  */
-export const renderNewsletterSubscribeHtml: SectionHtmlRenderer = (section) => {
+/**
+ * 「订阅范围：AI · 每天一封摘要」。
+ *
+ * 分隔点是**装饰**，`aria-hidden`：读屏软件把它念成「中间点」只是噪音，两段文案
+ * 本来就各成一句。
+ */
+function renderMeta(scope: string, cadence: string): string {
+  const parts = [
+    scope
+      ? `<span class="newsletter-meta-scope">${escapeHtml(scope)}</span>`
+      : "",
+    cadence
+      ? `<span class="newsletter-meta-cadence">${escapeHtml(cadence)}</span>`
+      : "",
+  ].filter(Boolean);
+  if (parts.length === 0) return "";
+  const sep = `<span class="newsletter-meta-sep" aria-hidden="true"> · </span>`;
+  return `<p class="newsletter-meta">${parts.join(sep)}</p>`;
+}
+
+export const renderNewsletterSubscribeHtml: SectionHtmlRenderer = (
+  section,
+  ctx,
+) => {
   const s = section.settings;
   const submitLabel = settingText(s, "submit_label");
   // 没有按钮文案就整段不渲染——与事件订阅块同一条口径：没有可主张的就留白
@@ -29,9 +53,34 @@ export const renderNewsletterSubscribeHtml: SectionHtmlRenderer = (section) => {
    *（比如把「当前主题」摆到了首页上）——退回「本站全部」，而不是把一个解不开的
    * key 发给服务端换一个 400。
    */
-  const rawListKey = settingText(s, "list_key");
+  /*
+   * 订阅范围的优先级：**URL 指定的 > 段设置里的**。
+   *
+   * 订阅页是可以被带参数链过来的（`/subscribe?list=events:topic:ai`），那时读者的
+   * 意图明确写在地址里，比站长在段上配的默认值更具体。范围合不合法由 SSR 路由
+   * 校验过了（认不出的 key 根本不会进上下文）。
+   */
+  const context = readNewsletterContext({ contributed: ctx?.contributed });
+  const scope = context?.subscribe;
+  const rawListKey = scope?.list_key ?? settingText(s, "list_key");
   const listKey = rawListKey.includes("{") ? NEWSLETTER_ALL_LISTS : rawListKey;
   const cadence = settingText(s, "cadence") || DEFAULT_DIGEST_CADENCE;
+
+  /*
+   * 「订阅范围：AI · 每天一封摘要」——这一行必须常驻，不是只在被带参数链过来时才出。
+   *
+   * 两件事读者都无处可查：**周期是租户在段设置里定的**，表单上没有可选项，不写出来
+   * 读者就不知道自己按了「订阅」之后会多久收到一封；范围不写出来，从主题页点过来的
+   * 读者会以为自己订的是全站。
+   *
+   * 文案是成品（渲染器拿不到 i18n）：URL 指定的那一次由订阅页路由算好，段设置里选的
+   * 那个从按 key 取的表里查——`contributed` 是页面级的，给不了「这一段选了什么」。
+   */
+  // 空 key 是存量数据里的「本站全部」（见上面 `data-list-key` 那条），查表要按它归一
+  const scopeKey = listKey || NEWSLETTER_ALL_LISTS;
+  const scopeLine =
+    scope?.scope_label || context?.labels?.scopes[scopeKey] || "";
+  const cadenceLine = context?.labels?.cadences[cadence] ?? "";
   const placeholder = settingText(s, "placeholder");
   const hint = settingText(s, "hint");
   const success = settingText(s, "success_message");
@@ -60,6 +109,8 @@ export const renderNewsletterSubscribeHtml: SectionHtmlRenderer = (section) => {
     ` />`,
     `<button class="btn newsletter-submit" type="submit">${escapeHtml(submitLabel)}</button>`,
     `</div>`,
+    // 一项都没解出来时整行不画——一个空的「订阅范围：」比不显示更糟
+    renderMeta(scopeLine, cadenceLine),
     hint ? `<p class="newsletter-hint">${escapeHtml(hint)}</p>` : "",
     // 增强脚本把结果写进这里；aria-live 让读屏软件在不移动焦点的情况下播报
     `<p class="newsletter-message" data-newsletter-message role="status" aria-live="polite"></p>`,

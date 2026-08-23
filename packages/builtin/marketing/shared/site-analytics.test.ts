@@ -69,7 +69,10 @@ describe("normalizeSiteAnalytics", () => {
 describe("renderSiteAnalyticsHtml", () => {
   it("uses the attribute each provider actually reads", () => {
     expect(
-      renderSiteAnalyticsHtml({ provider: "plausible", site_id: "yestino.com" }),
+      renderSiteAnalyticsHtml({
+        provider: "plausible",
+        site_id: "yestino.com",
+      }),
     ).toBe(
       `<script defer data-domain="yestino.com" src="${PLAUSIBLE_DEFAULT_SCRIPT}"></script>`,
     );

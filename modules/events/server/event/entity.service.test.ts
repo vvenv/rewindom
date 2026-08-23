@@ -35,7 +35,9 @@ beforeEach(() => {
   transaction.mockImplementation(async (ops: unknown[]) => ops);
 });
 
-const sync = (entities: { name: string; kind: string; mention_count: number }[]) =>
+const sync = (
+  entities: { name: string; kind: string; mention_count: number }[],
+) =>
   syncEventEntities({
     tenant_id: "t1",
     event_id: "ev1",

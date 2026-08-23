@@ -20,9 +20,8 @@ vi.mock("./public-events.service.js", () => ({
 }));
 
 const { renderEventsFeed, renderEntityFeed } = await import("./rss.render.js");
-const { getPublicEntityEventsForRss } = await import(
-  "./public-events.service.js"
-);
+const { getPublicEntityEventsForRss } =
+  await import("./public-events.service.js");
 
 const INPUT = {
   tenantId: "t1",

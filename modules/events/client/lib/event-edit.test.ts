@@ -17,7 +17,11 @@ describe("validateEventEditForm", () => {
   it("合法输入通过", () => {
     expect(
       validateEventEditForm(
-        { title: "Stripe acquires OpenRouter", summary: "Deal closed.", topic: "ai" },
+        {
+          title: "Stripe acquires OpenRouter",
+          summary: "Deal closed.",
+          topic: "ai",
+        },
         t,
       ),
     ).toBeNull();

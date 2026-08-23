@@ -24,7 +24,10 @@ export type EventRevisionKind = (typeof EVENT_REVISION_KINDS)[number];
  * 修订载荷。刻意限定成**扁平的标量映射**：它要直接落进 Json 列，
  * 也要能被渲染层无脑读取；嵌套结构会让「渲染一条 diff」变成一个解析问题。
  */
-export type EventRevisionPayload = Record<string, string | number | boolean | null>;
+export type EventRevisionPayload = Record<
+  string,
+  string | number | boolean | null
+>;
 
 export interface EventRevisionDraft {
   kind: EventRevisionKind;
@@ -181,5 +184,7 @@ export async function listEventRevisions(params: {
 }
 
 export function publicRevisionSince(now: Date): Date {
-  return new Date(now.getTime() - PUBLIC_REVISION_WINDOW_HOURS * 60 * 60 * 1000);
+  return new Date(
+    now.getTime() - PUBLIC_REVISION_WINDOW_HOURS * 60 * 60 * 1000,
+  );
 }

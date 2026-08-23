@@ -1,4 +1,8 @@
-import { isEventKind, isEventRevisionKind, isEventSourceKind } from "../../shared/index.js";
+import {
+  isEventKind,
+  isEventRevisionKind,
+  isEventSourceKind,
+} from "../../shared/index.js";
 import {
   resolveSourceIconUrl,
   sourceIconUrlsForNames,
@@ -92,7 +96,8 @@ export function toEventListItem(
     last_activity_at: record.last_activity_at.toISOString(),
     is_following: Boolean(follow),
     has_update: Boolean(
-      follow && record.last_activity_at.getTime() > follow.last_seen_at.getTime(),
+      follow &&
+      record.last_activity_at.getTime() > follow.last_seen_at.getTime(),
     ),
   };
 }

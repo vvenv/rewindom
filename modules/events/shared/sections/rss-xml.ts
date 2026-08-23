@@ -71,17 +71,19 @@ function renderItem(item: RssItemInput): string {
  * 在阅读器里解析失败，而且是静默失败。
  */
 export function escapeXml(value: string): string {
-  return value
-    // XML 1.0 不允许的字符：除 TAB/LF/CR 外的 C0、DEL 与 C1、以及非字符 U+FFFE/U+FFFF
-    .replace(
-      /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\uFFFE\uFFFF]/gu,
-      "",
-    )
-    .replace(/&/gu, "&amp;")
-    .replace(/</gu, "&lt;")
-    .replace(/>/gu, "&gt;")
-    .replace(/"/gu, "&quot;")
-    .replace(/'/gu, "&apos;");
+  return (
+    value
+      // XML 1.0 不允许的字符：除 TAB/LF/CR 外的 C0、DEL 与 C1、以及非字符 U+FFFE/U+FFFF
+      .replace(
+        /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\uFFFE\uFFFF]/gu,
+        "",
+      )
+      .replace(/&/gu, "&amp;")
+      .replace(/</gu, "&lt;")
+      .replace(/>/gu, "&gt;")
+      .replace(/"/gu, "&quot;")
+      .replace(/'/gu, "&apos;")
+  );
 }
 
 /** RSS 2.0 的 pubDate 必须是 RFC 822。取不到合法时间就留空，不编一个。 */

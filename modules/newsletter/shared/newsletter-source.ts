@@ -26,6 +26,39 @@ export interface NewsletterList {
    * 根本解不开，订上去等于订了一个永远不会有内容的列表。
    */
   dynamic?: boolean;
+  /**
+   * 这个源在界面上叫什么（已是当前语言）。贡献方填。
+   *
+   * 只在**站点接了多于一个源**时才会显示出来——见 `buildListOptions`。
+   */
+  source_label?: string;
+  /** 贡献方不用管：由 `listAvailableLists` 按产出它的源回填。 */
+  source_id?: string;
+}
+
+/**
+ * 下拉候选。**只有源多于一个时才把来源写进标签。**
+ *
+ * 单源站点（目前唯一的情形）保持干净：给每一项都盖一句「事件雷达」是一行废话。
+ * 但第二个源接进来的那一刻，来源就必须看得见——`list_key` 前缀
+ *（`events:topic:business`）不显示在界面上，两个源各有一个叫「商业」的列表时，
+ * 下拉里**完全无法区分**，租户选错了读者就收到一堆没订的东西。
+ *
+ * 之所以不做真正的 `<SelectGroup>` 分组：那要改 marketing 内核两处，而收益
+ *（长列表扫读）只有在「多个源 × 每个源几十项」时才明显——那个规模现在还不存在。
+ */
+export function buildListOptions(
+  lists: readonly NewsletterList[],
+): { value: string; label: string }[] {
+  const sources = new Set(lists.map((list) => list.source_id ?? ""));
+  const showSource = sources.size > 1;
+  return lists.map((list) => ({
+    value: list.list_key,
+    label:
+      showSource && (list.source_label || list.source_id)
+        ? `${list.source_label || list.source_id} · ${list.label}`
+        : list.label,
+  }));
 }
 
 /** 摘要里的一条。中立结构——本模块不认识它从哪来。 */
@@ -68,6 +101,21 @@ export interface NewsletterSource {
 
   /** 认不认得这个 key。清单之外的 key 靠它放行。 */
   ownsList(list_key: string): boolean;
+
+  /**
+   * 这个 key 给人看叫什么。
+   *
+   * **和 `listLists` 是两件事**：清单是给编辑器下拉用的、数量必须可控（实体有几千个，
+   * 刻意不进清单）；而 `/subscribe?list=events:entity:openai` 这种链接照样要在页面上
+   * 告诉读者「你正在订阅 OpenAI」——不然他看到的是一串裸 key。
+   *
+   * 认不出来返回 null，调用方自己兜底。
+   */
+  describeList(input: {
+    tenant_id: string;
+    list_key: string;
+    locale: string;
+  }): Promise<string | null>;
 
   /** 游标之后的新条目。`limit` 必须被尊重，贡献方自己再夹一层硬上限。 */
   listItemsSince(input: {

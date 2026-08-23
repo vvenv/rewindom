@@ -3,7 +3,9 @@ import { type ReactElement } from "react";
 import { settingText } from "../../../../shared/section-schema.js";
 import { ButtonRow, type SectionViewProps } from "../section-parts.js";
 
-export function PageMissingSection({ section }: SectionViewProps): ReactElement {
+export function PageMissingSection({
+  section,
+}: SectionViewProps): ReactElement {
   const s = section.settings;
   const code = settingText(s, "code") || "404";
   const headline = settingText(s, "headline");

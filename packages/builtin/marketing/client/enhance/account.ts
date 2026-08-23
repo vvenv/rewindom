@@ -163,7 +163,9 @@ async function logout(): Promise<void> {
 }
 
 function replaceEntry(html: string): void {
-  const entries = document.querySelectorAll(".member-entry, details.member-menu");
+  const entries = document.querySelectorAll(
+    ".member-entry, details.member-menu",
+  );
   for (const node of entries) {
     const wrap = document.createElement("div");
     wrap.innerHTML = html;
@@ -206,9 +208,8 @@ export function enhanceAccount(): void {
     return;
   }
 
-  const guestEntries = document.querySelectorAll<HTMLAnchorElement>(
-    "a.member-entry",
-  );
+  const guestEntries =
+    document.querySelectorAll<HTMLAnchorElement>("a.member-entry");
   // 页头没有账户入口 = 本站没启用会员 UI，不要去打 /me。
   // 默认 starter 不预置 chrome_account，否则每个访客页都会 401。
   if (guestEntries.length === 0) return;

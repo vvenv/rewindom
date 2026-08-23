@@ -387,11 +387,12 @@ dl {
   z-index: -1;
   pointer-events: none;
   border-radius: inherit;
-  background: radial-gradient(
-    70% 70% at 12% -10%,
-    color-mix(in srgb, var(--site-accent, currentColor) 28%, transparent) 0%,
-    transparent 58%
-  ),
+  background:
+    radial-gradient(
+      70% 70% at 12% -10%,
+      color-mix(in srgb, var(--site-accent, currentColor) 28%, transparent) 0%,
+      transparent 58%
+    ),
     radial-gradient(
       50% 45% at 88% 8%,
       color-mix(in srgb, var(--site-accent, currentColor) 14%, transparent) 0%,

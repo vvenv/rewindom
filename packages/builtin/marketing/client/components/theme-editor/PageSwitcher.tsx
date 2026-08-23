@@ -73,7 +73,10 @@ export function PageSwitcher({
             />
             <span className="flex min-w-0 flex-1 flex-col">
               <span className="truncate">
-                {label(item, item.id === currentPageId ? currentTitle : item.title)}
+                {label(
+                  item,
+                  item.id === currentPageId ? currentTitle : item.title,
+                )}
               </span>
               <span className="truncate text-xs text-muted-foreground">
                 {marketingPagePath(item.kind, item.slug)}

@@ -124,7 +124,8 @@ export function interpolationTokensFor(input: {
     }
     if (
       token.page_kinds &&
-      (input.pageKind === undefined || !token.page_kinds.includes(input.pageKind))
+      (input.pageKind === undefined ||
+        !token.page_kinds.includes(input.pageKind))
     ) {
       continue;
     }

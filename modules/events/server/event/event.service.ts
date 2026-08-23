@@ -118,8 +118,14 @@ export async function listEvents(
     prisma.newsEvent.count({ where }),
   ]);
 
-  const follows = await loadFollowMarkers(params, records.map((r) => r.id));
-  const sourceIcons = await loadSourceIconIndex(params.tenant_id, params.tenant_slug);
+  const follows = await loadFollowMarkers(
+    params,
+    records.map((r) => r.id),
+  );
+  const sourceIcons = await loadSourceIconIndex(
+    params.tenant_id,
+    params.tenant_slug,
+  );
 
   return {
     items: await mapEventRecordsToListItems({
@@ -382,8 +388,6 @@ export async function updateEvent(
     data.analyzer = "manual";
   }
 
-
-
   await prisma.newsEvent.update({
     where: { id: existing.id },
     data,
@@ -506,12 +510,18 @@ async function buildListWhere(params: ListEventsParams) {
 }
 
 function buildOrderBy(sortBy?: string, sortDir?: "asc" | "desc") {
-  const field = resolveSortField(sortBy, EVENT_SORTABLE_FIELDS, "last_activity_at");
+  const field = resolveSortField(
+    sortBy,
+    EVENT_SORTABLE_FIELDS,
+    "last_activity_at",
+  );
   const order = resolveSortOrder(sortDir, "desc");
   return { [field]: order } as Record<string, "asc" | "desc">;
 }
 
-async function loadFollowedEventIds(scope: EventViewerScope): Promise<string[]> {
+async function loadFollowedEventIds(
+  scope: EventViewerScope,
+): Promise<string[]> {
   const rows = await prisma.eventFollow.findMany({
     where: withTenantScope(scope.tenant_id, { user_id: scope.user_id }),
     select: { event_id: true },

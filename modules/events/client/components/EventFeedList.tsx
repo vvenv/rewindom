@@ -153,10 +153,14 @@ export function EventFeedList({
           <section key={group.topic} className="rounded-lg border">
             <header className="flex items-center justify-between gap-4 border-b px-4 py-3">
               <div className="min-w-0">
-                <h2 className="text-sm font-medium">{t(`topic.${group.topic}`)}</h2>
+                <h2 className="text-sm font-medium">
+                  {t(`topic.${group.topic}`)}
+                </h2>
                 <p className="text-muted-foreground text-xs">
                   {topicOn
-                    ? t("sources.topicGroupCount", { count: group.feeds.length })
+                    ? t("sources.topicGroupCount", {
+                        count: group.feeds.length,
+                      })
                     : t("sources.topicGroupPaused", {
                         count: group.feeds.length,
                       })}
@@ -249,7 +253,8 @@ function EventFeedRow({
           <p className="text-destructive text-xs">{feed.last_error}</p>
         ) : feed.last_fetched_at ? (
           <p className="text-muted-foreground text-xs">
-            {t("sources.lastFetched")} <RelativeTime iso={feed.last_fetched_at} />
+            {t("sources.lastFetched")}{" "}
+            <RelativeTime iso={feed.last_fetched_at} />
           </p>
         ) : (
           <p className="text-muted-foreground text-xs">

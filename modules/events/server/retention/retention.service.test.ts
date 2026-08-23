@@ -34,7 +34,11 @@ beforeEach(() => {
 describe("runRetention", () => {
   it("没有站点时什么都不做", async () => {
     const summary = await runRetention({ now: NOW, tenant_ids: [] });
-    expect(summary).toEqual({ tenants: 0, signals_deleted: 0, events_deleted: 0 });
+    expect(summary).toEqual({
+      tenants: 0,
+      signals_deleted: 0,
+      events_deleted: 0,
+    });
     expect(deleteManySignal).not.toHaveBeenCalled();
   });
 

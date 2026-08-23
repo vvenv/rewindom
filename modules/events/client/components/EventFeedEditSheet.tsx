@@ -71,7 +71,9 @@ export function EventFeedEditSheet({
       toast.success(t("sources.toastUpdated"));
       setOpen(false);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t("sources.updateFailed"));
+      setError(
+        err instanceof ApiError ? err.message : t("sources.updateFailed"),
+      );
     }
   };
 
@@ -79,7 +81,11 @@ export function EventFeedEditSheet({
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         {children ?? (
-          <Button size="icon" variant="ghost" aria-label={t("sources.editAriaLabel")}>
+          <Button
+            size="icon"
+            variant="ghost"
+            aria-label={t("sources.editAriaLabel")}
+          >
             <Pencil className="size-4" />
           </Button>
         )}

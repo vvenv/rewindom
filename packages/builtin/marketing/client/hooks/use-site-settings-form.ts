@@ -30,10 +30,7 @@ interface SaveOptions {
 }
 
 export type SiteSettingsCommitStatus =
-  | "submitted"
-  | "noop"
-  | "empty_name"
-  | "incomplete_analytics";
+  "submitted" | "noop" | "empty_name" | "incomplete_analytics";
 
 /**
  * 站点设置的本地草稿。控件只改这一份；点保存才 PATCH。
@@ -55,9 +52,8 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
   const [defaultLocale, setDefaultLocale] = useState<AppLocale>(savedLocale);
   const [published, setPublished] = useState(false);
   const [homePath, setHomePath] = useState("/");
-  const [analytics, setAnalytics] = useState<SiteAnalytics>(
-    EMPTY_SITE_ANALYTICS,
-  );
+  const [analytics, setAnalytics] =
+    useState<SiteAnalytics>(EMPTY_SITE_ANALYTICS);
   const [hydratedKey, setHydratedKey] = useState<string | null>(null);
 
   const hydrateFrom = (next: MarketingSite): void => {
@@ -87,13 +83,13 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
 
   const dirty = Boolean(
     site &&
-      hydratedKey !== null &&
-      (defaultLocale !== savedLocale ||
-        published !== site.published ||
-        (homePath || "/") !== (site.home_path || "/") ||
-        !sameAnalytics(analytics, savedAnalytics) ||
-        !sameLocalizedText(siteName, site.site_name, savedLocales, savedLocale) ||
-        !sameLocalizedText(tagline, site.tagline, savedLocales, savedLocale)),
+    hydratedKey !== null &&
+    (defaultLocale !== savedLocale ||
+      published !== site.published ||
+      (homePath || "/") !== (site.home_path || "/") ||
+      !sameAnalytics(analytics, savedAnalytics) ||
+      !sameLocalizedText(siteName, site.site_name, savedLocales, savedLocale) ||
+      !sameLocalizedText(tagline, site.tagline, savedLocales, savedLocale)),
   );
 
   const reset = (): void => {

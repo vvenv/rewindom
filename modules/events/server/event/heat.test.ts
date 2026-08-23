@@ -141,19 +141,31 @@ describe("computeHeat", () => {
 describe("resolveStatus", () => {
   it("最近有动静且快速上升 → developing", () => {
     expect(
-      resolveStatus({ last_activity_at: hoursAgo(1), velocity_pct: 120, now: NOW }),
+      resolveStatus({
+        last_activity_at: hoursAgo(1),
+        velocity_pct: 120,
+        now: NOW,
+      }),
     ).toBe("developing");
   });
 
   it("最近有动静但增速平缓 → active", () => {
     expect(
-      resolveStatus({ last_activity_at: hoursAgo(1), velocity_pct: 10, now: NOW }),
+      resolveStatus({
+        last_activity_at: hoursAgo(1),
+        velocity_pct: 10,
+        now: NOW,
+      }),
     ).toBe("active");
   });
 
   it("半天没动静 → active（仍在 24 小时内）", () => {
     expect(
-      resolveStatus({ last_activity_at: hoursAgo(12), velocity_pct: 0, now: NOW }),
+      resolveStatus({
+        last_activity_at: hoursAgo(12),
+        velocity_pct: 0,
+        now: NOW,
+      }),
     ).toBe("active");
   });
 
@@ -170,19 +182,31 @@ describe("resolveStatus", () => {
 
   it("有基线的明显降温 → cooling", () => {
     expect(
-      resolveStatus({ last_activity_at: hoursAgo(2), velocity_pct: -80, now: NOW }),
+      resolveStatus({
+        last_activity_at: hoursAgo(2),
+        velocity_pct: -80,
+        now: NOW,
+      }),
     ).toBe("cooling");
   });
 
   it("超过一天没动静 → cooling", () => {
     expect(
-      resolveStatus({ last_activity_at: hoursAgo(30), velocity_pct: 0, now: NOW }),
+      resolveStatus({
+        last_activity_at: hoursAgo(30),
+        velocity_pct: 0,
+        now: NOW,
+      }),
     ).toBe("cooling");
   });
 
   it("超过一周没动静 → resolved", () => {
     expect(
-      resolveStatus({ last_activity_at: hoursAgo(24 * 8), velocity_pct: 0, now: NOW }),
+      resolveStatus({
+        last_activity_at: hoursAgo(24 * 8),
+        velocity_pct: 0,
+        now: NOW,
+      }),
     ).toBe("resolved");
   });
 });

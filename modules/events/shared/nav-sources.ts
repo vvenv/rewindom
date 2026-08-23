@@ -95,10 +95,7 @@ export function withEventsNavTopics(
   };
 }
 
-function topicItems(
-  ctx: SiteNavContext,
-  keyPrefix: string,
-): ResolvedNavItem[] {
+function topicItems(ctx: SiteNavContext, keyPrefix: string): ResolvedNavItem[] {
   return enabledTopicsFromContext(ctx).map((topic) =>
     makeNavLink(
       `${keyPrefix}:${topic}`,
@@ -133,12 +130,7 @@ function expandEventsTopic(
   const label =
     resolveNavLabel(item.label, ctx) || topicLabel(item.category, ctx);
   return [
-    makeNavLink(
-      item.id,
-      label,
-      eventsIndexHref({ topic: item.category }),
-      ctx,
-    ),
+    makeNavLink(item.id, label, eventsIndexHref({ topic: item.category }), ctx),
   ];
 }
 

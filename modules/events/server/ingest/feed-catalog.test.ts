@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { EVENT_TOPICS, isIconHost, sourceIconHost } from "../../shared/index.js";
+import {
+  EVENT_TOPICS,
+  isIconHost,
+  sourceIconHost,
+} from "../../shared/index.js";
 
 import { DEFAULT_FEEDS, feedCatalogKey } from "./feed-catalog.js";
 

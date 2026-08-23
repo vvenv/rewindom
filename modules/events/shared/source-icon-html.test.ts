@@ -13,7 +13,7 @@ describe("sourceIconImgHtml", () => {
   it("有地址时 img 叠在 fallback 上，坏掉就摘掉 img", () => {
     const html = sourceIconImgHtml("/events/icons/openai.com");
     expect(html).toContain('src="/events/icons/openai.com"');
-    expect(html).toContain("onerror=\"this.remove()\"");
+    expect(html).toContain('onerror="this.remove()"');
     expect(html).toContain("events-source-icon-fallback");
     expect(html).not.toContain("google.com/s2");
   });
@@ -21,7 +21,10 @@ describe("sourceIconImgHtml", () => {
 
 describe("sourcesLineHtml", () => {
   it("每个源名都带 icon 槽，缺 URL 也占位", () => {
-    const html = sourcesLineHtml(["OpenAI", "Ghost"], ["/events/icons/openai.com"]);
+    const html = sourcesLineHtml(
+      ["OpenAI", "Ghost"],
+      ["/events/icons/openai.com"],
+    );
     expect(html).toContain(">OpenAI</span>");
     expect(html).toContain(">Ghost</span>");
     expect(html.match(/events-source-icon-slot/g)?.length).toBe(2);

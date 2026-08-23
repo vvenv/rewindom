@@ -43,13 +43,17 @@ export const hackerNewsConnector: EventConnector = {
     const items: HackerNewsItem[] = [];
     for (let i = 0; i < targets.length; i += BATCH_SIZE) {
       const batch = await Promise.all(
-        targets.slice(i, i + BATCH_SIZE).map((id) =>
-          fetchJson<HackerNewsItem | null>(
-            `${HACKER_NEWS_API_BASE}/item/${id}.json`,
-          ).catch(() => null),
-        ),
+        targets
+          .slice(i, i + BATCH_SIZE)
+          .map((id) =>
+            fetchJson<HackerNewsItem | null>(
+              `${HACKER_NEWS_API_BASE}/item/${id}.json`,
+            ).catch(() => null),
+          ),
       );
-      items.push(...batch.filter((item): item is HackerNewsItem => item !== null));
+      items.push(
+        ...batch.filter((item): item is HackerNewsItem => item !== null),
+      );
     }
 
     return items

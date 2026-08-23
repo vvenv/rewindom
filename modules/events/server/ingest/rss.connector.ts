@@ -23,13 +23,15 @@ export const rssConnector: EventConnector = {
       accept:
         "application/rss+xml, application/atom+xml, application/xml;q=0.9, */*;q=0.8",
     });
-    return parseFeed(xml).slice(0, ITEM_LIMIT).map((item) => toSignal(item, feed));
+    return parseFeed(xml)
+      .slice(0, ITEM_LIMIT)
+      .map((item) => toSignal(item, feed));
   },
 };
 
 export function toSignal(item: ParsedFeedItem, feed: ConnectorFeed): RawSignal {
   /*
-   * 状态页的正文是一条**完整的、带时刻的一手时间线**（`11:42 Resolved - … 
+   * 状态页的正文是一条**完整的、带时刻的一手时间线**（`11:42 Resolved - …
    * 10:58 Investigating - …`）。解析必须发生在 truncateExcerpt 之前——
    * 600 字之后的部分过了那一行就永远丢了，而一次故障的正文经常上千字。
    */
@@ -39,7 +41,9 @@ export function toSignal(item: ParsedFeedItem, feed: ConnectorFeed): RawSignal {
       : [];
 
   return {
-    ...(incidentUpdates.length > 0 ? { incident_updates: incidentUpdates } : {}),
+    ...(incidentUpdates.length > 0
+      ? { incident_updates: incidentUpdates }
+      : {}),
     external_id: item.id,
     source_name: feed.name,
     source_kind: feed.source_kind,

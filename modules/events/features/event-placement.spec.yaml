@@ -61,6 +61,7 @@ entitlement: events
 permissions: [] # 沿用 events.read
 models: [] # 无新表新列
 
+
 # ---------- 设计要点（实现时按此，偏离先改本 spec）----------
 #
 # 1. **产出 i18n code + 参数，不是自由文案**——与 why-trending、事实 chips 完全同一条。

@@ -35,7 +35,10 @@ export async function sourceIconRoutes(app: FastifyInstance): Promise<void> {
       }
       return reply
         .header("content-type", result.content_type)
-        .header("cache-control", result.cache_control ?? "public, max-age=86400")
+        .header(
+          "cache-control",
+          result.cache_control ?? "public, max-age=86400",
+        )
         .send(result.body);
     },
   );

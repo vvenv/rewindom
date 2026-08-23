@@ -57,5 +57,8 @@ export function createEventsPresetTranslator(
   locale: AppLocale,
 ): PresetTranslateFn {
   return (raw: string): string =>
-    eventsMessage(locale, raw.startsWith(NAMESPACE) ? raw.slice(NAMESPACE.length) : raw);
+    eventsMessage(
+      locale,
+      raw.startsWith(NAMESPACE) ? raw.slice(NAMESPACE.length) : raw,
+    );
 }

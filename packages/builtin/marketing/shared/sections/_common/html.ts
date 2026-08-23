@@ -150,7 +150,10 @@ export function buttonRow(settings: SettingValues, align: string): string {
   return `<p class="btn-row${align === "center" ? " center" : ""}">${buttons.join("")}</p>`;
 }
 
-export function sectionHeading(settings: SettingValues, action = false): string {
+export function sectionHeading(
+  settings: SettingValues,
+  action = false,
+): string {
   const heading = settingText(settings, "heading");
   const subheading = settingText(settings, "subheading");
   const label = settingText(settings, "primary_label");

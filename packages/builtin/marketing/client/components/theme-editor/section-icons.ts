@@ -49,10 +49,7 @@ export const SECTION_ICONS: Partial<Record<SectionType, LucideIcon>> = {
 };
 
 /** 贡献段登记左侧树图标；同 type 覆盖。 */
-export function registerSectionIcon(
-  type: SectionType,
-  icon: LucideIcon,
-): void {
+export function registerSectionIcon(type: SectionType, icon: LucideIcon): void {
   SECTION_ICONS[type] = icon;
 }
 

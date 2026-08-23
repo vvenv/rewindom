@@ -96,10 +96,7 @@ describe("renderEventsEntityHtml", () => {
   it("卡片沿用 events-card，厚卡才摊开势头", () => {
     const html = render(
       entity({
-        events: [
-          card("a", { evidence_text: "已证实 · 2 家来源" }),
-          card("b"),
-        ],
+        events: [card("a", { evidence_text: "已证实 · 2 家来源" }), card("b")],
       }),
     );
     expect(html).toContain("events-card-thick");

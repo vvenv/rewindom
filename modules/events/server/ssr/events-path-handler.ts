@@ -341,18 +341,14 @@ function translator(locale: AppLocale) {
     eventsMessage(locale, key, params);
 }
 
-function toCard(
-  item: EventListItem,
-  t: ReturnType<typeof translator>,
-) {
+function toCard(item: EventListItem, t: ReturnType<typeof translator>) {
   return toPublicCard(item, t);
 }
 
 export function registerEventsPathHandler(): void {
   registerSitePathHandler({
     match: (path, ctx) =>
-      isEventsPath(path) ||
-      isEventsRootQueryTakeover(path, ctx?.query ?? {}),
+      isEventsPath(path) || isEventsRootQueryTakeover(path, ctx?.query ?? {}),
     entitlement: EVENTS_ENTITLEMENT.key,
     render: renderEventsPath,
   });

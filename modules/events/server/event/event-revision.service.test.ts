@@ -20,8 +20,16 @@ function snapshot(overrides: Partial<EventSnapshot> = {}): EventSnapshot {
 }
 
 const SIGNALS: RevisionSignal[] = [
-  { source_name: "OpenAI", source_kind: "official", published_at: at("2026-08-18T08:00:00Z") },
-  { source_name: "TechCrunch", source_kind: "news", published_at: at("2026-08-18T10:17:00Z") },
+  {
+    source_name: "OpenAI",
+    source_kind: "official",
+    published_at: at("2026-08-18T08:00:00Z"),
+  },
+  {
+    source_name: "TechCrunch",
+    source_kind: "news",
+    published_at: at("2026-08-18T10:17:00Z"),
+  },
 ];
 
 describe("diffEventRevisions", () => {
@@ -127,8 +135,16 @@ describe("diffEventRevisions", () => {
 
   it("一轮里可以同时产出多条修订", () => {
     const drafts = diffEventRevisions({
-      before: snapshot({ status: "developing", source_names: ["OpenAI"], title: "旧标题" }),
-      after: snapshot({ status: "active", source_names: ["OpenAI", "TechCrunch"], title: "新标题" }),
+      before: snapshot({
+        status: "developing",
+        source_names: ["OpenAI"],
+        title: "旧标题",
+      }),
+      after: snapshot({
+        status: "active",
+        source_names: ["OpenAI", "TechCrunch"],
+        title: "新标题",
+      }),
       signals: SIGNALS,
       now: NOW,
     });

@@ -69,10 +69,7 @@ export function isSiteAssetFilename(name: string): boolean {
   return SITE_ASSET_EXTENSION_SET.has(name.slice(dot).toLowerCase());
 }
 
-export function isSiteAssetFile(file: {
-  name: string;
-  type: string;
-}): boolean {
+export function isSiteAssetFile(file: { name: string; type: string }): boolean {
   const mime = file.type.trim().toLowerCase();
   if (mime && SITE_ASSET_MIME_SET.has(mime)) return true;
   return isSiteAssetFilename(file.name);

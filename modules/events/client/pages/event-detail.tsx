@@ -1,4 +1,8 @@
-import { EmptyState, PageLayout, usePermissions } from "@rewindom/module-sdk/client";
+import {
+  EmptyState,
+  PageLayout,
+  usePermissions,
+} from "@rewindom/module-sdk/client";
 import { Alert, AlertDescription } from "@rewindom/ui/alert";
 import { Badge } from "@rewindom/ui/badge";
 import { Button } from "@rewindom/ui/button";
@@ -112,10 +116,7 @@ export function EventDetail() {
 
             <EventPlacement facts={data.placement} />
 
-            <EventEntities
-              entities={data.entities}
-              canFollow={canFollow}
-            />
+            <EventEntities entities={data.entities} canFollow={canFollow} />
 
             {/* 「为什么」是对结论的补充，摆在变化之后、正文之前 */}
             <EventWhyTrending factors={data.why_trending} />

@@ -118,7 +118,11 @@ export function normalizeSiteAnalytics(input: unknown): SiteAnalytics {
   if (parsed.provider !== "custom" && parsed.site_id === "") {
     return { ...EMPTY_SITE_ANALYTICS };
   }
-  return { provider: parsed.provider, script_url: script, site_id: parsed.site_id };
+  return {
+    provider: parsed.provider,
+    script_url: script,
+    site_id: parsed.site_id,
+  };
 }
 
 function escapeAttr(value: string): string {

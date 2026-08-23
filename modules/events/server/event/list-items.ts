@@ -7,14 +7,8 @@
 import { toEventListItem } from "./event.mapper.js";
 import { getEventPlacementsForList } from "./placement.service.js";
 
-import type {
-  EventListItem,
-  EventPlacementFact,
-} from "../../shared/index.js";
-import type {
-  EventRecordForList,
-  FollowMarker,
-} from "./event.mapper.js";
+import type { EventListItem, EventPlacementFact } from "../../shared/index.js";
+import type { EventRecordForList, FollowMarker } from "./event.mapper.js";
 
 export async function mapEventRecordsToListItems(params: {
   tenant_id: string;

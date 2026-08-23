@@ -12,7 +12,10 @@ import { newsletterSsrRoutes } from "./newsletter.ssr.js";
 import { publicNewsletterRoutes } from "./public-subscribe.routes.js";
 import { registerNewsletterSiteContributions } from "./register.js";
 
+import { registerReservedPageSlug } from "@rewindom/builtin/marketing/shared/reserved-slugs.js";
 import { registerTenantGatedRoutes } from "@rewindom/module-sdk/server";
+
+import { NEWSLETTER_SUBSCRIBE_PATH } from "../shared/newsletter-page-templates.js";
 
 import type { ServerAppModule } from "@rewindom/module-sdk/server";
 
@@ -56,6 +59,12 @@ export const newsletterServerModule: ServerAppModule = {
     i18n: NEWSLETTER_SERVER_I18N,
     onBoot: async (ctx) => {
       registerNewsletterSiteContributions();
+      /*
+       * `/subscribe` 由本模块的静态路由承接，比 marketing 的 `/:first` 更具体。
+       * 不登记成保留字的话，租户建一张 slug 为 `subscribe` 的 CMS 页会被永远盖住
+       * ——页面在中台列着、点开却是订阅页，查起来极难。
+       */
+      registerReservedPageSlug(NEWSLETTER_SUBSCRIBE_PATH.slice(1));
 
       /*
        * 订阅 mailer 广播的退信 / 投诉。**这不是编译期依赖**——只是一个事件名，

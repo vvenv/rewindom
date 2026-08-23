@@ -44,7 +44,9 @@ export interface IncidentUpdate {
   text: string;
 }
 
-const PHASE_ALTERNATION = PHASES.map((p) => p.replace(/\s/gu, "\\s+")).join("|");
+const PHASE_ALTERNATION = PHASES.map((p) => p.replace(/\s/gu, "\\s+")).join(
+  "|",
+);
 
 /*
  * 一段更新的形状：`<Mon> <D>, <HH:MM> UTC <Phase> - <text>`。
@@ -64,8 +66,18 @@ const UPDATE_RE = new RegExp(
 );
 
 const MONTHS: Record<string, number> = {
-  Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
-  Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
+  Jan: 0,
+  Feb: 1,
+  Mar: 2,
+  Apr: 3,
+  May: 4,
+  Jun: 5,
+  Jul: 6,
+  Aug: 7,
+  Sep: 8,
+  Oct: 9,
+  Nov: 10,
+  Dec: 11,
 };
 
 /** 一次 incident 最多留几格：再多是运维日志，不是给读者看的时间线。 */
@@ -112,9 +124,7 @@ export function parseIncidentUpdates(
    * Statuspage 按**倒序**输出（最新的在最前）。统一成升序，与时间线其余部分
    * 一致；同刻的保持原相对次序（sort 是稳定的）。
    */
-  updates.sort(
-    (a, b) => Date.parse(a.occurred_at) - Date.parse(b.occurred_at),
-  );
+  updates.sort((a, b) => Date.parse(a.occurred_at) - Date.parse(b.occurred_at));
   return updates.slice(0, MAX_UPDATES);
 }
 
@@ -126,7 +136,12 @@ function resolveTimestamp(
   const day = Number(g.day);
   const hour = Number(g.hour);
   const minute = Number(g.minute);
-  if (month === undefined || !Number.isFinite(day) || hour > 23 || minute > 59) {
+  if (
+    month === undefined ||
+    !Number.isFinite(day) ||
+    hour > 23 ||
+    minute > 59
+  ) {
     return null;
   }
 
@@ -145,9 +160,7 @@ function resolveTimestamp(
 
 function normalizePhase(raw: string): IncidentPhase {
   const collapsed = raw.replace(/\s+/gu, " ").trim().toLowerCase();
-  return (
-    PHASES.find((p) => p.toLowerCase() === collapsed) ?? "Update"
-  );
+  return PHASES.find((p) => p.toLowerCase() === collapsed) ?? "Update";
 }
 
 function normalizeText(raw: string): string {

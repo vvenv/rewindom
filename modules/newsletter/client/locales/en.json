@@ -27,7 +27,9 @@
   },
   "cadence": {
     "daily": "Daily",
-    "weekly": "Weekly"
+    "weekly": "Weekly",
+    "dailyDigest": "A digest every day",
+    "weeklyDigest": "A digest every week"
   },
   "filters": {
     "q": "Search email",
@@ -109,6 +111,9 @@
     },
     "unsubscribe": {
       "label": "Unsubscribe page"
+    },
+    "subscribe": {
+      "label": "Signup page"
     }
   },
   "confirm": {
@@ -129,5 +134,13 @@
     "hard_bounce": "Address does not exist",
     "soft_bounce": "Repeated bounces; paused",
     "complaint": "Reported as spam"
+  },
+  "subscribe": {
+    "title": "Subscribe",
+    "subtitle": "Leave your email and new developments land in your inbox. No account needed, unsubscribe anytime."
+  },
+  "scope": {
+    "line": "Subscribing to {{list}}",
+    "all": "everything on this site"
   }
 }

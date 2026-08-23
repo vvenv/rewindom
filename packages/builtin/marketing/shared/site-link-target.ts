@@ -19,4 +19,24 @@ export interface SiteLinkTarget {
   hint?: string;
   /** 还没发布：照列（先配导航后发布是常见顺序），但要标出来。 */
   draft?: boolean;
+  /**
+   * 只在这几种页面上可选。不声明 = 全站可选。
+   *
+   * 给**值里嵌了页面级 token** 的候选用：`/subscribe?list={topic_list}` 只有在
+   * 主题页 / 事件详情页上才解得出东西，摆到实体页上那个参数会被收掉，
+   * 读者点过去订的是全站——不是租户以为的那件事。
+   *
+   * 与 `InterpolationTokenDefinition.page_kinds` 同一条口径：声明了却对不上当前页
+   * 就不列（`pageKind` 未知时同样不列，页头页脚那种站点级位置就是这种情况）。
+   */
+  page_kinds?: readonly string[];
+}
+
+/** 候选在这张页面上可不可选。与 `interpolationTokensFor` 逐字同构。 */
+export function linkTargetVisibleOnPage(
+  target: SiteLinkTarget,
+  pageKind: string | undefined,
+): boolean {
+  if (!target.page_kinds) return true;
+  return pageKind !== undefined && target.page_kinds.includes(pageKind);
 }

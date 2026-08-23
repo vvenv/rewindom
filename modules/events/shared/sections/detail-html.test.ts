@@ -108,7 +108,9 @@ describe("renderEventsDetailHtml related", () => {
     );
     expect(html).toContain("2026-08-12");
     expect(html).toContain("故障");
-    expect(html.indexOf("Earlier outage")).toBeLessThan(html.indexOf("Later event"));
+    expect(html.indexOf("Earlier outage")).toBeLessThan(
+      html.indexOf("Later event"),
+    );
     expect(html).not.toContain("为什么相关");
   });
 
@@ -153,7 +155,8 @@ describe("renderEventsDetailHtml timeline", () => {
           entry({
             role_label: "说法不一",
             role: "conflict",
-            label: "Reuters reports the deal is off; The Verge says talks continue.",
+            label:
+              "Reuters reports the deal is off; The Verge says talks continue.",
           }),
         ],
       }),

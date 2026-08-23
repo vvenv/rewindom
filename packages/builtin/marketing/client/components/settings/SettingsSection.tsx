@@ -1,3 +1,1 @@
-export {
-  SettingsSection,
-} from "@rewindom/client-kit";
+export { SettingsSection } from "@rewindom/client-kit";

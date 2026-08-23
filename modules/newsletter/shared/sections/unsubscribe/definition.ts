@@ -28,7 +28,10 @@ export const newsletterUnsubscribeSection: SectionDefinition = {
   page_kinds: [NEWSLETTER_UNSUBSCRIBE_PAGE_KIND],
   entitlement: NEWSLETTER_ENTITLEMENT.key,
   settings: [
-    ...headingSettings(),
+    ...headingSettings({
+      headingDefault: "newsletter:unsubscribe.title",
+      subheadingDefault: "newsletter:unsubscribe.subtitle",
+    }),
     { type: "header", content: "newsletter:section.unsubscribe.group" },
     {
       type: "text",

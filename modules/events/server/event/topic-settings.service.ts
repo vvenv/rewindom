@@ -18,7 +18,9 @@ import {
   type EventTopicSettings,
 } from "../../shared/index.js";
 
-export async function getEnabledTopics(tenantId: string): Promise<EventTopic[]> {
+export async function getEnabledTopics(
+  tenantId: string,
+): Promise<EventTopic[]> {
   const row = await prisma.tenantSetting.findFirst({
     where: withTenantScope(tenantId, { key: ENABLED_TOPICS_SETTING }),
     select: { value: true },

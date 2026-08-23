@@ -4,7 +4,9 @@ import { buildEventSlug, slugifyTitle } from "./slug.js";
 
 describe("slugifyTitle", () => {
   it("空格与标点变连字符", () => {
-    expect(slugifyTitle("OpenAI releases GPT-6!")).toBe("openai-releases-gpt-6");
+    expect(slugifyTitle("OpenAI releases GPT-6!")).toBe(
+      "openai-releases-gpt-6",
+    );
   });
 
   it("去掉变音符号而不是整个字母", () => {
@@ -28,14 +30,14 @@ describe("slugifyTitle", () => {
 
 describe("buildEventSlug", () => {
   it("拼上取自 id 的短后缀", () => {
-    expect(buildEventSlug("GPT-6", "0e5a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b")).toBe(
-      "gpt-6-0e5a1b",
-    );
+    expect(
+      buildEventSlug("GPT-6", "0e5a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"),
+    ).toBe("gpt-6-0e5a1b");
   });
 
   it("同一标题不同事件不会撞 slug", () => {
-    expect(buildEventSlug("GPT-6", "aaaaaaaa-0000-0000-0000-000000000000")).not.toBe(
-      buildEventSlug("GPT-6", "bbbbbbbb-0000-0000-0000-000000000000"),
-    );
+    expect(
+      buildEventSlug("GPT-6", "aaaaaaaa-0000-0000-0000-000000000000"),
+    ).not.toBe(buildEventSlug("GPT-6", "bbbbbbbb-0000-0000-0000-000000000000"));
   });
 });

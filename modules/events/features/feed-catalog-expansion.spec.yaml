@@ -37,6 +37,7 @@ entitlement: events
 permissions: []
 models: [] # 目录项落到已有的 EventFeed；种植记录走 TenantSetting
 
+
 # ---------- 设计要点（实现时按此，偏离先改本 spec）----------
 # 1. 目录项加稳定 key（`${connector}:${url}`）。站点已种过哪些 key 记在
 #    TenantSetting（键 `events.seeded_feed_keys`），ensureDefaultFeeds 改成：

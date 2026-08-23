@@ -77,7 +77,9 @@ function parseKeys(value: unknown): Set<string> | null {
   if (!Array.isArray(value)) {
     return null;
   }
-  return new Set(value.filter((item): item is string => typeof item === "string"));
+  return new Set(
+    value.filter((item): item is string => typeof item === "string"),
+  );
 }
 
 async function saveSeededKeys(

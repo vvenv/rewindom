@@ -8,10 +8,7 @@
 
 import { translateRegisteredKeyTable } from "@rewindom/shared";
 
-import {
-  BRAND_ICON_CHOICES,
-  type BrandIconName,
-} from "./brand-icons.js";
+import { BRAND_ICON_CHOICES, type BrandIconName } from "./brand-icons.js";
 import { isSiteColor } from "./site-color.js";
 
 export type { BrandIconName } from "./brand-icons.js";
@@ -42,11 +39,7 @@ export interface LocalizedText {
  * 避免 section-settings ↔ site-nav 循环依赖。
  */
 export type SettingValue =
-  | string
-  | number
-  | boolean
-  | LocalizedText
-  | readonly unknown[];
+  string | number | boolean | LocalizedText | readonly unknown[];
 export type SettingValues = Record<string, SettingValue>;
 
 export function isLocalizedText(value: unknown): value is LocalizedText {
@@ -630,10 +623,7 @@ function coerceSetting(def: InputSettingDef, raw: unknown): SettingValue {
       }
       // 多语言表：只有声明了可本地化的字段才认，否则按脏数据回落
       if (isLocalizableSetting(def) && isLocalizedText(raw)) {
-        return reconcileStockLocalizedText(
-          def,
-          cleanLocalizedText(raw.__i18n),
-        );
+        return reconcileStockLocalizedText(def, cleanLocalizedText(raw.__i18n));
       }
       return resolveTextDefault(def);
     }
@@ -752,12 +742,10 @@ function applyBackgroundToken(
   raw: Record<string, unknown>,
   out: SettingValues,
 ): void {
-  const bgColor =
-    typeof out.bg_color === "string" ? out.bg_color.trim() : "";
+  const bgColor = typeof out.bg_color === "string" ? out.bg_color.trim() : "";
   if (bgColor) return;
 
-  const background =
-    typeof raw.background === "string" ? raw.background : "";
+  const background = typeof raw.background === "string" ? raw.background : "";
   if (background === "muted" || background === "accent") {
     out.background = background;
   }

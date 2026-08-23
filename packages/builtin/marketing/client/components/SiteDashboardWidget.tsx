@@ -28,7 +28,9 @@ export function SiteDashboardWidget() {
       headerExtra={
         site ? (
           <Badge variant={site.published ? "secondary" : "outline"}>
-            {t(site.published ? "dashboard.published" : "dashboard.unpublished")}
+            {t(
+              site.published ? "dashboard.published" : "dashboard.unpublished",
+            )}
           </Badge>
         ) : null
       }

@@ -111,12 +111,7 @@ export const renderEventsFeedHtml: SectionHtmlRenderer = (section, ctx) => {
   const more =
     !listing && moreLabel
       ? `<a class="events-more" href="${escapeHtml(
-          siteHref(
-            eventsIndexHref(
-              { source, topic },
-            ),
-            ctx,
-          ),
+          siteHref(eventsIndexHref({ source, topic }), ctx),
         )}">${escapeHtml(moreLabel)}</a>`
       : "";
 

@@ -23,7 +23,9 @@ export const SITE_INTERPOLATION_KEY = "interpolation";
 
 const TOKEN_PATTERN = /\{([a-z][a-z0-9_]*)\}/gu;
 
-export function isStringRecord(value: unknown): value is Record<string, string> {
+export function isStringRecord(
+  value: unknown,
+): value is Record<string, string> {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   return Object.values(value).every((item) => typeof item === "string");
 }
@@ -116,7 +118,9 @@ export function interpolateSiteText(
 function collapsePath(path: string): string {
   if (!path) return path;
   const trailing = path.endsWith("/") && path !== "/";
-  const parts = path.split("/").filter((segment, index) => segment !== "" || index === 0);
+  const parts = path
+    .split("/")
+    .filter((segment, index) => segment !== "" || index === 0);
   let result = parts.join("/") || (path.startsWith("/") ? "/" : "");
   if (trailing && result !== "/") result += "/";
   return result;

@@ -364,7 +364,10 @@ function resolveItem(
     const children = item.children.flatMap((child) => resolveItem(child, ctx));
     const values = ctx.interpolation ?? {};
     const href = interpolateSiteHref(item.href, values);
-    const label = interpolateSiteText(resolveNavLabel(item.label, ctx, href), values);
+    const label = interpolateSiteText(
+      resolveNavLabel(item.label, ctx, href),
+      values,
+    );
     if (!label && children.length === 0) return [];
     return [makeNavLink(item.id, label, href, ctx, children)];
   }

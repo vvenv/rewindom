@@ -100,7 +100,7 @@ describe("chrome 定位", () => {
     ]);
 
     const [row1, row2] = html.split('class="wrap chrome-row chrome-row-2"');
-    expect(row1).toContain('chrome-zone chrome-zone-start');
+    expect(row1).toContain("chrome-zone chrome-zone-start");
     expect(row1).toContain('class="btn" href="/s"');
     expect(row1).toContain("chrome-zone-center");
     expect(row2).toContain("chrome-zone-end");
@@ -151,11 +151,15 @@ describe("chrome 导航", () => {
       "chrome-nav chrome-nav-inline",
     );
     const column = footer([
-      block("chrome_nav", { items: LINK_ITEMS, display: "column", title: "产品" }),
+      block("chrome_nav", {
+        items: LINK_ITEMS,
+        display: "column",
+        title: "产品",
+      }),
     ]);
     expect(column).toContain("chrome-nav chrome-nav-column");
     expect(column).toContain("<h2>产品</h2>");
-    expect(column).toContain("<li><a href=\"/pricing\">定价</a></li>");
+    expect(column).toContain('<li><a href="/pricing">定价</a></li>');
   });
 
   it("第一条导航叫主导航，没标题的其余导航不当 landmark", () => {
@@ -221,7 +225,10 @@ describe("chrome 控件密度", () => {
    * 尺寸写在 CSS 变量上，markup 只负责报名。
    */
   it("语言开关与明暗切换挂 chrome-control", () => {
-    const html = header([block("chrome_locale", {}), block("chrome_theme", {})]);
+    const html = header([
+      block("chrome_locale", {}),
+      block("chrome_theme", {}),
+    ]);
     expect(html).toContain('<summary class="chrome-control"');
     expect(html).toContain('class="theme-toggle chrome-control"');
   });
@@ -233,7 +240,10 @@ describe("chrome 外壳", () => {
       'class="site-header has-divider sticky"',
     );
     expect(
-      header([block("chrome_brand", {})], { sticky: false, show_divider: false }),
+      header([block("chrome_brand", {})], {
+        sticky: false,
+        show_divider: false,
+      }),
     ).toContain('class="site-header"');
   });
 

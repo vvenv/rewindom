@@ -42,9 +42,9 @@ describe("parseSettingValues", () => {
         options_from: "shop.collections",
       },
     ];
-    expect(parseSettingValues(selectDefs, { root_slug: "shirts" }).root_slug).toBe(
-      "shirts",
-    );
+    expect(
+      parseSettingValues(selectDefs, { root_slug: "shirts" }).root_slug,
+    ).toBe("shirts");
     expect(parseSettingValues(selectDefs, {}).root_slug).toBe("__all__");
   });
 
@@ -61,8 +61,12 @@ describe("parseSettingValues", () => {
         ],
       },
     ];
-    expect(parseSettingValues(selectDefs, { style: "grid" }).style).toBe("cards");
-    expect(parseSettingValues(selectDefs, { style: "list" }).style).toBe("list");
+    expect(parseSettingValues(selectDefs, { style: "grid" }).style).toBe(
+      "cards",
+    );
+    expect(parseSettingValues(selectDefs, { style: "list" }).style).toBe(
+      "list",
+    );
   });
 
   it("fills defaults for missing values", () => {
@@ -346,9 +350,7 @@ describe("parseAreaSections", () => {
   // placements 说了算：hero 没声明能进页头，就不许存进去
   it("拒收没声明能放进该区域的段", () => {
     expect(() =>
-      parseAreaSections("header", [
-        { type: "hero", settings: {}, blocks: [] },
-      ]),
+      parseAreaSections("header", [{ type: "hero", settings: {}, blocks: [] }]),
     ).toThrow("site.sections_invalid");
     // safe 版本回落到只剩本体，不炸整个站点
     expect(
@@ -674,7 +676,9 @@ describe("splitSettingsByScope", () => {
     );
     expect(headerScopes.appearance.length).toBeGreaterThan(0);
     // 版式下拉已经删掉了：排法由每个块自己的 row / align 决定，页头只剩外壳设置
-    expect(headerScopes.layout.map((def) => ("id" in def ? def.id : ""))).toEqual(
+    expect(
+      headerScopes.layout.map((def) => ("id" in def ? def.id : "")),
+    ).toEqual(
       expect.arrayContaining(["sticky", "padding_top", "show_divider"]),
     );
     expect(
@@ -713,9 +717,9 @@ describe("resolvePageHeaderText", () => {
   });
 
   it("trims and treats missing page as empty", () => {
-    expect(resolvePageHeaderText({ title: "  文档  ", description: "  " })).toEqual(
-      { headline: "文档", subhead: "" },
-    );
+    expect(
+      resolvePageHeaderText({ title: "  文档  ", description: "  " }),
+    ).toEqual({ headline: "文档", subhead: "" });
     expect(resolvePageHeaderText(null)).toEqual({ headline: "", subhead: "" });
   });
 });
@@ -803,9 +807,7 @@ describe("relocalizeSections", () => {
       },
     });
 
-    const customized = parseSections(
-      hero({ subhead: "会员可见专属资料" }),
-    );
+    const customized = parseSections(hero({ subhead: "会员可见专属资料" }));
     const [seeded] = relocalizeSections(customized, "zh-CN", "en", "zh-CN");
     expect(seeded!.settings.subhead).toEqual({
       __i18n: { "zh-CN": "会员可见专属资料", en: "会员可见专属资料" },

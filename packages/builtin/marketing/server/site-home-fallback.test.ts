@@ -39,7 +39,9 @@ const siteRow = {
 describe("getPublishedPublicPage home fallback", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(prisma.marketingSite.findFirst).mockResolvedValue(siteRow as never);
+    vi.mocked(prisma.marketingSite.findFirst).mockResolvedValue(
+      siteRow as never,
+    );
     vi.mocked(prisma.marketingPage.findMany).mockResolvedValue([]);
   });
 

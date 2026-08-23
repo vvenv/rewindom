@@ -63,7 +63,10 @@ const EVENTS_EDITOR_CONTEXT_TYPES = [
   ...EVENTS_NAV_SOURCES,
 ] as const;
 
-function wantsAny(used: ReadonlySet<string>, types: readonly string[]): boolean {
+function wantsAny(
+  used: ReadonlySet<string>,
+  types: readonly string[],
+): boolean {
   return types.some((type) => used.has(type));
 }
 
@@ -85,7 +88,9 @@ export function registerEventsEditorContext(): void {
       const wantStrip = input.usedTypes.has(EVENTS_ENTITY_STRIP_SECTION_TYPE);
       const wantHub = input.usedTypes.has(EVENTS_ENTITY_INDEX_SECTION_TYPE);
       const wantHero = input.usedTypes.has(EVENTS_HERO_SECTION_TYPE);
-      const wantEntityHero = input.usedTypes.has(EVENTS_ENTITY_HERO_SECTION_TYPE);
+      const wantEntityHero = input.usedTypes.has(
+        EVENTS_ENTITY_HERO_SECTION_TYPE,
+      );
       /*
        * 实体模板没有「当前实体」——地址是 `/entities/:slug`。正文段或实体首屏
        * 只要有一个在，就用样张把 `{entity}` / `{entity_kind}` 填上。
@@ -106,7 +111,9 @@ export function registerEventsEditorContext(): void {
       const topicLabel = sampleTopic ? t(`topic.${sampleTopic}`) : undefined;
 
       const [feed, entityRows, heroStats] = await Promise.all([
-        wantFeed ? loadFeed(t, sampleTopic) : Promise.resolve({ rising: [], now: [] }),
+        wantFeed
+          ? loadFeed(t, sampleTopic)
+          : Promise.resolve({ rising: [], now: [] }),
         wantStrip || wantHub ? loadEntityIndex() : Promise.resolve([]),
         wantHero ? loadHeroStats(sampleTopic) : Promise.resolve(null),
       ]);
@@ -128,9 +135,7 @@ export function registerEventsEditorContext(): void {
           entity_index: wantHub
             ? toPublicEntityIndex(entityRows, t)
             : undefined,
-          entity_strip: wantStrip
-            ? toPublicEntityStrip(entityRows)
-            : undefined,
+          entity_strip: wantStrip ? toPublicEntityStrip(entityRows) : undefined,
           hero: heroStats ? toPublicHero(heroStats, t) : undefined,
         }),
       );
@@ -156,10 +161,7 @@ async function loadEnabledTopics(): Promise<readonly EventTopic[]> {
   return [...EVENT_TOPICS];
 }
 
-async function loadFeed(
-  t: ReturnType<typeof translator>,
-  topic?: EventTopic,
-) {
+async function loadFeed(t: ReturnType<typeof translator>, topic?: EventTopic) {
   try {
     const data = await api.get<EventFeedResult>(
       "/events/feed",

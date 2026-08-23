@@ -54,6 +54,7 @@ entitlement: events
 permissions: [] # 公开面，无需权限
 models: [] # 实体与关联表都已存在（entity-graph / entity-pages）
 
+
 # ---------- 设计要点（实现时按此，偏离先改本 spec）----------
 # 1. 枢纽路径复用实体前缀：`/events/entity`（枢纽当首页时 `/entity`）。
 #    `parseEventsPublicPath` 必须**先**认这个精确路径，否则挂在根上时

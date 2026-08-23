@@ -5,7 +5,10 @@
  * 只有一处定义，加段时不会抄出十几种写法不一的「对齐」下拉。
  */
 
-import { VISIBLE_ON_SETTING_ID, type SettingDef } from "../../section-settings.js";
+import {
+  VISIBLE_ON_SETTING_ID,
+  type SettingDef,
+} from "../../section-settings.js";
 
 export const ALIGN_OPTIONS = [
   { value: "left", label: "editor.option.align.left" },
@@ -52,9 +55,7 @@ export const GROUP_GRID = 12;
 function evenSpans(columnCount: number): number[] {
   const base = Math.floor(GROUP_GRID / columnCount);
   return Array.from({ length: columnCount }, (_, index) =>
-    index === columnCount - 1
-      ? GROUP_GRID - base * (columnCount - 1)
-      : base,
+    index === columnCount - 1 ? GROUP_GRID - base * (columnCount - 1) : base,
   );
 }
 
@@ -185,6 +186,14 @@ export function layoutSettings(defaults?: {
   padding_bottom?: number;
   padding_left?: number;
   content_width?: string;
+  /**
+   * 段的默认锚点（HTML id）。
+   *
+   * 给「天生就该被链到」的段用——邮件订阅段的按钮要能从首屏跳过来，
+   * 不填默认值的话每个租户都得自己想一个 id 才用得上锚点。
+   * 默认不给：普通内容段满页都是 `id="section"` 只会制造重复 id。
+   */
+  anchor?: string;
 }): SettingDef[] {
   return [
     { type: "header", content: "editor.group.section", group: "layout" },
@@ -234,6 +243,7 @@ export function layoutSettings(defaults?: {
       label: "editor.setting.anchor",
       placeholder: "pricing",
       info: "editor.info.anchor",
+      ...(defaults?.anchor ? { default: defaults.anchor } : {}),
     },
     ...styleSettings(undefined, { withInnerBg: true }),
   ];

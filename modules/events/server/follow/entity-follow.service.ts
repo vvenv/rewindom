@@ -59,7 +59,9 @@ export async function followEntity(
   return getEntityFollowState(params);
 }
 
-export async function unfollowEntity(params: EntityFollowParams): Promise<void> {
+export async function unfollowEntity(
+  params: EntityFollowParams,
+): Promise<void> {
   const entity = await requireEntity(params.tenant_id, params.entity_id);
   await prisma.eventEntityFollow.deleteMany({
     where: withTenantScope(params.tenant_id, {
@@ -97,7 +99,9 @@ export async function getEntityFollowState(
 }
 
 /** 标记「看到这里」。与事件那条同口径，**刻意不记审计**——那是阅读进度。 */
-export async function markEntitySeen(params: EntityFollowParams): Promise<void> {
+export async function markEntitySeen(
+  params: EntityFollowParams,
+): Promise<void> {
   await prisma.eventEntityFollow.updateMany({
     where: withTenantScope(params.tenant_id, {
       user_id: params.user_id,

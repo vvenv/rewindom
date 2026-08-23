@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { analyticsReady, pinToLocale, primaryText, sameLocalizedText } from "./site-settings-form.js";
+import {
+  analyticsReady,
+  pinToLocale,
+  primaryText,
+  sameLocalizedText,
+} from "./site-settings-form.js";
 
 describe("sameLocalizedText", () => {
   const locales = ["zh-CN", "en"] as const;

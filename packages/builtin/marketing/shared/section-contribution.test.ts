@@ -104,7 +104,9 @@ describe("注册", () => {
   it("贡献段仍垫底，排在内置段之后", () => {
     contribute();
     const css = loadMarketingSiteCssFor(new Set(["hero", TYPE]));
-    expect(css.indexOf(".demo{color:red}")).toBeGreaterThan(css.indexOf(".hero"));
+    expect(css.indexOf(".demo{color:red}")).toBeGreaterThan(
+      css.indexOf(".hero"),
+    );
   });
 });
 

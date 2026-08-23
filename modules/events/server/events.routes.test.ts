@@ -9,9 +9,7 @@ vi.mock("./event/event.service.js", () => ({
     total: 0,
     page_count: 0,
   }),
-  getEventFeed: vi
-    .fn()
-    .mockResolvedValue({ rising: [], now: [] }),
+  getEventFeed: vi.fn().mockResolvedValue({ rising: [], now: [] }),
   getEventDetail: vi.fn().mockResolvedValue({ id: "e1", title: "t" }),
   updateEvent: vi.fn().mockResolvedValue({ id: "e1", title: "t" }),
   listTopicCounts: vi.fn().mockResolvedValue([]),
@@ -137,15 +135,12 @@ describe("Events Routes 权限控制", () => {
   });
 
   it("静态路径优先于 :eventId —— /topics /settings /entities 不会被当成事件 id", async () => {
-    const { listTopicCounts, getEventDetail } = await import(
-      "./event/event.service.js"
-    );
-    const { getEnabledTopicSettings } = await import(
-      "./event/topic-settings.service.js"
-    );
-    const { getPublicEntityIndex } = await import(
-      "./ssr/public-events.service.js"
-    );
+    const { listTopicCounts, getEventDetail } =
+      await import("./event/event.service.js");
+    const { getEnabledTopicSettings } =
+      await import("./event/topic-settings.service.js");
+    const { getPublicEntityIndex } =
+      await import("./ssr/public-events.service.js");
     await app.inject({
       method: "GET",
       url: "/api/events/topics",

@@ -73,7 +73,7 @@ export function localizeRedirectLocation(
 ): string {
   if (!locale) return to_path;
   if (!to_path.startsWith("/") || to_path.startsWith("//")) return to_path;
-  const first = to_path === "/" ? "" : to_path.slice(1).split("/")[0] ?? "";
+  const first = to_path === "/" ? "" : (to_path.slice(1).split("/")[0] ?? "");
   if (resolveLocaleSegment(first)) return to_path;
   return to_path === "/" ? `/${locale}` : `/${locale}${to_path}`;
 }

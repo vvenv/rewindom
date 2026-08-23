@@ -56,9 +56,15 @@ function ProseLink({ href, children }: { href?: string; children: ReactNode }) {
  */
 export const MARKDOWN_PROSE_COMPONENTS: Components = {
   // 页面外壳已有 h1（文档标题 / hero），正文里的 `#` 降一级，避免双 h1
-  h1: ({ children }) => <h2 id={headingAnchor(headingText(children))}>{children}</h2>,
-  h2: ({ children }) => <h2 id={headingAnchor(headingText(children))}>{children}</h2>,
-  h3: ({ children }) => <h3 id={headingAnchor(headingText(children))}>{children}</h3>,
+  h1: ({ children }) => (
+    <h2 id={headingAnchor(headingText(children))}>{children}</h2>
+  ),
+  h2: ({ children }) => (
+    <h2 id={headingAnchor(headingText(children))}>{children}</h2>
+  ),
+  h3: ({ children }) => (
+    <h3 id={headingAnchor(headingText(children))}>{children}</h3>
+  ),
   p: ({ children }) => <p>{children}</p>,
   ul: ({ children }) => <ul>{children}</ul>,
   ol: ({ children }) => <ol>{children}</ol>,

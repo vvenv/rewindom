@@ -6,7 +6,6 @@ import { useTranslation } from "react-i18next";
 
 import { MediaPickerDialog } from "./MediaPickerDialog.js";
 
-
 /**
  * 「填一个图片 URL」的统一控件：文本框 + 选图 + 预览。
  *

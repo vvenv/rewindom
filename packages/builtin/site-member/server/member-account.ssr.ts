@@ -30,6 +30,7 @@ import {
 import {
   renderMarketingHtml,
   renderUnavailableHtml,
+  siteLocaleAlternates,
 } from "../../marketing/server/ssr-render.js";
 import { buildPresetSections } from "../../marketing/shared/page-presets.js";
 import { parseMarketingSsrPath } from "../../marketing/shared/site-locale.js";
@@ -213,7 +214,11 @@ async function renderAccountPage(
         settings: { noindex: true },
         visibility: "public",
         path: MEMBER_ACCOUNT_PATH,
-        alternates: [],
+        alternates: siteLocaleAlternates(
+          MEMBER_ACCOUNT_PATH,
+          site,
+          request.url,
+        ),
         updated_at: new Date().toISOString(),
       },
       accountEntryHtml: accountEntry.html,

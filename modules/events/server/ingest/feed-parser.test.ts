@@ -63,7 +63,9 @@ describe("parseFeed —— RSS", () => {
   });
 
   it("解析 RFC 822 日期；无法解析时返回 null 交给调用方兜底", () => {
-    expect(items[0].published_at?.toISOString()).toBe("2025-08-12T10:02:00.000Z");
+    expect(items[0].published_at?.toISOString()).toBe(
+      "2025-08-12T10:02:00.000Z",
+    );
     expect(items[1].published_at).toBeNull();
   });
 
@@ -84,7 +86,9 @@ describe("parseFeed —— Atom", () => {
   });
 
   it("published 优先于 updated", () => {
-    expect(items[0].published_at?.toISOString()).toBe("2025-08-12T10:02:00.000Z");
+    expect(items[0].published_at?.toISOString()).toBe(
+      "2025-08-12T10:02:00.000Z",
+    );
   });
 
   it("author 取嵌套的 <name>", () => {

@@ -235,8 +235,7 @@ export function publicCatalogSources<
   const ofLocale = (locale: AppLocale): T[] =>
     pages.filter(
       (page) =>
-        eligible(page) &&
-        normalizeLocale(page.locale, defaultNorm) === locale,
+        eligible(page) && normalizeLocale(page.locale, defaultNorm) === locale,
     );
 
   const currentPages = ofLocale(currentNorm);

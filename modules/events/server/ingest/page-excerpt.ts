@@ -20,7 +20,8 @@ const MIN_EXCERPT_LENGTH = 40;
 
 const META_TAG_RE = /<meta\b[^>]*>/giu;
 const PARAGRAPH_RE = /<p\b[^>]*>([\s\S]*?)<\/p>/giu;
-const ATTR_RE = /\b(property|name|content)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/giu;
+const ATTR_RE =
+  /\b(property|name|content)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/giu;
 
 export function truncateExcerpt(value: string): string {
   const text = value.replace(/\s+/gu, " ").trim();
@@ -44,9 +45,11 @@ export function isFetchableArticleUrl(url: string): boolean {
   if (host === "news.ycombinator.com" || host.endsWith(".ycombinator.com")) {
     return false;
   }
-  if (/\.(pdf|zip|tar|gz|jpg|jpeg|png|gif|webp|mp4|mp3|svg|exe|dmg|iso|rss|json|css|js)$/iu.test(
-    parsed.pathname,
-  )) {
+  if (
+    /\.(pdf|zip|tar|gz|jpg|jpeg|png|gif|webp|mp4|mp3|svg|exe|dmg|iso|rss|json|css|js)$/iu.test(
+      parsed.pathname,
+    )
+  ) {
     return false;
   }
   return true;
@@ -150,9 +153,7 @@ export async function fetchPageExcerpt(url: string): Promise<string> {
  * 给还没有摘录的信号补上目标页的短描述。失败的条目保持原样，不抛。
  * 原地改 `excerpt`，调用方随后写入 DB。
  */
-export async function fillEmptyExcerpts(
-  signals: RawSignal[],
-): Promise<number> {
+export async function fillEmptyExcerpts(signals: RawSignal[]): Promise<number> {
   const targets = signals.filter(
     (signal) =>
       !isUsableExcerpt(signal.excerpt, signal.title) &&

@@ -20,7 +20,9 @@ export function EventFeedSection({
   return (
     <section className="flex flex-col gap-3">
       <header className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <h2 className="text-sm font-semibold tracking-wide uppercase">{title}</h2>
+        <h2 className="text-sm font-semibold tracking-wide uppercase">
+          {title}
+        </h2>
         <p className="text-muted-foreground text-xs">{hint}</p>
       </header>
       {events.length === 0 ? (

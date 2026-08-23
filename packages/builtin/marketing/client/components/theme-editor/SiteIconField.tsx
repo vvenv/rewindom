@@ -47,9 +47,7 @@ function IconCell({
       onClick={onSelect}
       className={cn(
         "flex size-8 items-center justify-center rounded-md text-foreground",
-        selected
-          ? "bg-muted ring-1 ring-foreground/20"
-          : "hover:bg-muted/70",
+        selected ? "bg-muted ring-1 ring-foreground/20" : "hover:bg-muted/70",
         disabled && "pointer-events-none opacity-50",
       )}
     >
@@ -86,7 +84,8 @@ export function SiteIconField({
 
   const pickBuiltin = (): void => {
     setSource("builtin");
-    if (isIconImageUrl(value)) onChange(allowEmpty ? "" : SECTION_ICON_CHOICES[0]);
+    if (isIconImageUrl(value))
+      onChange(allowEmpty ? "" : SECTION_ICON_CHOICES[0]);
   };
   const pickUpload = (): void => {
     setSource("upload");

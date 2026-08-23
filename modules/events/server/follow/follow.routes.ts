@@ -111,7 +111,10 @@ export async function followRoutes(app: FastifyInstance): Promise<void> {
     preHandler: [app.requirePermission("events.read")],
     handler: async (request, reply) =>
       guardNotFound(reply, () =>
-        getEntityFollowState({ ...scopeOf(request), entity_id: entityIdOf(request) }),
+        getEntityFollowState({
+          ...scopeOf(request),
+          entity_id: entityIdOf(request),
+        }),
       ),
   });
 

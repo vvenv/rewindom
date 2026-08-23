@@ -64,7 +64,10 @@ export function useFollowEntity() {
   const invalidate = useInvalidateEvents();
   return useMutation({
     mutationFn: (entityId: string) =>
-      api.post<EventEntityFollowState>(`/events/follows/entity/${entityId}`, {}),
+      api.post<EventEntityFollowState>(
+        `/events/follows/entity/${entityId}`,
+        {},
+      ),
     onSuccess: invalidate,
   });
 }

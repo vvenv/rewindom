@@ -124,7 +124,11 @@ export function siteChromePublishedFooter(
   record: { footer_json: unknown },
   enabledEntitlements?: ReadonlySet<string>,
 ): SiteSection[] {
-  return safeSiteAreaSections("footer", record.footer_json, enabledEntitlements);
+  return safeSiteAreaSections(
+    "footer",
+    record.footer_json,
+    enabledEntitlements,
+  );
 }
 
 function chromeFingerprint(value: unknown): string {
@@ -397,10 +401,7 @@ function validateSiteLocalizedText(
 }
 
 /** 审计 / CMS 列表等需要标量站名时，取主语言（缺译文再回落）。 */
-export function displaySiteName(
-  value: unknown,
-  defaultLocale: string,
-): string {
+export function displaySiteName(value: unknown, defaultLocale: string): string {
   return localizeSiteText(value, defaultLocale, defaultLocale);
 }
 

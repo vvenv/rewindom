@@ -10,10 +10,10 @@
 
 ## 面划分
 
-| 面           | 路由                                                                  | 目录                                         | 守卫                                           |
-| ------------ | --------------------------------------------------------------------- | -------------------------------------------- | ---------------------------------------------- |
-| 公开（SSR）  | `/`、`/:slug`、嵌套路径（及 `/{locale}/…`）、`/sitemap.xml`、`/robots.txt`、`/llms.txt`、`/site.webmanifest` | `server/ssr.routes.ts` + `client/enhance/`   | Host 绑定（含主域→default）+ 站点已发布        |
-| 租户中台     | `/app/site`、`/app/site/editor`（`?page=` 区块树；`?scope=theme` 外观，从卡片进入）；站点设置为官网卡片上的 Sheet | `client/tenant/` + `client/pages/site-*.tsx` | entitlement `tenant-marketing` + `site.read` |
+| 面          | 路由                                                                                                              | 目录                                         | 守卫                                         |
+| ----------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | -------------------------------------------- |
+| 公开（SSR） | `/`、`/:slug`、嵌套路径（及 `/{locale}/…`）、`/sitemap.xml`、`/robots.txt`、`/llms.txt`、`/site.webmanifest`      | `server/ssr.routes.ts` + `client/enhance/`   | Host 绑定（含主域→default）+ 站点已发布      |
+| 租户中台    | `/app/site`、`/app/site/editor`（`?page=` 区块树；`?scope=theme` 外观，从卡片进入）；站点设置为官网卡片上的 Sheet | `client/tenant/` + `client/pages/site-*.tsx` | entitlement `tenant-marketing` + `site.read` |
 
 挂载点：`server.registerRoutes`（SSR + 公开 API）+ `client.renderRoutes`（CMS / 编辑器）。
 公开站**不**挂 React；交互由 `site-enhance`（无 React IIFE）渐进增强。
@@ -28,23 +28,23 @@
 
 增量需求先填 FEATURE.spec（`extend-module`）。**其它模块**贡献段 / 模板 / chrome → 不要改本模块内核，用 `site-section` + 下文「业务模块贡献」。
 
-| 我想改… | 从这些文件开始 | 不要碰 |
-| --- | --- | --- |
-| 内置段 schema / SSR | `shared/sections/<type>/definition.ts` + `html.ts` | 业务模块目录 |
-| 页头页脚 chrome | `shared/sections/_common/` | 为新排法加枚举 / 读时升级层 |
-| 模板页注册表 | `shared/page-templates.ts` | 业务方的 `*-page-templates.ts`（贡献方自己写） |
-| 编辑器 / 工作台 | `client/pages/site-*.tsx`、`client/enhance/` | 公开站挂 React |
-| 媒体库 | `client/components/media/`、`server/site-asset.service.ts` | 改引用 URL 的扫描 / 多尺寸派生 |
-| 外观字体 | `shared/theme-fonts.ts`；改目录跑 `assemble:site-fonts`；生产同步 `sync-site-fonts-to-s3.ts` | Google Fonts CDN、自定义上传、中文 webfont |
-| 首页是哪一页 | `shared/site-home.ts`、站点设置 Sheet | 两个下拉（版式 vs 改写 `/`） |
-| 业务模块贡献段 / 模板 / chrome / 首页版式 | 贡献方 `shared/` + `site-section` | 本模块「顺便登记」业务 type |
+| 我想改…                                   | 从这些文件开始                                                                               | 不要碰                                         |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| 内置段 schema / SSR                       | `shared/sections/<type>/definition.ts` + `html.ts`                                           | 业务模块目录                                   |
+| 页头页脚 chrome                           | `shared/sections/_common/`                                                                   | 为新排法加枚举 / 读时升级层                    |
+| 模板页注册表                              | `shared/page-templates.ts`                                                                   | 业务方的 `*-page-templates.ts`（贡献方自己写） |
+| 编辑器 / 工作台                           | `client/pages/site-*.tsx`、`client/enhance/`                                                 | 公开站挂 React                                 |
+| 媒体库                                    | `client/components/media/`、`server/site-asset.service.ts`                                   | 改引用 URL 的扫描 / 多尺寸派生                 |
+| 外观字体                                  | `shared/theme-fonts.ts`；改目录跑 `assemble:site-fonts`；生产同步 `sync-site-fonts-to-s3.ts` | Google Fonts CDN、自定义上传、中文 webfont     |
+| 首页是哪一页                              | `shared/site-home.ts`、站点设置 Sheet                                                        | 两个下拉（版式 vs 改写 `/`）                   |
+| 业务模块贡献段 / 模板 / chrome / 首页版式 | 贡献方 `shared/` + `site-section`                                                            | 本模块「顺便登记」业务 type                    |
 
 ## 租户 CMS 数据
 
-| 模型            | 说明                                                                                                                                           |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 模型            | 说明                                                                                                                                                                                                                                                                                                              |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `MarketingSite` | 每租户一行：站名（可 `__i18n`）、标语、`theme_settings`、站点级 `published`、`home_path`（访客访问 `/` 时渲染的逻辑路径，默认 `/`）；`nav_json` / `footer_json` 为**已发布** chrome，同名 `_draft_json` 为编辑器草稿（同进同退，共用一个 `site_draft_dirty`）。导航条目嵌在 `chrome_nav` 块的 `settings.items` 里 |
-| `MarketingPage` | `kind`: `home` \| `page` \| **模板页 kind**（见下）；`status`: `draft` \| `published`；`title` / `description` / `sections` / `settings` 为**已发布**正文，同名 `_draft` 四列为编辑器草稿（`settings` 即页面级画布覆盖，与正文同进同退） |
+| `MarketingPage` | `kind`: `home` \| `page` \| **模板页 kind**（见下）；`status`: `draft` \| `published`；`title` / `description` / `sections` / `settings` 为**已发布**正文，同名 `_draft` 四列为编辑器草稿（`settings` 即页面级画布覆盖，与正文同进同退）                                                                          |
 
 ### 模板页（`shared/page-templates.ts`）
 
@@ -78,11 +78,11 @@
 
 section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调用方只 import 它：
 
-| 文件                  | 职责                                                                                                                                                    |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 文件                  | 职责                                                                                                                                                                         |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `section-settings.ts` | setting 的类型系统 + 解析（`text`/`textarea`/`richtext`/`list`/`link`/`menu`/`image`/`select`/`icon`/`range`/`checkbox`/`color`/`page_paths` + 排版用 `header`/`paragraph`） |
-| `sections/`           | **一段一个目录**：`<type>/definition.ts` 是声明，`<type>/html.ts` 是 SSR 渲染；`sections/index.ts` 聚合成 `SECTION_DEFINITIONS`，`sections/html.ts` 聚合成渲染器表 |
-| `section-schema.ts`   | 按 schema 解析脏数据、按 schema 造默认值                                                                                                                |
+| `sections/`           | **一段一个目录**：`<type>/definition.ts` 是声明，`<type>/html.ts` 是 SSR 渲染；`sections/index.ts` 聚合成 `SECTION_DEFINITIONS`，`sections/html.ts` 聚合成渲染器表           |
+| `section-schema.ts`   | 按 schema 解析脏数据、按 schema 造默认值                                                                                                                                     |
 
 基础架构对齐 Shopify theme editor：section 声明 `settings` 与可重复的 `blocks`，
 编辑器由 schema 自动渲染表单、渲染端按 id 读值、写入路径按同一份 schema 校验。
@@ -105,21 +105,21 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 所以它们和年份、当前域名一样是渲染期替换的占位符，**页面设置、每个区块、页头页脚
 共用同一张表**。三个文件分工不同，别混：
 
-| 文件                             | 管什么                                       |
-| -------------------------------- | -------------------------------------------- |
-| `shared/interpolation-tokens.ts` | **有哪些** token（注册表）+ 每个是什么、长在哪几张页面上 |
-| `shared/site-interpolation.ts`   | **怎么替**（`interpolateSiteText` / `interpolateSiteHref`）与值表合成 |
-| `shared/interpolate-section-settings.ts` | 按段的 schema 把 settings 过一遍（见下） |
+| 文件                                     | 管什么                                                                |
+| ---------------------------------------- | --------------------------------------------------------------------- |
+| `shared/interpolation-tokens.ts`         | **有哪些** token（注册表）+ 每个是什么、长在哪几张页面上              |
+| `shared/site-interpolation.ts`           | **怎么替**（`interpolateSiteText` / `interpolateSiteHref`）与值表合成 |
+| `shared/interpolate-section-settings.ts` | 按段的 schema 把 settings 过一遍（见下）                              |
 
 内置五项，每张页面都可用：
 
-| token        | 值                                     |
-| ------------ | -------------------------------------- |
-| `{year}`     | 当前年份                               |
-| `{site}`     | 站点设置的**站点名称**                 |
-| `{tagline}`  | 站点设置的**标语**                     |
-| `{hostname}` | 本次请求的主机名（不含端口）           |
-| `{url}`      | 本次请求的站点 origin（含协议，无尾斜杠）|
+| token        | 值                                        |
+| ------------ | ----------------------------------------- |
+| `{year}`     | 当前年份                                  |
+| `{site}`     | 站点设置的**站点名称**                    |
+| `{tagline}`  | 站点设置的**标语**                        |
+| `{hostname}` | 本次请求的主机名（不含端口）              |
+| `{url}`      | 本次请求的站点 origin（含协议，无尾斜杠） |
 
 **不搞别名**：`{site_name}` / `{site_desc}` / `{domain}` 一律不认——同一个值两种写法，
 租户就永远说不清哪个是对的。未识别的 `{foo}` 原样留下，不会被吃成空串。
@@ -133,7 +133,7 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 registerInterpolationTokens([
   {
     key: "topic",
-    label: "events:token.topic",   // 写给租户看的说明，必须带 ns（check:i18n 认它）
+    label: "events:token.topic", // 写给租户看的说明，必须带 ns（check:i18n 认它）
     page_kinds: [EVENTS_TOPIC_PAGE_KIND, EVENTS_DETAIL_PAGE_KIND],
     entitlement: EVENTS_ENTITLEMENT.key,
   },
@@ -182,11 +182,11 @@ registerInterpolationTokens([
 
 这是整套 chrome 的核心。每个块带三个定位设置：
 
-| 设置     | 取值                          | 说明                                   |
-| -------- | ----------------------------- | -------------------------------------- |
-| `row`    | 1 / 2 / 3                     | 第几行；空行不渲染                     |
-| `align`  | start / center / end          | 行内靠左 / 居中 / 靠右                 |
-| `mobile` | pin / menu / hide             | 窄屏：留在外面 / 收进汉堡 / 不显示     |
+| 设置     | 取值                 | 说明                               |
+| -------- | -------------------- | ---------------------------------- |
+| `row`    | 1 / 2 / 3            | 第几行；空行不渲染                 |
+| `align`  | start / center / end | 行内靠左 / 居中 / 靠右             |
+| `mobile` | pin / menu / hide    | 窄屏：留在外面 / 收进汉堡 / 不显示 |
 
 行是 `grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr)` 的三格（`chromeRows()` 把块摊成行 × 对齐区）。
 没有居中区时改成 `1fr auto`，避免左右各分一半把长站名挤换行。
@@ -200,15 +200,15 @@ registerInterpolationTokens([
 那条路本来就走不下去，「品牌居中 + 导航靠右」该叫什么？定位交给块自己之后，`layout`
 下拉、`partitionHeaderBlocks`、`isFooterToolBlockType` 全部删掉。
 
-| type              | settings                                    |
-| ----------------- | ------------------------------------------- |
-| `chrome_brand`    | show_logo, show_site_name, brand_text, text_case(normal\|upper), blurb |
-| `chrome_nav`      | title, items, display(inline\|column)       |
-| `chrome_text`     | text（`{year}` / `{site}` / `{tagline}` / `{hostname}` / `{url}`） |
-| `chrome_button`   | label, href, icon, icon_only, variant       |
-| `chrome_locale`   | —                                           |
-| `chrome_theme`    | —                                           |
-| `chrome_account`  | —                                           |
+| type             | settings                                                               |
+| ---------------- | ---------------------------------------------------------------------- |
+| `chrome_brand`   | show_logo, show_site_name, brand_text, text_case(normal\|upper), blurb |
+| `chrome_nav`     | title, items, display(inline\|column)                                  |
+| `chrome_text`    | text（`{year}` / `{site}` / `{tagline}` / `{hostname}` / `{url}`）     |
+| `chrome_button`  | label, href, icon, icon_only, variant                                  |
+| `chrome_locale`  | —                                                                      |
+| `chrome_theme`   | —                                                                      |
+| `chrome_account` | —                                                                      |
 
 `chrome_button` 的 `icon` 可以是内置社交品牌（GitHub、Google 等）、lucide 名，或媒体库
 / 外链图片 URL。`icon_only`（默认 `false`）把按钮收成页头那排的 `chrome-control`；
@@ -313,9 +313,9 @@ registerInterpolationTokens([
 的一级模板页**；首页由品牌链处理，详情模板（`/docs/:slug`）和购物车等二级功能页
 不进目录（`isPublicCatalogPageKind`）。
 
-| `source` | 展开成 |
-| -------- | ------ |
-| `link`   | 一条链接；可带**一层** `children` 做子菜单 |
+| `source` | 展开成                                         |
+| -------- | ---------------------------------------------- |
+| `link`   | 一条链接；可带**一层** `children` 做子菜单     |
 | `pages`  | 全部已发布一级页面（含 `/docs`、`/shop` 索引） |
 
 其它动态源由模块 `registerNavSource` 填进来：site-docs 登记 `site-docs` /
@@ -413,11 +413,11 @@ SSR 在页头有 `chrome_theme` 块时输出 `<button class="theme-toggle">`；�
 `onBoot` 里填。它回答两件事：本站有没有账户能力（`available`），以及入口 HTML（登录链或
 已登录菜单）。宿主口径：
 
-| 宿主           | 数据来源                        | 渲染                                                              |
-| -------------- | ------------------------------- | ----------------------------------------------------------------- |
-| SSR 首屏       | cookie 会话 + 服务端注入点      | 未开通不输出；访客「登录」；已登录直接输出账户菜单并解锁门控正文 |
-| 公开站交互     | site-enhance                    | 绑登出；**仅当页头有访客登录钮**时才探测 `/api/member/me` 升级菜单（没有 `chrome_account` 不打会员接口） |
-| 主题编辑器预览 | `GET /api/site/capabilities`    | 开通了才灌 `SiteAccountEntryPreview`（slot）                      |
+| 宿主           | 数据来源                     | 渲染                                                                                                     |
+| -------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------- |
+| SSR 首屏       | cookie 会话 + 服务端注入点   | 未开通不输出；访客「登录」；已登录直接输出账户菜单并解锁门控正文                                         |
+| 公开站交互     | site-enhance                 | 绑登出；**仅当页头有访客登录钮**时才探测 `/api/member/me` 升级菜单（没有 `chrome_account` 不打会员接口） |
+| 主题编辑器预览 | `GET /api/site/capabilities` | 开通了才灌 `SiteAccountEntryPreview`（slot）                                                             |
 
 会员 JWT 在 HttpOnly cookie（`rewindom_member_*`）里，随 HTML / XHR 同源发送；SSR 可
 直接解锁。次按钮（secondary）**不**默认成登录：登录归账户入口管。
@@ -438,11 +438,11 @@ nginx 把绑定域的**所有** HTML 文档反代给 Fastify SSR。公开站**�
 ——marketing 的源码里没有任何指向业务模块的 import。`ctx` 是当前页面的语言与路径快照
 （`client/enhance/page-context.ts`），贡献方不必自己去认 marketing 的 DOM 约定。
 
-| 能力         | 行为                                                                   |
-| ------------ | ---------------------------------------------------------------------- |
-| 明暗         | 读写 `localStorage.site-color-mode`，同步 `data-site-color-mode`                |
-| 表单         | 由 `site-form` 贡献：拦截 `.site-form` → `POST /api/public/site-form/submit`     |
-| 账户菜单     | SSR 已登录则绑登出；否则 `credentials` 调 `/api/member/me`（可 refresh）升级    |
+| 能力         | 行为                                                                          |
+| ------------ | ----------------------------------------------------------------------------- |
+| 明暗         | 读写 `localStorage.site-color-mode`，同步 `data-site-color-mode`              |
+| 表单         | 由 `site-form` 贡献：拦截 `.site-form` → `POST /api/public/site-form/submit`  |
+| 账户菜单     | SSR 已登录则绑登出；否则 `credentials` 调 `/api/member/me`（可 refresh）升级  |
 | 会员专属正文 | SSR 未解锁时 `credentials` 调 `GET /api/site/content/page-html` 写入门控 main |
 
 `/app` `/login` `/register` `/member` `/platform` 仍走 SPA（`SITE_APP_PREFIXES` /
@@ -455,6 +455,7 @@ nginx / vite 代理三处对齐，由 `nginx-spa-prefixes.test.ts` 守住）。
 多栏页脚是布局问题，用同一个布局原语解，不在页脚 schema 里再长一套列宽字段。
 
 内置段是**通用视觉积木**（首屏、卖点网格、步骤、图文分栏、富文本、分栏、CTA、第三方徽章、页面菜单）。表单、文档库、店面、套餐等业务段由模块贡献。
+
 ### 贡献段要按请求查库：`registerSectionContextProvider`
 
 `SectionRenderContext.contributed` 一直都有，但只有**模块自有的 SSR 路由**填得上
@@ -477,19 +478,19 @@ section type，通用 SSR 路由在渲染前按**页面实际用到的段**调�
 
 定价表、FAQ 这类**带业务数据**的版式由模块贡献（billing 的套餐段、site-form 的表单）。卖点网格、步骤、图文分栏是排版积木，内置在 marketing，Theme Editor 可直接加。
 
-| type           | settings                                                               | blocks                                                                                  |
-| -------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `hero`         | eyebrow, headline\*, subhead, align, layout(stacked\|split), image, media_side, show_glow, primary/secondary 按钮 | `stat`{term\*, detail}，最多 4                                                          |
-| `feature-grid` | 抬头, card_style, show_icons, columns(2–4)                             | `feature`{icon, title\*, body, href}，最多 12；新建预置 3 张                             |
-| `steps`        | 抬头, show_number                                                      | `step`{title\*, body}，最多 6；新建预置 3 步                                            |
-| `split`        | 抬头, body, image, panel_md, media_side, primary/secondary 按钮        | —（无图时用强调卡，再没有用装饰底）                                                     |
-| `page-header`  | 无内容页签。显示文案 = 页面 meta 的 title/description；版式页签：show_header、align、通用 `layoutSettings`（默认上 48 / 下 24 px） | —                                                                                       |
-| `page-menu`    | 抬头, source(children\|siblings), style(list\|cards), columns          | —（动态菜单：父页 children / 子页 siblings；条目来自已发布 `site.pages`）               |
-| `form`         | 抬头, submit_label\*, success_message                                  | `field`{label\*, type, placeholder, required, options, validation…}，最多 16            |
-| `prose`        | body_md                                                                | —                                                                                       |
-| `group`        | columns_layout(12 栏份额), column_gap, align_items                     | `column`{sticky, show_divider + 线型/粗细/颜色, stack_order}，最多 4；**容器 block**，见下 |
-| `band`         | headline\*, body, align, primary/secondary 按钮                        | —                                                                                       |
-| `badges`       | 抬头（可空）, align, height(32–80，默认 54)                            | `badge`{image, image_dark, href, alt}，最多 12；新建预置 1 枚。外链新标签打开；深色图按 `data-site-color-mode` 切换 |
+| type           | settings                                                                                                                           | blocks                                                                                                              |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `hero`         | eyebrow, headline\*, subhead, align, layout(stacked\|split), image, media_side, show_glow, primary/secondary 按钮                  | `stat`{term\*, detail}，最多 4                                                                                      |
+| `feature-grid` | 抬头, card_style, show_icons, columns(2–4)                                                                                         | `feature`{icon, title\*, body, href}，最多 12；新建预置 3 张                                                        |
+| `steps`        | 抬头, show_number                                                                                                                  | `step`{title\*, body}，最多 6；新建预置 3 步                                                                        |
+| `split`        | 抬头, body, image, panel_md, media_side, primary/secondary 按钮                                                                    | —（无图时用强调卡，再没有用装饰底）                                                                                 |
+| `page-header`  | 无内容页签。显示文案 = 页面 meta 的 title/description；版式页签：show_header、align、通用 `layoutSettings`（默认上 48 / 下 24 px） | —                                                                                                                   |
+| `page-menu`    | 抬头, source(children\|siblings), style(list\|cards), columns                                                                      | —（动态菜单：父页 children / 子页 siblings；条目来自已发布 `site.pages`）                                           |
+| `form`         | 抬头, submit_label\*, success_message                                                                                              | `field`{label\*, type, placeholder, required, options, validation…}，最多 16                                        |
+| `prose`        | body_md                                                                                                                            | —                                                                                                                   |
+| `group`        | columns_layout(12 栏份额), column_gap, align_items                                                                                 | `column`{sticky, show_divider + 线型/粗细/颜色, stack_order}，最多 4；**容器 block**，见下                          |
+| `band`         | headline\*, body, align, primary/secondary 按钮                                                                                    | —                                                                                                                   |
+| `badges`       | 抬头（可空）, align, height(32–80，默认 54)                                                                                        | `badge`{image, image_dark, href, alt}，最多 12；新建预置 1 枚。外链新标签打开；深色图按 `data-site-color-mode` 切换 |
 
 `*` = `required`，为空时该 section 校验失败。
 
@@ -590,11 +591,11 @@ URL 对齐 Shopify Markets：站点**主语言不带前缀**（`MarketingSite.de
 限宽**落在 section 内部**（页面外壳只做纵向流），外层「色块」（背景 / 分隔线 / 上下留白）与
 内层「正文」各自一档，组合出四种真实排版：
 
-| `width` | `content_width` | 效果                                     |
-| ------- | --------------- | ---------------------------------------- |
-| page    | default         | 常规区块（默认）                         |
-| page    | narrow          | 文档正文、长文                           |
-| full    | default         | 通栏色带 + 居中正文（Shopify Dawn 口径） |
+| `width` | `content_width` | 效果                                      |
+| ------- | --------------- | ----------------------------------------- |
+| page    | default         | 常规区块（默认）                          |
+| page    | narrow          | 文档正文、长文                            |
+| full    | default         | 通栏色带 + 居中正文（Shopify Dawn 口径）  |
 | full    | full            | 通栏大图 hero / 满屏媒体；`band` 新建默认 |
 
 页宽本身是主题设置（紧凑 / 标准 / 宽），走 `--site-page-width`，页头页脚与 section 同一个变量。
@@ -663,12 +664,12 @@ iframe **只**注入 `MARKETING_SITE_CSS` 与主题变量，**不**克隆工作�
 
 **加一段 = 四个文件 + 三处登记**，没有任何 switch 要改：
 
-| 文件                                                   | 内容                     |
-| ------------------------------------------------------ | ------------------------ |
-| `shared/sections/<type>/definition.ts`                 | schema 声明              |
-| `shared/sections/<type>/html.ts`                       | SSR 渲染（SEO 正文以它为准） |
-| `shared/sections/<type>/styles.css`                    | 该段 / block 专用语义 CSS（可仅注释） |
-| `client/components/sections/views/<type>.tsx`          | SPA React 视图           |
+| 文件                                          | 内容                                  |
+| --------------------------------------------- | ------------------------------------- |
+| `shared/sections/<type>/definition.ts`        | schema 声明                           |
+| `shared/sections/<type>/html.ts`              | SSR 渲染（SEO 正文以它为准）          |
+| `shared/sections/<type>/styles.css`           | 该段 / block 专用语义 CSS（可仅注释） |
+| `client/components/sections/views/<type>.tsx` | SPA React 视图                        |
 
 登记在 `shared/sections/index.ts`（声明表）与 `shared/sections/html.ts` +
 `client/components/sections/section-views.ts`（两张渲染器表）；`styles.css` 不用登记，扫目录
@@ -703,13 +704,13 @@ iframe **只**注入 `MARKETING_SITE_CSS` 与主题变量，**不**克隆工作�
 
 一个贡献段要三样东西，**定义与 markup 各只写一份**（放贡献方的 `shared/`，两端 import 同一个对象）：
 
-| 位置 | 做什么 |
-| --- | --- |
-| `<模块>/shared/xxx-section.ts` | `SectionDefinition`（type 必须带模块前缀；`group` 声明「添加区块」分组） |
-| `<模块>/shared/sections/*-html.ts` | **一份** HTML 渲染器 |
-| `<模块>/shared/site-css/<name>.css` | 贡献段 CSS 真源；assemble 成 `site-css.generated.ts`，禁止手写 `*-css.ts` |
-| `<模块>/server/…` → `registerSiteSectionHtml(def, render, { css })` | 在 `onBoot` 里注册 SSR |
-| `<模块>/client/module.tsx` → `registerSiteSectionView(def, htmlSectionView(render), { css })` | 编辑器预览灌同一串 HTML |
+| 位置                                                                                          | 做什么                                                                    |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `<模块>/shared/xxx-section.ts`                                                                | `SectionDefinition`（type 必须带模块前缀；`group` 声明「添加区块」分组）  |
+| `<模块>/shared/sections/*-html.ts`                                                            | **一份** HTML 渲染器                                                      |
+| `<模块>/shared/site-css/<name>.css`                                                           | 贡献段 CSS 真源；assemble 成 `site-css.generated.ts`，禁止手写 `*-css.ts` |
+| `<模块>/server/…` → `registerSiteSectionHtml(def, render, { css })`                           | 在 `onBoot` 里注册 SSR                                                    |
+| `<模块>/client/module.tsx` → `registerSiteSectionView(def, htmlSectionView(render), { css })` | 编辑器预览灌同一串 HTML                                                   |
 
 **为什么是两次注册而不是一次**：客户端与服务端本来就是两个 bundle，React 组件进不了
 Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包同一个渲染器。金标准：shop
@@ -742,12 +743,12 @@ type 前缀落入对应组（`shop.cart-link` 与商店段排在一起）。
 方向与贡献段相同：注册表在 marketing，模块自己把定义填进来。type 必须带模块前缀
 （`shop.cart-link`），撞名直接抛。`entitlement` 闸门同样生效：未开通不进菜单、不渲染。
 
-| 位置 | 做什么 |
-| --- | --- |
-| `<模块>/shared/xxx.ts` | `BlockDefinition`（含 `chromeSlotSettings()`，否则永远钉在第一行左边） |
-| `<模块>/shared/sections/*-html.ts` | **一份** HTML 渲染器 |
-| `<模块>/server/…` → `registerChromeBlockHtml(def, render, { css })` | SSR |
-| `<模块>/client/module.tsx` → `registerChromeBlockView(def, htmlChromeBlockView(render), { css, icon })` | 编辑器预览 |
+| 位置                                                                                                    | 做什么                                                                 |
+| ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `<模块>/shared/xxx.ts`                                                                                  | `BlockDefinition`（含 `chromeSlotSettings()`，否则永远钉在第一行左边） |
+| `<模块>/shared/sections/*-html.ts`                                                                      | **一份** HTML 渲染器                                                   |
+| `<模块>/server/…` → `registerChromeBlockHtml(def, render, { css })`                                     | SSR                                                                    |
+| `<模块>/client/module.tsx` → `registerChromeBlockView(def, htmlChromeBlockView(render), { css, icon })` | 编辑器预览                                                             |
 
 两端 import 同一份 definition。金标准：shop 的购物车入口。图标控件（RSS、搜索按钮
 这类）markup 加 class `chrome-control`，尺寸跟语言 / 明暗走 `--chrome-control-*`，
@@ -763,10 +764,10 @@ type 前缀落入对应组（`shop.cart-link` 与商店段排在一起）。
 路径固定、每种语言最多一张的页面（登录页、商店首页、文档版式）走模板页注册表，
 不要自己写初始化、不要做「自定义版式」空态。
 
-| 位置 | 做什么 |
-| --- | --- |
+| 位置                                | 做什么                                                                          |
+| ----------------------------------- | ------------------------------------------------------------------------------- |
 | `<模块>/shared/*-page-templates.ts` | `registerPageTemplateKind` + `registerPageTemplatePreset`（同一函数里成对登记） |
-| server `onBoot` + client manifest | 各调一次注册函数（幂等） |
+| server `onBoot` + client manifest   | 各调一次注册函数（幂等）                                                        |
 
 有租户开关的模板必须声明 `entitlement`。marketing 在「对该站点变得相关」时快照落库：
 
@@ -803,10 +804,10 @@ i18n key）后，中台常驻模板区也列出它：未套用是「套用版式
 与模板页正交：`/shop` 仍是枢纽页；事件雷达的专题 / 详情 / 实体走独立集合路径。
 店面 / 文档库的入口就是自己的枢纽页，通常不必再贡献一份，除非要把该模块做成站点根。
 
-| 位置 | 做什么 |
-| --- | --- |
+| 位置                                | 做什么                                                                                                         |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | `<模块>/shared/*-page-templates.ts` | `registerHomeLayout({ key, label, group?, entitlement?, rootPrefix?, preset })`（`preset.kind` 必须是 `home`） |
-| server `onBoot` + client manifest | 与模板页同一个注册函数里调（幂等） |
+| server `onBoot` + client manifest   | 与模板页同一个注册函数里调（幂等）                                                                             |
 
 有租户开关必须声明 `entitlement`。要把本模块公开前缀收到站点根时声明 `rootPrefix`
 （如 `/docs`）：选择器不再把该枢纽列为「设为首页」，公开 URL 由贡献模块按
@@ -840,10 +841,10 @@ i18n key）后，中台常驻模板区也列出它：未套用是「套用版式
 页面里可能存着这份代码解析不了的段：模块停用、租户退订、或页面是更新版本写的。
 口径分两种，别混：
 
-| 情况                              | 读路径                               | 写路径 |
-| --------------------------------- | ------------------------------------ | ------ |
+| 情况                              | 读路径                                | 写路径 |
+| --------------------------------- | ------------------------------------- | ------ |
 | **type 完全不认识**               | 包成 `unsupported` 占位，**原样兜住** | 拒收   |
-| **type 认识、但不该放在这个位置** | 丢掉                                 | 拒收   |
+| **type 认识、但不该放在这个位置** | 丢掉                                  | 拒收   |
 
 **兜住**是因为「停用模块 → 打开编辑器看看 → 顺手保存」是最常见的一串操作，静默丢掉
 等于一次保存就永久烧掉内容，重新启用模块也回不来。占位把原始条目原封不动放在
@@ -924,10 +925,10 @@ i18n key）后，中台常驻模板区也列出它：未套用是「套用版式
 **两个入口，同一套壳**：页面行打开区块树（页面 + 页头页脚）；卡片「外观」打开主题层
 （`?scope=theme`，不带页面）。共用一块预览、一条站点级草稿/发布链。
 
-| 参数              | 作用                                                            |
-| ----------------- | --------------------------------------------------------------- |
-| `?page=<id>`      | 树里多出「页面区块」那一段；不带就只有页头页脚，改导航不必先挑页面 |
-| `?scope=theme`    | 外观：无区块树，预览默认首页，右侧是主题字段（Logo / 配色 / 版式） |
+| 参数           | 作用                                                               |
+| -------------- | ------------------------------------------------------------------ |
+| `?page=<id>`   | 树里多出「页面区块」那一段；不带就只有页头页脚，改导航不必先挑页面 |
+| `?scope=theme` | 外观：无区块树，预览默认首页，右侧是主题字段（Logo / 配色 / 版式） |
 
 主题不是树上的对象（没有可选中的段），所以不放进页面编辑器左栏——埋在那里等于找不到
 Logo。外观需要实站预览，也不能塞进站点设置 Sheet（那份没有预览、保存即对访客生效）。
@@ -984,11 +985,11 @@ block 不跨层：它的 schema 属于所在 section，一个 `field` 换不到 
 
 **撤销未发布的草稿**是发布的反向，两级各有入口（都在工具栏「更多」里，按需出现）：
 
-| 撤到哪儿             | 入口                                            | 条件                     |
-| -------------------- | ----------------------------------------------- | ------------------------ |
-| 内存 → 已保存的草稿  | 纯前端（清 sessionStorage 缓存后重新灌入）      | `dirty`                  |
-| 页面草稿 → 线上      | `POST /api/site/pages/:id/content/revert`       | 页面 `published` 且脏     |
-| 站点级草稿 → 线上    | `POST /api/site/draft/revert`                   | `site_draft_dirty`       |
+| 撤到哪儿            | 入口                                       | 条件                  |
+| ------------------- | ------------------------------------------ | --------------------- |
+| 内存 → 已保存的草稿 | 纯前端（清 sessionStorage 缓存后重新灌入） | `dirty`               |
+| 页面草稿 → 线上     | `POST /api/site/pages/:id/content/revert`  | 页面 `published` 且脏 |
+| 站点级草稿 → 线上   | `POST /api/site/draft/revert`              | `site_draft_dirty`    |
 
 服务端两条 revert 是 publish 的镜像：把无后缀列回灌进 `_draft` 列。页面级那条只对
 **已发布**页面开放——没上线过的页面，无后缀列里躺的是建页初值，拿它当还原目标只会
@@ -1050,9 +1051,9 @@ site-docs 登记，会员页由 site-member 登记。文案在创建时展开成
 
 站点级的东西按**是不是要看着预览调**分两处：
 
-| 在哪                                   | 内容                                                       |
-| -------------------------------------- | ---------------------------------------------------------- |
-| 编辑器主题设置层（页面行 → 主题设置） | 主题包、站点 Logo、分享图、配色、字体、页宽、区块间距       |
+| 在哪                                     | 内容                                                                            |
+| ---------------------------------------- | ------------------------------------------------------------------------------- |
+| 编辑器主题设置层（页面行 → 主题设置）    | 主题包、站点 Logo、分享图、配色、字体、页宽、区块间距                           |
 | 站点设置 Sheet（官网卡片 →「站点设置」） | 基本信息、语言、首页、发布、访问分析、重定向（一张表单 + 底部保存；重定向除外） |
 
 外观进编辑器而不是留在设置页，是因为它要**看着预览调**。它曾经是设置页的一个页签，
@@ -1061,14 +1062,14 @@ site-docs 登记，会员页由 site-member 登记。文案在创建时展开成
 
 设置 Sheet 的分区上下排布（窄 Sheet 不用页签），前五项是**一张表单**，底部保存 / 取消：
 
-| 分区     | 字段                           | 提交                                     |
-| -------- | ------------------------------ | ---------------------------------------- |
-| 基本信息 | 站名 / 标语（每种语言一个输入框） | 随整张表单一并 `{ site_name, tagline, … }` |
-| 语言     | 主语言                         | 确认后钉本地草稿；保存时带 `default_locale` |
-| 首页     | 打开 `/` 时的版式或另一张页 | 版式仍立刻 `POST /site/home-layout`；其它页随保存 `{ home_path }` |
-| 发布     | 站点总开关                     | 下线先确认；保存时带 `{ published }`     |
-| 访问分析 | 供应商 + 脚本地址 + 站点标识   | 随保存 `{ analytics }`；空 token 提交前拦住 |
-| 重定向   | 旧地址 → 新地址                | 不进这张 `<form>`，各自的 `/site/redirects` 接口 |
+| 分区     | 字段                              | 提交                                                              |
+| -------- | --------------------------------- | ----------------------------------------------------------------- |
+| 基本信息 | 站名 / 标语（每种语言一个输入框） | 随整张表单一并 `{ site_name, tagline, … }`                        |
+| 语言     | 主语言                            | 确认后钉本地草稿；保存时带 `default_locale`                       |
+| 首页     | 打开 `/` 时的版式或另一张页       | 版式仍立刻 `POST /site/home-layout`；其它页随保存 `{ home_path }` |
+| 发布     | 站点总开关                        | 下线先确认；保存时带 `{ published }`                              |
+| 访问分析 | 供应商 + 脚本地址 + 站点标识      | 随保存 `{ analytics }`；空 token 提交前拦住                       |
+| 重定向   | 旧地址 → 新地址                   | 不进这张 `<form>`，各自的 `/site/redirects` 接口                  |
 
 分析不能「换供应商即存」：Cloudflare 还没填 token 时服务端会把不完整配置归一成 none，
 下拉会当场弹回关闭。站名 / 标语展开全部语言，不再用 tab 切译文。
@@ -1277,17 +1278,17 @@ URL 都会先规范化再查。来源写成 `/en/old` 或 `/old/` 与 `/old` 是
 
 ## SEO meta
 
-| 能力 | 存哪 | 口径 |
-| --- | --- | --- |
-| 分享缩略图 | `theme_settings.og_image`（站点级）+ `page.settings.og_image`（逐页覆盖） | 相对路径按 origin 补成**绝对地址**——抓取器不带页面上下文；没图就整组图片标签不出（空 `content` 会被部分平台画成裂图），`twitter:card` 也相应退成 `summary` |
-| 逐页 noindex | `page.settings.noindex` | 只掐收录，链接权重照常传递；同时从 sitemap 摘掉、也不发 hreflang——留在 sitemap 又标 noindex 是自相矛盾的信号 |
-| 会员页 noindex | 自动（`requires_member`） | `noindex, nofollow`：SSR 只有占位，收录了也是空页，所以连 follow 一起掐 |
-| `<title>` | 页面设置的标题（渲染期 `{token}` 插值）再拼站名 | 首页 = 站名；内页能放下 `标题 · 站名` 就拼，否则只用页标题。上限 60 字（`shared/seo-meta.ts`） |
-| meta description | 页面设置的描述（同一套插值），否则首页 tagline、内页 `{标题} — {tagline}` | 禁止多页共用一句光秃 tagline |
-| 首页 h1 | 不注入 | 页头品牌始终是链接；正文标题由 hero / page-header 段自己出 |
-| `/llms.txt` | 现场拼 | 站点名 + 标语 + 链到 sitemap，和 robots.txt 一样是站点级 |
-| `/site.webmanifest` | 现场拼 | 名字取 `site_name`、主题色取 `primary_color`；图标只放 maskable，不回落 favicon |
-| HSTS | SSR `onRequest` + 宿主机 nginx | 只在 https origin 上发；nginx 每次部署幂等补（certbot 写的 443 块自己不会带） |
+| 能力                | 存哪                                                                      | 口径                                                                                                                                                       |
+| ------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 分享缩略图          | `theme_settings.og_image`（站点级）+ `page.settings.og_image`（逐页覆盖） | 相对路径按 origin 补成**绝对地址**——抓取器不带页面上下文；没图就整组图片标签不出（空 `content` 会被部分平台画成裂图），`twitter:card` 也相应退成 `summary` |
+| 逐页 noindex        | `page.settings.noindex`                                                   | 只掐收录，链接权重照常传递；同时从 sitemap 摘掉、也不发 hreflang——留在 sitemap 又标 noindex 是自相矛盾的信号                                               |
+| 会员页 noindex      | 自动（`requires_member`）                                                 | `noindex, nofollow`：SSR 只有占位，收录了也是空页，所以连 follow 一起掐                                                                                    |
+| `<title>`           | 页面设置的标题（渲染期 `{token}` 插值）再拼站名                           | 首页 = 站名；内页能放下 `标题 · 站名` 就拼，否则只用页标题。上限 60 字（`shared/seo-meta.ts`）                                                             |
+| meta description    | 页面设置的描述（同一套插值），否则首页 tagline、内页 `{标题} — {tagline}` | 禁止多页共用一句光秃 tagline                                                                                                                               |
+| 首页 h1             | 不注入                                                                    | 页头品牌始终是链接；正文标题由 hero / page-header 段自己出                                                                                                 |
+| `/llms.txt`         | 现场拼                                                                    | 站点名 + 标语 + 链到 sitemap，和 robots.txt 一样是站点级                                                                                                   |
+| `/site.webmanifest` | 现场拼                                                                    | 名字取 `site_name`、主题色取 `primary_color`；图标只放 maskable，不回落 favicon                                                                            |
+| HSTS                | SSR `onRequest` + 宿主机 nginx                                            | 只在 https origin 上发；nginx 每次部署幂等补（certbot 写的 443 块自己不会带）                                                                              |
 
 og:title 用完整页标题（社交卡片不必跟 SERP 一样短）；og:description 与 meta description 同源。
 `og_image` 只放行站内相对路径与 http(s)：同一个值也会进编辑器预览的 `<img src>`。
@@ -1316,10 +1317,10 @@ og:title 用完整页标题（社交卡片不必跟 SERP 一样短）；og:descr
 
 `getPublishedSitemapEntries` 在 noindex / 404 模板之外还挡掉两类：
 
-| 挡掉什么 | 判据 | 为什么 |
-| --- | --- | --- |
-| 模板路径 | 路径里有 `:param`（`/events/:slug`） | 那不是能打开的地址，URL 编码成 `%3Aslug` 就是一条死链 |
-| 被收到根上的枢纽前缀 | 当前首页版式的 `rootPrefix`，或存量 `home_path` 正好等于某套版式的 `rootPrefix` | 那一段地址一律 301 到 `/`；sitemap 只列终态 URL |
+| 挡掉什么             | 判据                                                                            | 为什么                                                |
+| -------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| 模板路径             | 路径里有 `:param`（`/events/:slug`）                                            | 那不是能打开的地址，URL 编码成 `%3Aslug` 就是一条死链 |
+| 被收到根上的枢纽前缀 | 当前首页版式的 `rootPrefix`，或存量 `home_path` 正好等于某套版式的 `rootPrefix` | 那一段地址一律 301 到 `/`；sitemap 只列终态 URL       |
 
 判据放在 marketing 而不是各业务模块：模板路径与首页挂载都是这里的概念，
 `rootPrefix` 本来就登记在 `registerHomeLayout` 上。被挡掉的枢纽如果仍有一个终态地址
@@ -1347,21 +1348,21 @@ og:title 用完整页标题（社交卡片不必跟 SERP 一样短）；og:descr
 表单段与提交记录**不在本模块**：它们是 `modules/site-form` 往这里的段注册表填的一项
 （`site-form.form`），与文档库、店面同一条路子。marketing 这边只提供三样东西：
 
-| 提供 | 位置 |
-| --- | --- |
-| 段注册表 | `shared/sections/index.ts` 的 `CONTRIBUTED`（`registerSiteSectionHtml` / `registerSiteSectionView`） |
-| 存量 type 改写 | `shared/section-schema.ts` 的 `SECTION_TYPE_ALIASES`：`form` → `site-form.form` |
-| 交互层挂载 | site-enhance 的贡献方入口（见下） |
+| 提供           | 位置                                                                                                 |
+| -------------- | ---------------------------------------------------------------------------------------------------- |
+| 段注册表       | `shared/sections/index.ts` 的 `CONTRIBUTED`（`registerSiteSectionHtml` / `registerSiteSectionView`） |
+| 存量 type 改写 | `shared/section-schema.ts` 的 `SECTION_TYPE_ALIASES`：`form` → `site-form.form`                      |
+| 交互层挂载     | site-enhance 的贡献方入口（见下）                                                                    |
 
 细则见 `modules/site-form/MODULE.md`。
 
 ## 默认内容从哪来
 
-| 内容 | 位置 | 说明 |
-| --- | --- | --- |
-| 通用初始化配方 | `shared/site-starters.ts` + `page-presets.ts` + `site-init.service.ts` | chrome + 对该站点已相关的模板页（常驻页建租户时快照；有开关的页开通时补建） |
-| **默认租户产品站** | `server/default-product-site-content.ts` | Rewindom 终稿：中英双语首页（hero + 三栏卡片 + Agent 闭环 + 开箱即用 + Yestino 双栏案例 + 技术栈 + 通栏 CTA）；GitHub 在页头 / 首屏次按钮 / 页脚；文案来自 `client/locales` |
-| Bootstrap | `server/ensure-default-marketing-site.ts` | 默认租户幂等铺产品站并发布；已是产品站则跳过 |
+| 内容               | 位置                                                                   | 说明                                                                                                                                                                        |
+| ------------------ | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 通用初始化配方     | `shared/site-starters.ts` + `page-presets.ts` + `site-init.service.ts` | chrome + 对该站点已相关的模板页（常驻页建租户时快照；有开关的页开通时补建）                                                                                                 |
+| **默认租户产品站** | `server/default-product-site-content.ts`                               | Rewindom 终稿：中英双语首页（hero + 三栏卡片 + Agent 闭环 + 开箱即用 + Yestino 双栏案例 + 技术栈 + 通栏 CTA）；GitHub 在页头 / 首屏次按钮 / 页脚；文案来自 `client/locales` |
+| Bootstrap          | `server/ensure-default-marketing-site.ts`                              | 默认租户幂等铺产品站并发布；已是产品站则跳过                                                                                                                                |
 
 新增页面：在 CMS Theme Editor 创建/发布即可；SEO 由 SSR + sitemap 动态生成。
 

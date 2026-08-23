@@ -16,7 +16,11 @@ import type { EventTrendingFactor } from "../../shared/index.js";
  *
  * 说不清楚就整块不渲染——留白比编一句更权威。
  */
-export function EventWhyTrending({ factors }: { factors: EventTrendingFactor[] }) {
+export function EventWhyTrending({
+  factors,
+}: {
+  factors: EventTrendingFactor[];
+}) {
   const { t } = useTranslation("events");
   if (factors.length === 0) {
     return null;
@@ -30,9 +34,14 @@ export function EventWhyTrending({ factors }: { factors: EventTrendingFactor[] }
       <CardContent>
         <ul className="flex flex-col gap-2 text-sm">
           {factors.map((factor) => (
-            <li key={factor.code} className="flex flex-wrap items-baseline gap-2">
+            <li
+              key={factor.code}
+              className="flex flex-wrap items-baseline gap-2"
+            >
               <Badge
-                variant={factor.confidence === "confirmed" ? "default" : "outline"}
+                variant={
+                  factor.confidence === "confirmed" ? "default" : "outline"
+                }
                 className="font-normal"
               >
                 {t(`why.${factor.confidence}`)}

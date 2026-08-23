@@ -97,9 +97,9 @@ describe("parseIncidentUpdates", () => {
 
 describe("incidentDurationMinutes / incidentResolved", () => {
   it("首末相减", () => {
-    expect(incidentDurationMinutes(parseIncidentUpdates(GITHUB_REAL, PUBLISHED))).toBe(
-      242,
-    );
+    expect(
+      incidentDurationMinutes(parseIncidentUpdates(GITHUB_REAL, PUBLISHED)),
+    ).toBe(242);
   });
 
   /*

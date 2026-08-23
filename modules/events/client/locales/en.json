@@ -206,12 +206,15 @@
       "entityEyebrow": "Event radar · {entity_kind}",
       "entityHeadline": "{entity}",
       "entitySubhead": "Every event involving {entity}, merged across sources — most recent first."
-    }
+    },
+    "subscribeEmail": "Subscribe by email"
   },
   "link": {
     "siteFeed": "All events RSS",
     "topicFeed": "{topic} RSS",
-    "currentTopicFeed": "This topic's RSS"
+    "currentTopicFeed": "This topic's RSS",
+    "currentTopicSubscribe": "Newsletter: current topic",
+    "currentEntitySubscribe": "Newsletter: current entity"
   },
   "home": {
     "layout": {
@@ -279,7 +282,8 @@
       "showStats": "Show live counts",
       "showStatsInfo": "Hidden automatically until there are events — never shows a row of zeros",
       "interpolationInfo": "Use {topic} / {topic_slug} on topic pages, {entity} / {entity_kind} on entity pages, and {feed} for this page's RSS. Tokens for the other identity are empty.",
-      "subscribeHrefInfo": "Default {feed} — this page's RSS (topic, entity, or site). Pin a slot with /topics/ai/feed.xml."
+      "subscribeHrefInfo": "Default {feed} — this page's RSS (topic, entity, or site). Pin a slot with /topics/ai/feed.xml.",
+      "subscribeEmailHrefInfo": "Points at the site's signup page by default. On topic/entity pages pick \"Newsletter: current topic/entity\" so readers subscribe to what that page is about."
     },
     "entityHero": {
       "label": "Entity hero",
@@ -312,7 +316,10 @@
     "headline": "One-line summary of the current event (falls back to its title)",
     "entity": "Name of the current entity, e.g. \"OpenAI\"",
     "entity_kind": "Kind of the current entity, e.g. \"Company\"",
-    "feed": "RSS feed address for the current page"
+    "feed": "RSS feed address for the current page",
+    "entity_slug": "Entity slug (for URLs, e.g. openai)",
+    "topic_list": "This topic's subscription list (for signup links)",
+    "entity_list": "This entity's subscription list (for signup links)"
   },
   "edit": {
     "action": "Edit",

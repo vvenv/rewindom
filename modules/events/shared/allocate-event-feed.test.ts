@@ -10,7 +10,10 @@ import {
 import type { EventFeedSectionNode } from "./allocate-event-feed.js";
 import type { EventTopic } from "./events.js";
 
-function card(slug: string, topic: EventTopic = "ai"): { slug: string; topic: EventTopic } {
+function card(
+  slug: string,
+  topic: EventTopic = "ai",
+): { slug: string; topic: EventTopic } {
   return { slug, topic };
 }
 
@@ -59,7 +62,9 @@ describe("allocateEventFeed", () => {
   it("先来先得：后面的段让开已经出现过的 slug", () => {
     const assigned = allocateEventFeed(
       [
-        eventFeedSlotFromSection(section("rising", "events.rising", { limit: 2 })),
+        eventFeedSlotFromSection(
+          section("rising", "events.rising", { limit: 2 }),
+        ),
         eventFeedSlotFromSection(section("now", "events.now", { limit: 3 })),
       ],
       pools,
@@ -68,7 +73,11 @@ describe("allocateEventFeed", () => {
       "hot",
       "r2",
     ]);
-    expect(assigned.get("now")?.map((item) => item.slug)).toEqual(["n2", "n3", "n4"]);
+    expect(assigned.get("now")?.map((item) => item.slug)).toEqual([
+      "n2",
+      "n3",
+      "n4",
+    ]);
   });
 
   it("单独一段拿到完整列表——去重不能反过来让内容变少", () => {
@@ -99,7 +108,9 @@ describe("allocateEventFeed", () => {
     ];
     const assigned = allocateEventFeed(
       [
-        eventFeedSlotFromSection(section("rising", "events.rising", { limit: 8 })),
+        eventFeedSlotFromSection(
+          section("rising", "events.rising", { limit: 8 }),
+        ),
         eventFeedSlotFromSection(section("now", "events.now", { limit: 4 })),
       ],
       {
@@ -117,7 +128,9 @@ describe("allocateEventFeed", () => {
     );
     const assigned = allocateEventFeed(
       [
-        eventFeedSlotFromSection(section("rising", "events.rising", { limit: 8 })),
+        eventFeedSlotFromSection(
+          section("rising", "events.rising", { limit: 8 }),
+        ),
         eventFeedSlotFromSection(section("now", "events.now", { limit: 8 })),
       ],
       {
@@ -126,24 +139,22 @@ describe("allocateEventFeed", () => {
       },
     );
     expect(assigned.get("now")).toHaveLength(8);
-    const risingSlugs = new Set(assigned.get("rising")?.map((item) => item.slug));
-    expect(assigned.get("now")?.some((item) => risingSlugs.has(item.slug))).toBe(
-      false,
+    const risingSlugs = new Set(
+      assigned.get("rising")?.map((item) => item.slug),
     );
+    expect(
+      assigned.get("now")?.some((item) => risingSlugs.has(item.slug)),
+    ).toBe(false);
   });
 });
 
 describe("cardsForEventFeedSection", () => {
   it("没有页面树时按「本段单独摆」分配", () => {
     const now = section("now", "events.now", { limit: 2 });
-    const cards = cardsForEventFeedSection(
-      now,
-      undefined,
-      {
-        rising: [card("r")],
-        now: [card("a"), card("b"), card("c")],
-      },
-    );
+    const cards = cardsForEventFeedSection(now, undefined, {
+      rising: [card("r")],
+      now: [card("a"), card("b"), card("c")],
+    });
     expect(cards.map((item) => item.slug)).toEqual(["a", "b"]);
   });
 
@@ -151,14 +162,10 @@ describe("cardsForEventFeedSection", () => {
     const rising = section("rising", "events.rising", { limit: 1 });
     const now = section("now", "events.now", { limit: 2 });
     const liveRising = section("rising", "events.rising", { limit: 2 });
-    const cards = cardsForEventFeedSection(
-      liveRising,
-      [rising, now],
-      {
-        rising: [card("a"), card("b"), card("c")],
-        now: [card("a"), card("b"), card("c"), card("d")],
-      },
-    );
+    const cards = cardsForEventFeedSection(liveRising, [rising, now], {
+      rising: [card("a"), card("b"), card("c")],
+      now: [card("a"), card("b"), card("c"), card("d")],
+    });
     expect(cards.map((item) => item.slug)).toEqual(["a", "b"]);
   });
 });

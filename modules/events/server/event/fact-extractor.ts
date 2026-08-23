@@ -42,9 +42,13 @@ const AMOUNT_RE =
   /([$€£])\s?(\d[\d,]*(?:\.\d+)?)\s*(billion|million|thousand|bn|[bmk])?\b/iu;
 
 const MAGNITUDE: Record<string, number> = {
-  k: 1e3, thousand: 1e3,
-  m: 1e6, million: 1e6,
-  b: 1e9, bn: 1e9, billion: 1e9,
+  k: 1e3,
+  thousand: 1e3,
+  m: 1e6,
+  million: 1e6,
+  b: 1e9,
+  bn: 1e9,
+  billion: 1e9,
 };
 
 /** 哪些类型该抽金额。发版与故障抽出来的多半是价格或赔付，不是这件事的主角。 */

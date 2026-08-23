@@ -62,6 +62,7 @@ entitlement: events # 沿用 EVENTS_ENTITLEMENT，无新增
 permissions: [] # 公开面，无新增
 models: [] # 只读既有 NewsEvent / EventSignal / EventFeed，无新增字段
 
+
 # ---------- 设计要点（实现时按此，偏离先改本 spec）----------
 # 1. 计数口径必须与首页两段自洽，否则首屏说的和下面列的不是一回事：
 #      live_events    NewsEvent，status ∈ {developing, active} 且 last_activity_at ≥ 24h，

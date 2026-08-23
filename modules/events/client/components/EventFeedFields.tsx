@@ -44,9 +44,7 @@ export function EventFeedFields({
         <Input
           id={`${idPrefix}-name`}
           value={form.name}
-          onChange={(event) =>
-            onChange({ ...form, name: event.target.value })
-          }
+          onChange={(event) => onChange({ ...form, name: event.target.value })}
         />
       </Field>
       {showUrl ? (
@@ -57,9 +55,7 @@ export function EventFeedFields({
           <Input
             id={`${idPrefix}-url`}
             value={form.url}
-            onChange={(event) =>
-              onChange({ ...form, url: event.target.value })
-            }
+            onChange={(event) => onChange({ ...form, url: event.target.value })}
             placeholder="https://"
           />
         </Field>

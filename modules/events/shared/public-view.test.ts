@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { EMPTY_EVENT_FACTS } from "./events.js";
-import { sampleEntityData, sampleEventDetail, sampleEventList } from "./events-sample.js";
+import {
+  sampleEntityData,
+  sampleEventDetail,
+  sampleEventList,
+} from "./events-sample.js";
 import {
   toPublicCard,
   toPublicDetail,
@@ -83,7 +87,10 @@ describe("toPublicEntity", () => {
         event_count: 1,
         profile: [
           { code: "profile.window", params: { days: 90, count: 12 } },
-          { code: "profile.kindCount", params: { kind: "kind.outage", count: 3 } },
+          {
+            code: "profile.kindCount",
+            params: { kind: "kind.outage", count: 3 },
+          },
         ],
         events: [
           {
@@ -118,10 +125,7 @@ describe("toPublicEntity", () => {
     expect(view.href).toBe("/entities/openai");
     expect(view.feed_href).toBe("/entities/openai/feed.xml");
     expect(view.kind_label).toBe("Company");
-    expect(view.profile).toEqual([
-      "12 events in 90 days",
-      "Outage ×3",
-    ]);
+    expect(view.profile).toEqual(["12 events in 90 days", "Outage ×3"]);
     expect(view.events[0]?.href).toBe("/events/outage-1");
     expect(view.events[0]?.title).toBe("API outage");
   });

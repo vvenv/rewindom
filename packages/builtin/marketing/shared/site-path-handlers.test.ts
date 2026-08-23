@@ -61,7 +61,10 @@ describe("isSitePathResponse", () => {
       }),
     ).toBe(true);
     expect(
-      isSitePathResponse({ body: Buffer.from("png"), content_type: "image/png" }),
+      isSitePathResponse({
+        body: Buffer.from("png"),
+        content_type: "image/png",
+      }),
     ).toBe(true);
   });
 });

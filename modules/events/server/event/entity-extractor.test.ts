@@ -14,7 +14,9 @@ function signal(title: string): ExtractableSignal {
 
 describe("capitalizedPhrases", () => {
   it("非句首的大写词直接算实体", () => {
-    const { confident } = capitalizedPhrases("Stripe will acquire OpenRouter today");
+    const { confident } = capitalizedPhrases(
+      "Stripe will acquire OpenRouter today",
+    );
     expect(confident).toEqual(["OpenRouter"]);
   });
 
@@ -42,7 +44,9 @@ describe("capitalizedPhrases", () => {
    * 把阈值放宽到能救它，就会把「Buy Your Friends Batteries」一起放回来（实测过）。
    */
   it("实词全是专名的短标题会被一起弃权——已知的召回损失", () => {
-    expect(capitalizedPhrases("Report from The New York Times").confident).toEqual([]);
+    expect(
+      capitalizedPhrases("Report from The New York Times").confident,
+    ).toEqual([]);
   });
 
   /*
@@ -50,7 +54,9 @@ describe("capitalizedPhrases", () => {
    * 和 `Models Are Getting Dumber`（普通名词）。所以句首单词先扣住，等印证。
    */
   it("句首的单个词先扣住，不直接算实体", () => {
-    const { confident, leadOnly } = capitalizedPhrases("Stripe will acquire it");
+    const { confident, leadOnly } = capitalizedPhrases(
+      "Stripe will acquire it",
+    );
     expect(confident).toEqual([]);
     expect(leadOnly).toEqual(["Stripe"]);
   });
@@ -62,7 +68,9 @@ describe("capitalizedPhrases", () => {
   });
 
   it("冒号后面也是句子起始——扣住等印证，不直接算实体", () => {
-    const { confident, leadOnly } = capitalizedPhrases("Tell HN: Github is down");
+    const { confident, leadOnly } = capitalizedPhrases(
+      "Tell HN: Github is down",
+    );
     expect(confident).toEqual([]);
     // Tell 与 Github 都在句子起始位置，两者都要印证才放行
     expect(leadOnly).toEqual(["Tell", "Github"]);
@@ -72,7 +80,9 @@ describe("capitalizedPhrases", () => {
     const { confident } = capitalizedPhrases("Ask HN: what is the best API");
     expect(confident).toEqual([]);
     // HN 与 API 被噪声表挡掉，只剩句首的 Ask 待印证（它永远等不到）
-    expect(extractEntities([signal("Ask HN: what is the best API")])).toEqual([]);
+    expect(extractEntities([signal("Ask HN: what is the best API")])).toEqual(
+      [],
+    );
   });
 
   it("单字母与纯符号不算实体", () => {
@@ -120,7 +130,9 @@ describe("extractEntities", () => {
    * 猜错的类型比没有类型更难纠正——用户没法核对一个实体为什么被标成 person。
    */
   it("规则实现不猜类型，一律 org", () => {
-    for (const entity of extractEntities([signal("News about Stripe and Tim Cook")])) {
+    for (const entity of extractEntities([
+      signal("News about Stripe and Tim Cook"),
+    ])) {
       expect(entity.kind).toBe("org");
     }
   });
@@ -137,7 +149,11 @@ describe("extractEntities", () => {
   it("规则实现只看标题，不看摘录——摘录里大写词的假阳性远超收益", () => {
     expect(
       extractEntities([
-        { title: "an update", excerpt: "Contact Acme Corporation today", source_kind: "news" },
+        {
+          title: "an update",
+          excerpt: "Contact Acme Corporation today",
+          source_kind: "news",
+        },
       ]),
     ).toEqual([]);
   });
@@ -147,8 +163,13 @@ describe("extractEntities", () => {
   });
 
   it("封顶，避免一个长标题炸出十几个实体", () => {
-    const long = Array.from({ length: 30 }, (_, i) => `Alpha${i} Beta${i}`).join(", ");
-    expect(extractEntities([signal(`Report on ${long}`)]).length).toBeLessThanOrEqual(12);
+    const long = Array.from(
+      { length: 30 },
+      (_, i) => `Alpha${i} Beta${i}`,
+    ).join(", ");
+    expect(
+      extractEntities([signal(`Report on ${long}`)]).length,
+    ).toBeLessThanOrEqual(12);
   });
 });
 
@@ -162,7 +183,9 @@ describe("normalizeEntityName", () => {
    * 猜错比不合并更糟（会把两家公司的事件混进同一个聚合面）。
    */
   it("不合并别名", () => {
-    expect(normalizeEntityName("Meta")).not.toBe(normalizeEntityName("Facebook"));
+    expect(normalizeEntityName("Meta")).not.toBe(
+      normalizeEntityName("Facebook"),
+    );
   });
 });
 

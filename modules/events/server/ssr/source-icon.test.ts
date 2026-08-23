@@ -45,7 +45,9 @@ describe("sniffImageType", () => {
       "image/png",
     );
     expect(
-      sniffImageType(new TextEncoder().encode("<svg xmlns='http://www.w3.org/2000/svg'>")),
+      sniffImageType(
+        new TextEncoder().encode("<svg xmlns='http://www.w3.org/2000/svg'>"),
+      ),
     ).toBeNull();
     expect(sniffImageType(new Uint8Array())).toBeNull();
   });

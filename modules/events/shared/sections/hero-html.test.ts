@@ -50,10 +50,13 @@ function renderHero(
   contributed?: Record<string, unknown>,
 ): string {
   const interpolation = readContributedInterpolation(contributed);
-  return renderEventsHeroHtml(interpolateSectionSettings(section, interpolation), {
-    contributed,
-    interpolation,
-  });
+  return renderEventsHeroHtml(
+    interpolateSectionSettings(section, interpolation),
+    {
+      contributed,
+      interpolation,
+    },
+  );
 }
 
 function section(extra: Record<string, unknown> = {}): SiteSection {

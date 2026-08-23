@@ -9,12 +9,19 @@
  */
 import type { EventSourceKind } from "../../shared/index.js";
 
-export const ENTITY_KINDS = ["company", "product", "person", "place", "org"] as const;
+export const ENTITY_KINDS = [
+  "company",
+  "product",
+  "person",
+  "place",
+  "org",
+] as const;
 export type EntityKind = (typeof ENTITY_KINDS)[number];
 
 export function isEntityKind(value: unknown): value is EntityKind {
   return (
-    typeof value === "string" && (ENTITY_KINDS as readonly string[]).includes(value)
+    typeof value === "string" &&
+    (ENTITY_KINDS as readonly string[]).includes(value)
   );
 }
 
@@ -62,9 +69,40 @@ const TITLE_CASE_RATIO = 0.6;
 const MIN_TITLE_CASE_WORDS = 4;
 /** 判版式时忽略的虚词：Title Case 本来就不大写它们，算进去会拉低比例。 */
 const FUNCTION_WORDS = new Set([
-  "a", "an", "the", "and", "or", "but", "for", "nor", "of", "on", "in", "at",
-  "to", "from", "by", "with", "as", "is", "are", "was", "were", "be", "its",
-  "it", "that", "this", "than", "then", "so", "if", "up", "out", "off", "over",
+  "a",
+  "an",
+  "the",
+  "and",
+  "or",
+  "but",
+  "for",
+  "nor",
+  "of",
+  "on",
+  "in",
+  "at",
+  "to",
+  "from",
+  "by",
+  "with",
+  "as",
+  "is",
+  "are",
+  "was",
+  "were",
+  "be",
+  "its",
+  "it",
+  "that",
+  "this",
+  "than",
+  "then",
+  "so",
+  "if",
+  "up",
+  "out",
+  "off",
+  "over",
 ]);
 
 /** 标题是不是 Title Case（大写不携带信息）。 */
@@ -89,8 +127,29 @@ export function isTitleCase(title: string): boolean {
 
 /** 全大写但明显不是实体的缩写与噪声。 */
 const NOISE_TOKENS = new Set([
-  "HN", "AI", "API", "CEO", "CTO", "US", "UK", "EU", "UN", "IT", "OK", "PDF",
-  "HTML", "CSS", "JSON", "XML", "RSS", "URL", "HTTP", "HTTPS", "PR", "CI", "CD",
+  "HN",
+  "AI",
+  "API",
+  "CEO",
+  "CTO",
+  "US",
+  "UK",
+  "EU",
+  "UN",
+  "IT",
+  "OK",
+  "PDF",
+  "HTML",
+  "CSS",
+  "JSON",
+  "XML",
+  "RSS",
+  "URL",
+  "HTTP",
+  "HTTPS",
+  "PR",
+  "CI",
+  "CD",
 ]);
 
 /** 最多抽多少个——详情页展示得下，也避免一个长标题炸出十几个实体。 */
@@ -183,7 +242,7 @@ export function capitalizedPhrases(title: string): {
     if (current.length > 0) {
       const name = current.join(" ");
       if (name.replace(/[^\p{L}\p{N}]/gu, "").length >= MIN_NAME_LENGTH) {
-            (atSentenceStart && current.length === 1 ? leadOnly : confident).push(
+        (atSentenceStart && current.length === 1 ? leadOnly : confident).push(
           stripPossessive(name),
         );
       }
@@ -210,7 +269,9 @@ export function capitalizedPhrases(title: string): {
 
   return {
     confident: [...new Set(confident)],
-    leadOnly: [...new Set(leadOnly)].filter((name) => !confident.includes(name)),
+    leadOnly: [...new Set(leadOnly)].filter(
+      (name) => !confident.includes(name),
+    ),
   };
 }
 

@@ -1257,15 +1257,33 @@
       },
       "features": {
         "heading": "Three things a visitor can catch at a glance",
-        "item1": { "title": "A clear claim", "body": "A split hero puts the line and a visual together. You do not need a photo first." },
-        "item2": { "title": "Grouped selling points", "body": "The feature grid ships with icons and cards. Three sentences beat a Markdown dump." },
-        "item3": { "title": "A readable path", "body": "Steps number the onboarding or delivery path so it scans." }
+        "item1": {
+          "title": "A clear claim",
+          "body": "A split hero puts the line and a visual together. You do not need a photo first."
+        },
+        "item2": {
+          "title": "Grouped selling points",
+          "body": "The feature grid ships with icons and cards. Three sentences beat a Markdown dump."
+        },
+        "item3": {
+          "title": "A readable path",
+          "body": "Steps number the onboarding or delivery path so it scans."
+        }
       },
       "steps": {
         "heading": "Three steps to a page",
-        "item1": { "title": "Apply a layout", "body": "In site settings, switch the home page to Landing home." },
-        "item2": { "title": "Edit copy", "body": "Open the editor and change headlines, features, and steps in place." },
-        "item3": { "title": "Publish", "body": "Preview, then publish. Drafts stay off the public site." }
+        "item1": {
+          "title": "Apply a layout",
+          "body": "In site settings, switch the home page to Landing home."
+        },
+        "item2": {
+          "title": "Edit copy",
+          "body": "Open the editor and change headlines, features, and steps in place."
+        },
+        "item3": {
+          "title": "Publish",
+          "body": "Preview, then publish. Drafts stay off the public site."
+        }
       },
       "split": {
         "heading": "Story on one side, proof on the other",

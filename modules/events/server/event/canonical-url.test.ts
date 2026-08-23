@@ -11,7 +11,9 @@ describe("canonicalizeUrl", () => {
 
   it("剥掉追踪参数但保留内容参数", () => {
     expect(
-      canonicalizeUrl("https://example.com/p?utm_source=hn&id=7&fbclid=x&ref=twitter"),
+      canonicalizeUrl(
+        "https://example.com/p?utm_source=hn&id=7&fbclid=x&ref=twitter",
+      ),
     ).toBe("https://example.com/p?id=7");
   });
 
@@ -22,8 +24,12 @@ describe("canonicalizeUrl", () => {
   });
 
   it("去掉末尾斜杠，但保留根路径", () => {
-    expect(canonicalizeUrl("https://example.com/a/b/")).toBe("https://example.com/a/b");
-    expect(canonicalizeUrl("https://example.com/")).toBe("https://example.com/");
+    expect(canonicalizeUrl("https://example.com/a/b/")).toBe(
+      "https://example.com/a/b",
+    );
+    expect(canonicalizeUrl("https://example.com/")).toBe(
+      "https://example.com/",
+    );
   });
 
   it("非 http(s) 与不可解析的输入原样返回", () => {

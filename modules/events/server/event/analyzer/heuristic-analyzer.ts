@@ -1,4 +1,8 @@
-import { pickEventTitle, titleSimilarity, tokenizeTitle } from "../title-tokens.js";
+import {
+  pickEventTitle,
+  titleSimilarity,
+  tokenizeTitle,
+} from "../title-tokens.js";
 import { isUsableExcerpt } from "../../ingest/page-excerpt.js";
 import { isFirstPartySource } from "../../../shared/index.js";
 
@@ -133,11 +137,15 @@ function isNewsWireEcho(
   }
   const tokens = tokenizeTitle(signal.title);
   return kept.some((prior) => {
-    if (prior.source_kind !== "news" && !isFirstPartySource(prior.source_kind)) {
+    if (
+      prior.source_kind !== "news" &&
+      !isFirstPartySource(prior.source_kind)
+    ) {
       return false;
     }
     return (
-      titleSimilarity(tokens, tokenizeTitle(prior.title)) >= WIRE_ECHO_SIMILARITY
+      titleSimilarity(tokens, tokenizeTitle(prior.title)) >=
+      WIRE_ECHO_SIMILARITY
     );
   });
 }

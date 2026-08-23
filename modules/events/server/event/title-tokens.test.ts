@@ -18,7 +18,10 @@ describe("tokenizeTitle", () => {
   });
 
   it("丢掉噪声最大的发布类动词", () => {
-    expect(tokenizeTitle("OpenAI announces GPT-6")).toEqual(["openai", "gpt-6"]);
+    expect(tokenizeTitle("OpenAI announces GPT-6")).toEqual([
+      "openai",
+      "gpt-6",
+    ]);
   });
 
   it("保留版本号里的点，但把域名归一到主体名", () => {
@@ -109,8 +112,12 @@ describe("shouldCluster", () => {
   });
 
   it("只共享一个词不足以聚类", () => {
-    expect(shouldCluster(["nvidia", "gpu", "blackwell"], ["nvidia", "earnings", "beat"]))
-      .toBe(false);
+    expect(
+      shouldCluster(
+        ["nvidia", "gpu", "blackwell"],
+        ["nvidia", "earnings", "beat"],
+      ),
+    ).toBe(false);
   });
 
   it("短标题要求更高的重合度", () => {
@@ -139,10 +146,12 @@ describe("shouldCluster —— 真实语料案例", () => {
    * 会直接把它们合成一个事件。这不是调参能救的。
    */
   it("状态页的模板化标题指纹相同——正是它不能走词面聚类的原因", () => {
-    expect(cluster("Incident with Actions", "Incident with Actions")).toBe(true);
-    expect(
+    expect(cluster("Incident with Actions", "Incident with Actions")).toBe(
+      true,
+    );
+    expect(buildFingerprint(tokenizeTitle("Incident with Actions"))).toBe(
       buildFingerprint(tokenizeTitle("Incident with Actions")),
-    ).toBe(buildFingerprint(tokenizeTitle("Incident with Actions")));
+    );
   });
 
   it("同一新闻被两家媒体报道时能合并", () => {
@@ -164,9 +173,9 @@ describe("shouldCluster —— 真实语料案例", () => {
   });
 
   it("同一产品的两个不同公告不会被合并", () => {
-    expect(cluster("Testing ads in ChatGPT", "Launching Health in ChatGPT")).toBe(
-      false,
-    );
+    expect(
+      cluster("Testing ads in ChatGPT", "Launching Health in ChatGPT"),
+    ).toBe(false);
   });
 
   /**
@@ -176,7 +185,8 @@ describe("shouldCluster —— 真实语料案例", () => {
    */
   it("已知漏合并：同一桩收购的两种表述——词面同分，只有语义能分开", () => {
     const a = "Stripe Clinches over $7B Deal to Buy AI Firm OpenRouter";
-    const b = "Stripe will reportedly acquire AI gateway startup OpenRouter for $7B+";
+    const b =
+      "Stripe will reportedly acquire AI gateway startup OpenRouter for $7B+";
     expect(cluster(a, b)).toBe(false);
     // 与「不该合并」的 Copilot 案例分数一致，正是分不开的原因
     expect(titleSimilarity(tokenizeTitle(a), tokenizeTitle(b))).toBeCloseTo(

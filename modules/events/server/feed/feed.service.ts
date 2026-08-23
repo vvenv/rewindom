@@ -62,9 +62,7 @@ export async function updateEventFeed(params: {
   body: EventFeedWriteBody;
 }): Promise<EventFeedItem> {
   const current = await requireFeed(params.tenant_id, params.feed_id);
-  const patch = wrapValidation(() =>
-    normalizeFeedUpdate(params.body, current),
-  );
+  const patch = wrapValidation(() => normalizeFeedUpdate(params.body, current));
   if (Object.keys(patch).length === 0) {
     return toFeedItem(current, params.tenant_slug);
   }
@@ -110,7 +108,10 @@ function wrapValidation<T>(run: () => T): T {
 }
 
 function throwIfUrlTaken(err: unknown): void {
-  if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+  if (
+    err instanceof Prisma.PrismaClientKnownRequestError &&
+    err.code === "P2002"
+  ) {
     throw new ConflictError("events.feed_url_taken");
   }
 }

@@ -56,6 +56,8 @@ export function persistablePresetCopy(
   return current;
 }
 
-export function starterLocaleForSite(defaultLocale: string | null | undefined): AppLocale {
+export function starterLocaleForSite(
+  defaultLocale: string | null | undefined,
+): AppLocale {
   return normalizeLocale(defaultLocale);
 }

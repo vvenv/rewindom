@@ -40,7 +40,10 @@ export async function resolveWwwCanonicalHost(
  *
  * 端口要留住：本地与自建端口的部署上，丢了端口这一跳就跳到不存在的地址。
  */
-export function swapOriginHost(origin: string, nextHost: string): string | null {
+export function swapOriginHost(
+  origin: string,
+  nextHost: string,
+): string | null {
   try {
     const url = new URL(origin);
     url.hostname = nextHost;

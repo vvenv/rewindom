@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { emptyEventsContext, eventsContextEntry } from "../events-section-context.js";
+import {
+  emptyEventsContext,
+  eventsContextEntry,
+} from "../events-section-context.js";
 import { EVENTS_SUBSCRIBE_BLOCK_TYPE } from "../events-subscribe-block.js";
 import {
   renderEventsSubscribeBlockHtml,
@@ -23,7 +26,9 @@ function render(
   settings: Record<string, unknown> = {},
 ) {
   return renderEventsSubscribeBlockHtml(block(settings), {
-    contributed: context ? eventsContextEntry(emptyEventsContext(context)) : undefined,
+    contributed: context
+      ? eventsContextEntry(emptyEventsContext(context))
+      : undefined,
   });
 }
 
@@ -153,7 +158,9 @@ describe("订阅入口 · 页面段", () => {
   });
 
   it("同样挂 chrome-control——正文流里没有区域 token，回落到工具栏尺寸", () => {
-    expect(renderSection()).toContain('class="chrome-control events-subscribe"');
+    expect(renderSection()).toContain(
+      'class="chrome-control events-subscribe"',
+    );
   });
 
   it("没有文案时整块不渲染", () => {

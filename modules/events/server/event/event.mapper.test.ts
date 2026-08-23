@@ -8,7 +8,9 @@ import {
   type SignalRecord,
 } from "./event.mapper.js";
 
-function record(overrides: Partial<EventRecordForList> = {}): EventRecordForList {
+function record(
+  overrides: Partial<EventRecordForList> = {},
+): EventRecordForList {
   return {
     id: "e1",
     slug: "gpt-6-abc123",
@@ -58,9 +60,7 @@ describe("toEventListItem", () => {
   });
 
   it("来源类型过滤未知值，归位默认为空", () => {
-    const item = toEventListItem(
-      record({ source_kinds: ["news", "mystery"] }),
-    );
+    const item = toEventListItem(record({ source_kinds: ["news", "mystery"] }));
     expect(item.source_kinds).toEqual(["news"]);
     expect(item.placement).toEqual([]);
   });
@@ -96,7 +96,9 @@ describe("buildHeadline", () => {
   });
 
   it("中文句号同样断句", () => {
-    expect(buildHeadline("今天发布了。随后会有更多细节。", "T")).toBe("今天发布了。");
+    expect(buildHeadline("今天发布了。随后会有更多细节。", "T")).toBe(
+      "今天发布了。",
+    );
   });
 
   it("摘要为空时不编造副标题", () => {
@@ -104,9 +106,9 @@ describe("buildHeadline", () => {
   });
 
   it("第一句就是标题时留空", () => {
-    expect(buildHeadline("OpenAI releases GPT-6.", "OpenAI releases GPT-6")).toBe(
-      "",
-    );
+    expect(
+      buildHeadline("OpenAI releases GPT-6.", "OpenAI releases GPT-6"),
+    ).toBe("");
   });
 
   it("第一句就是标题时改取后面一句", () => {

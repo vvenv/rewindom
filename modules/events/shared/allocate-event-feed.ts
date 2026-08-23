@@ -12,7 +12,10 @@ import {
 } from "./events-feed-section.js";
 import { isEventTopic, parseEventFeedTab } from "./events.js";
 
-import { settingNumber, settingText } from "@rewindom/builtin/marketing/shared/section-schema.js";
+import {
+  settingNumber,
+  settingText,
+} from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 import type { EventFeedTab, EventTopic } from "./events.js";
 
@@ -49,7 +52,8 @@ export function eventFeedSlotFromSection(
       ? "now"
       : section.type === EVENTS_RISING_SECTION_TYPE
         ? "rising"
-        : (parseEventFeedTab(settingText(section.settings, "source")) ?? "rising");
+        : (parseEventFeedTab(settingText(section.settings, "source")) ??
+          "rising");
   const topicValue = settingText(section.settings, "topic");
   return {
     id: section.id,
@@ -96,7 +100,9 @@ function poolFor<T extends { slug: string; topic: EventTopic }>(
  * 按 slots 顺序分配。同一 slug 只给先出现的那段；每段截自己的 limit。
  * slots 里只有一段时，那段拿到自己池子里的完整前 N 条。
  */
-export function allocateEventFeed<T extends { slug: string; topic: EventTopic }>(
+export function allocateEventFeed<
+  T extends { slug: string; topic: EventTopic },
+>(
   slots: readonly EventFeedSlot[],
   pools: EventFeedPools<T>,
   pageTopic?: EventTopic,

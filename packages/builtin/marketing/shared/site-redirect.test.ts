@@ -57,7 +57,11 @@ describe("目标", () => {
   });
 
   it("其余协议一律拒——这个值会直接进 Location 头", () => {
-    for (const bad of ["javascript:alert(1)", "data:text/html,x", "//evil.example"]) {
+    for (const bad of [
+      "javascript:alert(1)",
+      "data:text/html,x",
+      "//evil.example",
+    ]) {
       expect(() => normalizeRedirectTo(bad)).toThrow("site.redirect_invalid");
     }
   });

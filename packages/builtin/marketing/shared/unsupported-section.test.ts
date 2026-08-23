@@ -70,7 +70,8 @@ describe("写路径：占位能原样回存，裸的未知 type 拒收", () => {
 
   it("连续多次读写不会套娃", () => {
     let sections = safeSections([CONTRIBUTED]);
-    for (let i = 0; i < 3; i += 1) sections = safeSections(parseSections(sections));
+    for (let i = 0; i < 3; i += 1)
+      sections = safeSections(parseSections(sections));
 
     const placeholder = findUnsupported(sections);
     expect(placeholder.source?.raw).toEqual(CONTRIBUTED);
@@ -82,7 +83,9 @@ describe("写路径：占位能原样回存，裸的未知 type 拒收", () => {
 
   it("壳坏了（没有 source）的占位也拒收", () => {
     expect(() =>
-      parseSections([{ id: "x", type: "unsupported", settings: {}, blocks: [] }]),
+      parseSections([
+        { id: "x", type: "unsupported", settings: {}, blocks: [] },
+      ]),
     ).toThrow("site.sections_invalid");
   });
 });

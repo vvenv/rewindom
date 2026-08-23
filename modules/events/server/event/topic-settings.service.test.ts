@@ -19,12 +19,10 @@ vi.mock("@rewindom/module-sdk/server", async () => {
   };
 });
 
-const { getEnabledTopics, updateEnabledTopics } = await import(
-  "./topic-settings.service.js"
-);
-const { ENABLED_TOPICS_SETTING, EVENT_TOPICS } = await import(
-  "../../shared/index.js"
-);
+const { getEnabledTopics, updateEnabledTopics } =
+  await import("./topic-settings.service.js");
+const { ENABLED_TOPICS_SETTING, EVENT_TOPICS } =
+  await import("../../shared/index.js");
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -45,7 +43,9 @@ describe("getEnabledTopics", () => {
 
 describe("updateEnabledTopics", () => {
   it("空列表拒绝", async () => {
-    await expect(updateEnabledTopics("t1", { enabled_topics: [] })).rejects.toMatchObject({
+    await expect(
+      updateEnabledTopics("t1", { enabled_topics: [] }),
+    ).rejects.toMatchObject({
       code: "events.topics_required",
       status: 400,
     });

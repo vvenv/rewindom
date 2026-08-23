@@ -93,7 +93,11 @@ describe("replaceSiteAsset", () => {
     expect(put).toHaveBeenCalledWith(
       siteAssetObjectKey(TENANT, "asset-1.png"),
       expect.any(Buffer),
-      { mime_type: "image/svg+xml", visibility: "public", cache_control: SITE_ASSET_CACHE_CONTROL },
+      {
+        mime_type: "image/svg+xml",
+        visibility: "public",
+        cache_control: SITE_ASSET_CACHE_CONTROL,
+      },
     );
     expect(replaced?.filename).toBe("asset-1.png");
     expect(replaced?.url).toBe(

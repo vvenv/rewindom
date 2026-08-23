@@ -238,10 +238,7 @@ export function resolveSourceIconUrl(input: {
     return toUrl("news.ycombinator.com");
   }
   if (input.connector && input.url) {
-    return sourceIconUrl(
-      { connector: input.connector, url: input.url },
-      toUrl,
-    );
+    return sourceIconUrl({ connector: input.connector, url: input.url }, toUrl);
   }
   return input.url ? sourceIconUrlFromPageUrl(input.url, toUrl) : null;
 }

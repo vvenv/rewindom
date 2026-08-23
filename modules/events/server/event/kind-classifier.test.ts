@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { classifyEventKind, type ClassifiableSignal } from "./kind-classifier.js";
+import {
+  classifyEventKind,
+  type ClassifiableSignal,
+} from "./kind-classifier.js";
 
 function signal(over: Partial<ClassifiableSignal> = {}): ClassifiableSignal {
   return { title: "", excerpt: "", source_kind: "news", ...over };
@@ -18,7 +21,8 @@ describe("source_kind 先验", () => {
     expect(
       classifyEventKind([
         signal({
-          title: "Incident: Issues with App Mentions, Grid Migrations, and Notifications",
+          title:
+            "Incident: Issues with App Mentions, Grid Migrations, and Notifications",
           source_kind: "status",
         }),
       ]),
@@ -27,7 +31,9 @@ describe("source_kind 先验", () => {
 
   it("发版源信号一律判发版", () => {
     expect(
-      classifyEventKind([signal({ title: "v1.38.0-alpha.0", source_kind: "release" })]),
+      classifyEventKind([
+        signal({ title: "v1.38.0-alpha.0", source_kind: "release" }),
+      ]),
     ).toBe("release");
   });
 
@@ -39,7 +45,8 @@ describe("source_kind 先验", () => {
     expect(
       classifyEventKind([
         signal({
-          title: "Statements on the Grant of Early Termination of an Investigation",
+          title:
+            "Statements on the Grant of Early Termination of an Investigation",
           source_kind: "filing",
         }),
       ]),
@@ -53,14 +60,32 @@ describe("source_kind 先验", () => {
  */
 describe("真实语料 —— 该判出来的", () => {
   it.each([
-    ["Stripe will reportedly acquire AI gateway startup OpenRouter for $7B+", "acquisition"],
+    [
+      "Stripe will reportedly acquire AI gateway startup OpenRouter for $7B+",
+      "acquisition",
+    ],
     ["SpaceX officially closes its Cursor acquisition", "acquisition"],
-    ["Google buys crashed airline Spirit's data at auction, because AI", "acquisition"],
+    [
+      "Google buys crashed airline Spirit's data at auction, because AI",
+      "acquisition",
+    ],
     ["ABC sues the FCC to stop an early review of its TV licenses", "legal"],
-    ["Meta lawsuits: Is social media facing a global legal reckoning?", "legal"],
-    ["State Farm defense lawyers admit AI generated fake cases in LA lawsuit", "legal"],
-    ["Supreme Court rejects Verizon bid for $47 million refund of FCC fine", "legal"],
-    ["SEC Charges Toms River Trio in Connection with Alleged $47 Million Fraud", "legal"],
+    [
+      "Meta lawsuits: Is social media facing a global legal reckoning?",
+      "legal",
+    ],
+    [
+      "State Farm defense lawyers admit AI generated fake cases in LA lawsuit",
+      "legal",
+    ],
+    [
+      "Supreme Court rejects Verizon bid for $47 million refund of FCC fine",
+      "legal",
+    ],
+    [
+      "SEC Charges Toms River Trio in Connection with Alleged $47 Million Fraud",
+      "legal",
+    ],
   ])("%s → %s", (title, expected) => {
     expect(kindOf(title)).toBe(expected);
   });
@@ -72,7 +97,9 @@ describe("真实语料 —— 不该判出来的", () => {
    * `issues` 曾经命中 `sues`，任何含 `defines` 的标题曾经命中 `fines`。
    */
   it("`issues` 不该命中 `sues`", () => {
-    expect(kindOf("Incident: Issues with App Mentions and Notifications")).toBeNull();
+    expect(
+      kindOf("Incident: Issues with App Mentions and Notifications"),
+    ).toBeNull();
   });
 
   it("`defines` 不该命中 `fines`", () => {
@@ -93,22 +120,30 @@ describe("真实语料 —— 不该判出来的", () => {
 
   it("标题里有钱不等于有类型", () => {
     expect(
-      kindOf("Polaroid's tiny instant camera is $72 and includes a free pack of film"),
+      kindOf(
+        "Polaroid's tiny instant camera is $72 and includes a free pack of film",
+      ),
     ).toBeNull();
     expect(
-      kindOf("First test flight of largest all-electric aircraft used just $5 of electricity"),
+      kindOf(
+        "First test flight of largest all-electric aircraft used just $5 of electricity",
+      ),
     ).toBeNull();
   });
 
   it("普通报道就是判不出来，不硬凑", () => {
     expect(kindOf("Anthropic's annualized revenue surges to $65B")).toBeNull();
-    expect(kindOf("BBC, A24's 'The Ministry of Time' Series Casts Two Leads")).toBeNull();
+    expect(
+      kindOf("BBC, A24's 'The Ministry of Time' Series Casts Two Leads"),
+    ).toBeNull();
   });
 });
 
 describe("门槛", () => {
   it("只在摘录里蹭到一个词不算数", () => {
-    expect(kindOf("A quiet week in tech", "the antitrust angle came up briefly")).toBeNull();
+    expect(
+      kindOf("A quiet week in tech", "the antitrust angle came up briefly"),
+    ).toBeNull();
   });
 
   /*

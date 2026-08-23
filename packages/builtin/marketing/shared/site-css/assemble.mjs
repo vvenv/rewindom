@@ -54,7 +54,9 @@ export function listMarketingSiteCssSources() {
 }
 
 function minifyCss(css) {
-  return esbuild.transformSync(css, { loader: "css", minify: true }).code.trim();
+  return esbuild
+    .transformSync(css, { loader: "css", minify: true })
+    .code.trim();
 }
 
 function readMinified(rel) {

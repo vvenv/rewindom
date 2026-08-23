@@ -69,12 +69,9 @@ export async function renderEventsTemplatePage(input: {
   );
   const stored = input.sections
     ? null
-    : await getPublishedTemplatePage(
-        input.tenantId,
-        input.kind,
-        locale,
-        { requireSite: false },
-      );
+    : await getPublishedTemplatePage(input.tenantId, input.kind, locale, {
+        requireSite: false,
+      });
   const translate = createEventsPresetTranslator(locale);
   // 记录尚未落库时按内置预设兜底——那是缺口不是产品路径（见 site-section skill）
   const template = input.sections

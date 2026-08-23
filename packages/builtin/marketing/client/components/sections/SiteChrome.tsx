@@ -60,7 +60,6 @@ import { getChromeBlockView } from "./chrome-views.js";
 import { SettingIconMark } from "./section-icons.js";
 import { SiteLink } from "./SiteLink.js";
 
-
 /* -------------------------------------------------------------------------- */
 /* 图标                                                                        */
 /* -------------------------------------------------------------------------- */
@@ -120,7 +119,9 @@ function MemberEntry(): ReactElement | null {
 }
 
 /** 点开外面收起来。与 SSR 那段内联脚本同一行为。 */
-function useCloseOnOutside(ref: React.RefObject<HTMLDetailsElement | null>): void {
+function useCloseOnOutside(
+  ref: React.RefObject<HTMLDetailsElement | null>,
+): void {
   useEffect(() => {
     function handlePointerDown(event: PointerEvent): void {
       const details = ref.current;
@@ -142,7 +143,10 @@ function NavMenuItem({ item }: { item: ResolvedNavItem }): ReactElement | null {
   if (item.children.length === 0) {
     if (!item.href) return null;
     return (
-      <SiteLink href={item.href} aria-current={item.current ? "page" : undefined}>
+      <SiteLink
+        href={item.href}
+        aria-current={item.current ? "page" : undefined}
+      >
         {item.label}
       </SiteLink>
     );
@@ -358,7 +362,10 @@ function selectable(onSelect: ((blockId: string | null) => void) | undefined) {
   };
 }
 
-function chromeNavContext(props: SiteChromeProps, origin: string): SiteNavContext {
+function chromeNavContext(
+  props: SiteChromeProps,
+  origin: string,
+): SiteNavContext {
   const defaultLocale = (props.defaultLocale ?? "zh-CN") as AppLocale;
   return {
     navPages: siteNavPages(props.pages ?? []),
@@ -472,7 +479,8 @@ export function SiteChrome({
         );
         if (!label || !href) return null;
         const icon = resolveSettingIcon(block.settings, "icon");
-        const iconOnly = Boolean(icon) && settingBool(block.settings, "icon_only");
+        const iconOnly =
+          Boolean(icon) && settingBool(block.settings, "icon_only");
         const variant = settingText(block.settings, "variant") || "primary";
         return (
           <SiteLink
@@ -496,7 +504,10 @@ export function SiteChrome({
       }
       case "chrome_locale":
         return (
-          <LocaleSwitcher alternates={alternates} current={props.locale ?? ""} />
+          <LocaleSwitcher
+            alternates={alternates}
+            current={props.locale ?? ""}
+          />
         );
       case "chrome_theme":
         return <SiteThemeToggle locale={ctx.locale} />;
@@ -568,7 +579,10 @@ export function SiteChrome({
           );
         }
         return (
-          <div key={row.index} className={`wrap chrome-row chrome-row-${row.index}`}>
+          <div
+            key={row.index}
+            className={`wrap chrome-row chrome-row-${row.index}`}
+          >
             {zoneNodes}
             {drawers.length > 0 ? (
               <div className="chrome-menu-popup">{drawers}</div>

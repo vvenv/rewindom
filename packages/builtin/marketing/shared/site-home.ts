@@ -152,10 +152,7 @@ export function encodeHomeSelectorPage(path: string): string {
 
 export function parseHomeSelectorValue(
   value: string,
-):
-  | { type: "layout"; key: string }
-  | { type: "page"; path: string }
-  | null {
+): { type: "layout"; key: string } | { type: "page"; path: string } | null {
   if (value.startsWith(HOME_SELECTOR_LAYOUT_PREFIX)) {
     const key = value.slice(HOME_SELECTOR_LAYOUT_PREFIX.length);
     return key ? { type: "layout", key } : null;
@@ -210,8 +207,7 @@ export function listHomeSelectorOptions(
     defaultLocale,
     entitlements,
   ).filter(
-    (option) =>
-      option.path !== DEFAULT_HOME_PATH && !replaced.has(option.path),
+    (option) => option.path !== DEFAULT_HOME_PATH && !replaced.has(option.path),
   );
   return [
     ...layouts.map((layout) => ({
@@ -254,10 +250,7 @@ export function homeSelectorValue(
 }
 
 /** 页面列表「首页」徽章：这条路径现在是不是访客打开 / 时渲染的那张页。 */
-export function isSiteHomePage(
-  pagePath: string,
-  homePath: string,
-): boolean {
+export function isSiteHomePage(pagePath: string, homePath: string): boolean {
   return normalizeHomePath(pagePath) === normalizeHomePath(homePath);
 }
 
@@ -274,10 +267,7 @@ export function canSetPageAsHome(input: {
 }): boolean {
   if (!isHomeablePath(input.pagePath)) return false;
   if (isSiteHomePage(input.pagePath, input.homePath)) return false;
-  const replacing = homeLayoutReplacingPath(
-    input.pagePath,
-    input.entitlements,
-  );
+  const replacing = homeLayoutReplacingPath(input.pagePath, input.entitlements);
   if (
     replacing &&
     normalizeHomePath(input.homePath) === DEFAULT_HOME_PATH &&

@@ -80,30 +80,44 @@ describe("heuristicAnalyzer", () => {
         title: "Regulators open a review of GPT-6 realtime video",
         published_at: new Date("2025-08-12T11:42:00Z"),
       }),
-      signal({ signal_id: "s1", published_at: new Date("2025-08-12T10:02:00Z") }),
+      signal({
+        signal_id: "s1",
+        published_at: new Date("2025-08-12T10:02:00Z"),
+      }),
     ]);
-    expect(result.timeline.map((entry) => entry.signal_id)).toEqual(["s1", "s2"]);
+    expect(result.timeline.map((entry) => entry.signal_id)).toEqual([
+      "s1",
+      "s2",
+    ]);
     expect(result.timeline[0].label_code).toBe("timeline.firstSeen");
     expect(result.timeline[1].label_code).toBe("timeline.news");
   });
 
   it("同一来源再次出现时降级为补充说明", async () => {
     const result = await analyze([
-      signal({ signal_id: "s1", published_at: new Date("2025-08-12T10:02:00Z") }),
+      signal({
+        signal_id: "s1",
+        published_at: new Date("2025-08-12T10:02:00Z"),
+      }),
       signal({
         signal_id: "s2",
         source_name: "Hacker News",
         source_kind: "community",
         published_at: new Date("2025-08-12T10:17:00Z"),
       }),
-      signal({ signal_id: "s3", published_at: new Date("2025-08-12T12:15:00Z") }),
+      signal({
+        signal_id: "s3",
+        published_at: new Date("2025-08-12T12:15:00Z"),
+      }),
     ]);
     expect(result.timeline[2].label_code).toBe("timeline.officialUpdate");
   });
 
   it("规则实现永远不产出自由文案", async () => {
     const result = await analyze([signal()]);
-    expect(result.timeline.every((entry) => entry.label_text === null)).toBe(true);
+    expect(result.timeline.every((entry) => entry.label_text === null)).toBe(
+      true,
+    );
   });
 
   it("时间线过长时保头保尾", async () => {
@@ -134,7 +148,10 @@ describe("heuristicAnalyzer", () => {
 
   it("后到的新闻标题几乎等于一手来源时不占格——那是通稿回声，证据在来源列表", async () => {
     const result = await analyze([
-      signal({ signal_id: "s1", published_at: new Date("2025-08-12T10:02:00Z") }),
+      signal({
+        signal_id: "s1",
+        published_at: new Date("2025-08-12T10:02:00Z"),
+      }),
       signal({
         signal_id: "s2",
         source_kind: "news",
@@ -148,7 +165,10 @@ describe("heuristicAnalyzer", () => {
 
   it("社区讨论即使标题像一手来源也保留——讨论是进展，不是通稿", async () => {
     const result = await analyze([
-      signal({ signal_id: "s1", published_at: new Date("2025-08-12T10:02:00Z") }),
+      signal({
+        signal_id: "s1",
+        published_at: new Date("2025-08-12T10:02:00Z"),
+      }),
       signal({
         signal_id: "s2",
         source_kind: "community",
@@ -157,7 +177,10 @@ describe("heuristicAnalyzer", () => {
         published_at: new Date("2025-08-12T10:17:00Z"),
       }),
     ]);
-    expect(result.timeline.map((entry) => entry.signal_id)).toEqual(["s1", "s2"]);
+    expect(result.timeline.map((entry) => entry.signal_id)).toEqual([
+      "s1",
+      "s2",
+    ]);
     expect(result.timeline[1].label_code).toBe("timeline.community");
   });
 });

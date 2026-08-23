@@ -28,7 +28,10 @@ export const newsletterConfirmSection: SectionDefinition = {
   page_kinds: [NEWSLETTER_CONFIRM_PAGE_KIND],
   entitlement: NEWSLETTER_ENTITLEMENT.key,
   settings: [
-    ...headingSettings(),
+    ...headingSettings({
+      headingDefault: "newsletter:confirm.title",
+      subheadingDefault: "newsletter:confirm.subtitle",
+    }),
     { type: "header", content: "newsletter:section.confirm.group" },
     {
       type: "text",

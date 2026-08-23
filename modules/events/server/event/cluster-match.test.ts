@@ -34,12 +34,18 @@ describe("pickBestCluster（词面）", () => {
 
   it("都不够像时返回 null，由调用方另起一个事件", () => {
     expect(
-      pickBestCluster(tokenizeTitle("Valve ships Steam Deck 2"), [], candidates),
+      pickBestCluster(
+        tokenizeTitle("Valve ships Steam Deck 2"),
+        [],
+        candidates,
+      ),
     ).toBeNull();
   });
 
   it("没有候选时返回 null", () => {
-    expect(pickBestCluster(tokenizeTitle("anything at all here"), [], [])).toBeNull();
+    expect(
+      pickBestCluster(tokenizeTitle("anything at all here"), [], []),
+    ).toBeNull();
   });
 
   it("空词集不匹配任何候选", () => {
@@ -78,7 +84,9 @@ describe("pickBestSemanticCluster", () => {
    * 绝不能被当成「相似」——否则整站事件会在一轮采集里被合成一个。
    */
   it("候选没有向量时不合并", () => {
-    expect(pickBestSemanticCluster(X, [{ id: "e", tokens: [], centroid: [] }])).toBeNull();
+    expect(
+      pickBestSemanticCluster(X, [{ id: "e", tokens: [], centroid: [] }]),
+    ).toBeNull();
   });
 
   it("阈值就是在真实语料上校准出来的那个值", () => {
@@ -94,12 +102,24 @@ describe("pickBestSemanticCluster", () => {
 describe("真实语料的分离区间", () => {
   const MEASURED: { pair: string; cosine: number; shouldMerge: boolean }[] = [
     { pair: "Uber/Zipline 无人机送餐", cosine: 0.958, shouldMerge: true },
-    { pair: "Stripe 收购 OpenRouter（词面同分 0.33，判不出来）", cosine: 0.9379, shouldMerge: true },
+    {
+      pair: "Stripe 收购 OpenRouter（词面同分 0.33，判不出来）",
+      cosine: 0.9379,
+      shouldMerge: true,
+    },
     { pair: "Amazon 销毁珍本书训练 AI", cosine: 0.893, shouldMerge: true },
-    { pair: "Hayden Panettiere 去世（一条把名字拼错了）", cosine: 0.8597, shouldMerge: true },
+    {
+      pair: "Hayden Panettiere 去世（一条把名字拼错了）",
+      cosine: 0.8597,
+      shouldMerge: true,
+    },
     { pair: "印尼地震救援", cosine: 0.8537, shouldMerge: true },
     { pair: "GitHub 故障", cosine: 0.8523, shouldMerge: true },
-    { pair: "GitHub Copilot 两篇教程（MODULE.md 的反例）", cosine: 0.8447, shouldMerge: false },
+    {
+      pair: "GitHub Copilot 两篇教程（MODULE.md 的反例）",
+      cosine: 0.8447,
+      shouldMerge: false,
+    },
     { pair: "两条无关的 HN AI 讨论", cosine: 0.8366, shouldMerge: false },
   ];
 

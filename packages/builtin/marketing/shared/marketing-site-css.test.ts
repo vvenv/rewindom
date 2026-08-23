@@ -46,11 +46,15 @@ describe("marketing-site-css", () => {
     expect(MARKETING_SITE_CSS_BASE).toContain("--site-brand-font");
     expect(MARKETING_SITE_CSS_BASE).toContain(".brand.brand-upper span");
     // 全大写字标按墨迹垂直居中，不按 em 盒（否则会抬到 logo 上半）
-    expect(MARKETING_SITE_CSS_BASE).toContain("text-box:trim-both cap alphabetic");
+    expect(MARKETING_SITE_CSS_BASE).toContain(
+      "text-box:trim-both cap alphabetic",
+    );
     expect(MARKETING_SITE_CSS_BASE).toContain(
       ".chrome-row:not(:has(.chrome-zone-center))",
     );
-    expect(MARKETING_SITE_CSS_BASE).toContain(".site-footer .chrome-menu-toggle");
+    expect(MARKETING_SITE_CSS_BASE).toContain(
+      ".site-footer .chrome-menu-toggle",
+    );
     expect(MARKETING_SITE_CSS_BASE).toContain(".chrome-menu-popup{");
     expect(MARKETING_SITE_CSS_BASE).toContain(".chrome-control{");
     expect(MARKETING_SITE_CSS_BASE).toMatch(/--chrome-control-size:\s*2rem/);
@@ -130,7 +134,9 @@ describe("marketing-site-css", () => {
 
   it("每个注册了的段都有共置的 styles.css", () => {
     const discovered = new Set(listSectionCssTypes());
-    const registered = Object.keys(BUILTIN_SECTION_DEFINITIONS) as SectionType[];
+    const registered = Object.keys(
+      BUILTIN_SECTION_DEFINITIONS,
+    ) as SectionType[];
     for (const type of registered) {
       const rel = `sections/${type}/styles.css`;
       expect(existsSync(path.join(SHARED_ROOT, rel)), `missing ${rel}`).toBe(

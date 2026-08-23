@@ -83,7 +83,10 @@ export async function eventsRoutes(app: FastifyInstance): Promise<void> {
     preHandler: [app.requirePermission("events.read")],
     handler: async (request) => {
       const { topic } = request.query as { topic?: string };
-      return getEventFeed({ ...viewerScope(request), topic: parseTopic(topic) });
+      return getEventFeed({
+        ...viewerScope(request),
+        topic: parseTopic(topic),
+      });
     },
   });
 

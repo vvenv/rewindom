@@ -57,7 +57,12 @@ describe("buildPlacementFacts", () => {
         kind: null,
         entity_name: "Cloudflare",
         first_seen_at: FIRST_SEEN,
-        peers: [peer({ id: "e1" }), peer({ id: "a" }), peer({ id: "b" }), peer({ id: "c" })],
+        peers: [
+          peer({ id: "e1" }),
+          peer({ id: "a" }),
+          peer({ id: "b" }),
+          peer({ id: "c" }),
+        ],
       }),
     ).toEqual([
       {

@@ -14,8 +14,12 @@ const X = [1, 0];
 
 describe("pickRelated", () => {
   it("达到阈值才算相关", () => {
-    expect(pickRelated("me", X, [{ id: "hit", centroid: vecAt(0.8) }])).toEqual(["hit"]);
-    expect(pickRelated("me", X, [{ id: "miss", centroid: vecAt(0.7) }])).toEqual([]);
+    expect(pickRelated("me", X, [{ id: "hit", centroid: vecAt(0.8) }])).toEqual(
+      ["hit"],
+    );
+    expect(
+      pickRelated("me", X, [{ id: "miss", centroid: vecAt(0.7) }]),
+    ).toEqual([]);
   });
 
   it("自己永远不是自己的相关事件", () => {
@@ -58,7 +62,9 @@ describe("pickRelated", () => {
    * 绝不能被当成「相关」——否则整站事件会互相挂满。
    */
   it("自己没有向量时不给相关", () => {
-    expect(pickRelated("me", [], [{ id: "x", centroid: vecAt(0.99) }])).toEqual([]);
+    expect(pickRelated("me", [], [{ id: "x", centroid: vecAt(0.99) }])).toEqual(
+      [],
+    );
   });
 
   it("候选没有向量时不算相关", () => {
@@ -82,11 +88,31 @@ describe("pickRelated", () => {
 
 describe("真实语料的判读记录", () => {
   const MEASURED: { pair: string; cosine: number; related: boolean }[] = [
-    { pair: "WHO 与瑞士签署合作 ⟷ WHO 与荷兰深化伙伴关系", cosine: 0.8465, related: true },
-    { pair: "Llamafile v0.8.14 发布 ⟷ Llamafile 四个月进展", cosine: 0.8417, related: true },
-    { pair: "Chrome 刷新 Speedometer ⟷ Core Web Vitals 节省的等待", cosine: 0.8411, related: true },
-    { pair: "Firefox 加固 ⟷ Llamafile 发版（只是都属于开源工具）", cosine: 0.7496, related: false },
-    { pair: "Cloudflare 办公方式 ⟷ AlphaEvolve（不同公司不同主题）", cosine: 0.7494, related: false },
+    {
+      pair: "WHO 与瑞士签署合作 ⟷ WHO 与荷兰深化伙伴关系",
+      cosine: 0.8465,
+      related: true,
+    },
+    {
+      pair: "Llamafile v0.8.14 发布 ⟷ Llamafile 四个月进展",
+      cosine: 0.8417,
+      related: true,
+    },
+    {
+      pair: "Chrome 刷新 Speedometer ⟷ Core Web Vitals 节省的等待",
+      cosine: 0.8411,
+      related: true,
+    },
+    {
+      pair: "Firefox 加固 ⟷ Llamafile 发版（只是都属于开源工具）",
+      cosine: 0.7496,
+      related: false,
+    },
+    {
+      pair: "Cloudflare 办公方式 ⟷ AlphaEvolve（不同公司不同主题）",
+      cosine: 0.7494,
+      related: false,
+    },
   ];
 
   for (const { pair, cosine, related } of MEASURED) {

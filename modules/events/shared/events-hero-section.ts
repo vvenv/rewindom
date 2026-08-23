@@ -18,6 +18,7 @@ import {
   layoutSettings,
   linkSettings,
 } from "@rewindom/builtin/marketing/shared/sections/_common/settings.js";
+import { NEWSLETTER_SUBSCRIBE_PATH } from "@rewindom/newsletter/shared/newsletter-page-templates.js";
 
 import type { SettingDef } from "@rewindom/builtin/marketing/shared/section-settings.js";
 import type { SectionDefinition } from "@rewindom/builtin/marketing/shared/section-schema.js";
@@ -93,7 +94,22 @@ export function eventsHeroSettings(defaults: {
       default: true,
     },
     { type: "header", content: "editor.group.buttons" },
-    ...linkSettings("primary"),
+    /*
+     * 主按钮默认是**邮件订阅**，次按钮是 RSS。
+     *
+     * 两条订阅腿的读者规模差着量级：RSS 是技术读者那一小档，邮件是其余所有人。
+     * 首屏最显眼的位置该给后者。
+     *
+     * 地址用 newsletter 的订阅页——events 早就 `requires: newsletter`，
+     * 这条依赖是单向的。站点没开通邮件订阅时租户自己把它改掉，
+     * 与其它带默认值的设置同一条口径。
+     */
+    ...linkSettings("primary", {
+      labelDefault: "events:site.subscribeEmail",
+      hrefDefault: NEWSLETTER_SUBSCRIBE_PATH,
+      hrefPlaceholder: NEWSLETTER_SUBSCRIBE_PATH,
+      hrefInfo: "events:section.hero.subscribeEmailHrefInfo",
+    }),
     ...linkSettings("secondary", {
       labelDefault: "events:site.subscribe",
       hrefDefault: EVENTS_FEED_HREF_TEMPLATE,

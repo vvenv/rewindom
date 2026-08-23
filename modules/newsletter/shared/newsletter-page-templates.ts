@@ -1,5 +1,5 @@
 /**
- * 确认页与退订页的**模板页**登记与兜底版式。
+ * 订阅页、确认页、退订页三张**模板页**的登记与兜底版式。
  *
  * 与会员那三张页同一套机制（`marketing/shared/page-templates.ts`）：kind 唯一、
  * slug 固定，相关时由 marketing 快照落库；没落库时 SSR 按这里的预设兜底——
@@ -14,6 +14,10 @@ import {
   NEWSLETTER_CONFIRM_PAGE_KIND,
   NEWSLETTER_CONFIRM_SECTION_TYPE,
 } from "./sections/confirm/definition.js";
+import {
+  NEWSLETTER_SUBSCRIBE_PAGE_KIND,
+  NEWSLETTER_SUBSCRIBE_SECTION_TYPE,
+} from "./sections/subscribe/definition.js";
 import {
   NEWSLETTER_UNSUBSCRIBE_PAGE_KIND,
   NEWSLETTER_UNSUBSCRIBE_SECTION_TYPE,
@@ -35,18 +39,51 @@ import type { PagePreset } from "@rewindom/builtin/marketing/shared/page-presets
 export const NEWSLETTER_PAGE_TEMPLATE_GROUP = "newsletter:template.group";
 
 /** 固定 slug：kind 决定地址，租户改不了——改了地址，已经发出去的邮件里的链接就全废了。 */
+export const NEWSLETTER_SUBSCRIBE_TEMPLATE_SLUG = "newsletter-subscribe";
 export const NEWSLETTER_CONFIRM_TEMPLATE_SLUG = "newsletter-confirm";
 export const NEWSLETTER_UNSUBSCRIBE_TEMPLATE_SLUG = "newsletter-unsubscribe";
 
+/**
+ * 订阅页的地址。
+ *
+ * **不放在 `/newsletter/*` 下**：确认页和退订页是从邮件点进来的一次性事务页，
+ * 藏深一点无所谓；订阅页是要贴在首屏按钮、页脚、社交简介里的地址，
+ * `/subscribe` 比 `/newsletter/subscribe` 好念也好记。
+ *
+ * 顶层 slug 要登记成保留字（见 `server/module.ts`），否则租户建一张
+ * slug 为 `subscribe` 的 CMS 页会被这条静态路由永远盖住。
+ */
+export const NEWSLETTER_SUBSCRIBE_PATH = "/subscribe";
 export const NEWSLETTER_CONFIRM_PATH = "/newsletter/confirm";
 export const NEWSLETTER_UNSUBSCRIBE_PATH = "/newsletter/unsubscribe";
 
 /**
- * 兜底版式：一句标题 + 一个面板，就这一段。
+ * 订阅页的兜底版式：一句标题 + 订阅表单。
  *
- * 这两张页是**事务页**不是内容页，起步版式越素越好——租户想加插画在编辑器里自己摞；
- * 反过来「先删掉五段别人的东西」才是劝退的那一步（会员登录页同一条口径）。
+ * 有了这张页，「订阅地址」就是**确定的**——租户还没把订阅段摆到任何地方时，
+ * 首屏按钮也有地方可指。想让订阅框同时出现在首页上，照样把段拖过去，两者不冲突。
  */
+export const NEWSLETTER_SUBSCRIBE_TEMPLATE_PRESET: PagePreset = {
+  key: NEWSLETTER_SUBSCRIBE_PAGE_KIND,
+  label: "newsletter:template.subscribe.label",
+  kind: NEWSLETTER_SUBSCRIBE_PAGE_KIND,
+  slug: NEWSLETTER_SUBSCRIBE_TEMPLATE_SLUG,
+  titleKey: "newsletter:subscribe.title",
+  descriptionKey: "newsletter:subscribe.subtitle",
+  sections: [
+    {
+      type: NEWSLETTER_SUBSCRIBE_SECTION_TYPE,
+      text: {
+        heading: "newsletter:subscribe.title",
+        subheading: "newsletter:subscribe.subtitle",
+        submit_label: "newsletter:form.submit",
+        placeholder: "newsletter:form.emailPlaceholder",
+        success_message: "newsletter:form.successDefault",
+      },
+    },
+  ],
+};
+
 export const NEWSLETTER_CONFIRM_TEMPLATE_PRESET: PagePreset = {
   key: NEWSLETTER_CONFIRM_PAGE_KIND,
   label: "newsletter:template.confirm.label",
@@ -90,12 +127,30 @@ export const NEWSLETTER_UNSUBSCRIBE_TEMPLATE_PRESET: PagePreset = {
 };
 
 /**
- * 登记两张模板页（幂等）。
+ * 登记三张模板页（幂等）。
+ *
+ * 起步版式一律越素越好——一句标题 + 那一段，就这些。租户想加插画在编辑器里自己摞；
+ * 反过来「先删掉五段别人的东西」才是劝退的那一步（会员登录页同一条口径）。
  *
  * 都声明 `entitlement` + `auto_init: false`：订阅是可关的功能，关了不该在中台露出
- * 这两行；开着也不预建——默认给所有存量站点凭空多两张删不掉的空版式是骚扰。
+ * 这三行；开着也不预建——默认给所有存量站点凭空多三张删不掉的空版式是骚扰。
  */
 export function registerNewsletterPageTemplates(): void {
+  registerPageTemplateKind({
+    kind: NEWSLETTER_SUBSCRIBE_PAGE_KIND,
+    slug: NEWSLETTER_SUBSCRIBE_TEMPLATE_SLUG,
+    path: NEWSLETTER_SUBSCRIBE_PATH,
+    group: NEWSLETTER_PAGE_TEMPLATE_GROUP,
+    label: "newsletter:template.subscribe.label",
+    required_section: NEWSLETTER_SUBSCRIBE_SECTION_TYPE,
+    entitlement: NEWSLETTER_ENTITLEMENT.key,
+    auto_init: false,
+  });
+  registerPageTemplatePreset(
+    NEWSLETTER_SUBSCRIBE_PAGE_KIND,
+    NEWSLETTER_SUBSCRIBE_TEMPLATE_PRESET,
+  );
+
   registerPageTemplateKind({
     kind: NEWSLETTER_CONFIRM_PAGE_KIND,
     slug: NEWSLETTER_CONFIRM_TEMPLATE_SLUG,

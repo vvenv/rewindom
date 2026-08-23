@@ -42,7 +42,9 @@ interface EventFeedCreateSheetProps {
 export function EventFeedCreateSheet({ children }: EventFeedCreateSheetProps) {
   const { t } = useTranslation("events");
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<EventFeedFormValues>(INITIAL_EVENT_FEED_FORM);
+  const [form, setForm] = useState<EventFeedFormValues>(
+    INITIAL_EVENT_FEED_FORM,
+  );
   const [error, setError] = useState("");
   const createMutation = useCreateEventFeed();
 
@@ -65,7 +67,9 @@ export function EventFeedCreateSheet({ children }: EventFeedCreateSheetProps) {
       setOpen(false);
       reset();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t("sources.createFailed"));
+      setError(
+        err instanceof ApiError ? err.message : t("sources.createFailed"),
+      );
     }
   };
 
@@ -91,7 +95,9 @@ export function EventFeedCreateSheet({ children }: EventFeedCreateSheetProps) {
         <form className="flex h-full flex-col" onSubmit={handleSubmit}>
           <SheetHeader>
             <SheetTitle>{t("sources.createTitle")}</SheetTitle>
-            <SheetDescription>{t("sources.createDescription")}</SheetDescription>
+            <SheetDescription>
+              {t("sources.createDescription")}
+            </SheetDescription>
           </SheetHeader>
           <FieldGroup className="min-h-0 flex-1 overflow-y-auto px-4">
             <Field>
@@ -112,7 +118,9 @@ export function EventFeedCreateSheet({ children }: EventFeedCreateSheetProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="rss">{t("sources.connectorRss")}</SelectItem>
+                  <SelectItem value="rss">
+                    {t("sources.connectorRss")}
+                  </SelectItem>
                   <SelectItem value="hackernews">
                     {t("sources.connectorHackerNews")}
                   </SelectItem>

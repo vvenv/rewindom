@@ -9,7 +9,12 @@ import {
 } from "../shared/section-schema.js";
 
 import { createStarterTranslator } from "./starter-i18n.js";
-import { renderMarketingHtml, renderSitemapXml, renderLlmsTxt } from "./ssr-render.js";
+import {
+  renderMarketingHtml,
+  renderSitemapXml,
+  renderLlmsTxt,
+  siteLocaleAlternates,
+} from "./ssr-render.js";
 
 import type {
   PublicMarketingPage,
@@ -308,9 +313,7 @@ describe("renderMarketingHtml SEO", () => {
       site: site({ tagline: "The Signal" }),
       page: page({ title: "AI", description: "" }),
     });
-    expect(html).toContain(
-      'name="description" content="AI — The Signal"',
-    );
+    expect(html).toContain('name="description" content="AI — The Signal"');
   });
 
   it("lets the caller override canonical", () => {
@@ -680,5 +683,52 @@ describe("renderLlmsTxt", () => {
     expect(text).toContain("# Acme");
     expect(text).toContain("> Signals, not a leaderboard");
     expect(text).toContain(`${ORIGIN}/sitemap.xml`);
+  });
+});
+
+describe("siteLocaleAlternates", () => {
+  /*
+   * 模块 SSR 页（会员登录 / 账户 / 账单、订阅确认退订）不走 CMS 页面管线，
+   * `alternates` 得自己给。四处原本各写死一个空数组，页头的语言切换按钮就在这些页上
+   * 整个消失了——少于两条时 `renderLocaleHtml` 不画。
+   */
+  it("lists every locale the site has, default one without a prefix", () => {
+    expect(
+      siteLocaleAlternates("/member/login", site(), "/member/login"),
+    ).toEqual([
+      { locale: "zh-CN", path: "/member/login" },
+      { locale: "en", path: "/en/member/login" },
+    ]);
+  });
+
+  it("carries the query string across", () => {
+    // `?token=` 是确认 / 退订的凭证，`?next=` 是登录后的去处：丢掉就换来一张失效页
+    expect(
+      siteLocaleAlternates(
+        "/newsletter/unsubscribe",
+        site(),
+        "/newsletter/unsubscribe?token=abc",
+      ).map((item) => item.path),
+    ).toEqual([
+      "/newsletter/unsubscribe?token=abc",
+      "/en/newsletter/unsubscribe?token=abc",
+    ]);
+  });
+
+  it("gives a single-language site one entry, so the switcher stays hidden", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
+      site: site({ available_locales: ["zh-CN"] }),
+      page: page({
+        alternates: siteLocaleAlternates(
+          "/about",
+          site({ available_locales: ["zh-CN"] }),
+          "/about",
+        ),
+      }),
+    });
+    expect(html).not.toContain('class="locale-switcher"');
   });
 });

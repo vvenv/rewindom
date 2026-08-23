@@ -10,7 +10,9 @@ import { TenantSiteView } from "./TenantSiteView.js";
 
 import type { PublicMarketingSite } from "../../shared/site-cms.js";
 
-function site(headerSettings: Record<string, unknown> = {}): PublicMarketingSite {
+function site(
+  headerSettings: Record<string, unknown> = {},
+): PublicMarketingSite {
   return {
     site_name: "Acme",
     tagline: "",
@@ -27,7 +29,7 @@ function site(headerSettings: Record<string, unknown> = {}): PublicMarketingSite
       { type: "footer", settings: {}, blocks: [] },
     ]),
     analytics_html: "",
-  pages: [],
+    pages: [],
   };
 }
 
@@ -69,7 +71,9 @@ describe("TenantSiteView 页面外壳", () => {
   it("关掉吸顶就不给 sticky class", () => {
     const { container } = renderSite({ sticky: false });
     expect(
-      container.querySelector("header.site-header")?.classList.contains("sticky"),
+      container
+        .querySelector("header.site-header")
+        ?.classList.contains("sticky"),
     ).toBe(false);
   });
 
@@ -100,7 +104,11 @@ describe("TenantSiteView 页面外壳", () => {
     ]);
     render(
       <MemoryRouter>
-        <TenantSiteView site={site()} path="/" headerOverride={[headerSection!]} />
+        <TenantSiteView
+          site={site()}
+          path="/"
+          headerOverride={[headerSection!]}
+        />
       </MemoryRouter>,
     );
     expect(screen.getByRole("link", { name: "免费开始" })).toHaveAttribute(
@@ -113,9 +121,9 @@ describe("TenantSiteView 页面外壳", () => {
     localStorage.setItem("theme", "dark");
     renderSite();
 
-    expect(
-      document.documentElement.getAttribute(SITE_COLOR_MODE_ATTR),
-    ).toMatch(/^(light|dark)$/u);
+    expect(document.documentElement.getAttribute(SITE_COLOR_MODE_ATTR)).toMatch(
+      /^(light|dark)$/u,
+    );
     expect(localStorage.getItem("theme")).toBe("dark");
     expect(document.documentElement.classList.contains("dark")).toBe(false);
 
@@ -179,6 +187,8 @@ describe("TenantSiteView 页面外壳", () => {
         <TenantSiteView site={site()} path="/about" headerOverride={header} />
       </MemoryRouter>,
     );
-    expect(screen.getByRole("heading", { name: "Only about" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Only about" }),
+    ).toBeInTheDocument();
   });
 });

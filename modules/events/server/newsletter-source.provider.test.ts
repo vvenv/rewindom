@@ -75,3 +75,21 @@ describe("动态候选", () => {
     expect(eventsNewsletterSource.ownsList("events:topic:ai")).toBe(true);
   });
 });
+
+describe("残缺 key", () => {
+  it.each(["events:topic:", "events:entity:"])(
+    "%s 不算合法列表——它是 token 没插上时的残骸",
+    (key) => {
+      /*
+       * 链接里写 `?list=events:topic:{topic_slug}` 而页面没有主题时就会留下它。
+       * 认下来的话读者会订上一个永远不会有内容的列表。
+       */
+      expect(eventsNewsletterSource.ownsList(key)).toBe(false);
+    },
+  );
+
+  it("有后缀的照常认领", () => {
+    expect(eventsNewsletterSource.ownsList("events:topic:ai")).toBe(true);
+    expect(eventsNewsletterSource.ownsList("events:entity:openai")).toBe(true);
+  });
+});

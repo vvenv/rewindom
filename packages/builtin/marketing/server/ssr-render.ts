@@ -77,6 +77,34 @@ function renderAlternateLinksHtml(
   return links.join("\n  ");
 }
 
+/**
+ * 模块 SSR 页（会员登录 / 账户 / 账单、订阅确认退订……）的语言切换候选。
+ *
+ * 这些页不走 CMS 页面管线，`alternates` 得自己给。四处调用方原本各写死一个空数组，
+ * 于是**页头的语言切换按钮在这些页上凭空消失**——`renderLocaleHtml` 少于两条就整个
+ * 不画，而同一个页头在官网其它页面上都有按钮。收在这里，加新的 SSR 页时抄一行就够，
+ * 不必再想起这条规矩。
+ *
+ * 列站点开了的每一种 UI 语言：这些页的正文按 locale 取模板页，取不到也回落主语言
+ * 版式，所以每一种语言都渲染得出来。hreflang 不受影响——它们都是 `noindex`，
+ * `renderMarketingHtml` 据此自己就不发互指链接。
+ *
+ * **查询串原样带过去**：`?list=` 是订阅范围、`?token=` 是确认 / 退订凭证、`?next=`
+ * 是登录后的去处。切一次语言就丢掉的话，读者拿到的是一张失效页或订错了的列表。
+ */
+export function siteLocaleAlternates(
+  path: string,
+  site: Pick<PublicMarketingSite, "available_locales" | "default_locale">,
+  requestUrl: string,
+): PublicMarketingPage["alternates"] {
+  const queryAt = requestUrl.indexOf("?");
+  const search = queryAt === -1 ? "" : requestUrl.slice(queryAt);
+  return site.available_locales.map((available) => ({
+    locale: available,
+    path: `${withSiteLocale(path, available, site.default_locale)}${search}`,
+  }));
+}
+
 function localeSwitcherOptions(
   page: PublicMarketingPage,
   current: string,

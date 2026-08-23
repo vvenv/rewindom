@@ -31,7 +31,10 @@ export function EventCard({ event }: { event: EventListItem }) {
         {showBadges ? (
           <div className="flex flex-wrap items-center gap-2">
             {evidence ? (
-              <Badge variant="outline" className="border-primary font-normal text-primary">
+              <Badge
+                variant="outline"
+                className="border-primary font-normal text-primary"
+              >
                 {evidence}
               </Badge>
             ) : null}
@@ -61,8 +64,14 @@ export function EventCard({ event }: { event: EventListItem }) {
           {event.source_names.length > 0 ? (
             <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
               {event.source_names.slice(0, 3).map((name, index) => (
-                <span key={`${name}-${index}`} className="inline-flex items-center gap-1">
-                  <SourceIcon url={event.source_icon_urls[index]} className="size-3.5" />
+                <span
+                  key={`${name}-${index}`}
+                  className="inline-flex items-center gap-1"
+                >
+                  <SourceIcon
+                    url={event.source_icon_urls[index]}
+                    className="size-3.5"
+                  />
                   {name}
                 </span>
               ))}

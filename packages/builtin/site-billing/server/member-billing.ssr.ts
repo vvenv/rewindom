@@ -28,6 +28,7 @@ import {
 import {
   renderMarketingHtml,
   renderUnavailableHtml,
+  siteLocaleAlternates,
 } from "../../marketing/server/ssr-render.js";
 import { buildPresetSections } from "../../marketing/shared/page-presets.js";
 import { parseMarketingSsrPath } from "../../marketing/shared/site-locale.js";
@@ -247,7 +248,11 @@ async function renderBillingPage(
         settings: { noindex: true },
         visibility: "public",
         path: MEMBER_BILLING_PATH,
-        alternates: [],
+        alternates: siteLocaleAlternates(
+          MEMBER_BILLING_PATH,
+          site,
+          request.url,
+        ),
         updated_at: new Date().toISOString(),
       },
       accountEntryHtml: accountEntry.html,

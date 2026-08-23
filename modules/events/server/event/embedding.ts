@@ -54,7 +54,9 @@ export function isEmbeddingEnabled(): boolean {
  * 批量取向量。返回数组与入参一一对应；任何一批失败时该批回落成空数组，
  * 其余批次照常返回——一次限流不该让整轮采集失去语义判据。
  */
-export async function embedTexts(texts: readonly string[]): Promise<number[][]> {
+export async function embedTexts(
+  texts: readonly string[],
+): Promise<number[][]> {
   if (texts.length === 0 || !isEmbeddingEnabled()) {
     return texts.map(() => []);
   }
@@ -66,7 +68,9 @@ export async function embedTexts(texts: readonly string[]): Promise<number[][]> 
   return out;
 }
 
-async function embedBatchWithRetry(batch: readonly string[]): Promise<number[][]> {
+async function embedBatchWithRetry(
+  batch: readonly string[],
+): Promise<number[][]> {
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
     try {
       return await requestEmbeddings(batch);
@@ -85,7 +89,9 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function requestEmbeddings(batch: readonly string[]): Promise<number[][]> {
+async function requestEmbeddings(
+  batch: readonly string[],
+): Promise<number[][]> {
   const { baseUrl, apiKey, model, dimensions } = config.embeddings;
   const response = await fetch(`${baseUrl.replace(/\/+$/u, "")}/embeddings`, {
     method: "POST",
@@ -133,7 +139,10 @@ async function requestEmbeddings(batch: readonly string[]): Promise<number[][]> 
  * 余弦相似度。任一侧为空（没有向量）时返回 0——「不知道」必须表现为
  * 「不相似」，否则没配 key 的环境会把所有事件合成一个。
  */
-export function cosineSimilarity(a: readonly number[], b: readonly number[]): number {
+export function cosineSimilarity(
+  a: readonly number[],
+  b: readonly number[],
+): number {
   if (a.length === 0 || a.length !== b.length) {
     return 0;
   }

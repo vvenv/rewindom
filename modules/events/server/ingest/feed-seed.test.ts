@@ -20,7 +20,8 @@ vi.mock("../event/topic-settings.service.js", () => ({
   getEnabledTopics: vi.fn(),
 }));
 
-const { ensureDefaultFeeds, SEEDED_FEED_KEYS_SETTING } = await import("./feed-seed.js");
+const { ensureDefaultFeeds, SEEDED_FEED_KEYS_SETTING } =
+  await import("./feed-seed.js");
 const { DEFAULT_FEEDS, feedCatalogKey } = await import("./feed-catalog.js");
 const { EVENT_TOPICS } = await import("../../shared/index.js");
 const { getEnabledTopics } = await import("../event/topic-settings.service.js");
@@ -108,8 +109,6 @@ describe("ensureDefaultFeeds", () => {
     expect(count).toBe(enabledFeeds.length);
     expect(createdUrls()).toEqual(enabledFeeds.map((feed) => feed.url));
     const saved = settingUpsert.mock.calls[0][0];
-    expect(saved.create.value).toEqual(
-      enabledFeeds.map(feedCatalogKey).sort(),
-    );
+    expect(saved.create.value).toEqual(enabledFeeds.map(feedCatalogKey).sort());
   });
 });

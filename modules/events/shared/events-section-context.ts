@@ -298,20 +298,43 @@ export function emptyEventsContext(
   };
 }
 
+/** 订阅列表标识的前缀。真相源在 `server/newsletter-source.provider.ts`，这里只拼字符串。 */
+export const EVENTS_TOPIC_LIST_PREFIX = "events:topic:";
+export const EVENTS_ENTITY_LIST_PREFIX = "events:entity:";
+
 export function eventsInterpolationValues(
   context: EventsRenderContext,
 ): Record<string, string> {
   const event = context.event;
+  const topicSlug = context.topic ?? event?.topic ?? "";
   return {
     topic: context.topic_label ?? event?.topic_label ?? "",
-    topic_slug: context.topic ?? event?.topic ?? "",
+    topic_slug: topicSlug,
     event: event?.title ?? "",
     headline: event?.headline || event?.title || "",
     entity: context.entity?.name ?? "",
+    /*
+     * 实体的 slug。`{entity}` 是给人看的名字，拼地址要的是这个——
+     * 比如实体页上放一颗「订阅这家公司」按钮：
+     * `/subscribe?list=events:entity:{entity_slug}`。
+     */
+    entity_slug: context.entity?.slug ?? "",
     entity_kind: context.entity?.kind_label ?? "",
     feed: eventsSubscribeHref({
       contributed: { [EVENTS_CONTEXT_KEY]: context },
     }),
+    /*
+     * 本主题 / 本实体的**订阅列表标识**，拼 `/subscribe?list={topic_list}` 用。
+     *
+     * 为什么给整串而不是让人拼 `events:topic:{topic_slug}`：
+     * `collapseQuery` 只在**整个查询值为空**时才丢掉那个参数。拼起来的话，
+     * 没有主题的页面上会剩下 `list=events:topic:`——一个残缺却「非空」的 key。
+     * 整串作为一个 token，空就是空，参数被干净地收掉，地址退化成 `/subscribe`。
+     */
+    topic_list: topicSlug ? `${EVENTS_TOPIC_LIST_PREFIX}${topicSlug}` : "",
+    entity_list: context.entity?.slug
+      ? `${EVENTS_ENTITY_LIST_PREFIX}${context.entity.slug}`
+      : "",
   };
 }
 

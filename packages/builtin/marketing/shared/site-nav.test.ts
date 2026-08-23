@@ -84,15 +84,17 @@ describe("resolveNavItems", () => {
   });
 
   it("空标签的 link 在编辑态保留、渲染时丢掉", () => {
-    const draft = safeNavItems([item({ label: "", href: "/x", source: "link" })]);
+    const draft = safeNavItems([
+      item({ label: "", href: "/x", source: "link" }),
+    ]);
     expect(draft).toHaveLength(1);
     expect(resolveNavItems(draft, ctx())).toEqual([]);
   });
 
   it("空 link 不渲染", () => {
-    expect(
-      resolveNavItems([item({ label: "有字", href: "" })], ctx()),
-    ).toEqual([]);
+    expect(resolveNavItems([item({ label: "有字", href: "" })], ctx())).toEqual(
+      [],
+    );
   });
 
   it("手填链接的 href 与文案走 {token} 插值，空路径段收掉", () => {
@@ -114,9 +116,7 @@ describe("resolveNavItems", () => {
   });
 
   it("未登记的贡献源整条消失", () => {
-    expect(
-      resolveNavItems([item({ source: "site-docs" })], ctx()),
-    ).toEqual([]);
+    expect(resolveNavItems([item({ source: "site-docs" })], ctx())).toEqual([]);
   });
 
   it("声明了 entitlement 的贡献源未开通就不展开", () => {
@@ -124,15 +124,14 @@ describe("resolveNavItems", () => {
       source: "nav-gated",
       label: "x",
       entitlement: "shop",
-      expand: (entry, nav) => [
-        makeNavLink(entry.id, "商店", "/shop", nav),
-      ],
+      expand: (entry, nav) => [makeNavLink(entry.id, "商店", "/shop", nav)],
     });
+    expect(resolveNavItems([item({ source: "nav-gated" })], ctx())).toEqual([]);
     expect(
-      resolveNavItems([item({ source: "nav-gated" })], ctx()),
-    ).toEqual([]);
-    expect(
-      resolveNavItems([item({ source: "nav-gated" })], ctx({ enabledEntitlements: new Set() })),
+      resolveNavItems(
+        [item({ source: "nav-gated" })],
+        ctx({ enabledEntitlements: new Set() }),
+      ),
     ).toEqual([]);
     expect(
       resolveNavItems(

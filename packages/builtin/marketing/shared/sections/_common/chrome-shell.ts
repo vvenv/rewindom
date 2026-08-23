@@ -10,7 +10,11 @@
  * `:last-child`），这里只负责把数值送进去。
  */
 
-import { settingBool, settingNumber, type SettingValues } from "../../section-schema.js";
+import {
+  settingBool,
+  settingNumber,
+  type SettingValues,
+} from "../../section-schema.js";
 
 import type { SettingDef } from "../../section-settings.js";
 

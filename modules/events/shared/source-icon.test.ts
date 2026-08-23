@@ -18,10 +18,12 @@ describe("iconHostFromUrl", () => {
       "techcrunch.com",
     );
     expect(iconHostFromUrl("https://feed.infoq.com")).toBe("infoq.com");
-    expect(iconHostFromUrl("https://feeds.npr.org/1006/rss.xml")).toBe("npr.org");
-    expect(iconHostFromUrl("https://search.cnbc.com/rs/search/combinedcms/view.xml")).toBe(
-      "cnbc.com",
+    expect(iconHostFromUrl("https://feeds.npr.org/1006/rss.xml")).toBe(
+      "npr.org",
     );
+    expect(
+      iconHostFromUrl("https://search.cnbc.com/rs/search/combinedcms/view.xml"),
+    ).toBe("cnbc.com");
   });
 
   it("别名表覆盖剥前缀仍不对的品牌域", () => {
@@ -59,7 +61,9 @@ describe("iconHostFromUrl", () => {
     expect(iconHostFromUrl("https://blog.cloudflare.com/rss/")).toBe(
       "cloudflare.com",
     );
-    expect(iconHostFromUrl("https://blogs.nvidia.com/feed/")).toBe("nvidia.com");
+    expect(iconHostFromUrl("https://blogs.nvidia.com/feed/")).toBe(
+      "nvidia.com",
+    );
     expect(iconHostFromUrl("https://blog.rust-lang.org/feed.xml")).toBe(
       "rust-lang.org",
     );
@@ -70,9 +74,7 @@ describe("iconHostFromUrl", () => {
 
   it("GitHub releases 映到项目域名，未列出的仓库仍用 github.com", () => {
     expect(
-      iconHostFromUrl(
-        "https://github.com/kubernetes/kubernetes/releases.atom",
-      ),
+      iconHostFromUrl("https://github.com/kubernetes/kubernetes/releases.atom"),
     ).toBe("kubernetes.io");
     expect(
       iconHostFromUrl("https://github.com/facebook/react/releases.atom"),
@@ -120,7 +122,9 @@ describe("isIconHost", () => {
 
 describe("sourceIconUrl", () => {
   it("拼本站同源地址，不打第三方 CDN", () => {
-    expect(sourceIconUrlFromHost("openai.com")).toBe("/events/icons/openai.com");
+    expect(sourceIconUrlFromHost("openai.com")).toBe(
+      "/events/icons/openai.com",
+    );
     expect(
       sourceIconUrl({
         connector: "rss",
@@ -197,7 +201,7 @@ describe("resolveSourceIconUrl", () => {
 describe("sourceIconFallbackSvg", () => {
   it("是本站 globe，不引用外链", () => {
     const svg = sourceIconFallbackSvg();
-    expect(svg).toContain("viewBox=\"0 0 24 24\"");
+    expect(svg).toContain('viewBox="0 0 24 24"');
     expect(svg).toContain("events-source-icon-fallback");
     expect(svg).not.toContain("https://");
     expect(svg).not.toContain("google.com");

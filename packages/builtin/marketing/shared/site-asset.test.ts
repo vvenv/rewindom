@@ -8,7 +8,9 @@ import {
 
 describe("isSiteAssetFile", () => {
   it("accepts svg/webp/avif by MIME or by extension when type is blank", () => {
-    expect(isSiteAssetFile({ name: "a.svg", type: "image/svg+xml" })).toBe(true);
+    expect(isSiteAssetFile({ name: "a.svg", type: "image/svg+xml" })).toBe(
+      true,
+    );
     expect(isSiteAssetFile({ name: "a.svg", type: "" })).toBe(true);
     expect(isSiteAssetFile({ name: "a.WEBP", type: "" })).toBe(true);
     expect(isSiteAssetFile({ name: "a.avif", type: "image/avif" })).toBe(true);
@@ -16,9 +18,9 @@ describe("isSiteAssetFile", () => {
   });
 
   it("rejects non-images even if the name looks close", () => {
-    expect(isSiteAssetFile({ name: "notes.pdf", type: "application/pdf" })).toBe(
-      false,
-    );
+    expect(
+      isSiteAssetFile({ name: "notes.pdf", type: "application/pdf" }),
+    ).toBe(false);
     expect(isSiteAssetFile({ name: "clip.mp4", type: "" })).toBe(false);
   });
 });

@@ -47,20 +47,15 @@ vi.mock("./public-events.service.js", () => ({
 }));
 
 const { renderEventsPath } = await import("./events-path-handler.js");
-const { eventsRisingSection, eventsNowSection } = await import(
-  "../../shared/index.js"
-);
-const { registerSectionDefinition } = await import(
-  "@rewindom/builtin/marketing/shared/sections/index.js"
-);
+const { eventsRisingSection, eventsNowSection } =
+  await import("../../shared/index.js");
+const { registerSectionDefinition } =
+  await import("@rewindom/builtin/marketing/shared/sections/index.js");
 
 registerSectionDefinition(eventsRisingSection);
 registerSectionDefinition(eventsNowSection);
 
-function input(
-  path: string,
-  mount: Record<string, unknown> = {},
-) {
+function input(path: string, mount: Record<string, unknown> = {}) {
   return {
     tenantId: "t1",
     tenantSlug: "acme",
@@ -94,10 +89,7 @@ describe("非 HTML 地址的分派", () => {
     );
 
     await renderEventsPath(input("/entities/openai/feed.xml"));
-    expect(renderEntityFeed).toHaveBeenCalledWith(
-      expect.anything(),
-      "openai",
-    );
+    expect(renderEntityFeed).toHaveBeenCalledWith(expect.anything(), "openai");
 
     await renderEventsPath(input("/events/foo-abc123/og.png"));
     expect(renderEventOgImage).toHaveBeenCalledWith(
@@ -111,7 +103,9 @@ describe("非 HTML 地址的分派", () => {
   });
 
   it("旧地址不接、不转", async () => {
-    await expect(renderEventsPath(input("/events/feed.xml"))).resolves.toBeNull();
+    await expect(
+      renderEventsPath(input("/events/feed.xml")),
+    ).resolves.toBeNull();
     await expect(renderEventsPath(input("/ai/feed.xml"))).resolves.toBeNull();
     await expect(
       renderEventsPath(input("/events/entities/openai/feed.xml")),

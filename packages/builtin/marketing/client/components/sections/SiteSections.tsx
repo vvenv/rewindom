@@ -114,7 +114,10 @@ export function SiteSections({
   );
 
   return visible.map((section, index) => {
-    if (section.type === "page-header" && !isPageHeaderVisible(section.settings)) {
+    if (
+      section.type === "page-header" &&
+      !isPageHeaderVisible(section.settings)
+    ) {
       return null;
     }
     const View = SECTION_VIEWS[section.type];

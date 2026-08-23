@@ -14,9 +14,9 @@ const CTX = {
 describe("rewriteSiteAssetUrls", () => {
   it("无公开根时原样返回", () => {
     const html = '<img src="/api/public/tenants/acme/site-assets/a.png" />';
-    expect(
-      rewriteSiteAssetUrls(html, { ...CTX, public_base_url: "" }),
-    ).toBe(html);
+    expect(rewriteSiteAssetUrls(html, { ...CTX, public_base_url: "" })).toBe(
+      html,
+    );
   });
 
   it("相对路径改成 CDN", () => {
@@ -25,7 +25,9 @@ describe("rewriteSiteAssetUrls", () => {
         '<img src="/api/public/tenants/acme/site-assets/a.png" />',
         CTX,
       ),
-    ).toBe('<img src="https://media.example.com/tenant-1/site-assets/a.png" />');
+    ).toBe(
+      '<img src="https://media.example.com/tenant-1/site-assets/a.png" />',
+    );
   });
 
   it("带站点 origin 的绝对路径也改（og:image）", () => {

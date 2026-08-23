@@ -264,7 +264,12 @@ export function SectionTree({
     ? (getPageTemplateKind(pageKind)?.required_section ?? null)
     : null;
 
-  const pageSectionOptions = sectionTypesFor("page", entitlements, pageKind, isDefaultTenant)
+  const pageSectionOptions = sectionTypesFor(
+    "page",
+    entitlements,
+    pageKind,
+    isDefaultTenant,
+  )
     .filter((type) => type !== requiredSectionType)
     .map((type) => ({
       value: type,
@@ -310,7 +315,12 @@ export function SectionTree({
         <AddMenu
           key={`add-${area}-${list.length}`}
           placeholder={t("editor.addSection")}
-          options={sectionTypesFor(area, entitlements, pageKind, isDefaultTenant)
+          options={sectionTypesFor(
+            area,
+            entitlements,
+            pageKind,
+            isDefaultTenant,
+          )
             .filter((type) => type !== area)
             .map((type) => ({
               value: type,
@@ -349,10 +359,7 @@ export function SectionTree({
     const blocksFull =
       def?.max_blocks !== undefined && section.blocks.length >= def.max_blocks;
     // 单例块加过就不再进菜单（口径见 `addableBlockDefinitions`）
-                const addableBlockTypes = addableBlockDefinitions(
-                  section,
-                  entitlements,
-                );
+    const addableBlockTypes = addableBlockDefinitions(section, entitlements);
 
     return (
       <div key={section.id}>

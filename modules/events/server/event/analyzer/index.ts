@@ -3,7 +3,11 @@ import { config, resolveLlmConfig } from "@rewindom/module-sdk/server";
 import { heuristicAnalyzer } from "./heuristic-analyzer.js";
 import { createLlmAnalyzer } from "./llm-analyzer.js";
 
-import type { AnalyzedEvent, AnalyzerInput, EventAnalyzer } from "./analyzer.js";
+import type {
+  AnalyzedEvent,
+  AnalyzerInput,
+  EventAnalyzer,
+} from "./analyzer.js";
 
 export type {
   AnalyzedEvent,

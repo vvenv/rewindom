@@ -15,7 +15,9 @@ function settingDefault(
 
 describe("eventsEntityStripSection", () => {
   it("可摆任意页，标题默认就是「实体」文案", () => {
-    expect(eventsEntityStripSection.type).toBe(EVENTS_ENTITY_STRIP_SECTION_TYPE);
+    expect(eventsEntityStripSection.type).toBe(
+      EVENTS_ENTITY_STRIP_SECTION_TYPE,
+    );
     expect(eventsEntityStripSection.placements).toEqual(["page"]);
     expect(eventsEntityStripSection.page_kinds).toBeUndefined();
     expect(settingDefault(eventsEntityStripSection, "heading")).toBe(

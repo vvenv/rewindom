@@ -31,9 +31,8 @@ vi.mock("./embedding.js", async (importOriginal) => {
 
 import { tokenizeTitle } from "./title-tokens.js";
 
-const { clusterSignals, embeddingRequiredForCluster } = await import(
-  "./cluster.service.js"
-);
+const { clusterSignals, embeddingRequiredForCluster } =
+  await import("./cluster.service.js");
 
 function signal(
   overrides: Partial<{
@@ -64,9 +63,11 @@ beforeEach(() => {
   signalUpdate.mockResolvedValue({});
   eventFindMany.mockResolvedValue([]);
   eventFindUnique.mockResolvedValue(null);
-  eventCreate.mockImplementation(async ({ data }: { data: { id: string } }) => ({
-    id: data.id,
-  }));
+  eventCreate.mockImplementation(
+    async ({ data }: { data: { id: string } }) => ({
+      id: data.id,
+    }),
+  );
   eventUpdate.mockResolvedValue({});
   embedTexts.mockImplementation(async (texts: string[]) =>
     texts.map(() => [1, 0]),

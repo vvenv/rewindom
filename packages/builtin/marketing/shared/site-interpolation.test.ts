@@ -88,9 +88,15 @@ describe("interpolationValues", () => {
         siteName: "站点",
         origin: "https://www.example.com/about",
       }),
-    ).toMatchObject({ hostname: "www.example.com", url: "https://www.example.com" });
+    ).toMatchObject({
+      hostname: "www.example.com",
+      url: "https://www.example.com",
+    });
     expect(
-      interpolationValues({ siteName: "站点", origin: "http://localhost:7300" }),
+      interpolationValues({
+        siteName: "站点",
+        origin: "http://localhost:7300",
+      }),
     ).toMatchObject({ hostname: "localhost", url: "http://localhost:7300" });
   });
 

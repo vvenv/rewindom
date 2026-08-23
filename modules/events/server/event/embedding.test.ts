@@ -61,7 +61,10 @@ describe("buildEmbeddingInput", () => {
   });
 
   it("长正文会被截断——细节会把「这是什么事」淹掉", () => {
-    const input = buildEmbeddingInput({ title: "T", excerpt: "x".repeat(2000) });
+    const input = buildEmbeddingInput({
+      title: "T",
+      excerpt: "x".repeat(2000),
+    });
     expect(input.length).toBe(512);
   });
 });

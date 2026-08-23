@@ -37,9 +37,13 @@ const demoBlock: BlockDefinition = {
 };
 
 function contribute(): void {
-  registerChromeBlockHtml(demoBlock, () => `<a class="demo-cart" href="/cart">Cart</a>`, {
-    css: ".demo-cart{color:red}",
-  });
+  registerChromeBlockHtml(
+    demoBlock,
+    () => `<a class="demo-cart" href="/cart">Cart</a>`,
+    {
+      css: ".demo-cart{color:red}",
+    },
+  );
 }
 
 afterEach(() => {
@@ -54,17 +58,23 @@ describe("贡献 chrome 块", () => {
     expect(getBlockDefinition("header", TYPE)?.type).toBe(TYPE);
     expect(getBlockDefinition("footer", TYPE)?.type).toBe(TYPE);
     const header = createSection("header");
-    expect(addableBlockDefinitions(header, new Set(["tenant-demo"])).map((d) => d.type)).toContain(
-      TYPE,
-    );
+    expect(
+      addableBlockDefinitions(header, new Set(["tenant-demo"])).map(
+        (d) => d.type,
+      ),
+    ).toContain(TYPE);
   });
 
   it("未开通 entitlement 不进菜单，开通了才进", () => {
     contribute();
     const header = createSection("header");
-    expect(addableBlockDefinitions(header, new Set()).map((d) => d.type)).not.toContain(TYPE);
     expect(
-      addableBlockDefinitions(header, new Set(["tenant-demo"])).map((d) => d.type),
+      addableBlockDefinitions(header, new Set()).map((d) => d.type),
+    ).not.toContain(TYPE);
+    expect(
+      addableBlockDefinitions(header, new Set(["tenant-demo"])).map(
+        (d) => d.type,
+      ),
     ).toContain(TYPE);
   });
 
@@ -73,7 +83,9 @@ describe("贡献 chrome 块", () => {
     const header = createSection("header");
     header.blocks.push(createBlock("header", TYPE));
     expect(
-      addableBlockDefinitions(header, new Set(["tenant-demo"])).map((d) => d.type),
+      addableBlockDefinitions(header, new Set(["tenant-demo"])).map(
+        (d) => d.type,
+      ),
     ).not.toContain(TYPE);
   });
 
@@ -116,6 +128,8 @@ describe("贡献 chrome 块", () => {
   it("贡献块 CSS 按 type 按需发出", () => {
     contribute();
     expect(loadMarketingSiteCssFor(new Set([TYPE]))).toContain(".demo-cart");
-    expect(loadMarketingSiteCssFor(new Set(["hero"]))).not.toContain(".demo-cart");
+    expect(loadMarketingSiteCssFor(new Set(["hero"]))).not.toContain(
+      ".demo-cart",
+    );
   });
 });

@@ -1,7 +1,4 @@
-import {
-  prisma,
-  withTenantScope,
-} from "@rewindom/module-sdk/server";
+import { prisma, withTenantScope } from "@rewindom/module-sdk/server";
 
 import {
   bindSourceIconUrl,

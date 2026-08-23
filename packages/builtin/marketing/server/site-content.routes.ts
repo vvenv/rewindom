@@ -29,10 +29,7 @@ async function requireMemberContentAccess(
   request: FastifyRequest,
   reply: FastifyReply,
 ): Promise<boolean> {
-  if (
-    !request.authUser ||
-    !isSiteMemberActor(request.authUser.actor_type)
-  ) {
+  if (!request.authUser || !isSiteMemberActor(request.authUser.actor_type)) {
     await reply.status(401).send({
       error: "Member sign-in required",
       code: "site_member.member_required",

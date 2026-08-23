@@ -114,7 +114,9 @@ function eventFeedSection(tab: EventFeedTab): SectionDefinition {
       }),
       { type: "header", content: "editor.group.content" },
       ...eventFeedContentSettings(
-        tab === "rising" ? EVENTS_RISING_LIMIT_DEFAULT : EVENTS_NOW_LIMIT_DEFAULT,
+        tab === "rising"
+          ? EVENTS_RISING_LIMIT_DEFAULT
+          : EVENTS_NOW_LIMIT_DEFAULT,
       ),
     ],
   };

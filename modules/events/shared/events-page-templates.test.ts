@@ -187,3 +187,27 @@ describe("占位符登记与填值一一对应", () => {
     }
   });
 });
+
+describe("首屏主按钮", () => {
+  it("首页版式：主按钮是邮件订阅，次按钮是 RSS", () => {
+    /*
+     * 两条订阅腿的读者规模差着量级：RSS 是技术读者那一小档，邮件是其余所有人。
+     * 首屏最显眼的位置该给后者。
+     */
+    const hero = EVENTS_HOME_LAYOUT_PRESET.sections[0]!;
+    expect(hero.raw?.primary_href).toBe("/subscribe");
+    expect(hero.text?.primary_label).toBe("events:site.subscribeEmail");
+    expect(hero.raw?.secondary_href).toBe("{feed}");
+  });
+
+  it("主题页版式：主按钮订的是**当前主题**，不是全站", () => {
+    // 读者点开 /topics/ai 的首屏订阅按钮，要的显然是 AI
+    const hero = EVENTS_TOPIC_TEMPLATE_PRESET.sections[0]!;
+    expect(hero.raw?.primary_href).toBe("/subscribe?list={topic_list}");
+  });
+
+  it("主题页仍保留 RSS 次按钮", () => {
+    const hero = EVENTS_TOPIC_TEMPLATE_PRESET.sections[0]!;
+    expect(hero.raw?.secondary_href).toBe("{feed}");
+  });
+});

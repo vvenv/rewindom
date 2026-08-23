@@ -119,8 +119,8 @@ function placementHtml(
       const text = escapeHtml(fact.text);
       return `<li class="events-placement-item">${
         fact.href
-          // 与相关事件同一条：地址要过 siteHref，否则 /en 前缀会掉
-          ? `<a href="${escapeHtml(siteHref(fact.href, ctx))}">${text}</a>`
+          ? // 与相关事件同一条：地址要过 siteHref，否则 /en 前缀会掉
+            `<a href="${escapeHtml(siteHref(fact.href, ctx))}">${text}</a>`
           : text
       }</li>`;
     })
@@ -279,7 +279,9 @@ function whyHtml(event: PublicEventDetailView, label: string): string {
   if (event.why_trending.length === 0) {
     return "";
   }
-  const heading = label ? `<h2 class="events-why-title">${escapeHtml(label)}</h2>` : "";
+  const heading = label
+    ? `<h2 class="events-why-title">${escapeHtml(label)}</h2>`
+    : "";
   const items = event.why_trending
     .map(
       (factor) =>

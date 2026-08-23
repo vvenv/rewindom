@@ -88,9 +88,8 @@ export async function enrichStoredEmptyExcerpts(
   };
 
   await Promise.all(
-    Array.from(
-      { length: Math.min(BACKFILL_CONCURRENCY, targets.length) },
-      () => worker(),
+    Array.from({ length: Math.min(BACKFILL_CONCURRENCY, targets.length) }, () =>
+      worker(),
     ),
   );
 

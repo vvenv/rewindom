@@ -115,13 +115,13 @@ describe("initializeTenantSite", () => {
     } as never);
     vi.mocked(prisma.marketingPage.findMany).mockResolvedValue([] as never);
     vi.mocked(prisma.marketingPage.update).mockResolvedValue({} as never);
-    vi.mocked(prisma.marketingPage.findFirst).mockImplementation(
-      (async (args: { where?: { kind?: string } } | undefined) => {
-        const kind = args?.where?.kind;
-        if (kind === GATED_KIND || kind === MANUAL_KIND) return null;
-        return { id: "existing" } as never;
-      }) as never,
-    );
+    vi.mocked(prisma.marketingPage.findFirst).mockImplementation((async (
+      args: { where?: { kind?: string } } | undefined,
+    ) => {
+      const kind = args?.where?.kind;
+      if (kind === GATED_KIND || kind === MANUAL_KIND) return null;
+      return { id: "existing" } as never;
+    }) as never);
   });
 
   it("auto_init:false 的模板不随开关预建——开着也要等租户点", async () => {
@@ -238,13 +238,13 @@ describe("initializeTenantSite", () => {
 
   it("快照 404 模板时默认 noindex", async () => {
     vi.mocked(isTenantModuleEnabled).mockResolvedValue(false);
-    vi.mocked(prisma.marketingPage.findFirst).mockImplementation(
-      (async (args: { where?: { kind?: string } } | undefined) => {
-        const kind = args?.where?.kind;
-        if (kind === "not_found" || kind === GATED_KIND) return null;
-        return { id: "existing" } as never;
-      }) as never,
-    );
+    vi.mocked(prisma.marketingPage.findFirst).mockImplementation((async (
+      args: { where?: { kind?: string } } | undefined,
+    ) => {
+      const kind = args?.where?.kind;
+      if (kind === "not_found" || kind === GATED_KIND) return null;
+      return { id: "existing" } as never;
+    }) as never);
 
     await initializeTenantSite(TENANT, "zh-CN");
 
@@ -290,7 +290,9 @@ describe("initializeTenantSite", () => {
     expect(prisma.marketingPage.update).toHaveBeenCalledOnce();
     const data = (
       vi.mocked(prisma.marketingPage.update).mock.calls[0]![0] as {
-        data: { sections: Array<{ type: string; settings: { headline?: string } }> };
+        data: {
+          sections: Array<{ type: string; settings: { headline?: string } }>;
+        };
       }
     ).data;
     expect(data.sections[0]?.type).toBe("page-missing");

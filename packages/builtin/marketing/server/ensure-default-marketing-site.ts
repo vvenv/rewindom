@@ -50,7 +50,9 @@ function resolveSiteNameScalar(value: unknown): string {
   return (
     parsed.__i18n["zh-CN"]?.trim() ||
     parsed.__i18n.en?.trim() ||
-    Object.values(parsed.__i18n).find((text) => text.trim())?.trim() ||
+    Object.values(parsed.__i18n)
+      .find((text) => text.trim())
+      ?.trim() ||
     ""
   );
 }

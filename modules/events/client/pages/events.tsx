@@ -6,11 +6,7 @@ import { useTranslation } from "react-i18next";
 import { EventFeed } from "../components/EventFeed.js";
 import { EventFilters } from "../components/EventFilters.js";
 import { EventList } from "../components/EventList.js";
-import {
-  useEventFeed,
-  useEvents,
-  useEventTopics,
-} from "../hooks/useEvents.js";
+import { useEventFeed, useEvents, useEventTopics } from "../hooks/useEvents.js";
 import { useEventsPage } from "../hooks/useEventsPage.js";
 
 /**

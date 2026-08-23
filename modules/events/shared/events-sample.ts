@@ -45,12 +45,9 @@ function sampleItem(index: number, t: EventsTranslate): EventListItem {
     recent_source_count: index === 3 ? 1 : 3,
     signal_count: index === 3 ? 1 : 9 - index,
     source_count: index === 3 ? 1 : 3,
-    source_names:
-      index === 3 ? ["Hacker News"] : [...SAMPLE_SOURCE_NAMES],
+    source_names: index === 3 ? ["Hacker News"] : [...SAMPLE_SOURCE_NAMES],
     source_icon_urls:
-      index === 3
-        ? [SAMPLE_SOURCE_ICON_URLS[1]]
-        : [...SAMPLE_SOURCE_ICON_URLS],
+      index === 3 ? [SAMPLE_SOURCE_ICON_URLS[1]] : [...SAMPLE_SOURCE_ICON_URLS],
     source_kinds:
       index === 3 ? ["community"] : ["official", "community", "news"],
     placement:
@@ -88,7 +85,11 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
         kind: "source_joined",
         occurred_at: SAMPLE_UPDATED,
         before: null,
-        after: { source_name: "TechCrunch", source_kind: "news", lag_ms: 8_100_000 },
+        after: {
+          source_name: "TechCrunch",
+          source_kind: "news",
+          lag_ms: 8_100_000,
+        },
       },
     ],
     why_trending: [
@@ -126,8 +127,22 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
       },
     ],
     entities: [
-      { id: "sample-e1", name: "OpenAI", kind: "company", slug: "openai-sample", mention_count: 3, is_following: false },
-      { id: "sample-e2", name: "GPT-6", kind: "product", slug: "gpt-6-sample", mention_count: 2, is_following: false },
+      {
+        id: "sample-e1",
+        name: "OpenAI",
+        kind: "company",
+        slug: "openai-sample",
+        mention_count: 3,
+        is_following: false,
+      },
+      {
+        id: "sample-e2",
+        name: "GPT-6",
+        kind: "product",
+        slug: "gpt-6-sample",
+        mention_count: 2,
+        is_following: false,
+      },
     ],
     timeline: [
       {
@@ -211,9 +226,19 @@ export function sampleEntityIndexItems(): {
   return [
     { slug: "openai-sample", name: "OpenAI", kind: "company", event_count: 8 },
     { slug: "google-sample", name: "Google", kind: "company", event_count: 5 },
-    { slug: "cloudflare-sample", name: "Cloudflare", kind: "company", event_count: 4 },
+    {
+      slug: "cloudflare-sample",
+      name: "Cloudflare",
+      kind: "company",
+      event_count: 4,
+    },
     { slug: "gpt-6-sample", name: "GPT-6", kind: "product", event_count: 3 },
-    { slug: "anthropic-sample", name: "Anthropic", kind: "company", event_count: 2 },
+    {
+      slug: "anthropic-sample",
+      name: "Anthropic",
+      kind: "company",
+      event_count: 2,
+    },
   ];
 }
 

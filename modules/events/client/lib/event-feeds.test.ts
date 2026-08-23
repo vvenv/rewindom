@@ -10,7 +10,9 @@ import { EVENT_TOPICS } from "../../shared/index.js";
 
 const t = (key: string) => key;
 
-function form(overrides: Partial<EventFeedFormValues> = {}): EventFeedFormValues {
+function form(
+  overrides: Partial<EventFeedFormValues> = {},
+): EventFeedFormValues {
   return {
     connector: "rss",
     name: "TechCrunch",
@@ -54,7 +56,9 @@ describe("groupFeedsByTopic", () => {
       },
     ]);
     expect(groups.map((group) => group.topic)).toEqual([...EVENT_TOPICS]);
-    expect(groups.find((group) => group.topic === "tech")?.feeds).toHaveLength(1);
+    expect(groups.find((group) => group.topic === "tech")?.feeds).toHaveLength(
+      1,
+    );
     expect(groups.find((group) => group.topic === "sports")?.feeds).toEqual([]);
   });
 });

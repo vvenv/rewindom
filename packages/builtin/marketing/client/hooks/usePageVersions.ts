@@ -33,6 +33,7 @@ export function useRestorePageVersion(pageId: string | undefined) {
         {},
       ),
     // 恢复写的是草稿列，所以要作废站点内容缓存让编辑器重新拉一份
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: SITE_QUERY_KEY }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: SITE_QUERY_KEY }),
   });
 }

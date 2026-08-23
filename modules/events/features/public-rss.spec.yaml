@@ -56,6 +56,7 @@ entitlement: events
 permissions: [] # 公开面，匿名可读
 models: [] # 不落库
 
+
 # ---------- 设计要点（实现时按此，偏离先改本 spec）----------
 # 1. **不能用 path handler**：它的 `render` 只回 HTML，没有 content-type 控制，
 #    feed 会被当成 text/html 发出去。走模块自己的 Fastify 路由（与 shop 店面路由同构），

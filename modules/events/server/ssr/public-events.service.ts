@@ -4,11 +4,7 @@ import {
   withTenantScope,
 } from "@rewindom/module-sdk/server";
 
-import {
-  entityIndexPath,
-  entityPath,
-  eventPath,
-} from "../../shared/index.js";
+import { entityIndexPath, entityPath, eventPath } from "../../shared/index.js";
 
 import { withSiteLocale } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
@@ -118,7 +114,9 @@ export async function getPublicEventFeed(
       where: {
         ...tenantWhere,
         status: { in: ["developing", "active"] },
-        last_activity_at: { gte: new Date(now - RISING_WINDOW_HOURS * HOUR_MS) },
+        last_activity_at: {
+          gte: new Date(now - RISING_WINDOW_HOURS * HOUR_MS),
+        },
         recent_signal_count: { gt: 0 },
         // Rising 排的是跨源扩散，而 release / status / filing 恒为单来源——
         // 只有这些类型的事件放进来只会把真正在扩散的挤下去
@@ -192,7 +190,9 @@ export async function getPublicEventList(
           where: {
             ...tenantWhere,
             status: { in: ["developing", "active"] },
-            last_activity_at: { gte: new Date(now - NOW_WINDOW_HOURS * HOUR_MS) },
+            last_activity_at: {
+              gte: new Date(now - NOW_WINDOW_HOURS * HOUR_MS),
+            },
           },
           orderBy: [{ heat_score: "desc" }, { last_activity_at: "desc" }],
         })
@@ -486,11 +486,7 @@ export async function getPublicEventSitemapEntries(
   ]);
 
   return rows.map((row) => {
-    const path = withSiteLocale(
-      eventPath(row.slug),
-      site.locale,
-      site.locale,
-    );
+    const path = withSiteLocale(eventPath(row.slug), site.locale, site.locale);
     return {
       path,
       updated_at: row.last_activity_at.toISOString(),
@@ -525,11 +521,7 @@ export async function getPublicEntitySitemapEntries(
   ]);
 
   return rows.map((row) => {
-    const path = withSiteLocale(
-      entityPath(row.slug),
-      site.locale,
-      site.locale,
-    );
+    const path = withSiteLocale(entityPath(row.slug), site.locale, site.locale);
     return {
       path,
       updated_at: row.updated_at.toISOString(),
@@ -721,11 +713,7 @@ export async function getEntityIndexSitemapEntry(
   ]);
   if (!newest) return [];
 
-  const path = withSiteLocale(
-    entityIndexPath(),
-    site.locale,
-    site.locale,
-  );
+  const path = withSiteLocale(entityIndexPath(), site.locale, site.locale);
   return [
     {
       path,

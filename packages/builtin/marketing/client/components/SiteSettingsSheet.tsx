@@ -1,4 +1,9 @@
-import { type FormEvent, type ReactElement, type ReactNode, useState } from "react";
+import {
+  type FormEvent,
+  type ReactElement,
+  type ReactNode,
+  useState,
+} from "react";
 
 import { useConfirm, usePermissions } from "@rewindom/client-kit";
 import { getLocaleNativeLabel } from "@rewindom/shared";

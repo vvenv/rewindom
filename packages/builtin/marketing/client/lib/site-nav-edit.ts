@@ -82,7 +82,11 @@ function reorderList<T extends { id: string }>(
   return copy;
 }
 
-function swapped<T>(list: readonly T[], index: number, delta: number): T[] | null {
+function swapped<T>(
+  list: readonly T[],
+  index: number,
+  delta: number,
+): T[] | null {
   const target = index + delta;
   if (target < 0 || target >= list.length) return null;
   const next = [...list];

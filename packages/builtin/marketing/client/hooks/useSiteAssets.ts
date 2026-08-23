@@ -22,7 +22,9 @@ export function useSiteAssets(enabled = true) {
   });
 }
 
-function invalidateAssets(queryClient: ReturnType<typeof useQueryClient>): void {
+function invalidateAssets(
+  queryClient: ReturnType<typeof useQueryClient>,
+): void {
   void queryClient.invalidateQueries({ queryKey: SITE_ASSETS_QUERY_KEY });
 }
 

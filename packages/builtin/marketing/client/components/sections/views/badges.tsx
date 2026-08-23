@@ -1,8 +1,4 @@
-import {
-  type CSSProperties,
-  type ReactElement,
-  type ReactNode,
-} from "react";
+import { type CSSProperties, type ReactElement, type ReactNode } from "react";
 
 import {
   isIconImageUrl,
@@ -69,14 +65,12 @@ export function BadgesSection({
   section,
 }: SectionViewProps): ReactElement | null {
   const s = section.settings;
-  const height = settingNumber(s, "height", 54);
+  const height = settingNumber(s, "height", 32);
   const align = settingText(s, "align");
   const items = section.blocks.flatMap((block) => {
     const image = settingText(block.settings, "image").trim();
     if (!isIconImageUrl(image)) return [];
-    return [
-      <BadgeImages key={block.id} block={block} height={height} />,
-    ];
+    return [<BadgeImages key={block.id} block={block} height={height} />];
   });
   const heading = settingText(s, "heading");
   const subheading = settingText(s, "subheading");

@@ -16,11 +16,7 @@
 import { useMemo, useState, type ReactElement } from "react";
 
 import { Button } from "@rewindom/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@rewindom/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@rewindom/ui/popover";
 import { Braces } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";

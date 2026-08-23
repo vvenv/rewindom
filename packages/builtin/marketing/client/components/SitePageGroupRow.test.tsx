@@ -1,5 +1,11 @@
 import { registerI18nBundles, setupI18n } from "@rewindom/client-kit";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 
@@ -72,10 +78,7 @@ function renderGroup(
   return renderRow(group, order);
 }
 
-function renderRow(
-  group: SitePageGroup,
-  order?: Partial<SitePageGroupOrder>,
-) {
+function renderRow(group: SitePageGroup, order?: Partial<SitePageGroupOrder>) {
   return render(
     <MemoryRouter>
       <SitePageGroupRow

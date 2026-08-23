@@ -43,7 +43,14 @@ function render(
     updated_at: "2026-08-07T00:00:00.000Z",
   } as unknown as PublicMarketingPage;
 
-  return renderMarketingHtml({ origin: ORIGIN, tenant_id: "tenant-1", tenant_slug: "acme", site, page, ...overrides });
+  return renderMarketingHtml({
+    origin: ORIGIN,
+    tenant_id: "tenant-1",
+    tenant_slug: "acme",
+    site,
+    page,
+    ...overrides,
+  });
 }
 
 describe("分享卡片", () => {
@@ -93,7 +100,9 @@ describe("分享卡片", () => {
     expect(html).toContain(
       `<meta property="og:description" content="按席位计费" />`,
     );
-    expect(html).toContain(`<meta property="og:url" content="${ORIGIN}/pricing" />`);
+    expect(html).toContain(
+      `<meta property="og:url" content="${ORIGIN}/pricing" />`,
+    );
   });
 
   it("页面设置里的 {token} 在 <title> / description 里替换", () => {
@@ -107,7 +116,9 @@ describe("分享卡片", () => {
       footer: [],
     } as unknown as PublicMarketingSite;
     const html = renderMarketingHtml({
-      origin: ORIGIN, tenant_id: "tenant-1", tenant_slug: "acme",
+      origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site,
       page: {
         slug: "topic",
@@ -141,7 +152,9 @@ describe("分享卡片", () => {
       footer: [],
     } as unknown as PublicMarketingSite;
     const html = renderMarketingHtml({
-      origin: ORIGIN, tenant_id: "tenant-1", tenant_slug: "acme",
+      origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site,
       page: {
         slug: "home",
@@ -197,7 +210,9 @@ describe("JSON-LD", () => {
       footer: [],
     } as unknown as PublicMarketingSite;
     const html = renderMarketingHtml({
-      origin: ORIGIN, tenant_id: "tenant-1", tenant_slug: "acme",
+      origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site,
       page: {
         slug: "event",

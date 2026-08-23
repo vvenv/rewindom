@@ -44,9 +44,7 @@ export type ReservedSectionType = (typeof RESERVED_SECTION_TYPES)[number];
 
 /** 本模块自带的段。仍是闭合联合，`Record<BuiltinSectionType, …>` 的穷尽检查照旧有效。 */
 export type BuiltinSectionType =
-  | PageSectionType
-  | AreaSectionType
-  | ReservedSectionType;
+  PageSectionType | AreaSectionType | ReservedSectionType;
 
 /**
  * 段的 type。

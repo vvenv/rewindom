@@ -1,4 +1,4 @@
-import { type ReactElement } from "react";
+import { useMemo, type ReactElement } from "react";
 
 import { Button } from "@rewindom/ui/button";
 import {
@@ -12,7 +12,10 @@ import {
 import { Input } from "@rewindom/ui/input";
 import { useTranslation } from "react-i18next";
 
-import { SITE_LINK_TARGET_GROUPS } from "../../../shared/site-link-target.js";
+import {
+  linkTargetVisibleOnPage,
+  SITE_LINK_TARGET_GROUPS,
+} from "../../../shared/site-link-target.js";
 import { useSiteLinkTargets } from "../../hooks/useSiteLinkTargets.js";
 
 /**
@@ -27,17 +30,27 @@ export function SiteLinkField({
   value,
   disabled,
   placeholder,
+  pageKind,
   onChange,
 }: {
   id: string;
   value: string;
   disabled?: boolean;
   placeholder?: string;
+  /**
+   * 当前编辑的页面 kind。用来过滤掉值里嵌了页面级 token 的候选——
+   * 主题页上不该能选到「订阅当前实体」，那条的参数在这张页上是空的。
+   */
+  pageKind?: string;
   onChange: (next: string) => void;
 }): ReactElement {
   const { t } = useTranslation("marketing");
   // 只在打开下拉时才拉：填链接是低频动作，编辑器一打开就预取纯属浪费
-  const { data: targets = [], refetch, isFetching } = useSiteLinkTargets();
+  const { data: allTargets = [], refetch, isFetching } = useSiteLinkTargets();
+  const targets = useMemo(
+    () => allTargets.filter((item) => linkTargetVisibleOnPage(item, pageKind)),
+    [allTargets, pageKind],
+  );
 
   return (
     <div className="flex gap-2">
@@ -58,7 +71,10 @@ export function SiteLinkField({
             {t("editor.linkPick")}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="max-h-80 w-64 overflow-auto">
+        <DropdownMenuContent
+          align="end"
+          className="max-h-80 w-64 overflow-auto"
+        >
           {targets.length === 0 ? (
             <DropdownMenuLabel className="font-normal text-muted-foreground">
               {isFetching ? t("editor.linkLoading") : t("editor.linkEmpty")}

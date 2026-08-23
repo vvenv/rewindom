@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { emptyEventsContext, eventsContextEntry } from "../events-section-context.js";
+import {
+  emptyEventsContext,
+  eventsContextEntry,
+} from "../events-section-context.js";
 import { renderEventsFeedHtml } from "./feed-html.js";
 
 import type { PublicEventCard } from "../events-section-context.js";
@@ -73,10 +76,7 @@ describe("renderEventsFeedHtml", () => {
     const ctx = { contributed: eventsContextEntry(context) };
     expect(
       titlesIn(
-        renderEventsFeedHtml(
-          section("now", 5, { source: "rising" }),
-          ctx,
-        ),
+        renderEventsFeedHtml(section("now", 5, { source: "rising" }), ctx),
       ),
     ).toEqual(["Title b"]);
   });
@@ -161,7 +161,9 @@ describe("renderEventsFeedHtml", () => {
       },
     });
     const ctx = { contributed: eventsContextEntry(context) };
-    expect(titlesIn(renderEventsFeedHtml(section("rising", 2), ctx))).toHaveLength(2);
+    expect(
+      titlesIn(renderEventsFeedHtml(section("rising", 2), ctx)),
+    ).toHaveLength(2);
   });
 
   it("Rising 加量后 Now 仍能凑满自己的 limit——池子必须按前面可能占掉的条数加量", () => {
@@ -283,7 +285,9 @@ describe("renderEventsFeedHtml", () => {
     });
     const ctx = { contributed: eventsContextEntry(context) };
     expect(
-      titlesIn(renderEventsFeedHtml(section("rising", 5, { topic: "ai" }), ctx)),
+      titlesIn(
+        renderEventsFeedHtml(section("rising", 5, { topic: "ai" }), ctx),
+      ),
     ).toEqual(["Title ai-1"]);
   });
 
@@ -316,7 +320,9 @@ describe("renderEventsFeedHtml", () => {
         momentum_rising: true,
       }),
     ]);
-    expect(html).toContain('<span class="events-velocity up">3 个来源正在跟进</span>');
+    expect(html).toContain(
+      '<span class="events-velocity up">3 个来源正在跟进</span>',
+    );
   });
 
   it("下降不带 up 配色", () => {
@@ -371,7 +377,9 @@ describe("renderEventsFeedHtml", () => {
     expect(html).toContain(
       '<span class="events-evidence">Cloudflare 近 90 天第 4 次故障</span>',
     );
-    expect(html.indexOf("events-evidence")).toBeLessThan(html.indexOf("events-title"));
+    expect(html.indexOf("events-evidence")).toBeLessThan(
+      html.indexOf("events-title"),
+    );
     expect(html).not.toContain("Should stay in the detail page");
   });
 
@@ -407,4 +415,3 @@ function renderCards(cards: PublicEventCard[]): string {
     contributed: eventsContextEntry(context),
   });
 }
-

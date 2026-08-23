@@ -17,10 +17,7 @@
  * `parsePageSections`，那条写路径本来就负责这两件事。
  */
 
-import {
-  buildPresetBlock,
-  buildPresetSection,
-} from "./page-presets.js";
+import { buildPresetBlock, buildPresetSection } from "./page-presets.js";
 
 import type {
   PagePreset,
@@ -103,7 +100,9 @@ function mergeSectionList(
   const out: SiteSection[] = [];
   for (const spec of specs) {
     const matched = takeByType(pool, spec.type);
-    out.push(matched ? mergeSection(matched, spec, t) : buildPresetSection(spec, t));
+    out.push(
+      matched ? mergeSection(matched, spec, t) : buildPresetSection(spec, t),
+    );
   }
   for (const leftover of pool) {
     if (leftover) out.push(leftover);

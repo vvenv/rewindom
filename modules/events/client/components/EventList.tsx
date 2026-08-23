@@ -69,7 +69,8 @@ export function EventList({
   }
 
   const total = data?.total ?? 0;
-  const pageCount = data?.page_count ?? Math.max(1, Math.ceil(total / pageSize));
+  const pageCount =
+    data?.page_count ?? Math.max(1, Math.ceil(total / pageSize));
 
   return (
     <div className="flex flex-col gap-4">

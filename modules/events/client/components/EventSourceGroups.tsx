@@ -59,17 +59,24 @@ export function EventSourceGroups({
                     <span className="text-sm font-medium">{source.title}</span>
                     <span className="text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
                       <span className="inline-flex items-center gap-1">
-                        <SourceIcon url={source.icon_url} className="size-3.5" />
+                        <SourceIcon
+                          url={source.icon_url}
+                          className="size-3.5"
+                        />
                         <Badge variant="outline">{source.source_name}</Badge>
                         <ExternalLink className="size-3.5 shrink-0" />
                       </span>
                       <RelativeTime iso={source.published_at} />
                       {source.score > 0 ? (
-                        <span>{t("detail.score", { count: source.score })}</span>
+                        <span>
+                          {t("detail.score", { count: source.score })}
+                        </span>
                       ) : null}
                       {source.comment_count > 0 ? (
                         <span>
-                          {t("detail.comments", { count: source.comment_count })}
+                          {t("detail.comments", {
+                            count: source.comment_count,
+                          })}
                         </span>
                       ) : null}
                     </span>

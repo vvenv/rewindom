@@ -13,7 +13,7 @@
 }
 .bdg-img {
   display: block;
-  height: var(--bdg-h, 54px);
+  height: var(--bdg-h, 32px);
   width: auto;
 }
 .bdg-img-dark {

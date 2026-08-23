@@ -33,9 +33,11 @@ import {
   isTemplatePageKind,
   resolveCatalogPageTitle,
 } from "../../shared/page-templates.js";
-import { marketingPagePath,
+import {
+  marketingPagePath,
   type MarketingPageKind,
-  type MarketingPageListItem } from "../../shared/site-cms.js";
+  type MarketingPageListItem,
+} from "../../shared/site-cms.js";
 import { canSetPageAsHome, isSiteHomePage } from "../../shared/site-home.js";
 import { siteEditorPath } from "../lib/site-editor-url.js";
 

@@ -146,6 +146,8 @@ describe("unfollowEntity / markEntitySeen", () => {
 
   it("标记已读把 last_seen_at 推到当下", async () => {
     await markEntitySeen(PARAMS);
-    expect(followUpdateMany.mock.calls[0][0].data.last_seen_at).toBeInstanceOf(Date);
+    expect(followUpdateMany.mock.calls[0][0].data.last_seen_at).toBeInstanceOf(
+      Date,
+    );
   });
 });

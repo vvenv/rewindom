@@ -7,7 +7,11 @@ import {
   registerPageTemplatePreset,
 } from "../shared/page-templates.js";
 
-import { toMarketingPage, toPublicMarketingPage, toPublicMarketingSite } from "./site.mapper.js";
+import {
+  toMarketingPage,
+  toPublicMarketingPage,
+  toPublicMarketingSite,
+} from "./site.mapper.js";
 
 import "../shared/page-presets.js";
 
@@ -107,9 +111,9 @@ describe("toPublicMarketingSite locale", () => {
       toPublicMarketingSite(siteRecord(), pages).available_locales,
     ).toEqual(["zh-CN", "en"]);
     // 默认语言恒在列，否则切换器会把无前缀的主入口漏掉
-    expect(
-      toPublicMarketingSite(siteRecord(), []).available_locales,
-    ).toEqual(["zh-CN"]);
+    expect(toPublicMarketingSite(siteRecord(), []).available_locales).toEqual([
+      "zh-CN",
+    ]);
   });
 
   it("renders chrome text in the requested language", () => {

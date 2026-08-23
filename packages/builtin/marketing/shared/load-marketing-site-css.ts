@@ -45,9 +45,7 @@ export function loadMarketingSiteCss(): string {
  *
  * 收多了只是多几百字节，收少了是样式丢失——拿不准的一律收。
  */
-export function loadMarketingSiteCssFor(
-  types: ReadonlySet<string>,
-): string {
+export function loadMarketingSiteCssFor(types: ReadonlySet<string>): string {
   const chunks = [MARKETING_SITE_CSS_BASE];
   for (const [type, css] of Object.entries(MARKETING_SECTION_CSS)) {
     if (types.has(type)) chunks.push(css);

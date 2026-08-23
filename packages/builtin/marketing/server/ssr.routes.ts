@@ -15,7 +15,10 @@ import {
   NOT_FOUND_PATH,
 } from "../shared/page-templates.js";
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
-import { isSpaShellPath, parseMarketingSsrPath } from "../shared/site-locale.js";
+import {
+  isSpaShellPath,
+  parseMarketingSsrPath,
+} from "../shared/site-locale.js";
 import { buildSiteWebManifest } from "../shared/site-manifest.js";
 import {
   isSitePathResponse,
@@ -24,7 +27,10 @@ import {
   type SitePathHandlerInput,
   type SitePathRenderResult,
 } from "../shared/site-path-handlers.js";
-import { localizeRedirectLocation, visitorRedirectPath } from "../shared/site-redirect.js";
+import {
+  localizeRedirectLocation,
+  visitorRedirectPath,
+} from "../shared/site-redirect.js";
 import { resolveThemeSettings } from "../shared/theme-sections.js";
 
 import { hstsHeaderForOrigin } from "./hsts.js";
@@ -231,6 +237,7 @@ async function renderNotFound(
         defaultLocale: site.default_locale,
         usedSectionTypes,
         cookies: cookiesFromHeader(request.headers.cookie),
+        query: request.query as Record<string, unknown>,
         homePath,
         homeLayoutKey,
       }),
@@ -274,6 +281,7 @@ async function renderNotFound(
       defaultLocale: custom.site.default_locale,
       usedSectionTypes,
       cookies: cookiesFromHeader(request.headers.cookie),
+      query: request.query as Record<string, unknown>,
       homePath,
       homeLayoutKey,
     }),
@@ -393,7 +401,12 @@ async function renderLogicalPath(
   if (handler) {
     if (
       redirectPath &&
-      (await sendSiteRedirect(reply, hostTenant.tenant_id, redirectPath, locale))
+      (await sendSiteRedirect(
+        reply,
+        hostTenant.tenant_id,
+        redirectPath,
+        locale,
+      ))
     ) {
       return true;
     }
@@ -490,7 +503,12 @@ async function renderLogicalPath(
      */
     if (
       redirectPath &&
-      (await sendSiteRedirect(reply, hostTenant.tenant_id, redirectPath, locale))
+      (await sendSiteRedirect(
+        reply,
+        hostTenant.tenant_id,
+        redirectPath,
+        locale,
+      ))
     ) {
       return true;
     }
@@ -556,6 +574,7 @@ async function renderLogicalPath(
     defaultLocale: result.site.default_locale,
     usedSectionTypes,
     cookies: cookiesFromHeader(request.headers.cookie),
+    query: request.query as Record<string, unknown>,
     memberId: member?.id ?? null,
     homePath,
     homeLayoutKey,

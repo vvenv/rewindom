@@ -145,24 +145,21 @@ describe("validateSiteName", () => {
 
   it("stores __i18n when a second language is filled", () => {
     expect(
-      validateSiteName(
-        { __i18n: { "zh-CN": "艾克米", en: "Acme" } },
-        "zh-CN",
-      ),
+      validateSiteName({ __i18n: { "zh-CN": "艾克米", en: "Acme" } }, "zh-CN"),
     ).toEqual({ __i18n: { "zh-CN": "艾克米", en: "Acme" } });
   });
 
   it("collapses a single primary-locale entry back to a string", () => {
-    expect(
-      validateSiteName({ __i18n: { "zh-CN": "艾克米" } }, "zh-CN"),
-    ).toBe("艾克米");
+    expect(validateSiteName({ __i18n: { "zh-CN": "艾克米" } }, "zh-CN")).toBe(
+      "艾克米",
+    );
   });
 
   it("rejects an empty primary-language name", () => {
     expect(() => validateSiteName("", "zh-CN")).toThrow("site.name_invalid");
-    expect(() =>
-      validateSiteName({ __i18n: { en: "Acme" } }, "zh-CN"),
-    ).toThrow("site.name_invalid");
+    expect(() => validateSiteName({ __i18n: { en: "Acme" } }, "zh-CN")).toThrow(
+      "site.name_invalid",
+    );
   });
 });
 
@@ -182,8 +179,8 @@ describe("validateSiteTagline", () => {
   });
 
   it("collapses a single primary-locale entry back to a string", () => {
-    expect(
-      validateSiteTagline({ __i18n: { "zh-CN": "标语" } }, "zh-CN"),
-    ).toBe("标语");
+    expect(validateSiteTagline({ __i18n: { "zh-CN": "标语" } }, "zh-CN")).toBe(
+      "标语",
+    );
   });
 });

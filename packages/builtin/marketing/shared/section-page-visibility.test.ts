@@ -18,7 +18,14 @@ import {
 describe("coercePagePathList", () => {
   it("keeps logical paths, drops junk, and dedupes trailing slashes", () => {
     expect(
-      coercePagePathList(["/about", "/about/", "https://x.test", "//cdn", 1, "/"]),
+      coercePagePathList([
+        "/about",
+        "/about/",
+        "https://x.test",
+        "//cdn",
+        1,
+        "/",
+      ]),
     ).toEqual(["/about", "/"]);
   });
 
@@ -51,9 +58,9 @@ describe("sectionVisibleOnPage", () => {
 describe("area page visibility schema", () => {
   it("injects visible_on on header/footer-capable sections but not chrome body or page-only types", () => {
     const band = getSectionDefinition("band");
-    expect(band.settings.some((d) => "id" in d && d.id === VISIBLE_ON_SETTING_ID)).toBe(
-      true,
-    );
+    expect(
+      band.settings.some((d) => "id" in d && d.id === VISIBLE_ON_SETTING_ID),
+    ).toBe(true);
     expect(
       getSectionDefinition("hero").settings.some(
         (d) => "id" in d && d.id === VISIBLE_ON_SETTING_ID,
@@ -80,8 +87,12 @@ describe("area page visibility schema", () => {
   });
 
   it("omits the visibility group for the page-stream settings form", () => {
-    const defs = omitAreaPageVisibilitySettings(getSectionDefinition("band").settings);
-    expect(defs.some((d) => "id" in d && d.id === VISIBLE_ON_SETTING_ID)).toBe(false);
+    const defs = omitAreaPageVisibilitySettings(
+      getSectionDefinition("band").settings,
+    );
+    expect(defs.some((d) => "id" in d && d.id === VISIBLE_ON_SETTING_ID)).toBe(
+      false,
+    );
   });
 
   it("puts visible_on in the content tab, not layout", () => {

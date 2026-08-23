@@ -57,15 +57,15 @@ describe("userAgentForUrl", () => {
   });
 
   it("ftc.gov 用浏览器族 UA——Akamai 会把产品名当成爬虫", () => {
-    expect(
-      userAgentForUrl("https://www.ftc.gov/feeds/press-release.xml"),
-    ).toBe(INGEST_BROWSER_USER_AGENT);
+    expect(userAgentForUrl("https://www.ftc.gov/feeds/press-release.xml")).toBe(
+      INGEST_BROWSER_USER_AGENT,
+    );
     expect(userAgentForUrl("https://ftc.gov/feeds/press-release.xml")).toBe(
       INGEST_BROWSER_USER_AGENT,
     );
-    expect(
-      userAgentForUrl("https://consumer.ftc.gov/blog/feed"),
-    ).toBe(INGEST_BROWSER_USER_AGENT);
+    expect(userAgentForUrl("https://consumer.ftc.gov/blog/feed")).toBe(
+      INGEST_BROWSER_USER_AGENT,
+    );
   });
 });
 
@@ -90,7 +90,9 @@ describe("isTransientNetworkError", () => {
     const aborted = new Error("This operation was aborted");
     aborted.name = "AbortError";
     expect(isTransientNetworkError(aborted)).toBe(true);
-    expect(isTransientNetworkError(new Error("HTTP 404 Not Found"))).toBe(false);
+    expect(isTransientNetworkError(new Error("HTTP 404 Not Found"))).toBe(
+      false,
+    );
   });
 });
 
@@ -156,7 +158,10 @@ describe("fetchText", () => {
               signal.reason instanceof Error
                 ? signal.reason
                 : Object.assign(
-                    new DOMException("This operation was aborted", "AbortError"),
+                    new DOMException(
+                      "This operation was aborted",
+                      "AbortError",
+                    ),
                     { name: "AbortError" },
                   ),
             );

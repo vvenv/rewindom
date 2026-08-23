@@ -27,7 +27,9 @@ describe("event feed sections", () => {
     expect(settingDefault(eventsRisingSection, "subheading")).toBe(
       "events:sections.risingHint",
     );
-    expect(settingDefault(eventsNowSection, "heading")).toBe("events:sections.now");
+    expect(settingDefault(eventsNowSection, "heading")).toBe(
+      "events:sections.now",
+    );
     expect(settingDefault(eventsNowSection, "subheading")).toBe(
       "events:sections.nowHint",
     );

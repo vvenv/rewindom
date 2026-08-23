@@ -88,13 +88,15 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "marketing.audit.doc_category_deleted": "删除文档分类",
       "site.doc_category_not_found": "文档分类不存在",
       "site.doc_category_key_conflict": "分类标识已存在",
-      "site.doc_category_key_invalid": "分类标识不合法（小写字母、数字、连字符）",
+      "site.doc_category_key_invalid":
+        "分类标识不合法（小写字母、数字、连字符）",
       "site.doc_category_label_invalid": "分类显示名不合法",
       "site.doc_category_label_required": "分类显示名不能为空",
       "site.doc_category_body_invalid": "分类数据不合法",
       "site.doc_category_in_use": "仍有文档在使用此分类",
       "site.doc_category_order_invalid": "分类顺序数据不合法",
-      "marketing.audit.doc_categories_reordered": "调整文档分类顺序（{{count}} 项）",
+      "marketing.audit.doc_categories_reordered":
+        "调整文档分类顺序（{{count}} 项）",
     },
     en: {
       "marketing.audit.site_updated": 'Updated site "{{site_name}}"',
@@ -121,7 +123,8 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "site.page_version_not_found": "Version not found",
       "marketing.audit.page_reset_to_preset":
         'Reset site page "{{title}}" to the latest layout',
-      "site.page_reset_unsupported": "This page has no built-in layout to reset to",
+      "site.page_reset_unsupported":
+        "This page has no built-in layout to reset to",
       "marketing.audit.theme_applied": 'Applied site theme "{{key}}"',
       "site.theme_not_found": "Theme not found",
       "marketing.audit.site_draft_published":
@@ -147,9 +150,12 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
         "This site does not have the feature that owns this layout",
       "site.template_page_exists": "This layout already exists for this locale",
       "site.template_page_slug_fixed": "Layout page path cannot be changed",
-      "site.template_page_not_deletable": "Built-in layout pages cannot be deleted",
-      "site.template_section_required": "This layout must keep its core section",
-      "site.section_page_kind_invalid": "This section cannot be placed on this page",
+      "site.template_page_not_deletable":
+        "Built-in layout pages cannot be deleted",
+      "site.template_section_required":
+        "This layout must keep its core section",
+      "site.section_page_kind_invalid":
+        "This section cannot be placed on this page",
       "site.page_slug_conflict": "Page path conflict",
       "site.page_order_invalid": "Invalid page order payload",
       "site.name_invalid": "Invalid site name",

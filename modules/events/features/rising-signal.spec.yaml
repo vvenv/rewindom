@@ -64,7 +64,12 @@ models:
       - { name: recent_source_count, type: Int, required: true, default: 0 }
       # velocity_pct 归零有两种含义（真的没变 / 没有基线可比），
       # 界面要区分「持平」与「还说不出来」，需要显式标记
-      - { name: has_velocity_baseline, type: Boolean, required: true, default: false }
+      - {
+          name: has_velocity_baseline,
+          type: Boolean,
+          required: true,
+          default: false,
+        }
 
 # ---------- 设计要点（实现时按此，偏离先改本 spec）----------
 # 1. computeHeat：previous === 0 时不再用 base = 1 造增速，velocity_pct 记 0 且

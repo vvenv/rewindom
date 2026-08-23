@@ -39,7 +39,9 @@ export class FeedValidationError extends Error {
   }
 }
 
-export function normalizeFeedCreate(body: EventFeedWriteBody): NormalizedFeedInput {
+export function normalizeFeedCreate(
+  body: EventFeedWriteBody,
+): NormalizedFeedInput {
   const connector = body.connector ?? "rss";
   if (!isEventConnector(connector)) {
     throw new FeedValidationError("events.feed_connector_invalid");
@@ -107,7 +109,10 @@ function requireTopic(value: string | undefined): EventTopic {
   return value;
 }
 
-function resolveFeedUrl(connector: EventConnectorId, url: string | undefined): string {
+function resolveFeedUrl(
+  connector: EventConnectorId,
+  url: string | undefined,
+): string {
   if (connector === "hackernews") {
     return HACKER_NEWS_API_ROOT;
   }

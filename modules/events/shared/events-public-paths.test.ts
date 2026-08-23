@@ -121,9 +121,10 @@ describe("parseEventsPublicPath", () => {
 
 describe("parseEventsIndexQuery", () => {
   it("只认合法的 source / topic", () => {
-    expect(
-      parseEventsIndexQuery({ source: "rising", topic: "ai" }),
-    ).toEqual({ source: "rising", topic: "ai" });
+    expect(parseEventsIndexQuery({ source: "rising", topic: "ai" })).toEqual({
+      source: "rising",
+      topic: "ai",
+    });
     expect(parseEventsIndexQuery({ source: "hot", topic: "all" })).toEqual({
       source: undefined,
       topic: undefined,

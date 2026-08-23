@@ -40,7 +40,9 @@ describe("排序取值映射", () => {
 
 describe("formatSourceNames", () => {
   it("用点号分隔", () => {
-    expect(formatSourceNames(["OpenAI", "Hacker News"])).toBe("OpenAI · Hacker News");
+    expect(formatSourceNames(["OpenAI", "Hacker News"])).toBe(
+      "OpenAI · Hacker News",
+    );
   });
 
   it("超出上限时折叠成 +N", () => {

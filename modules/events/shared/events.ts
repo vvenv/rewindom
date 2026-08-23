@@ -124,7 +124,8 @@ export type EventKind = (typeof EVENT_KINDS)[number];
 
 export function isEventKind(value: unknown): value is EventKind {
   return (
-    typeof value === "string" && (EVENT_KINDS as readonly string[]).includes(value)
+    typeof value === "string" &&
+    (EVENT_KINDS as readonly string[]).includes(value)
   );
 }
 
@@ -178,7 +179,10 @@ export function describeEventFacts(
   const chips: EventFactChip[] = [{ code: `kind.${kind}` }];
 
   if (facts.duration_minutes !== null) {
-    chips.push({ code: "fact.duration", params: { minutes: facts.duration_minutes } });
+    chips.push({
+      code: "fact.duration",
+      params: { minutes: facts.duration_minutes },
+    });
   }
   if (facts.resolved !== null) {
     chips.push({ code: facts.resolved ? "fact.resolved" : "fact.ongoing" });
@@ -199,7 +203,8 @@ export type EventFeedTab = (typeof EVENT_FEED_TABS)[number];
 
 export function isEventTopic(value: unknown): value is EventTopic {
   return (
-    typeof value === "string" && (EVENT_TOPICS as readonly string[]).includes(value)
+    typeof value === "string" &&
+    (EVENT_TOPICS as readonly string[]).includes(value)
   );
 }
 
@@ -248,7 +253,10 @@ export function allTopicsEnabled(enabled: readonly EventTopic[]): boolean {
 export function enabledTopicWhere(
   enabled: readonly EventTopic[],
   requested?: EventTopic,
-): { topic: EventTopic } | { topic: { in: EventTopic[] } } | Record<string, never> {
+):
+  | { topic: EventTopic }
+  | { topic: { in: EventTopic[] } }
+  | Record<string, never> {
   if (requested) {
     return { topic: requested };
   }
@@ -522,7 +530,9 @@ export interface EventRevisionItem {
   after: Record<string, string | number | boolean | null>;
 }
 
-export function isEventRevisionKind(value: unknown): value is EventRevisionKind {
+export function isEventRevisionKind(
+  value: unknown,
+): value is EventRevisionKind {
   return (
     typeof value === "string" &&
     (EVENT_REVISION_KINDS as readonly string[]).includes(value)

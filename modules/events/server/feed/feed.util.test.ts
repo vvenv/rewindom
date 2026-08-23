@@ -45,7 +45,9 @@ describe("normalizeFeedCreate", () => {
       throw new Error("expected throw");
     } catch (err) {
       expect(err).toBeInstanceOf(FeedValidationError);
-      expect((err as FeedValidationError).code).toBe("events.feed_name_required");
+      expect((err as FeedValidationError).code).toBe(
+        "events.feed_name_required",
+      );
     }
   });
 });
@@ -53,10 +55,13 @@ describe("normalizeFeedCreate", () => {
 describe("normalizeFeedUpdate", () => {
   it("只改 enabled 时不动其它字段", () => {
     expect(
-      normalizeFeedUpdate({ enabled: false }, {
-        connector: "rss",
-        url: "https://example.com/feed.xml",
-      }),
+      normalizeFeedUpdate(
+        { enabled: false },
+        {
+          connector: "rss",
+          url: "https://example.com/feed.xml",
+        },
+      ),
     ).toEqual({ enabled: false });
   });
 });

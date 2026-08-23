@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { planAnalysis, resolveRefreshedContent } from "./event-refresh.service.js";
+import {
+  planAnalysis,
+  resolveRefreshedContent,
+} from "./event-refresh.service.js";
 
 const NOW = new Date("2025-08-12T12:00:00Z");
 
@@ -125,7 +128,9 @@ describe("planAnalysis", () => {
      * 一份已经付过钱的 LLM 摘要会被原文摘录覆盖——降级比不更新更糟。
      */
     it("已经有 LLM 产出的事件被闸门拦下时跳过，不用规则产出覆盖它", () => {
-      expect(planAnalysis({ ...single, existing_analyzer: "llm" })).toBe("skip");
+      expect(planAnalysis({ ...single, existing_analyzer: "llm" })).toBe(
+        "skip",
+      );
       expect(planAnalysis({ ...single, existing_analyzer: "heuristic" })).toBe(
         "local",
       );
@@ -168,11 +173,15 @@ describe("planAnalysis", () => {
     };
 
     it("1 小时的新事件：基础冷却 30 分钟，100 分钟前分析过 → 重算", () => {
-      expect(planAnalysis({ ...aging, first_seen_at: hoursAgo(1) })).toBe("model");
+      expect(planAnalysis({ ...aging, first_seen_at: hoursAgo(1) })).toBe(
+        "model",
+      );
     });
 
     it("跑了 8 小时：冷却 ×4 = 2 小时，100 分钟还不够", () => {
-      expect(planAnalysis({ ...aging, first_seen_at: hoursAgo(8) })).toBe("skip");
+      expect(planAnalysis({ ...aging, first_seen_at: hoursAgo(8) })).toBe(
+        "skip",
+      );
       expect(
         planAnalysis({
           ...aging,

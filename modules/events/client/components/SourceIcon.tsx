@@ -6,7 +6,11 @@
 
 import { useState, type ReactElement } from "react";
 
-function SourceIconFallback({ className }: { className?: string }): ReactElement {
+function SourceIconFallback({
+  className,
+}: {
+  className?: string;
+}): ReactElement {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

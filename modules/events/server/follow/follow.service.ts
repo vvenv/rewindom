@@ -21,7 +21,9 @@ export interface FollowParams {
  * 刚关注时把 last_seen_at 设成当下——不然用户一关注就立刻看到「有更新」，
  * 那条提示会立刻失去意义。
  */
-export async function followEvent(params: FollowParams): Promise<EventFollowState> {
+export async function followEvent(
+  params: FollowParams,
+): Promise<EventFollowState> {
   const event = await requireEvent(params.tenant_id, params.event_id);
   const now = new Date();
 
@@ -115,7 +117,10 @@ export async function countFollowUpdates(params: {
   const [rows, entityUpdates] = await Promise.all([
     prisma.eventFollow.findMany({
       where: withTenantScope(params.tenant_id, { user_id: params.user_id }),
-      select: { last_seen_at: true, event: { select: { last_activity_at: true } } },
+      select: {
+        last_seen_at: true,
+        event: { select: { last_activity_at: true } },
+      },
     }),
     countEntityFollowUpdates(params),
   ]);

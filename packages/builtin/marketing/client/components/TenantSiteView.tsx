@@ -229,10 +229,7 @@ export function TenantSiteView({
     </SiteLocaleProvider>
   );
 
-  const shellClass = cn(
-    MARKETING_SITE_ROOT_CLASS,
-    embedded && "is-embedded",
-  );
+  const shellClass = cn(MARKETING_SITE_ROOT_CLASS, embedded && "is-embedded");
 
   return <div className={shellClass}>{content}</div>;
 }

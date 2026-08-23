@@ -8,7 +8,10 @@ import { collectSectionTypes } from "./collect-types.js";
 
 import type { SiteSection } from "./types.js";
 
-const section = (type: string, blocks: SiteSection["blocks"] = []): SiteSection => ({
+const section = (
+  type: string,
+  blocks: SiteSection["blocks"] = [],
+): SiteSection => ({
   id: `${type}-1`,
   type,
   settings: {},
@@ -22,7 +25,9 @@ describe("collectSectionTypes", () => {
   });
 
   it("同 type 出现多次只算一次", () => {
-    expect(collectSectionTypes([section("hero"), section("hero")]).size).toBe(1);
+    expect(collectSectionTypes([section("hero"), section("hero")]).size).toBe(
+      1,
+    );
   });
 
   it("下钻容器段的列——漏了列里的子段，那几段就会裸着渲出来", () => {
@@ -49,7 +54,10 @@ describe("collectSectionTypes", () => {
     const withBlocks = section("form", [
       { id: "b1", type: "field", settings: { label: "?" } },
     ]);
-    expect([...collectSectionTypes([withBlocks])].sort()).toEqual(["field", "form"]);
+    expect([...collectSectionTypes([withBlocks])].sort()).toEqual([
+      "field",
+      "form",
+    ]);
   });
 
   it("页头 chrome 块的 type 也要收——贡献块的 CSS 与按需查库靠它", () => {

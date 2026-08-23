@@ -40,13 +40,15 @@ describe("excerptFromHtml", () => {
         <p>Nav</p>
         <p>The company said the model can generate realtime video from a text prompt.</p>
       `),
-    ).toBe("The company said the model can generate realtime video from a text prompt.");
+    ).toBe(
+      "The company said the model can generate realtime video from a text prompt.",
+    );
   });
 
   it("太短的口号不当摘录", () => {
-    expect(excerptFromHtml(`<meta property="og:description" content="Home">`)).toBe(
-      "",
-    );
+    expect(
+      excerptFromHtml(`<meta property="og:description" content="Home">`),
+    ).toBe("");
   });
 });
 
@@ -70,9 +72,9 @@ describe("isFetchableArticleUrl", () => {
 describe("isUsableExcerpt", () => {
   it("空串或与标题相同都不可用", () => {
     expect(isUsableExcerpt("   ", "Title")).toBe(false);
-    expect(isUsableExcerpt("OpenAI releases GPT-6.", "OpenAI releases GPT-6")).toBe(
-      false,
-    );
+    expect(
+      isUsableExcerpt("OpenAI releases GPT-6.", "OpenAI releases GPT-6"),
+    ).toBe(false);
   });
 
   it("比标题多出来的说明可用", () => {

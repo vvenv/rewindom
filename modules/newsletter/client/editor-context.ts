@@ -13,6 +13,7 @@ import { api, i18n, normalizeLocale } from "@rewindom/module-sdk/client";
 import { registerEditorContextProvider } from "@rewindom/builtin/marketing/client/editor-context-providers.js";
 import { registerSettingSelectOptions } from "@rewindom/builtin/marketing/client/setting-select-options.js";
 
+import { buildListOptions } from "../shared/newsletter-source.js";
 import {
   NEWSLETTER_ALL_LISTS,
   NEWSLETTER_LIST_SELECT_OPTIONS,
@@ -23,10 +24,10 @@ import {
 } from "../shared/newsletter-section-context.js";
 import { NEWSLETTER_SUBSCRIBE_SECTION_TYPE } from "../shared/sections/subscribe/definition.js";
 
-interface ListRow {
-  list_key: string;
-  label: string;
-}
+import type { NewsletterList } from "../shared/newsletter-source.js";
+import type { NewsletterSectionLabels } from "../shared/newsletter-section-context.js";
+
+type ListRow = NewsletterList;
 
 function listsFromContributed(
   contributed: Readonly<Record<string, unknown>> | undefined,
@@ -43,6 +44,35 @@ function listsFromContributed(
   );
 }
 
+/**
+ * 预览里那一行「订阅范围：AI · 每天一封摘要」。
+ *
+ * 与实站同一份形状（`buildNewsletterSectionLabels`），只是文案从 i18next 出。
+ * **`lng` 显式钉成页面语言**：`i18n.t` 默认跟工作台界面语言走，而列表名是按页面
+ * 语言取的——不钉的话同一行里会混着两种语言。
+ */
+function buildLabels(
+  locale: string,
+  lists: readonly ListRow[],
+): NewsletterSectionLabels {
+  const line = (list: string): string =>
+    i18n.t("newsletter:scope.line", { lng: locale, list });
+  const scopes: Record<string, string> = {
+    [NEWSLETTER_ALL_LISTS]: line(
+      i18n.t("newsletter:scope.all", { lng: locale }),
+    ),
+  };
+  for (const list of lists) scopes[list.list_key] = line(list.label);
+
+  return {
+    scopes,
+    cadences: {
+      daily: i18n.t("newsletter:cadence.dailyDigest", { lng: locale }),
+      weekly: i18n.t("newsletter:cadence.weeklyDigest", { lng: locale }),
+    },
+  };
+}
+
 export function registerNewsletterEditorContext(): void {
   registerEditorContextProvider({
     sectionTypes: [NEWSLETTER_SUBSCRIBE_SECTION_TYPE],
@@ -57,10 +87,16 @@ export function registerNewsletterEditorContext(): void {
         const data = await api.get<{ items: ListRow[] }>("/newsletter/lists", {
           locale,
         });
-        return newsletterContextEntry({ lists: data.items });
+        return newsletterContextEntry({
+          lists: data.items,
+          labels: buildLabels(locale, data.items),
+        });
       } catch {
         // 拉不到就只剩「本站全部」那一项，段仍然可用
-        return newsletterContextEntry({ lists: [] });
+        return newsletterContextEntry({
+          lists: [],
+          labels: buildLabels(locale, []),
+        });
       }
     },
   });
@@ -82,7 +118,8 @@ export function registerNewsletterEditorContext(): void {
             count: lists.length,
           }),
         },
-        ...lists.map((row) => ({ value: row.list_key, label: row.label })),
+        // 来源前缀只在多源时出现，判断逻辑在 shared 里（有单测）
+        ...buildListOptions(lists),
       ];
     },
   });

@@ -40,11 +40,14 @@ export function EventRelated({ related }: { related: EventRelatedItem[] }) {
                 className="text-muted-foreground text-xs tabular-nums"
                 dateTime={item.last_activity_at}
               >
-                {new Date(item.last_activity_at).toLocaleDateString(i18n.language, {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                })}
+                {new Date(item.last_activity_at).toLocaleDateString(
+                  i18n.language,
+                  {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  },
+                )}
               </time>
               <RelatedFacts item={item} />
               <Link

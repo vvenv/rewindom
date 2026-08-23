@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { classifyEventTopic, type TopicClassifierSignal } from "./topic-classifier.js";
+import {
+  classifyEventTopic,
+  type TopicClassifierSignal,
+} from "./topic-classifier.js";
 
 function signal(
   title: string,
@@ -35,10 +38,13 @@ describe("classifyEventTopic", () => {
   it("公共卫生政策归 world，不归 tech", () => {
     expect(
       classifyEventTopic([
-        signal("Universal Health Coverage Could Save $1T and 114,000 Lives a Year", {
-          excerpt:
-            "A United Nations report on the pandemic response and climate-driven outbreak risk.",
-        }),
+        signal(
+          "Universal Health Coverage Could Save $1T and 114,000 Lives a Year",
+          {
+            excerpt:
+              "A United Nations report on the pandemic response and climate-driven outbreak risk.",
+          },
+        ),
       ]),
     ).toBe("world");
   });
@@ -47,7 +53,8 @@ describe("classifyEventTopic", () => {
     expect(
       classifyEventTopic([
         signal("Incident with GitHub.com", {
-          excerpt: "GitHub is experiencing an outage affecting the API and PR access.",
+          excerpt:
+            "GitHub is experiencing an outage affecting the API and PR access.",
         }),
         signal("GitHub down again? no PR access"),
       ]),
@@ -60,7 +67,10 @@ describe("classifyEventTopic", () => {
         source_kind: "official",
         topic_hint: "ai",
       }),
-      signal("Discussion thread", { source_kind: "community", topic_hint: "tech" }),
+      signal("Discussion thread", {
+        source_kind: "community",
+        topic_hint: "tech",
+      }),
     ]);
     expect(topic).toBe("ai");
   });

@@ -3,13 +3,13 @@ import { sendCodedError } from "@rewindom/server-kernel/http/route-error-handler
 import { sendStorageObject } from "@rewindom/server-kernel/http/send-storage-object.js";
 import { AppError } from "@rewindom/server-kernel/lib/app-errors.js";
 
-import {
-  SITE_ENHANCE_HASH,
-  SITE_ENHANCE_JS,
-} from "../shared/site-enhance.js";
+import { SITE_ENHANCE_HASH, SITE_ENHANCE_JS } from "../shared/site-enhance.js";
 import { resolveLocaleSegment } from "../shared/site-locale.js";
 
-import { resolveSiteAssetStorageKey, SITE_ASSET_CACHE_CONTROL } from "./site-asset.service.js";
+import {
+  resolveSiteAssetStorageKey,
+  SITE_ASSET_CACHE_CONTROL,
+} from "./site-asset.service.js";
 import {
   getPublishedPublicPage,
   getPublishedPublicSite,

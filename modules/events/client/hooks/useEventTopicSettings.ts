@@ -5,7 +5,10 @@ import { EVENTS_QUERY_KEY } from "./useEvents.js";
 
 import type { EventTopicSettings } from "../../shared/index.js";
 
-export const EVENT_SETTINGS_QUERY_KEY = [...EVENTS_QUERY_KEY, "settings"] as const;
+export const EVENT_SETTINGS_QUERY_KEY = [
+  ...EVENTS_QUERY_KEY,
+  "settings",
+] as const;
 
 export function useEventTopicSettings() {
   return useQuery({

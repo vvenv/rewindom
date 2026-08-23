@@ -1,6 +1,9 @@
 import { Radar, Rss, Signal, Tag, Tags, TrendingUp } from "lucide-react";
 
-import { htmlChromeBlockView, htmlSectionView } from "@rewindom/builtin/marketing/client/components/sections/html-section-view.js";
+import {
+  htmlChromeBlockView,
+  htmlSectionView,
+} from "@rewindom/builtin/marketing/client/components/sections/html-section-view.js";
 import { registerChromeBlockView } from "@rewindom/builtin/marketing/client/components/sections/chrome-views.js";
 import { registerSiteSectionView } from "@rewindom/builtin/marketing/client/components/sections/section-views.js";
 
@@ -62,10 +65,14 @@ registerSiteSectionView(
   htmlSectionView(renderEventsFeedHtml),
   { css: EVENTS_CSS, icon: TrendingUp },
 );
-registerSiteSectionView(eventsNowSection, htmlSectionView(renderEventsFeedHtml), {
-  css: EVENTS_CSS,
-  icon: Rss,
-});
+registerSiteSectionView(
+  eventsNowSection,
+  htmlSectionView(renderEventsFeedHtml),
+  {
+    css: EVENTS_CSS,
+    icon: Rss,
+  },
+);
 registerSiteSectionView(
   eventsFeedSection,
   htmlSectionView(renderEventsFeedHtml),

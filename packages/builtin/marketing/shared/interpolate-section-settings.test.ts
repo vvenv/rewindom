@@ -59,7 +59,11 @@ describe("interpolateSectionSettings", () => {
     const section: SiteSection = {
       ...base,
       blocks: [
-        { id: "b1", type: "stat", settings: { term: "{site}", detail: "{year}" } },
+        {
+          id: "b1",
+          type: "stat",
+          settings: { term: "{site}", detail: "{year}" },
+        },
       ],
     };
     const out = interpolateSectionSettings(section, TOKENS);

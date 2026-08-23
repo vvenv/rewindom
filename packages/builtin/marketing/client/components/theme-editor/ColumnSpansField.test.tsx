@@ -39,9 +39,9 @@ describe("ColumnSpansField", () => {
 
   it("三列时界线落在两处前缀和上", () => {
     renderField("3:7:2", 3);
-    expect(thumbs().map((thumb) => thumb.getAttribute("aria-valuenow"))).toEqual(
-      ["3", "10"],
-    );
+    expect(
+      thumbs().map((thumb) => thumb.getAttribute("aria-valuenow")),
+    ).toEqual(["3", "10"]);
   });
 
   it("两列时界线落在前缀和上", () => {
@@ -52,9 +52,9 @@ describe("ColumnSpansField", () => {
 
   it("与列数对不上时按当前列数等分显示", () => {
     renderField("3:9", 3);
-    expect(thumbs().map((thumb) => thumb.getAttribute("aria-valuenow"))).toEqual(
-      ["4", "8"],
-    );
+    expect(
+      thumbs().map((thumb) => thumb.getAttribute("aria-valuenow")),
+    ).toEqual(["4", "8"]);
   });
 
   it("拖动界线写回的是份额而不是界线位置", () => {

@@ -59,7 +59,11 @@ describe("可用占位符", () => {
 
   it("本页专有的 token 在那张页面上列得出", () => {
     registerProductToken();
-    open({ pageKind: "shop_product", entitlements: new Set([SHOP]), site: SITE });
+    open({
+      pageKind: "shop_product",
+      entitlements: new Set([SHOP]),
+      site: SITE,
+    });
     expect(screen.getByText("{product}")).toBeTruthy();
   });
 

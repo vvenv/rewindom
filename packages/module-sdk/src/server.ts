@@ -41,5 +41,11 @@ export * from "@rewindom/server-kernel/lib/host-tenant.js";
 export * from "@rewindom/server-kernel/lib/tenant-secret-crypto.js";
 export {
   translateServerMessage,
+  /*
+   * 组装层在启动时会把各模块的 bundle 一次性登记进来（`module-loader`），业务代码
+   * 平时不需要它。外部模块的**单测**要断言服务端文案时得自己先登记一份——否则
+   * `translateServerMessage` 查不到 code，测出来的是回落值而不是真文案。
+   */
+  registerServerI18nBundles,
 } from "@rewindom/server-kernel/lib/i18n/registry.js";
 export { resolveRequestLocale } from "@rewindom/server-kernel/lib/i18n/translate.js";

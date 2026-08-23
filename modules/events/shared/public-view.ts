@@ -268,8 +268,7 @@ export function toPublicEntityStrip(
 ): PublicEntityStripView {
   const items = [...rows]
     .sort(
-      (a, b) =>
-        b.event_count - a.event_count || a.name.localeCompare(b.name),
+      (a, b) => b.event_count - a.event_count || a.name.localeCompare(b.name),
     )
     .map((row) => ({
       href: entityPath(row.slug),
@@ -364,7 +363,9 @@ function relativeTime(from: Date, now: number, t: EventsTranslate): string {
     });
   }
   if (elapsed < DAY_MS) {
-    return t("site.hero.updated.hours", { count: Math.floor(elapsed / HOUR_MS) });
+    return t("site.hero.updated.hours", {
+      count: Math.floor(elapsed / HOUR_MS),
+    });
   }
   return t("site.hero.updated.days", { count: Math.floor(elapsed / DAY_MS) });
 }

@@ -7,7 +7,10 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { MARKETING_I18N } from "../../i18n.js";
 import { useSiteSettingsForm } from "../../hooks/use-site-settings-form.js";
-import { registerHomeLayout, type HomeLayoutDefinition  } from "../../../shared/home-layouts.js";
+import {
+  registerHomeLayout,
+  type HomeLayoutDefinition,
+} from "../../../shared/home-layouts.js";
 import "../../../shared/page-presets.js";
 
 import { SiteHomeForm } from "./SiteHomeForm.js";

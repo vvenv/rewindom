@@ -13,7 +13,10 @@ describe("partitionSiteAssetFiles", () => {
       file("hero.webp", ""),
       file("notes.pdf", "application/pdf"),
     ]);
-    expect(accepted.map((item) => item.name)).toEqual(["logo.svg", "hero.webp"]);
+    expect(accepted.map((item) => item.name)).toEqual([
+      "logo.svg",
+      "hero.webp",
+    ]);
     expect(rejected.map((item) => item.name)).toEqual(["notes.pdf"]);
   });
 });

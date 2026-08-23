@@ -3,7 +3,6 @@ import {
   headingSettings,
   layoutSettings,
 } from "../_common/settings.js";
-
 import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
 
 /**
@@ -28,7 +27,7 @@ export const badgesSection: SectionDefinition = {
       min: 32,
       max: 80,
       step: 2,
-      default: 54,
+      default: 32,
       unit: "editor.unit.px",
       info: "editor.info.badge_height",
     },

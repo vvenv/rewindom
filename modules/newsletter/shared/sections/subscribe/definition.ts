@@ -19,6 +19,15 @@ import type { SectionDefinition } from "@rewindom/builtin/marketing/shared/secti
 export const NEWSLETTER_SUBSCRIBE_SECTION_TYPE = "newsletter.subscribe";
 
 /**
+ * 订阅页的模板 kind。
+ *
+ * 这一段**刻意不声明 `page_kinds`**：它既是这张模板页的必备段，也能被摆到任何
+ * 别的页面上（首屏下面、页脚上方都常见）。确认页 / 退订页那两个面板才需要钉死
+ * ——它们离开自己那张页就没有 token 可用。
+ */
+export const NEWSLETTER_SUBSCRIBE_PAGE_KIND = "newsletter_subscribe";
+
+/**
  * 邮件订阅入口 —— 官网上第二个**会往回写数据**的段（第一个是 `site-form.form`）。
  *
  * **订阅哪个列表由租户在下拉里选**，默认「本站全部」。
@@ -40,7 +49,15 @@ export const newsletterSubscribeSection: SectionDefinition = {
   placements: ["page"],
   entitlement: NEWSLETTER_ENTITLEMENT.key,
   settings: [
-    ...headingSettings(),
+    /*
+     * 抬头默认值与预设 `text.heading` 同一条 key：段被单独拖到首页 / 页脚时也自带
+     * 一句抬头（不给的话新加的段是一片空白），跨语言复制页面时才换得成目标语言的
+     * 库存句，存量里空掉的槽位也才会在解析时按库存回填。
+     */
+    ...headingSettings({
+      headingDefault: "newsletter:subscribe.title",
+      subheadingDefault: "newsletter:subscribe.subtitle",
+    }),
     { type: "header", content: "newsletter:section.subscribe.group" },
     /*
      * 下拉而不是文本框——这也是「多个内容源时，段怎么知道自己对应哪一个」的答案：
@@ -106,6 +123,15 @@ export const newsletterSubscribeSection: SectionDefinition = {
       rows: 2,
       default: "newsletter:form.successDefault",
     },
-    ...layoutSettings({ padding_top: 48, padding_bottom: 48 }),
+    /*
+     * 默认锚点 `subscribe`：首屏按钮要能跳到这一段，不给默认值的话每个租户都得
+     * 自己先想一个 id。同一页摆两个订阅段时 id 会重复（浏览器跳到第一个），
+     * 那种情况下租户自己改一个——比「所有人都得手填」划算得多。
+     */
+    ...layoutSettings({
+      padding_top: 48,
+      padding_bottom: 48,
+      anchor: "subscribe",
+    }),
   ],
 };

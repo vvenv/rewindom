@@ -22,10 +22,7 @@ const MAX_BYTES = 5 * 1024 * 1024;
 /** 替换会改同一把键的内容，不能用一年 immutable。 */
 export const SITE_ASSET_CACHE_CONTROL = "public, max-age=0, must-revalidate";
 
-export function siteAssetObjectKey(
-  tenantId: string,
-  filename: string,
-): string {
+export function siteAssetObjectKey(tenantId: string, filename: string): string {
   return `${tenantId}/site-assets/${filename}`;
 }
 
@@ -83,16 +80,21 @@ async function validateSiteAssetBytes(input: {
   mime_type: string;
   filename?: string;
 }): Promise<{ mime_type: string; buffer: Buffer }> {
-  return validateImageUpload(input.buffer, input.mime_type, {
-    allowed_mime_types: ALLOWED_MIME_TYPES,
-    max_bytes: MAX_BYTES,
-    error_codes: {
-      invalid_mime: "site.asset_invalid_mime",
-      empty: "site.asset_required",
-      too_large: "site.asset_too_large",
-      unsafe_svg: "site.asset_unsafe_svg",
+  return validateImageUpload(
+    input.buffer,
+    input.mime_type,
+    {
+      allowed_mime_types: ALLOWED_MIME_TYPES,
+      max_bytes: MAX_BYTES,
+      error_codes: {
+        invalid_mime: "site.asset_invalid_mime",
+        empty: "site.asset_required",
+        too_large: "site.asset_too_large",
+        unsafe_svg: "site.asset_unsafe_svg",
+      },
     },
-  }, { filename: input.filename });
+    { filename: input.filename },
+  );
 }
 
 export async function uploadSiteAsset(input: {

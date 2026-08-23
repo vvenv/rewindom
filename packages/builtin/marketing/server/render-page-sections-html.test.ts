@@ -23,13 +23,11 @@ function site(): PublicMarketingSite {
     header: [],
     footer: [],
     analytics_html: "",
-  pages: [],
+    pages: [],
   };
 }
 
-function page(
-  sections: PublicMarketingPage["sections"],
-): PublicMarketingPage {
+function page(sections: PublicMarketingPage["sections"]): PublicMarketingPage {
   return {
     slug: "home",
     locale: "zh-CN",
@@ -97,9 +95,9 @@ describe("renderPageSectionsHtml", () => {
       () => `<p>产品站专属</p>`,
     );
 
-    expect(
-      renderPageSectionsHtml(site(), page([createSection(type)])),
-    ).toBe("");
+    expect(renderPageSectionsHtml(site(), page([createSection(type)]))).toBe(
+      "",
+    );
     expect(
       renderPageSectionsHtml(site(), page([createSection(type)]), {
         isDefaultTenant: false,
@@ -137,7 +135,10 @@ describe("renderPageSectionsHtml", () => {
     const section = createSection(type);
     const withTokens = {
       ...section,
-      settings: { title: "{site} · {tagline}", href: "/t/{topic_slug}/feed.xml" },
+      settings: {
+        title: "{site} · {tagline}",
+        href: "/t/{topic_slug}/feed.xml",
+      },
     };
 
     expect(renderPageSectionsHtml(site(), page([withTokens]))).toContain(

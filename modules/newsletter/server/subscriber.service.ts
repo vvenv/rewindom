@@ -86,7 +86,9 @@ export async function listAvailableLists(input: {
   const all: NewsletterList[] = [];
   for (const source of listNewsletterSources()) {
     try {
-      all.push(...(await source.listLists(input)));
+      const lists = await source.listLists(input);
+      // 回填来源：贡献方不用管，但下拉要靠它判断「这个站有几个源」
+      all.push(...lists.map((list) => ({ source_id: source.id, ...list })));
     } catch {
       // 一个内容源出问题不该让整个订阅入口消失——少一组候选，其余照常
       continue;

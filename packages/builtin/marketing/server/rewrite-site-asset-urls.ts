@@ -60,8 +60,10 @@ export function rewriteSiteAssetUrls(
         return _match;
       }
       return (
-        joinPublicObjectUrl(base, siteAssetObjectKey(input.tenant_id, filename)) +
-        (suffix ?? "")
+        joinPublicObjectUrl(
+          base,
+          siteAssetObjectKey(input.tenant_id, filename),
+        ) + (suffix ?? "")
       );
     },
   );

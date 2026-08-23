@@ -63,7 +63,10 @@ export const renderEventsSubscribeBlockHtml: ChromeBlockHtmlRenderer = (
  * 页面段。与 chrome 块的区别是它在正文流里，可以带一句说明
  *（「不需要注册账号」这种话在页脚那一排放不下）。
  */
-export const renderEventsSubscribeHtml: SectionHtmlRenderer = (section, ctx) => {
+export const renderEventsSubscribeHtml: SectionHtmlRenderer = (
+  section,
+  ctx,
+) => {
   const label = settingText(section.settings, "label");
   // 没有文案就整块不渲染——与势头角标同一条口径：没有可主张的就留白
   if (!label) {

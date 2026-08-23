@@ -1,4 +1,7 @@
-import { getLlmClient, type ResolvedLlmConfig } from "@rewindom/module-sdk/server";
+import {
+  getLlmClient,
+  type ResolvedLlmConfig,
+} from "@rewindom/module-sdk/server";
 
 import {
   EVENT_KINDS,
@@ -8,7 +11,11 @@ import {
   isFirstPartySource,
 } from "../../../shared/index.js";
 
-import { ENTITY_KINDS, isChangelogNoiseName, isEntityKind } from "../entity-extractor.js";
+import {
+  ENTITY_KINDS,
+  isChangelogNoiseName,
+  isEntityKind,
+} from "../entity-extractor.js";
 
 import { heuristicAnalyzer } from "./heuristic-analyzer.js";
 

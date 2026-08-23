@@ -75,7 +75,11 @@ describe("mergeSectionsWithPreset", () => {
     const prose = createSection("prose");
     prose.settings.body_md = "租户写的正文";
 
-    const merged = mergeSectionsWithPreset([hero, prose], THREE_SECTION_PRESET, t);
+    const merged = mergeSectionsWithPreset(
+      [hero, prose],
+      THREE_SECTION_PRESET,
+      t,
+    );
 
     expect(merged.map((section) => section.type)).toEqual([
       "hero",
@@ -180,6 +184,8 @@ describe("mergeSectionsWithPreset", () => {
       "prose",
       "hero",
     ]);
-    expect(mergedFirst.sections?.[1]?.settings.headline).toBe("列里的自定义内容");
+    expect(mergedFirst.sections?.[1]?.settings.headline).toBe(
+      "列里的自定义内容",
+    );
   });
 });

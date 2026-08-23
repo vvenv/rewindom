@@ -82,8 +82,10 @@ function registerEventsContextProvider(): void {
       ...EVENTS_NAV_SOURCES,
     ],
     provide: async (input) => {
-      const t = (key: string, params?: Record<string, string | number>): string =>
-        eventsMessage(input.locale, key, params);
+      const t = (
+        key: string,
+        params?: Record<string, string | number>,
+      ): string => eventsMessage(input.locale, key, params);
       const enabled = await getEnabledTopics(input.tenantId);
       const wantFeed = wantsAny(input.usedTypes, EVENTS_FEED_CONTEXT_TYPES);
       const wantStrip = wantsAny(input.usedTypes, [
@@ -94,9 +96,7 @@ function registerEventsContextProvider(): void {
         wantFeed
           ? getPublicEventFeed(input.tenantId)
           : Promise.resolve({ rising: [], now: [] }),
-        wantStrip
-          ? getPublicEntityIndex(input.tenantId)
-          : Promise.resolve([]),
+        wantStrip ? getPublicEntityIndex(input.tenantId) : Promise.resolve([]),
         wantHero ? getPublicHeroStats(input.tenantId) : Promise.resolve(null),
       ]);
 
@@ -104,9 +104,7 @@ function registerEventsContextProvider(): void {
         emptyEventsContext({
           nav_topics: eventsNavTopicOptions(input.locale, enabled),
           feed: toPublicFeed(feed, t),
-          entity_strip: wantStrip
-            ? toPublicEntityStrip(entityRows)
-            : undefined,
+          entity_strip: wantStrip ? toPublicEntityStrip(entityRows) : undefined,
           hero: heroStats ? toPublicHero(heroStats, t) : undefined,
         }),
       );
@@ -125,12 +123,23 @@ function registerEventsLinkTargets(): void {
     provide: async (tenantId, defaultLocale) => {
       const topics = await getEnabledTopics(tenantId);
       return eventsLinkTargets({
-        entityIndexLabel: eventsMessage(defaultLocale, "site.entityIndex.title"),
+        entityIndexLabel: eventsMessage(
+          defaultLocale,
+          "site.entityIndex.title",
+        ),
         currentTopicFeedLabel: eventsMessage(
           defaultLocale,
           "link.currentTopicFeed",
         ),
         siteFeedLabel: eventsMessage(defaultLocale, "link.siteFeed"),
+        currentTopicSubscribeLabel: eventsMessage(
+          defaultLocale,
+          "link.currentTopicSubscribe",
+        ),
+        currentEntitySubscribeLabel: eventsMessage(
+          defaultLocale,
+          "link.currentEntitySubscribe",
+        ),
         topicName: (topic) => eventsMessage(defaultLocale, `topic.${topic}`),
         topicFeedLabel: (name) =>
           eventsMessage(defaultLocale, "link.topicFeed", { topic: name }),
@@ -159,8 +168,16 @@ export function registerEventsSections(): void {
     renderEventsEntityStripHtml,
     css,
   );
-  registerChromeBlockHtml(eventsSubscribeBlock, renderEventsSubscribeBlockHtml, css);
-  registerSiteSectionHtml(eventsSubscribeSection, renderEventsSubscribeHtml, css);
+  registerChromeBlockHtml(
+    eventsSubscribeBlock,
+    renderEventsSubscribeBlockHtml,
+    css,
+  );
+  registerSiteSectionHtml(
+    eventsSubscribeSection,
+    renderEventsSubscribeHtml,
+    css,
+  );
   registerEventsContextProvider();
   registerSitemapProvider({ provide: getPublicEventSitemapEntries });
   // 实体页单独一个 provider：它与事件的时间口径不同（按最近有事件筛，而不是按自身更新）

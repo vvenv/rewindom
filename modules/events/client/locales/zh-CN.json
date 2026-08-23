@@ -206,12 +206,15 @@
       "entityEyebrow": "事件雷达 · {entity_kind}",
       "entityHeadline": "{entity}",
       "entitySubhead": "跨来源追踪 {entity} 相关的事件，最近的排在前面。"
-    }
+    },
+    "subscribeEmail": "邮件订阅"
   },
   "link": {
     "siteFeed": "全站 RSS",
     "topicFeed": "{topic} RSS",
-    "currentTopicFeed": "当前主题 RSS"
+    "currentTopicFeed": "当前主题 RSS",
+    "currentTopicSubscribe": "邮件订阅：当前主题",
+    "currentEntitySubscribe": "邮件订阅：当前实体"
   },
   "home": {
     "layout": {
@@ -279,7 +282,8 @@
       "showStats": "显示实时计数",
       "showStatsInfo": "还没有事件时自动隐藏，不会在首屏挂一串 0",
       "interpolationInfo": "专题页可写 {topic} / {topic_slug}，实体页可写 {entity} / {entity_kind}，{feed} 是当前页 RSS。另一种身份的 token 为空。",
-      "subscribeHrefInfo": "默认 {feed}：订当前页对应的 feed（专题 / 实体 / 全站）。想钉死某一格就改成 /topics/ai/feed.xml。"
+      "subscribeHrefInfo": "默认 {feed}：订当前页对应的 feed（专题 / 实体 / 全站）。想钉死某一格就改成 /topics/ai/feed.xml。",
+      "subscribeEmailHrefInfo": "默认指向站点的订阅页。主题页 / 实体页上可用「邮件订阅：当前主题 / 当前实体」，读者订的就是这一页对应的范围。"
     },
     "entityHero": {
       "label": "实体首屏",
@@ -312,7 +316,10 @@
     "headline": "当前事件的一句话概述（没有则回落标题）",
     "entity": "当前实体的名称，如「OpenAI」",
     "entity_kind": "当前实体的类型，如「公司」",
-    "feed": "当前页面的 RSS 订阅地址"
+    "feed": "当前页面的 RSS 订阅地址",
+    "entity_slug": "实体路径（拼地址用，如 openai）",
+    "topic_list": "本主题的订阅列表（拼订阅链接用）",
+    "entity_list": "本实体的订阅列表（拼订阅链接用）"
   },
   "edit": {
     "action": "编辑",

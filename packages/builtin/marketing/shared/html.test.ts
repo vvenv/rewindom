@@ -28,8 +28,6 @@ describe("jsonLdScriptText", () => {
 
 describe("escapeHtml", () => {
   it("escapes markup and quotes", () => {
-    expect(escapeHtml(`<a href="x">`)).toBe(
-      "&lt;a href=&quot;x&quot;&gt;",
-    );
+    expect(escapeHtml(`<a href="x">`)).toBe("&lt;a href=&quot;x&quot;&gt;");
   });
 });

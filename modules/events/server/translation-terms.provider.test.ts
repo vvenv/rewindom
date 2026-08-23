@@ -29,42 +29,58 @@ beforeEach(() => {
 
 describe("eventsTranslationTermsProvider", () => {
   it("按提及数供出实体名", async () => {
-    groupBy.mockResolvedValue(linked([["a", 18], ["b", 5]]));
+    groupBy.mockResolvedValue(
+      linked([
+        ["a", 18],
+        ["b", 5],
+      ]),
+    );
     findMany.mockResolvedValue([
       { id: "a", name: "Cloudflare" },
       { id: "b", name: "AWS" },
     ]);
-    await expect(eventsTranslationTermsProvider.getKeepTerms("t1")).resolves.toEqual([
-      "Cloudflare",
-      "AWS",
-    ]);
+    await expect(
+      eventsTranslationTermsProvider.getKeepTerms("t1"),
+    ).resolves.toEqual(["Cloudflare", "AWS"]);
   });
 
   it("同名不同 kind 的实体只留一条", async () => {
-    groupBy.mockResolvedValue(linked([["a", 7], ["b", 5]]));
+    groupBy.mockResolvedValue(
+      linked([
+        ["a", 7],
+        ["b", 5],
+      ]),
+    );
     findMany.mockResolvedValue([
       { id: "a", name: "Trump" },
       { id: "b", name: "trump" },
     ]);
-    await expect(eventsTranslationTermsProvider.getKeepTerms("t1")).resolves.toEqual([
-      "Trump",
-    ]);
+    await expect(
+      eventsTranslationTermsProvider.getKeepTerms("t1"),
+    ).resolves.toEqual(["Trump"]);
   });
 
   it("单字符名字丢掉 —— 一个字的「术语」会命中满篇，反而毁掉译文", async () => {
-    groupBy.mockResolvedValue(linked([["a", 9], ["b", 3]]));
+    groupBy.mockResolvedValue(
+      linked([
+        ["a", 9],
+        ["b", 3],
+      ]),
+    );
     findMany.mockResolvedValue([
       { id: "a", name: "X" },
       { id: "b", name: "NVIDIA" },
     ]);
-    await expect(eventsTranslationTermsProvider.getKeepTerms("t1")).resolves.toEqual([
-      "NVIDIA",
-    ]);
+    await expect(
+      eventsTranslationTermsProvider.getKeepTerms("t1"),
+    ).resolves.toEqual(["NVIDIA"]);
   });
 
   it("没有被事件引用过的实体不查第二次库", async () => {
     groupBy.mockResolvedValue([]);
-    await expect(eventsTranslationTermsProvider.getKeepTerms("t1")).resolves.toEqual([]);
+    await expect(
+      eventsTranslationTermsProvider.getKeepTerms("t1"),
+    ).resolves.toEqual([]);
     expect(findMany).not.toHaveBeenCalled();
   });
 

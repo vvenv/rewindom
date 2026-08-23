@@ -50,7 +50,7 @@ function renderBadge(block: SiteBlock, height: number): string {
 
 export const renderBadgesHtml: SectionHtmlRenderer = (section) => {
   const s = section.settings;
-  const height = settingNumber(s, "height", 54);
+  const height = settingNumber(s, "height", 32);
   const align = settingText(s, "align");
   const items = section.blocks
     .map((block) => renderBadge(block, height))

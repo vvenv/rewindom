@@ -106,7 +106,13 @@ export const SERVER_MODULE_MANIFEST = [
     kind: "business",
     // platform：读 tenant_modules 判断站点是否开通事件雷达
     // marketing：贡献官网段、模板页与 /events 公开路径
-    requires: ["rbac", "audit", "platform", "marketing"],
+    // newsletter：把主题 / 实体登记成可订阅列表（单向：events → newsletter）
+    requires: ["rbac", "audit", "platform", "marketing", "newsletter"],
+  },
+  {
+    id: "newsletter",
+    kind: "business",
+    requires: ["rbac", "audit", "marketing"],
   },
   {
     id: "note",
@@ -132,10 +138,5 @@ export const SERVER_MODULE_MANIFEST = [
     id: "todo",
     kind: "business",
     requires: ["rbac", "audit"],
-  },
-  {
-    id: "newsletter",
-    kind: "business",
-    requires: ["rbac", "audit", "marketing"],
   },
 ] as const satisfies readonly ModuleManifestEntry[];

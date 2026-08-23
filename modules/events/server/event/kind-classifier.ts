@@ -48,10 +48,20 @@ const MIN_MARGIN = 2;
  */
 const KIND_KEYWORDS: Record<EventKind, readonly string[]> = {
   outage: [
-    "outage", "downtime", "is down", "went down", "service disruption",
-    "degraded performance", "elevated error", "elevated errors",
-    "partial outage", "major outage", "service restored",
-    "宕机", "故障", "服务中断",
+    "outage",
+    "downtime",
+    "is down",
+    "went down",
+    "service disruption",
+    "degraded performance",
+    "elevated error",
+    "elevated errors",
+    "partial outage",
+    "major outage",
+    "service restored",
+    "宕机",
+    "故障",
+    "服务中断",
   ],
   /*
    * **没有裸的 `launch` / `release` 系列词**，也是被真实语料打回来的。
@@ -63,14 +73,29 @@ const KIND_KEYWORDS: Record<EventKind, readonly string[]> = {
    * 关键词只留歧义极小的短语。
    */
   release: [
-    "now available", "general availability", "generally available",
-    "rolls out", "rolling out", "changelog", "release notes", "new version",
+    "now available",
+    "general availability",
+    "generally available",
+    "rolls out",
+    "rolling out",
+    "changelog",
+    "release notes",
+    "new version",
     "发布版本",
   ],
   acquisition: [
-    "acquire", "acquires", "acquired", "acquiring", "acquisition",
-    "buys", "bought", "merger", "merges with", "takeover",
-    "收购", "并购",
+    "acquire",
+    "acquires",
+    "acquired",
+    "acquiring",
+    "acquisition",
+    "buys",
+    "bought",
+    "merger",
+    "merges with",
+    "takeover",
+    "收购",
+    "并购",
   ],
   /*
    * **没有裸的 `raises` / `raised`**，这是被真实语料打回来的：
@@ -82,16 +107,46 @@ const KIND_KEYWORDS: Record<EventKind, readonly string[]> = {
    * 精度换召回是刻意的：错标会把事件挂到不相干的聚合面上，而读者没法核对。
    */
   funding: [
-    "funding round", "seed round", "series a", "series b", "series c",
-    "series d", "led the round", "venture round", "valuation",
-    "raises seed", "raises series", "融资", "估值",
+    "funding round",
+    "seed round",
+    "series a",
+    "series b",
+    "series c",
+    "series d",
+    "led the round",
+    "venture round",
+    "valuation",
+    "raises seed",
+    "raises series",
+    "融资",
+    "估值",
   ],
   legal: [
-    "lawsuit", "lawsuits", "sues", "sued", "suing", "settlement", "settles",
-    "antitrust", "court", "judge", "ruling", "injunction", "indictment",
-    "subpoena", "alleges", "alleged", "allegations", "penalty", "fined",
-    "fines", "class action", "fraud",
-    "起诉", "诉讼", "罚款",
+    "lawsuit",
+    "lawsuits",
+    "sues",
+    "sued",
+    "suing",
+    "settlement",
+    "settles",
+    "antitrust",
+    "court",
+    "judge",
+    "ruling",
+    "injunction",
+    "indictment",
+    "subpoena",
+    "alleges",
+    "alleged",
+    "allegations",
+    "penalty",
+    "fined",
+    "fines",
+    "class action",
+    "fraud",
+    "起诉",
+    "诉讼",
+    "罚款",
   ],
 };
 
@@ -112,7 +167,10 @@ const KEYWORD_MATCHERS = new Map<string, RegExp | null>(
     .map((word) => [
       word,
       /^[\x00-\x7F]+$/u.test(word)
-        ? new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}\\b`, "u")
+        ? new RegExp(
+            `\\b${word.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}\\b`,
+            "u",
+          )
         : null,
     ]),
 );

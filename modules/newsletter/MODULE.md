@@ -23,13 +23,13 @@ mailer**，编译期不 import 那个包。
 
 ## 面划分
 
-| 面           | 路由                                                                     | 目录                                | 门控                         |
-| ------------ | ------------------------------------------------------------------------ | ----------------------------------- | ---------------------------- |
-| 公开（JSON） | `POST /api/public/newsletter/subscribe`、`GET .../lists`                 | `server/public-subscribe.routes.ts` | 匿名；Host 认租户            |
-| 公开（SSR）  | `/newsletter/confirm`、`/newsletter/unsubscribe`（GET 渲染 + POST 提交） | `server/newsletter.ssr.ts`          | 匿名；token 即凭证           |
-| 官网段       | `newsletter.subscribe`                                                   | `shared/sections/subscribe/`        | entitlement                  |
-| 公开站交互   | `client/enhance/index.ts`（由 site-enhance 扫进同一个 IIFE）             | —                                   | —                            |
-| 工作台       | `/api/newsletter`、`/app/newsletter`                                     | `server/newsletter.routes.ts`       | `newsletter.read` / `.write` |
+| 面           | 路由                                                                                   | 目录                                | 门控                                                                                      |
+| ------------ | -------------------------------------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------- |
+| 公开（JSON） | `POST /api/public/newsletter/subscribe`、`GET .../lists`                               | `server/public-subscribe.routes.ts` | 匿名；Host 认租户                                                                         |
+| 公开（SSR）  | `/subscribe`、`/newsletter/confirm`、`/newsletter/unsubscribe`（GET 渲染 + POST 提交） | `server/newsletter.ssr.ts`          | 匿名；token 即凭证；路由自己 `resolveHostTenant`（`hostTenantContext` 只在 `/api*` 上有） |
+| 官网段       | `newsletter.subscribe`                                                                 | `shared/sections/subscribe/`        | entitlement                                                                               |
+| 公开站交互   | `client/enhance/index.ts`（由 site-enhance 扫进同一个 IIFE）                           | —                                   | —                                                                                         |
+| 工作台       | `/api/newsletter`、`/app/newsletter`                                                   | `server/newsletter.routes.ts`       | `newsletter.read` / `.write`                                                              |
 
 公开口与两张 SSR 页**都不进 entitlement 网关**：那层要的是工作台的租户上下文，
 而这里是访客。退订页尤其不能挂在开关后面——站长关掉订阅功能之后，存量订阅者手里
@@ -59,15 +59,31 @@ POST，没有我们的 Origin。token 本身就是凭证（32 字节随机量）
 **提交不写审计日志**：匿名访客的正常写入，一次订阅就是一条业务记录，再往审计流里抄一份
 只会把「谁动了后台」冲淡（与 site-form 同口径）。删除、导出、手动投递**要**留痕。
 
-## 订阅段：留空即订阅本站全部
+## 订阅段：订哪张表由租户在下拉里选
 
-`list_key` 留空是**有意义的默认**——绝大多数站点只有一个内容源，站长把段拖上去就该
-能用，不该逼他先去抄一串 `events:topic:ai`。想只订某一个列表时才填，key 在
-`/app/newsletter` 的「可订阅列表」卡里能看到。
+`list_key` 默认 `newsletter.all`（本站全部），候选来自 `registerNewsletterSource()`——
+按请求的租户数据，编译期枚举不出来，所以走 `options_from` 运行时选项源
+（`client/editor-context.ts`），段定义里的静态 `options` 只是拉不到时的兜底。
 
-现在不做下拉选择器：候选来自 `registerNewsletterSource()`，是**按请求**的租户数据，
-要用 `options_from` 就得再接一条 SSR 贡献上下文链路（shop 的分类选择器是那么做的）。
-记在 MODULE.spec 的 out_of_scope。
+这也是「多个模块都提供订阅源时，段怎么知道自己对应哪一个」的答案：**它不推断**。
+按页面上下文猜在 RSS 那种「一个链接指向一个 feed」的场景成立，但订阅段是租户主动摆上去
+的内容块——摆在首页的订阅框该订什么，只有摆它的人知道。猜错的代价是读者收到一堆没想订
+的东西，然后点「举报垃圾邮件」。
+
+### 表单下面那一行：订的是什么 · 多久一封
+
+两件事读者都**无处可查**：周期是租户在段设置里定的（表单上没有可选项），范围可能是从
+主题页带过来的。所以渲染器常驻画一行「订阅范围：AI · 每天一封摘要」。
+
+文案是**成品**（段渲染器拿不到 i18n），按 key 取：`contributed.newsletter.labels`
+的 `scopes` / `cadences`（`server/section-context.ts` 与 `client/editor-context.ts` 各填
+一份，形状相同）。为什么是表不是一句话——`SectionContextInput` 是**页面级**的，给不了
+「这一段选了什么」，只能由段自己按 `list_key` / `cadence` 查。
+
+`?list=` 指定的范围**盖过段设置**（读者的意图写在地址里，比站长配的默认更具体），
+认不出的 key 一律当没传。这一条收在 section context provider 里而**不是**订阅页那条
+路由里：`/subscribe` 走本模块的路由，`/zh-CN/subscribe` 走 marketing 的通用管线，
+两条都得认——范围属于请求，不属于哪条路由。
 
 ## 双重确认与两个 token
 

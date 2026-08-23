@@ -105,8 +105,8 @@ describe("getEntityProfile", () => {
   it("窗口是 90 天", async () => {
     groupBy.mockResolvedValue([group("outage", 2, 10)]);
     await profile();
-    expect(
-      groupBy.mock.calls[0][0].where.first_seen_at.gte.getTime(),
-    ).toBe(NOW.getTime() - 90 * 86_400_000);
+    expect(groupBy.mock.calls[0][0].where.first_seen_at.gte.getTime()).toBe(
+      NOW.getTime() - 90 * 86_400_000,
+    );
   });
 });

@@ -9,7 +9,10 @@ import {
   registerSectionDefinition,
   resetSectionContributions,
 } from "./sections/index.js";
-import { MARKETING_CHROME_GROUP, MARKETING_SECTION_GROUP } from "./sections/types.js";
+import {
+  MARKETING_CHROME_GROUP,
+  MARKETING_SECTION_GROUP,
+} from "./sections/types.js";
 
 afterEach(() => {
   resetSectionContributions();

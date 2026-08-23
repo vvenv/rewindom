@@ -17,7 +17,11 @@ import { useTranslation } from "react-i18next";
 import { EVENT_SORT_VALUES } from "../lib/events.js";
 
 import type { EventSortValue } from "../lib/events.js";
-import { EVENT_TOPICS, type EventTopic, type EventTopicCount } from "../../shared/index.js";
+import {
+  EVENT_TOPICS,
+  type EventTopic,
+  type EventTopicCount,
+} from "../../shared/index.js";
 
 interface EventFiltersProps {
   q?: string;

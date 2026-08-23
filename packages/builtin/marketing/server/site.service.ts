@@ -1044,10 +1044,7 @@ export async function applyHomeLayout(
       data: {
         sections_draft: sections as unknown as Prisma.InputJsonValue,
         title_draft: resolvedStarterText(t, layout.preset.titleKey),
-        description_draft: resolvedStarterText(
-          t,
-          layout.preset.descriptionKey,
-        ),
+        description_draft: resolvedStarterText(t, layout.preset.descriptionKey),
       },
     });
   }
@@ -1132,7 +1129,8 @@ export async function updatePage(
           ? {
               description_draft: (() => {
                 const d = body.description.trim();
-                if (!d) throw new ValidationError("site.page_description_required");
+                if (!d)
+                  throw new ValidationError("site.page_description_required");
                 return d;
               })(),
             }

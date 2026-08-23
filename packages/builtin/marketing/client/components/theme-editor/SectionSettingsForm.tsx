@@ -329,7 +329,9 @@ function ScopedSettings({
     <div className="space-y-3">
       <PanelLabel>{label}</PanelLabel>
       {hiddenOnCurrentPage ? (
-        <p className="text-xs text-muted-foreground">{t("editor.visibleOnHidden")}</p>
+        <p className="text-xs text-muted-foreground">
+          {t("editor.visibleOnHidden")}
+        </p>
       ) : null}
       {tabs.length > 1 ? (
         <Tabs

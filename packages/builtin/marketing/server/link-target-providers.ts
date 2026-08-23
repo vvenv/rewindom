@@ -16,9 +16,7 @@ export interface LinkTargetProvider {
 
 const PROVIDERS: LinkTargetProvider[] = [];
 
-export function registerLinkTargetProvider(
-  provider: LinkTargetProvider,
-): void {
+export function registerLinkTargetProvider(provider: LinkTargetProvider): void {
   if (PROVIDERS.includes(provider)) return;
   PROVIDERS.push(provider);
 }

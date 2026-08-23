@@ -31,9 +31,7 @@ export const renderEventsEntityIndexHtml: SectionHtmlRenderer = (
   const groups = index.groups.filter((group) => group.items.length > 0);
   if (groups.length === 0) {
     const empty = settingText(section.settings, "empty_text");
-    return empty
-      ? `<p class="events-empty">${escapeHtml(empty)}</p>`
-      : "";
+    return empty ? `<p class="events-empty">${escapeHtml(empty)}</p>` : "";
   }
 
   const body = groups

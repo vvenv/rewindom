@@ -289,17 +289,15 @@ describe("库存模板标题", () => {
     expect(relocalizeStockTemplateDescription(kind, "在售", "en")).toBe(
       "For sale",
     );
-    expect(
-      relocalizeStockTemplateDescription(kind, "Custom blurb", "en"),
-    ).toBe("Custom blurb");
+    expect(relocalizeStockTemplateDescription(kind, "Custom blurb", "en")).toBe(
+      "Custom blurb",
+    );
     expect(
       resolveEditorTemplateCopy(kind, "zh-CN", {
         title: "shop:storefront.catalog.title",
         description: "shop:storefront.catalog.subtitle",
       }),
     ).toEqual({ title: "商店", description: "在售" });
-    expect(
-      resolveCatalogPageDescription(kind, "en", "在售"),
-    ).toBe("For sale");
+    expect(resolveCatalogPageDescription(kind, "en", "在售")).toBe("For sale");
   });
 });

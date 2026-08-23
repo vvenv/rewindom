@@ -65,11 +65,13 @@ export function pickRelated(
     }
   }
 
-  return scored
-    // 同分时按 id 排，保证同样的输入得到同样的输出（幂等）
-    .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
-    .slice(0, RELATED_LIMIT)
-    .map((row) => row.id);
+  return (
+    scored
+      // 同分时按 id 排，保证同样的输入得到同样的输出（幂等）
+      .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
+      .slice(0, RELATED_LIMIT)
+      .map((row) => row.id)
+  );
 }
 
 /**
@@ -132,7 +134,9 @@ export async function listRelatedEvents(params: {
     return [];
   }
   const rows = await prisma.newsEvent.findMany({
-    where: withTenantScope(params.tenant_id, { id: { in: [...params.related_ids] } }),
+    where: withTenantScope(params.tenant_id, {
+      id: { in: [...params.related_ids] },
+    }),
     select: {
       id: true,
       slug: true,

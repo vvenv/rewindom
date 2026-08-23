@@ -64,11 +64,7 @@ export function useEventsPage() {
   );
 
   const handleFiltersChange = useCallback(
-    (filters: {
-      q?: string;
-      status?: EventStatus;
-      following?: boolean;
-    }) => {
+    (filters: { q?: string; status?: EventStatus; following?: boolean }) => {
       setSearchParams(
         applyFiltersToSearchParams(searchParams, {
           q: filters.q,

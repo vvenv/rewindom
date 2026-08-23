@@ -11,6 +11,17 @@ export const NEWSLETTER_SERVER_I18N: ServerI18nBundle = {
       "newsletter.list_unknown": "订阅列表不存在",
       "newsletter.no_lists": "本站暂时没有可订阅的内容",
       "newsletter.subscriber_not_found": "订阅者不存在",
+      "newsletter.link.subscribe": "邮件订阅",
+      /*
+       * 订阅段表单下面那一行：读者在这里没有任何可选项——**周期是租户在段上定的**，
+       * 范围可能是从主题页带过来的。两件事都只能靠这一行告诉他。
+       */
+      "newsletter.scope.line": "订阅范围：{{list}}",
+      "newsletter.scope.all": "本站全部更新",
+      "newsletter.cadence.daily": "每天一封摘要",
+      "newsletter.cadence.weekly": "每周一封摘要",
+      "newsletter.link.jumpToSection": "跳过去并定位到订阅区块",
+      "newsletter.link.samePage": "同一页内滚动到订阅区块",
       "newsletter.reactivate_complained":
         "这个地址举报过垃圾邮件，不能一键恢复",
       "newsletter.suppressed.hard_bounce": "地址不存在（永久退信）",
@@ -31,6 +42,13 @@ export const NEWSLETTER_SERVER_I18N: ServerI18nBundle = {
       "newsletter.list_unknown": "Unknown subscription list",
       "newsletter.no_lists": "Nothing to subscribe to on this site yet",
       "newsletter.subscriber_not_found": "Subscriber not found",
+      "newsletter.link.subscribe": "Newsletter signup",
+      "newsletter.scope.line": "Subscribing to {{list}}",
+      "newsletter.scope.all": "everything on this site",
+      "newsletter.cadence.daily": "A digest every day",
+      "newsletter.cadence.weekly": "A digest every week",
+      "newsletter.link.jumpToSection": "Jump to the signup section",
+      "newsletter.link.samePage": "Scroll to the signup section on this page",
       "newsletter.reactivate_complained":
         "This address reported spam and cannot be reactivated with one click",
       "newsletter.suppressed.hard_bounce":

@@ -52,7 +52,9 @@ describe("recordPageVersion", () => {
 
     await recordPageVersion(tx as never, input);
 
-    expect(tx.marketingPageVersion.create.mock.calls[0]![0].data.version).toBe(1);
+    expect(tx.marketingPageVersion.create.mock.calls[0]![0].data.version).toBe(
+      1,
+    );
   });
 
   it("在最新一版之后递增", async () => {
@@ -61,7 +63,9 @@ describe("recordPageVersion", () => {
 
     await recordPageVersion(tx as never, input);
 
-    expect(tx.marketingPageVersion.create.mock.calls[0]![0].data.version).toBe(8);
+    expect(tx.marketingPageVersion.create.mock.calls[0]![0].data.version).toBe(
+      8,
+    );
   });
 
   it("存完整正文，不是 diff——任何一版都要能独立读出来", async () => {

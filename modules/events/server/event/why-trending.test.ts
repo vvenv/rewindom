@@ -64,8 +64,16 @@ describe("computeWhyTrending", () => {
   it("一手来源发布公告是最强的一条，排最前", () => {
     const result = computeWhyTrending({
       signals: [
-        signal({ source_name: "OpenAI", source_kind: "official", published_at: hoursAgo(3) }),
-        signal({ source_name: "TechCrunch", source_kind: "news", published_at: hoursAgo(2) }),
+        signal({
+          source_name: "OpenAI",
+          source_kind: "official",
+          published_at: hoursAgo(3),
+        }),
+        signal({
+          source_name: "TechCrunch",
+          source_kind: "news",
+          published_at: hoursAgo(2),
+        }),
       ],
       now: NOW,
     });
@@ -77,8 +85,16 @@ describe("computeWhyTrending", () => {
   it("跨源印证带上家数与最先报道的那家", () => {
     const result = computeWhyTrending({
       signals: [
-        signal({ source_name: "BBC", source_kind: "news", published_at: hoursAgo(5) }),
-        signal({ source_name: "Reuters", source_kind: "news", published_at: hoursAgo(2) }),
+        signal({
+          source_name: "BBC",
+          source_kind: "news",
+          published_at: hoursAgo(5),
+        }),
+        signal({
+          source_name: "Reuters",
+          source_kind: "news",
+          published_at: hoursAgo(2),
+        }),
       ],
       now: NOW,
     });
@@ -112,9 +128,21 @@ describe("computeWhyTrending", () => {
   it("近窗新增量带上条数、来源数与窗口长度", () => {
     const result = computeWhyTrending({
       signals: [
-        signal({ source_name: "BBC", source_kind: "news", published_at: hoursAgo(20) }),
-        signal({ source_name: "Reuters", source_kind: "news", published_at: hoursAgo(1) }),
-        signal({ source_name: "AP", source_kind: "news", published_at: hoursAgo(2) }),
+        signal({
+          source_name: "BBC",
+          source_kind: "news",
+          published_at: hoursAgo(20),
+        }),
+        signal({
+          source_name: "Reuters",
+          source_kind: "news",
+          published_at: hoursAgo(1),
+        }),
+        signal({
+          source_name: "AP",
+          source_kind: "news",
+          published_at: hoursAgo(2),
+        }),
       ],
       now: NOW,
     });
@@ -129,7 +157,11 @@ describe("computeWhyTrending", () => {
   it("近窗只有一条信号时不写「正在扩散」", () => {
     expect(
       codes([
-        signal({ source_name: "OpenAI", source_kind: "official", published_at: hoursAgo(1) }),
+        signal({
+          source_name: "OpenAI",
+          source_kind: "official",
+          published_at: hoursAgo(1),
+        }),
       ]),
     ).toEqual(["why.officialAnnouncement"]);
   });
@@ -137,8 +169,16 @@ describe("computeWhyTrending", () => {
   it("近窗没有任何动静时不写「正在扩散」", () => {
     expect(
       codes([
-        signal({ source_name: "BBC", source_kind: "news", published_at: hoursAgo(30) }),
-        signal({ source_name: "Reuters", source_kind: "news", published_at: hoursAgo(28) }),
+        signal({
+          source_name: "BBC",
+          source_kind: "news",
+          published_at: hoursAgo(30),
+        }),
+        signal({
+          source_name: "Reuters",
+          source_kind: "news",
+          published_at: hoursAgo(28),
+        }),
       ]),
     ).not.toContain("why.recentActivity");
   });
@@ -146,9 +186,21 @@ describe("computeWhyTrending", () => {
   it("最多四条——再多就不是「为什么」而是一份报表", () => {
     const result = computeWhyTrending({
       signals: [
-        signal({ source_name: "OpenAI", source_kind: "official", published_at: hoursAgo(3) }),
-        signal({ source_name: "TechCrunch", source_kind: "news", published_at: hoursAgo(2) }),
-        signal({ source_name: "HN", source_kind: "community", published_at: hoursAgo(1) }),
+        signal({
+          source_name: "OpenAI",
+          source_kind: "official",
+          published_at: hoursAgo(3),
+        }),
+        signal({
+          source_name: "TechCrunch",
+          source_kind: "news",
+          published_at: hoursAgo(2),
+        }),
+        signal({
+          source_name: "HN",
+          source_kind: "community",
+          published_at: hoursAgo(1),
+        }),
       ],
       now: NOW,
     });

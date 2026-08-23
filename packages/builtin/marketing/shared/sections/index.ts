@@ -145,10 +145,17 @@ const WITH_PAGE_VISIBILITY = new Map<string, SectionDefinition>();
  */
 function withAreaPageVisibility(def: SectionDefinition): SectionDefinition {
   if (def.type === "header" || def.type === "footer") return def;
-  if (!def.placements.includes("header") && !def.placements.includes("footer")) {
+  if (
+    !def.placements.includes("header") &&
+    !def.placements.includes("footer")
+  ) {
     return def;
   }
-  if (def.settings.some((setting) => "id" in setting && setting.id === VISIBLE_ON_SETTING_ID)) {
+  if (
+    def.settings.some(
+      (setting) => "id" in setting && setting.id === VISIBLE_ON_SETTING_ID,
+    )
+  ) {
     return def;
   }
   const cached = WITH_PAGE_VISIBILITY.get(def.type);

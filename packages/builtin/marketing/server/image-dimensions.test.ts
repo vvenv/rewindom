@@ -68,7 +68,9 @@ describe("readImageDimensions", () => {
   });
 
   it("截断的文件不会读越界", () => {
-    expect(() => readImageDimensions(png(10, 10).subarray(0, 18))).not.toThrow();
+    expect(() =>
+      readImageDimensions(png(10, 10).subarray(0, 18)),
+    ).not.toThrow();
     expect(readImageDimensions(png(10, 10).subarray(0, 18))).toBeNull();
   });
 

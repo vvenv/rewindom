@@ -25,7 +25,11 @@ export function EventTimeline({ entries }: { entries: EventTimelineItem[] }) {
 
   if (entries.length === 0) {
     return (
-      <EmptyState icon={History} size="panel" title={t("detail.timelineEmpty")} />
+      <EmptyState
+        icon={History}
+        size="panel"
+        title={t("detail.timelineEmpty")}
+      />
     );
   }
 
@@ -75,8 +79,12 @@ export function EventTimeline({ entries }: { entries: EventTimelineItem[] }) {
                           <span className="text-muted-foreground w-11 shrink-0 tabular-nums">
                             {formatClockTime(update.occurred_at, i18n.language)}
                           </span>
-                          <span className="shrink-0 font-medium">{update.phase}</span>
-                          <span className="text-muted-foreground">{update.text}</span>
+                          <span className="shrink-0 font-medium">
+                            {update.phase}
+                          </span>
+                          <span className="text-muted-foreground">
+                            {update.text}
+                          </span>
                         </li>
                       ))}
                     </ol>

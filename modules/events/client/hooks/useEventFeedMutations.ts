@@ -3,14 +3,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { EVENT_FEEDS_QUERY_KEY } from "./useEventFeeds.js";
 
-import type {
-  EventFeedItem,
-  EventFeedWriteBody,
-} from "../../shared/index.js";
+import type { EventFeedItem, EventFeedWriteBody } from "../../shared/index.js";
 
 function useInvalidateFeeds() {
   const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ queryKey: EVENT_FEEDS_QUERY_KEY });
+  return () =>
+    queryClient.invalidateQueries({ queryKey: EVENT_FEEDS_QUERY_KEY });
 }
 
 export function useCreateEventFeed() {

@@ -61,7 +61,11 @@ describe("Event feed routes 权限控制", () => {
     const denied = await app.inject({
       method: "POST",
       url: "/api/events/feeds/",
-      payload: { name: "X", connector: "rss", url: "https://example.com/feed.xml" },
+      payload: {
+        name: "X",
+        connector: "rss",
+        url: "https://example.com/feed.xml",
+      },
       headers: authHeaders(reader),
     });
     expect(denied.statusCode).toBe(403);
@@ -69,7 +73,11 @@ describe("Event feed routes 权限控制", () => {
     const allowed = await app.inject({
       method: "POST",
       url: "/api/events/feeds/",
-      payload: { name: "X", connector: "rss", url: "https://example.com/feed.xml" },
+      payload: {
+        name: "X",
+        connector: "rss",
+        url: "https://example.com/feed.xml",
+      },
       headers: authHeaders(writer),
     });
     expect(allowed.statusCode).toBe(200);

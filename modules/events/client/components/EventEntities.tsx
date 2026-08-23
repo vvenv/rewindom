@@ -3,7 +3,10 @@ import { Button } from "@rewindom/ui/button";
 import { Check, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { useFollowEntity, useUnfollowEntity } from "../hooks/useFollowMutations.js";
+import {
+  useFollowEntity,
+  useUnfollowEntity,
+} from "../hooks/useFollowMutations.js";
 
 import type { EventEntityItem } from "../../shared/index.js";
 
@@ -35,7 +38,9 @@ export function EventEntities({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-muted-foreground text-xs">{t("entities.title")}</span>
+      <span className="text-muted-foreground text-xs">
+        {t("entities.title")}
+      </span>
       {entities.map((entity) =>
         canFollow ? (
           <Button

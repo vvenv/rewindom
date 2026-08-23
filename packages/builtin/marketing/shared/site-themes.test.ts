@@ -9,7 +9,11 @@ import { describe, expect, it } from "vitest";
 
 import { findStarterPagePreset } from "./page-presets.js";
 import { buildSiteStarter, SITE_STARTERS } from "./site-starters.js";
-import { applySiteThemeSettings, findSiteTheme, SITE_THEMES } from "./site-themes.js";
+import {
+  applySiteThemeSettings,
+  findSiteTheme,
+  SITE_THEMES,
+} from "./site-themes.js";
 
 /** 起步模板里的文案走 i18n key，测试里原样返回即可。 */
 const t = (key: string): string => key;

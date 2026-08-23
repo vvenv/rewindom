@@ -75,7 +75,9 @@ export function composeSiteColor(rgb: string, alphaPercent: number): string {
   return `${opaque}${byte}`;
 }
 
-function parseOpaqueRgb(hex: string): { r: number; g: number; b: number } | null {
+function parseOpaqueRgb(
+  hex: string,
+): { r: number; g: number; b: number } | null {
   const { rgb } = splitSiteColor(hex);
   if (!isOpaqueHex(rgb)) return null;
   const expanded = expandHex(rgb).slice(1);

@@ -20,9 +20,7 @@ export interface EditorContextInput {
 
 export interface EditorContextProvider {
   sectionTypes: readonly string[];
-  provide: (
-    input: EditorContextInput,
-  ) => Promise<Record<string, unknown>>;
+  provide: (input: EditorContextInput) => Promise<Record<string, unknown>>;
 }
 
 const PROVIDERS: EditorContextProvider[] = [];

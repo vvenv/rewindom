@@ -109,9 +109,8 @@ describe("Follow Routes 权限控制", () => {
   });
 
   it("/updates 是静态路径，不会被当成事件 id", async () => {
-    const { countFollowUpdates, getFollowState } = await import(
-      "./follow.service.js"
-    );
+    const { countFollowUpdates, getFollowState } =
+      await import("./follow.service.js");
     const response = await app.inject({
       method: "GET",
       url: "/api/events/follows/updates",

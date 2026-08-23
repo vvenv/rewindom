@@ -273,7 +273,9 @@ describe("SectionTree 拖进分栏", () => {
 
     await startDrag(row(hero.id));
     // 页脚那个分栏照常摊开，但它的空列不给落
-    expect(container.querySelector(`[data-row-id="${menu.id}"]`)).not.toBeNull();
+    expect(
+      container.querySelector(`[data-row-id="${menu.id}"]`),
+    ).not.toBeNull();
     expect(
       container.querySelector(`[data-column-drop="${emptyColumnId}"]`),
     ).toBeNull();

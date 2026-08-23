@@ -29,6 +29,13 @@ export interface SectionContextInput {
   usedTypes?: ReadonlySet<string>;
   /** 读 cookie（购物车 id 等）；没有就不带。 */
   cookies?: { get(name: string): string | undefined };
+  /**
+   * 当前请求的查询参数（`/subscribe?list=events:topic:ai` 里的 `list`）。
+   *
+   * 段的设置是**租户存下来的**，而这一类参数是**读者当次的意图**，比设置更具体。
+   * 值来自访客，provider 必须自己校验——认不出的一律当没传，不能原样透传给段。
+   */
+  query?: Readonly<Record<string, unknown>>;
   /** 已登录的站点会员；访客为 null / 不传。 */
   memberId?: string | null;
   /**
@@ -52,9 +59,9 @@ export interface SectionContextProvider {
 const PROVIDERS: SectionContextProvider[] = [];
 
 /** 从 Cookie 头读单个键。贡献方（购物车 id）用，marketing 自己不认任何业务 cookie。 */
-export function cookiesFromHeader(
-  header: string | string[] | undefined,
-): { get(name: string): string | undefined } {
+export function cookiesFromHeader(header: string | string[] | undefined): {
+  get(name: string): string | undefined;
+} {
   const raw = Array.isArray(header) ? header.join("; ") : header;
   return {
     get(name: string): string | undefined {
@@ -110,6 +117,7 @@ export async function resolveSectionContexts(
           defaultLocale: input.defaultLocale,
           usedTypes: input.usedSectionTypes,
           cookies: input.cookies,
+          query: input.query,
           memberId: input.memberId,
           homePath: input.homePath,
           homeLayoutKey: input.homeLayoutKey,

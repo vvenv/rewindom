@@ -46,7 +46,9 @@ export function sectionHiddenOnCurrentPage(
  * 页面段流不展示这项：段已经只属于这一页，再勾「仅这些页面」会误导。
  * 页头 / 页脚区才露出。
  */
-export function omitAreaPageVisibilitySettings(defs: SettingDef[]): SettingDef[] {
+export function omitAreaPageVisibilitySettings(
+  defs: SettingDef[],
+): SettingDef[] {
   return defs.filter((def) => {
     if (def.type === "header" && def.content === "editor.group.visible_on") {
       return false;

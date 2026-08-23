@@ -161,9 +161,7 @@ export function useSiteEditor(pageId: string | undefined) {
     const nextTheme = useCache ? (cached.theme ?? serverTheme) : serverTheme;
     const nextTitle = useCache ? cached.title : serverTitle;
     const nextDescription = useCache ? cached.description : serverDescription;
-    const nextSettings = useCache
-      ? (cached.settings ?? {})
-      : serverSettings;
+    const nextSettings = useCache ? (cached.settings ?? {}) : serverSettings;
     const nextVisibility = useCache
       ? (cached.visibility ?? "public")
       : serverVisibility;

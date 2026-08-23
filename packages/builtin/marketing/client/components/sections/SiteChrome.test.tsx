@@ -114,16 +114,16 @@ describe("SiteChrome 定位", () => {
     const start = rows[0]!.querySelector(".chrome-zone-start")!;
     expect(start.querySelector(".brand")).not.toBeNull();
     expect(rows[0]!.querySelector("a.btn")?.textContent).toBe("免费开始");
-    expect(rows[0]!.querySelector(".chrome-menu-popup .chrome-nav")).not.toBeNull();
-    expect(rows[1]!.querySelector(".chrome-zone-end .chrome-text")?.textContent).toBe(
-      "限时优惠",
-    );
+    expect(
+      rows[0]!.querySelector(".chrome-menu-popup .chrome-nav"),
+    ).not.toBeNull();
+    expect(
+      rows[1]!.querySelector(".chrome-zone-end .chrome-text")?.textContent,
+    ).toBe("限时优惠");
   });
 
   it("空行不渲染", () => {
-    const { container } = area("header", [
-      block("chrome_brand", { row: "3" }),
-    ]);
+    const { container } = area("header", [block("chrome_brand", { row: "3" })]);
     expect(container.querySelectorAll(".chrome-row")).toHaveLength(1);
     expect(container.querySelector(".chrome-row-3")).not.toBeNull();
   });
@@ -155,9 +155,7 @@ describe("SiteChrome 导航", () => {
     const inline = area("header", [
       block("chrome_nav", { items: LINK_ITEMS, display: "inline" }),
     ]);
-    expect(
-      inline.container.querySelector(".chrome-nav-inline"),
-    ).not.toBeNull();
+    expect(inline.container.querySelector(".chrome-nav-inline")).not.toBeNull();
     inline.unmount();
 
     const column = area("footer", [
@@ -252,7 +250,9 @@ describe("SiteChrome 区域差异", () => {
 
     expect(container.querySelector("footer .locale-switcher")).not.toBeNull();
     expect(
-      container.querySelector("footer .locale-switcher > summary.chrome-control"),
+      container.querySelector(
+        "footer .locale-switcher > summary.chrome-control",
+      ),
     ).not.toBeNull();
     expect(screen.getByTestId("member-entry")).toBeVisible();
   });
@@ -279,7 +279,12 @@ describe("SiteChrome 品牌", () => {
   function brandArea(settings: SettingValues, logoUrl: string | null = null) {
     const base = createSection("header");
     const [section] = localizeSections(
-      [{ ...base, blocks: [block("chrome_brand", settings)] } satisfies SiteSection],
+      [
+        {
+          ...base,
+          blocks: [block("chrome_brand", settings)],
+        } satisfies SiteSection,
+      ],
       "zh-CN",
       "zh-CN",
     );
@@ -323,7 +328,9 @@ describe("SiteChrome 品牌", () => {
       { show_site_name: false, brand_text: "Acme" },
       "/logo.svg",
     );
-    expect(container.querySelector("img.logo")?.getAttribute("alt")).toBe("Acme");
+    expect(container.querySelector("img.logo")?.getAttribute("alt")).toBe(
+      "Acme",
+    );
   });
 
   it("全大写是 class，不改存进去的字标文案", () => {

@@ -44,6 +44,7 @@ entitlement: events
 permissions: []
 models: [] # 无新字段：到点判据用现成的 EventFeed.last_fetched_at，退避用 EventSignal.fetched_at
 
+
 # ---------- 设计要点（实现时按此，偏离先改本 spec）----------
 # 1. 「到没到点」的判据必须落在库里（`EventFeed.last_fetched_at`），不能落在进程里。
 #    进程里的任何状态（定时器、内存标记）都会被重启清掉，而重启正是要防的那件事。

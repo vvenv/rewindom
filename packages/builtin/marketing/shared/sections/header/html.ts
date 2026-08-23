@@ -11,7 +11,10 @@ import {
   surfaceStyleAttr,
 } from "../../section-schema.js";
 import { siteNavPages, type PublicSitePage } from "../../site-cms.js";
-import { interpolationValues, readContributedInterpolation } from "../../site-interpolation.js";
+import {
+  interpolationValues,
+  readContributedInterpolation,
+} from "../../site-interpolation.js";
 import {
   renderChromeHtml,
   type LocaleSwitcherOption,
@@ -72,7 +75,10 @@ export function renderHeaderHtml(
   const className = settingBool(s, "sticky")
     ? `${shell.className} sticky`
     : shell.className;
-  const style = [surfaceStyleAttr(resolveSurfaceStyle(s)), chromeShellVarsAttr(shell)]
+  const style = [
+    surfaceStyleAttr(resolveSurfaceStyle(s)),
+    chromeShellVarsAttr(shell),
+  ]
     .filter(Boolean)
     .join(";");
 

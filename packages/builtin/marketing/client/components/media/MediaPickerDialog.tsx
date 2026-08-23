@@ -14,7 +14,10 @@ import { Spinner } from "@rewindom/ui/spinner";
 import { ImageOff, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { SITE_ASSET_ACCEPT, siteAssetPreviewUrl } from "../../../shared/site-asset.js";
+import {
+  SITE_ASSET_ACCEPT,
+  siteAssetPreviewUrl,
+} from "../../../shared/site-asset.js";
 import {
   useSiteAssets,
   useUploadSiteAssets,
@@ -85,7 +88,9 @@ export function MediaPickerDialog({
             event.preventDefault();
             event.dataTransfer.dropEffect = "copy";
           }}
-          onDragLeave={() => setDropDepth((current) => Math.max(0, current - 1))}
+          onDragLeave={() =>
+            setDropDepth((current) => Math.max(0, current - 1))
+          }
           onDrop={(event) => {
             event.preventDefault();
             setDropDepth(0);

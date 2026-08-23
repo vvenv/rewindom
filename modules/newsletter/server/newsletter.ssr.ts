@@ -15,47 +15,77 @@
 import { maskEmail } from "./subscriber-query.service.js";
 import { resolveSiteOrigin } from "./site-origin.js";
 import { createNewsletterPresetTranslator } from "./preset-i18n.js";
+import { buildNewsletterSectionContext } from "./section-context.js";
 import {
   confirmSubscription,
   findByUnsubscribeToken,
   unsubscribe,
 } from "./subscriber.service.js";
 
+import { findNewsletterSource } from "../shared/newsletter-source.js";
 import { newsletterContextEntry } from "../shared/newsletter-section-context.js";
 import {
   NEWSLETTER_CONFIRM_PATH,
   NEWSLETTER_CONFIRM_TEMPLATE_PRESET,
+  NEWSLETTER_SUBSCRIBE_PATH,
+  NEWSLETTER_SUBSCRIBE_TEMPLATE_PRESET,
   NEWSLETTER_UNSUBSCRIBE_PATH,
   NEWSLETTER_UNSUBSCRIBE_TEMPLATE_PRESET,
 } from "../shared/newsletter-page-templates.js";
 import { NEWSLETTER_CONFIRM_PAGE_KIND } from "../shared/sections/confirm/definition.js";
+import { NEWSLETTER_SUBSCRIBE_PAGE_KIND } from "../shared/sections/subscribe/definition.js";
 import { NEWSLETTER_UNSUBSCRIBE_PAGE_KIND } from "../shared/sections/unsubscribe/definition.js";
 
+import { resolveSiteAccountEntry } from "@rewindom/builtin/marketing/server/site-account-entry.js";
 import { resolveSectionEntitlements } from "@rewindom/builtin/marketing/server/site-entitlements.js";
 import {
   getPublishedTemplatePage,
   getSiteChromeOrFallback,
 } from "@rewindom/builtin/marketing/server/site.service.js";
-import { renderMarketingHtml } from "@rewindom/builtin/marketing/server/ssr-render.js";
+import {
+  renderMarketingHtml,
+  siteLocaleAlternates,
+} from "@rewindom/builtin/marketing/server/ssr-render.js";
 import { buildPresetSections } from "@rewindom/builtin/marketing/shared/page-presets.js";
 import { parseMarketingSsrPath } from "@rewindom/builtin/marketing/shared/site-locale.js";
 import {
   defineRoute,
   normalizeLocale,
   requestOriginFromHeaders,
+  resolveHostTenant,
+  resolveRequestHostname,
 } from "@rewindom/module-sdk/server";
 
-import type { NewsletterRenderContext } from "../shared/newsletter-section-context.js";
+import type {
+  NewsletterRenderContext,
+  NewsletterSubscribeScope,
+} from "../shared/newsletter-section-context.js";
 import type { PagePreset } from "@rewindom/builtin/marketing/shared/page-presets.types.js";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
-export { NEWSLETTER_CONFIRM_PATH, NEWSLETTER_UNSUBSCRIBE_PATH };
+export {
+  NEWSLETTER_CONFIRM_PATH,
+  NEWSLETTER_SUBSCRIBE_PATH,
+  NEWSLETTER_UNSUBSCRIBE_PATH,
+};
 
 interface PageSpec {
   kind: string;
   path: string;
   preset: PagePreset;
 }
+
+/**
+ * 订阅页。
+ *
+ * 与另外两张的区别：它**没有按请求状态**——订阅段只是一个表单，提交由 enhance
+ * 脚本接管。所以上下文传空对象，走的仍是同一套「模板页 + 预设兜底」渲染。
+ */
+const SUBSCRIBE_SPEC: PageSpec = {
+  kind: NEWSLETTER_SUBSCRIBE_PAGE_KIND,
+  path: NEWSLETTER_SUBSCRIBE_PATH,
+  preset: NEWSLETTER_SUBSCRIBE_TEMPLATE_PRESET,
+};
 
 const CONFIRM_SPEC: PageSpec = {
   kind: NEWSLETTER_CONFIRM_PAGE_KIND,
@@ -95,13 +125,31 @@ function sameOrigin(request: FastifyRequest): boolean {
   return Boolean(host) && origin.endsWith(`//${host}`);
 }
 
+/**
+ * 自己解析绑定的站点。
+ *
+ * `hostTenantContext` **只在 `/api*` 上**由 auth 中间件填（见 `auth.middleware.ts`），
+ * 而这三张是挂在根路径上的**页面**。不解析的话它们在任何域名上都只回
+ * `site.host_unbound`——与 shop 店面路由、marketing SSR 的同名函数一条口径。
+ */
+async function ensureHostTenant(request: FastifyRequest): Promise<void> {
+  if (request.hostTenantContext !== undefined) return;
+  request.hostTenantContext = await resolveHostTenant(
+    resolveRequestHostname(request.headers),
+  );
+}
+
 /** 把模板页（或兜底预设）+ 按请求上下文渲染成整页 HTML。 */
 async function renderPanelPage(
   request: FastifyRequest,
   reply: FastifyReply,
   spec: PageSpec,
-  buildContext: (locale: string) => NewsletterRenderContext,
+  buildContext: (
+    locale: string,
+    tenantId: string,
+  ) => NewsletterRenderContext | Promise<NewsletterRenderContext>,
 ): Promise<FastifyReply> {
+  await ensureHostTenant(request);
   const hostTenant = request.hostTenantContext;
   if (!hostTenant) {
     return reply.status(404).send({ code: "site.host_unbound" });
@@ -130,7 +178,16 @@ async function renderPanelPage(
     description: translate(spec.preset.descriptionKey ?? ""),
   };
 
-  const entitlements = await resolveSectionEntitlements(hostTenant.tenant_id);
+  /*
+   * 页头的账户入口（登录链 / 已登录菜单）由 marketing 解析后注入——`chrome_account`
+   * 块渲染的就是这段 HTML，不传等于把它渲染成空：页头上摆了账户入口的站点，一切到
+   * 这三张页那个按钮就凭空消失。所有走 SSR 的贡献页（events / shop / site-docs /
+   * site-billing）都传这一项。
+   */
+  const [accountEntry, entitlements] = await Promise.all([
+    resolveSiteAccountEntry({ tenantId: hostTenant.tenant_id, locale }),
+    resolveSectionEntitlements(hostTenant.tenant_id),
+  ]);
   /*
    * 请求头拿不到 origin（代理没透传 Host 之类）时回落到按租户解析的站点地址——
    * 这两张页的 canonical / og 都靠它，空着会让整页的绝对地址全错。
@@ -156,16 +213,40 @@ async function renderPanelPage(
         settings: { noindex: true },
         visibility: "public",
         path: spec.path,
-        alternates: [],
+        alternates: siteLocaleAlternates(spec.path, site, request.url),
         updated_at: new Date().toISOString(),
       },
+      accountEntryHtml: accountEntry.html,
       enabledEntitlements: entitlements,
-      contributed: newsletterContextEntry(buildContext(locale)),
+      contributed: newsletterContextEntry(
+        await buildContext(locale, hostTenant.tenant_id),
+      ),
     }),
   );
 }
 
 export async function newsletterSsrRoutes(app: FastifyInstance): Promise<void> {
+  defineRoute(app, {
+    method: "GET",
+    url: NEWSLETTER_SUBSCRIBE_PATH,
+    context: "NewsletterSubscribePage",
+    errorCode: "NEWSLETTER_SUBSCRIBE_PAGE_FAILED",
+    handler: async (request, reply) => {
+      const requested = (request.query as { list?: string }).list?.trim() ?? "";
+      return renderPanelPage(
+        request,
+        reply,
+        SUBSCRIBE_SPEC,
+        async (locale, tenantId) =>
+          buildNewsletterSectionContext({
+            tenant_id: tenantId,
+            locale,
+            requested_list: requested,
+          }),
+      );
+    },
+  });
+
   defineRoute(app, {
     method: "GET",
     url: NEWSLETTER_CONFIRM_PATH,
@@ -193,6 +274,7 @@ export async function newsletterSsrRoutes(app: FastifyInstance): Promise<void> {
       if (!sameOrigin(request)) {
         return reply.status(403).send({ code: "site.form_origin_invalid" });
       }
+      await ensureHostTenant(request);
       const hostTenant = request.hostTenantContext;
       const token = bodyField(request, "token")[0] ?? "";
       const ok =

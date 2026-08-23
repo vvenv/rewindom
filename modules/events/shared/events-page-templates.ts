@@ -48,6 +48,7 @@ import {
   type HomeLayoutDefinition,
 } from "@rewindom/builtin/marketing/shared/home-layouts.js";
 import { buildPresetSections } from "@rewindom/builtin/marketing/shared/page-presets.js";
+import { NEWSLETTER_SUBSCRIBE_PATH } from "@rewindom/newsletter/shared/newsletter-page-templates.js";
 import {
   registerInterpolationTokens,
   type InterpolationTokenDefinition,
@@ -99,9 +100,11 @@ const EVENTS_HOME_HERO_SECTION: PresetSection = {
     eyebrow: "events:site.hero.eyebrow",
     headline: "events:site.hero.headline",
     subhead: "events:site.hero.subhead",
+    primary_label: "events:site.subscribeEmail",
     secondary_label: "events:site.subscribe",
   },
   raw: {
+    primary_href: NEWSLETTER_SUBSCRIBE_PATH,
     secondary_href: EVENTS_FEED_HREF_TEMPLATE,
     show_stats: true,
     show_glow: true,
@@ -146,6 +149,15 @@ export const EVENTS_TOPIC_TEMPLATE_PRESET: PagePreset = {
         ...EVENTS_HOME_HERO_SECTION.text,
         eyebrow: "events:site.hero.topicEyebrow",
         headline: "events:site.hero.topicHeadline",
+      },
+      raw: {
+        ...EVENTS_HOME_HERO_SECTION.raw,
+        /*
+         * 主题页上订的是**当前主题**，不是全站——读者点开 `/topics/ai` 的首屏
+         * 订阅按钮，要的显然是 AI 而不是所有东西。`{topic_list}` 空时整个参数
+         * 被 collapseQuery 收掉，地址干净地退化成 `/subscribe`。
+         */
+        primary_href: `${NEWSLETTER_SUBSCRIBE_PATH}?list={topic_list}`,
       },
     },
     ...EVENTS_HUB_SECTIONS,
@@ -321,6 +333,24 @@ const EVENTS_INTERPOLATION_TOKENS: readonly InterpolationTokenDefinition[] = [
   {
     key: "entity",
     label: "events:token.entity",
+    page_kinds: [EVENTS_ENTITY_PAGE_KIND],
+    entitlement: EVENTS_ENTITLEMENT.key,
+  },
+  {
+    key: "topic_list",
+    label: "events:token.topic_list",
+    page_kinds: [EVENTS_TOPIC_PAGE_KIND, EVENTS_DETAIL_PAGE_KIND],
+    entitlement: EVENTS_ENTITLEMENT.key,
+  },
+  {
+    key: "entity_list",
+    label: "events:token.entity_list",
+    page_kinds: [EVENTS_ENTITY_PAGE_KIND],
+    entitlement: EVENTS_ENTITLEMENT.key,
+  },
+  {
+    key: "entity_slug",
+    label: "events:token.entity_slug",
     page_kinds: [EVENTS_ENTITY_PAGE_KIND],
     entitlement: EVENTS_ENTITLEMENT.key,
   },

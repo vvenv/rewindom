@@ -105,7 +105,8 @@ function resolveFont(): string {
       // 文件名带内容 hash（inter-latin-wght-normal-<hash>.woff2），按前缀找
       const file = readdirSync(dir).find(
         (name) =>
-          name.startsWith("inter-latin-wght-normal-") && name.endsWith(".woff2"),
+          name.startsWith("inter-latin-wght-normal-") &&
+          name.endsWith(".woff2"),
       );
       if (file && GlobalFonts.registerFromPath(join(dir, file), "Inter")) {
         resolvedFont = withCjkFallback("Inter");
@@ -206,7 +207,9 @@ export function wrapLines(
   let used = 0;
 
   for (const token of tokens) {
-    const candidate = current ? `${current}${token.glue}${token.text}` : token.text;
+    const candidate = current
+      ? `${current}${token.glue}${token.text}`
+      : token.text;
     if (measure(candidate) <= maxWidth || current === "") {
       current = candidate;
       used += 1;
