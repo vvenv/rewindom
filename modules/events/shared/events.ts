@@ -625,6 +625,12 @@ export interface CardEvidence {
 /** 单来源不叫跨源印证——与 spreading 同一条门槛。 */
 const CONFIRMED_MIN_SOURCES = 2;
 
+/**
+ * 「已证实 · N 家来源」那条证据的 code。导出是因为卡片映射要认出它，
+ * 好把说同一个 N 的 `spreading` 角标收掉（见 `public-view.ts` 的 `buildMomentum`）。
+ */
+export const CONFIRMED_SOURCES_EVIDENCE = "card.confirmedSources";
+
 export function pickCardEvidence(item: {
   source_count: number;
   source_kinds: readonly EventSourceKind[];
@@ -647,7 +653,7 @@ export function pickCardEvidence(item: {
     isListConfirmed(item.source_kinds)
   ) {
     return {
-      code: "card.confirmedSources",
+      code: CONFIRMED_SOURCES_EVIDENCE,
       params: { count: item.source_count },
     };
   }

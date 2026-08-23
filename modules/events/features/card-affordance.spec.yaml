@@ -1,0 +1,62 @@
+# 首页网格的卡片点不动、看不出可点，网格还是空心的。
+#
+# 线上实测（yestino.com，1512px）：
+# - 一张厚卡 315×228，可点区只有 <a> 那 273×107 —— **59% 的面积点下去什么都不发生**。
+# - 网格是 stretch，同排等高，但内容全部顶对齐：Now 第一排卡高 173、内容 60，
+#   底下 113px 空着。一屏扫下来像一格格空盒子。
+# - 键盘焦点是浏览器默认蓝框，且只框住卡片上半部——读不出「选中的是这张卡」。
+# - 实体胶囊 24.8px 高、间距 6px，25 个挤成一片，触摸目标偏小。
+# - 同一个数字在一张卡上说三遍：`Confirmed · 3 sources` + `3 sources following` + 三个来源名。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [public]
+goal: 公开事件卡片整块可点、有悬停与品牌焦点态，来源行沉底让网格读成一排排；实体胶囊够大够清楚；去掉「已证实 N 家」与「N 家在跟进」的重复。
+gold: modules/events/shared/site-css/events.css
+touch:
+  - modules/events/features/card-affordance.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/site-css/events.css
+  - modules/events/shared/site-css.generated.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/public-view.test.ts
+out_of_scope:
+  - marketing 内核的 base.css / 段间距 / hero glow（那是全站共用，不为一个段改）
+  - 首屏（events.hero）版式与实时计数面板
+  - 卡片 markup 结构（整块可点用 CSS 覆盖层，不动 HTML）
+  - 卡片厚薄两档的判定口径（见 MODULE.md「列表卡片是厚薄两档」）
+  - "`↑ 1000%` 这类小基线增速的口径（另立 spec）"
+  - 工作台里的 EventCard（React 那一套）
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/public-view.test.ts shared/sections/feed-html.test.ts shared/events.test.ts
+  - pnpm --filter @rewindom/builtin assemble:module-css 后 generated 与 .css 一致
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. 整块可点用 stretched-link：`.events-card{position:relative}` +
+#    `.events-card-link::after{inset:0}`。**不改 markup**——SSR 与编辑器预览共用同一份
+#    渲染器，动结构要同时改详情页与实体页。覆盖层吃掉来源行的文本选中，这是这个
+#    模式的既定代价，换的是整张卡都能点。
+# 2. 焦点画在**卡片**上不是链接上：`.events-card:has(.events-card-link:focus-visible)`
+#    加 accent 描边，链接自己的 outline 清掉。仓库里 `:has()` 已经在用（chrome-row、
+#    source-icon-slot），不另做兜底。
+# 3. 来源行 `margin-top:auto` 沉到卡底。同排等高是 grid 给的，内容顶对齐是空心的根因；
+#    标题在上、来源在下，一排卡才有共同的下边线。只在 `.events-card` 里生效，
+#    详情页的 `.events-sources` 不动。
+# 4. 悬停只给描边 + 阴影，不给位移。一屏十五张卡各自抬 3px 是抖动不是反馈
+#    （marketing 那条 `translateY(-3px)` 是给整段色块的，一页只有一两块）。
+# 5. 实体胶囊是**链接**，按链接给尺寸：padding 抬到 ~28px 高、chips 间距 0.5rem、
+#    悬停填 accent 淡底。卡片 meta 行里的 `.events-status/.events-topic/.events-fact/
+#    .events-evidence` 不是链接，保持 `1px 8px` 的紧凑角标不动。
+# 6. 重复只砍**字面重复**那一对：证据行是 `card.confirmedSources`（已证实 · N 家）
+#    时，把 `spreading`（N 家在跟进）收掉——同一个 N 说两遍，底下还列着 N 个来源名。
+#    `placement.*` 的证据行（「Ukraine：90 天内 17 件」）与 spreading 说的不是一件事，留着。
+#    `rising` / `falling` 的百分比也留着。
+# 7. 只用官网 token（--surface / --border / --muted-fg / --accent / --fg / --radius），
+#    见 `site-section-css` rule。

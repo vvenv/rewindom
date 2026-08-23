@@ -10,10 +10,12 @@
  */
 
 import {
+  CONFIRMED_SOURCES_EVIDENCE,
   EVENT_ENTITY_KINDS,
   describeCardEvidence,
   describeEventFacts,
   describeEventMomentum,
+  pickCardEvidence,
   describeTimelineEntry,
   isTimelineRoleCode,
   sortRelatedForReading,
@@ -113,6 +115,11 @@ export function toPublicFeed(
  *
  * `spreading` 的文案是一句可核对的事实（「3 个来源正在跟进」），
  * 用在新事件上——它们没有上一窗口可比，硬算出来的百分比只是热度的另一种写法。
+ *
+ * 证据行已经是「已证实 · N 家来源」时 `spreading` 收掉：同一张卡上
+ *「已证实 · 3 家来源」+「3 个来源正在跟进」+ 底下列着的 3 个来源名，
+ * 是同一个数字说三遍。`placement.*` 的证据行（「Ukraine：90 天内 17 件」）
+ * 说的不是同一件事，留着；`rising` / `falling` 的百分比也留着。
  */
 function buildMomentum(
   item: EventListItem,
@@ -120,6 +127,12 @@ function buildMomentum(
 ): { momentum_label: string; momentum_rising: boolean } {
   const momentum = describeEventMomentum(item);
   if (!momentum) {
+    return { momentum_label: "", momentum_rising: false };
+  }
+  if (
+    momentum.kind === "spreading" &&
+    pickCardEvidence(item)?.code === CONFIRMED_SOURCES_EVIDENCE
+  ) {
     return { momentum_label: "", momentum_rising: false };
   }
   return {

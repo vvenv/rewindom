@@ -232,6 +232,29 @@ path handler，由 `renderEventsTemplatePage` 补上，否则页头会退回七�
 
 公开 feed 与实体页走同一份 `event-card-html.ts`；工作台 `EventCard` 走同一套 `pickCardEvidence`。
 
+#### 卡片是一个点击目标，不是一段带链接的文字
+
+线上量过：一张 315×228 的厚卡，`<a>` 只包住 273×107——**五分之三的面积点下去什么都不发生**。
+链接铺一层 `::after{inset:0}` 撑满卡片（stretched link），内边距和来源行都算进去，markup 不动。
+代价是来源名选不中，换整张卡可点。
+
+焦点框跟着画在**卡片**上（`.events-card:has(.events-card-link:focus-visible)`），不在链接上：
+链接盒只盖住上半部，浏览器默认那个蓝框框出来的是「一段文字」，读者看不出选中的是哪张卡。
+
+来源行 `margin-top: auto` 沉到卡底。同排等高是 grid 给的，内容却全部顶对齐——线上 Now
+第一排卡高 173、内容 60，底下 113px 空着，一排卡看起来像一格格空盒子。标题在上、来源在下
+之后一排卡才有共同的下边线。
+
+悬停只动描边和阴影，不动位置：一屏十五张卡各自抬 3px 是抖动不是反馈（marketing 那条
+`translateY(-3px)` 是给整段色块的，一页只有一两块才成立）。
+
+#### 「已证实 · N 家」和「N 家在跟进」不能同时上卡
+
+同一张卡上「已证实 · 3 家来源」+「3 个来源正在跟进」+ 底下列着的 3 个来源名，
+是同一个数字说三遍。证据行是 `card.confirmedSources` 时把 `spreading` 收掉
+（`public-view.ts` 的 `buildMomentum`）。`placement.*` 的证据行（「Ukraine：90 天内 17 件」）
+说的不是同一件事，留着；`rising` / `falling` 的百分比也留着。
+
 ### 同页多段的分配
 
 默认版式把 Rising / Now 摆在同一张页面上。各段的**排序池**各自独立

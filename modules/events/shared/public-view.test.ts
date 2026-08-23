@@ -182,4 +182,24 @@ describe("toPublicCard evidence", () => {
     expect(toPublicCard(first!, t).evidence_text).toBe("OpenAI: 4 in 90d");
     expect(toPublicCard(thin!, t).evidence_text).toBe("");
   });
+
+  it("证据行已经是「已证实 · N 家」时不再画 spreading 角标", () => {
+    const [, confirmed] = sampleEventList(t);
+    const card = toPublicCard(confirmed!, t);
+    expect(card.evidence_text).toBe("Confirmed · 3");
+    expect(card.momentum_label).toBe("");
+    expect(card.momentum_rising).toBe(false);
+  });
+
+  it("归位证据说的不是同一件事 → spreading / 涨幅照画", () => {
+    const [first] = sampleEventList(t);
+    // 样张 1 有基线，走的是 rising 那一支
+    expect(toPublicCard(first!, t).momentum_label).toBe("heat.rising");
+
+    const spreading = { ...first!, placement: [...first!.placement] };
+    spreading.has_velocity_baseline = false;
+    const card = toPublicCard(spreading, t);
+    expect(card.evidence_text).toBe("OpenAI: 4 in 90d");
+    expect(card.momentum_label).toBe("heat.spreading");
+  });
 });
