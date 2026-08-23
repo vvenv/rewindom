@@ -9,7 +9,7 @@
  */
 
 
-import { SITE_MEMBER_ENTITLEMENT } from "./entitlements.js";
+import { SITE_MEMBER_ENTITLEMENT, SITE_MEMBER_SECTION_GROUP } from "./entitlements.js";
 
 import type { SectionDefinition } from "../../marketing/shared/section-schema.js";
 
@@ -21,6 +21,7 @@ export const memberGateSection: SectionDefinition = {
   entitlement: SITE_MEMBER_ENTITLEMENT.key,
   // 带命名空间的 key：文案在本模块的 i18n 包里，marketing 的编辑器认前缀
   label: "site-member:section.gate.label",
+  group: SITE_MEMBER_SECTION_GROUP,
   placements: ["page"],
   settings: [
     {

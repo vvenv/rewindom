@@ -57,6 +57,7 @@ describe("renderPageSectionsHtml", () => {
       {
         type,
         label: "demo:probe",
+        group: "demo:section.group",
         placements: ["page"],
         settings: [],
       },
@@ -88,6 +89,7 @@ describe("renderPageSectionsHtml", () => {
       {
         type,
         label: "demo:default-only",
+        group: "demo:section.group",
         placements: ["page"],
         settings: [],
         default_tenant_only: true,
@@ -121,6 +123,7 @@ describe("renderPageSectionsHtml", () => {
       {
         type,
         label: "demo:token",
+        group: "demo:section.group",
         placements: ["page"],
         settings: [
           { type: "text", id: "title", label: "demo:title" },

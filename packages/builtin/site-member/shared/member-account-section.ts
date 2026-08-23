@@ -14,7 +14,7 @@
 
 import { headingSettings } from "../../marketing/shared/sections/_common/settings.js";
 
-import { SITE_MEMBER_ENTITLEMENT } from "./entitlements.js";
+import { SITE_MEMBER_ENTITLEMENT, SITE_MEMBER_SECTION_GROUP } from "./entitlements.js";
 import {
   memberCardSettings,
   memberPageLayoutSettings,
@@ -89,6 +89,7 @@ export const memberAccountPanelSection: SectionDefinition = {
   // 站点关掉会员功能后，这个段既不进「添加区块」菜单，也不再渲染
   entitlement: SITE_MEMBER_ENTITLEMENT.key,
   label: "site-member:section.accountPanel.label",
+  group: SITE_MEMBER_SECTION_GROUP,
   placements: ["page"],
   // 钉在自己那张模板页上：账户面板出现在官网某张普通页面中间什么都渲染不出来
   page_kinds: [MEMBER_ACCOUNT_PAGE_KIND],

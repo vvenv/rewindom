@@ -253,6 +253,7 @@
     "memberOrders": { "label": "我的订单" }
   },
   "section": {
+    "group": "商店",
     "productGrid": {
       "label": "商品列表",
       "display": "展示",

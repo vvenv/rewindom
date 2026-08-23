@@ -816,6 +816,10 @@
       "serif": "Serif",
       "mono": "Mono"
     },
+    "sectionGroup": {
+      "content": "Content",
+      "chrome": "Header & footer"
+    },
     "sectionType": {
       "header": "Header",
       "footer": "Footer",

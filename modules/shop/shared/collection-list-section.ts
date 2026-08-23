@@ -5,7 +5,7 @@
  *（含根时根算第 1 层）。店面只出已发布分类。
  */
 
-import { SHOP_ENTITLEMENT } from "./entitlements.js";
+import { SHOP_ENTITLEMENT, SHOP_SECTION_GROUP } from "./entitlements.js";
 import {
   COLLECTION_TREE_MAX_DEPTH,
   COLLECTION_TREE_MIN_DEPTH,
@@ -25,6 +25,7 @@ export const SHOP_COLLECTION_SELECT_OPTIONS = "shop.collections";
 export const collectionListSection: SectionDefinition = {
   type: SHOP_COLLECTION_LIST_SECTION_TYPE,
   label: "shop:section.collectionList.label",
+  group: SHOP_SECTION_GROUP,
   placements: ["page"],
   entitlement: SHOP_ENTITLEMENT.key,
   settings: [

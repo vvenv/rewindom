@@ -1,0 +1,101 @@
+# 「添加区块」按贡献模块分组。
+#
+# 菜单现在是一张扁表：marketing 的 Hero、events 的 Hero、events 的 RSS 订阅、
+# newsletter 的邮件订阅排在一起，租户分不清点下去会得到哪一段。模板页已经按
+# `group` 分过组（同一 key = 同一组），段这边还没有。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [tenant]
+goal: 每段声明 group（i18n key）；编辑器「添加区块」按组列出。同一 key 的跨模块段排在同一组（会员段共用 site-member 的 key）。chrome 块按 type 前缀落入对应组。
+gold: packages/builtin/marketing/shared/page-templates.ts
+touch:
+  - packages/builtin/marketing/features/section-picker-groups.spec.yaml
+  - packages/builtin/marketing/shared/sections/types.ts
+  - packages/builtin/marketing/shared/sections/index.ts
+  - packages/builtin/marketing/shared/section-picker-groups.ts
+  - packages/builtin/marketing/shared/section-picker-groups.test.ts
+  - packages/builtin/marketing/shared/section-contribution.test.ts
+  - packages/builtin/marketing/shared/sections/header/definition.ts
+  - packages/builtin/marketing/shared/sections/footer/definition.ts
+  - packages/builtin/marketing/shared/sections/page-header/definition.ts
+  - packages/builtin/marketing/shared/sections/hero/definition.ts
+  - packages/builtin/marketing/shared/sections/feature-grid/definition.ts
+  - packages/builtin/marketing/shared/sections/steps/definition.ts
+  - packages/builtin/marketing/shared/sections/split/definition.ts
+  - packages/builtin/marketing/shared/sections/page-missing/definition.ts
+  - packages/builtin/marketing/shared/sections/page-menu/definition.ts
+  - packages/builtin/marketing/shared/sections/prose/definition.ts
+  - packages/builtin/marketing/shared/sections/group/definition.ts
+  - packages/builtin/marketing/shared/sections/band/definition.ts
+  - packages/builtin/marketing/shared/sections/badges/definition.ts
+  - packages/builtin/marketing/shared/sections/unsupported/definition.ts
+  - packages/builtin/marketing/client/components/theme-editor/SectionTree.tsx
+  - packages/builtin/marketing/client/locales/en.json
+  - packages/builtin/marketing/client/locales/zh-CN.json
+  - packages/builtin/marketing/MODULE.md
+  - packages/builtin/marketing/server/render-page-sections-html.test.ts
+  - packages/builtin/marketing/server/site.service.test.ts
+  - .agents/skills/site-section/SKILL.md
+  - modules/shop/shared/entitlements.ts
+  - modules/shop/shared/product-grid-section.ts
+  - modules/shop/shared/collection-list-section.ts
+  - modules/shop/shared/collection-products-section.ts
+  - modules/shop/shared/product-section.ts
+  - modules/shop/shared/cart-section.ts
+  - modules/shop/shared/promo-section.ts
+  - modules/shop/shared/checkout-section.ts
+  - modules/shop/shared/order-section.ts
+  - modules/shop/client/locales/en.json
+  - modules/shop/client/locales/zh-CN.json
+  - modules/events/shared/entitlements.ts
+  - modules/events/shared/events-hero-section.ts
+  - modules/events/shared/events-entity-hero-section.ts
+  - modules/events/shared/events-feed-section.ts
+  - modules/events/shared/events-detail-section.ts
+  - modules/events/shared/events-entity-section.ts
+  - modules/events/shared/events-entity-index-section.ts
+  - modules/events/shared/events-entity-strip-section.ts
+  - modules/events/shared/events-subscribe-section.ts
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+  - modules/site-docs/shared/entitlements.ts
+  - modules/site-docs/shared/sections/list/definition.ts
+  - modules/site-docs/shared/sections/article/definition.ts
+  - modules/site-docs/shared/sections/nav/definition.ts
+  - modules/site-docs/shared/sections/toc/definition.ts
+  - modules/site-docs/client/locales/en.json
+  - modules/site-docs/client/locales/zh-CN.json
+  - modules/site-form/shared/entitlements.ts
+  - modules/site-form/shared/sections/form/definition.ts
+  - modules/site-form/client/locales/en.json
+  - modules/site-form/client/locales/zh-CN.json
+  - modules/newsletter/shared/entitlements.ts
+  - modules/newsletter/shared/sections/subscribe/definition.ts
+  - modules/newsletter/client/locales/en.json
+  - modules/newsletter/client/locales/zh-CN.json
+  - packages/builtin/site-member/shared/entitlements.ts
+  - packages/builtin/site-member/shared/member-gate-section.ts
+  - packages/builtin/site-member/shared/member-auth-section.ts
+  - packages/builtin/site-member/shared/member-account-section.ts
+  - packages/builtin/site-member/client/locales/en.json
+  - packages/builtin/site-member/client/locales/zh-CN.json
+  - packages/builtin/site-billing/shared/plans-section.ts
+  - packages/builtin/site-billing/shared/account-section.ts
+  - packages/builtin/billing/shared/entitlements.ts
+  - packages/builtin/billing/shared/plans-section.ts
+  - packages/builtin/billing/client/locales/en.json
+  - packages/builtin/billing/client/locales/zh-CN.json
+out_of_scope:
+  - 改段 type / 存量迁移
+  - 改段的公开站 CSS 类名
+  - 把 chrome 块改成段
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared section-picker-groups.test.ts section-contribution.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client SectionTree.test.tsx
+  - pnpm check:i18n
+
+# ---------- 可选 ----------
+# entitlement: 无新增
+# permissions: 沿用 site.write

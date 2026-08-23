@@ -120,6 +120,7 @@
     "doc_description": "当前文档的简介"
   },
   "section": {
+    "group": "文档",
     "list": {
       "label": "文档列表",
       "groupBy": "分组",

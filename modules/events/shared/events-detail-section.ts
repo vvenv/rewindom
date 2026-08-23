@@ -5,7 +5,7 @@
  * 最后把证据摊开让访客自己核对。它不做「相关事件」——那是二期，且需要另一套数据。
  */
 
-import { EVENTS_ENTITLEMENT } from "./entitlements.js";
+import { EVENTS_ENTITLEMENT, EVENTS_SECTION_GROUP } from "./entitlements.js";
 
 import { layoutSettings } from "@rewindom/builtin/marketing/shared/sections/_common/settings.js";
 
@@ -17,6 +17,7 @@ export const EVENTS_DETAIL_PAGE_KIND = "events_detail";
 export const eventsDetailSection: SectionDefinition = {
   type: EVENTS_DETAIL_SECTION_TYPE,
   label: "events:section.detail.label",
+  group: EVENTS_SECTION_GROUP,
   placements: ["page"],
   entitlement: EVENTS_ENTITLEMENT.key,
   // 摆到普通页面上没有「当前事件」可渲染，只会是一块空白

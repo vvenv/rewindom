@@ -54,6 +54,7 @@
     "description": "会同时删掉他的全部订阅关系，且不可恢复。"
   },
   "section": {
+    "group": "邮件订阅",
     "subscribe": {
       "label": "邮件订阅",
       "group": "订阅设置",

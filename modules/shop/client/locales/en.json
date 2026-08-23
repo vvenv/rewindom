@@ -253,6 +253,7 @@
     "memberOrders": { "label": "My orders" }
   },
   "section": {
+    "group": "Shop",
     "productGrid": {
       "label": "Product list",
       "display": "Display",

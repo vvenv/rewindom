@@ -120,6 +120,7 @@
     "doc_description": "Summary of the current document"
   },
   "section": {
+    "group": "Docs",
     "list": {
       "label": "Doc list",
       "groupBy": "Group by",

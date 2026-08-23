@@ -4,7 +4,7 @@ import {
   layoutSettings,
 } from "../_common/settings.js";
 
-import type { SectionDefinition } from "../types.js";
+import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
 
 /**
  * 第三方目录 badge：一张外链图 + 一条外链，可重复。
@@ -15,6 +15,7 @@ import type { SectionDefinition } from "../types.js";
 export const badgesSection: SectionDefinition = {
   type: "badges",
   label: "editor.sectionType.badges",
+  group: MARKETING_SECTION_GROUP,
   // 页脚放「收录于」一排、首页放 logo 墙，同一段
   placements: ["page", "header", "footer"],
   settings: [

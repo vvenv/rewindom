@@ -16,6 +16,7 @@ import {
 } from "../../site-member/shared/member-page-settings.js";
 
 import { SITE_BILLING_ENTITLEMENT } from "./entitlements.js";
+import { SITE_MEMBER_SECTION_GROUP } from "../../site-member/shared/entitlements.js";
 
 import type { SectionDefinition } from "../../marketing/shared/section-schema.js";
 
@@ -25,6 +26,7 @@ export const MEMBER_BILLING_PAGE_KIND = "member_billing";
 export const memberBillingAccountSection: SectionDefinition = {
   type: MEMBER_BILLING_ACCOUNT_SECTION_TYPE,
   label: "site-billing:section.account.label",
+  group: SITE_MEMBER_SECTION_GROUP,
   placements: ["page"],
   page_kinds: [MEMBER_BILLING_PAGE_KIND],
   entitlement: SITE_BILLING_ENTITLEMENT.key,

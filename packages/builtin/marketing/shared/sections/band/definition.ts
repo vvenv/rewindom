@@ -4,11 +4,12 @@ import {
   linkSettings,
 } from "../_common/settings.js";
 
-import type { SectionDefinition } from "../types.js";
+import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
 
 export const bandSection: SectionDefinition = {
   type: "band",
   label: "editor.sectionType.band",
+  group: MARKETING_SECTION_GROUP,
   // 通栏 CTA 摆进页头区就是公告条，摆进页脚就是收尾行动号召——同一段，不另造类型
   placements: ["page", "header", "footer"],
   settings: [

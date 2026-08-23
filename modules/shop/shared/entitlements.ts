@@ -7,3 +7,6 @@ export const SHOP_ENTITLEMENT: TenantModuleEntitlement = {
   disabled_hint: "该站点未开通商店",
   default_enabled: false,
 };
+
+/** 编辑器「添加区块」分组。店面段共用这一 key。 */
+export const SHOP_SECTION_GROUP = "shop:section.group";

@@ -39,6 +39,7 @@
     "pending": "Payment received. Activation is taking a moment — refresh this page shortly."
   },
   "section": {
+    "group": "Plans",
     "plans": {
       "label": "Plans",
       "display": "Display",

@@ -220,6 +220,7 @@
     }
   },
   "section": {
+    "group": "Events",
     "feed": {
       "label": "Event list",
       "source": "Which set",

@@ -62,6 +62,13 @@ export interface BlockDefinition {
   type: string;
   /** i18n key */
   label: string;
+  /**
+   * 「添加区块」菜单分组（i18n key）。口径同模板页 / 段的 `group`：同一 key = 同一组。
+   *
+   * 不声明时按 type 推断：`chrome_*` 进 `MARKETING_CHROME_GROUP`；带模块前缀的
+   *（`shop.cart-link`）进 `{prefix}:section.group`，与该模块的段排在一起。
+   */
+  group?: string;
   settings: SettingDef[];
   /**
    * 容器 block：自身还持有一串子 section（`group` 的「列」）。
@@ -85,10 +92,24 @@ export interface BlockDefinition {
   entitlement?: string;
 }
 
+/** 内置段在「添加区块」里的分组。 */
+export const MARKETING_SECTION_GROUP = "editor.sectionGroup.content";
+
+/** 内置 chrome 块（品牌 / 导航 / 语言…）在「添加区块」里的分组。 */
+export const MARKETING_CHROME_GROUP = "editor.sectionGroup.chrome";
+
 export interface SectionDefinition {
   type: SectionType;
   /** i18n key */
   label: string;
+  /**
+   * 编辑器「添加区块」菜单的分组（i18n key）。
+   *
+   * **同一 key = 同一组**：跨模块贡献的段若同属一个产品概念（如全部会员段），
+   * 必须共用这一个 key，由概念归属方持有文案。与模板页 `group` 同一口径，
+   * 不要各写一份碰巧相同的文案。
+   */
+  group: string;
   /**
    * 这一段能放在哪些区域。页面区块 = `page`，页头 / 页脚区各是一个区域。
    *

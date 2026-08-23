@@ -2,7 +2,7 @@ import { CHROME_BLOCKS } from "../_common/chrome-blocks.js";
 import { chromeShellSettings } from "../_common/chrome-shell.js";
 import { styleSettings } from "../_common/settings.js";
 
-import type { SectionDefinition } from "../types.js";
+import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
 
 /**
  * 页脚。与页头是**同一套**块与同一个渲染器，差别只有语义元素、`spacing_above`
@@ -18,6 +18,7 @@ import type { SectionDefinition } from "../types.js";
 export const footerSection: SectionDefinition = {
   type: "footer",
   label: "editor.sectionType.footer",
+  group: MARKETING_SECTION_GROUP,
   placements: ["footer"],
   // 默认极简：一行版权。品牌、链接列、语言按需自己加
   preset_blocks: [

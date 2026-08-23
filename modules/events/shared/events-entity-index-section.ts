@@ -8,7 +8,7 @@
  * 收的是最近还有事件的那一批，一屏读得完；真的多到读不完再谈分页。
  */
 
-import { EVENTS_ENTITLEMENT } from "./entitlements.js";
+import { EVENTS_ENTITLEMENT, EVENTS_SECTION_GROUP } from "./entitlements.js";
 
 import { layoutSettings } from "@rewindom/builtin/marketing/shared/sections/_common/settings.js";
 
@@ -20,6 +20,7 @@ export const EVENTS_ENTITY_INDEX_PAGE_KIND = "events_entity_index";
 export const eventsEntityIndexSection: SectionDefinition = {
   type: EVENTS_ENTITY_INDEX_SECTION_TYPE,
   label: "events:section.entityIndex.label",
+  group: EVENTS_SECTION_GROUP,
   placements: ["page"],
   entitlement: EVENTS_ENTITLEMENT.key,
   // 摆到普通页面上没有实体清单可渲染，只会是一块空白

@@ -122,6 +122,9 @@ export function registerSectionDefinition(definition: SectionDefinition): void {
   if (Object.hasOwn(BUILTIN_SECTION_DEFINITIONS, definition.type)) {
     throw new Error(`site.section_type_conflict:${definition.type}`);
   }
+  if (!definition.type.includes(".")) {
+    throw new Error(`site.section_type_unprefixed:${definition.type}`);
+  }
   CONTRIBUTED.set(definition.type, definition);
 }
 

@@ -10,7 +10,7 @@
  * （`shop.collection`），租户只配「显不显示」。
  */
 
-import { SHOP_ENTITLEMENT } from "./entitlements.js";
+import { SHOP_ENTITLEMENT, SHOP_SECTION_GROUP } from "./entitlements.js";
 import { productGridSettings } from "./product-grid-section.js";
 
 import type { SectionDefinition } from "@rewindom/builtin/marketing/shared/section-schema.js";
@@ -21,6 +21,7 @@ export const SHOP_COLLECTION_PAGE_KIND = "shop_collection";
 export const collectionProductsSection: SectionDefinition = {
   type: SHOP_COLLECTION_PRODUCTS_SECTION_TYPE,
   label: "shop:section.collectionProducts.label",
+  group: SHOP_SECTION_GROUP,
   placements: ["page"],
   page_kinds: [SHOP_COLLECTION_PAGE_KIND],
   entitlement: SHOP_ENTITLEMENT.key,

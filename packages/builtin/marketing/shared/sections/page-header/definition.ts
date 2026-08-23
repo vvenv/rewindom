@@ -1,6 +1,6 @@
 import { ALIGN_OPTIONS, layoutSettings } from "../_common/settings.js";
 
-import type { SectionDefinition } from "../types.js";
+import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
 
 /**
  * 页面标题段。
@@ -16,6 +16,7 @@ import type { SectionDefinition } from "../types.js";
 export const pageHeaderSection: SectionDefinition = {
   type: "page-header",
   label: "editor.sectionType.page-header",
+  group: MARKETING_SECTION_GROUP,
   placements: ["page"],
   settings: [
     {

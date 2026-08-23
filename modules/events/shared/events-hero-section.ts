@@ -11,7 +11,7 @@
  * ——添加区块时选的就是产品切面，默认值才能写在各自的 setting 上。
  */
 
-import { EVENTS_ENTITLEMENT } from "./entitlements.js";
+import { EVENTS_ENTITLEMENT, EVENTS_SECTION_GROUP } from "./entitlements.js";
 import { EVENTS_FEED_HREF_TEMPLATE } from "./events-section-context.js";
 
 import {
@@ -117,6 +117,7 @@ export function eventsHeroSettings(defaults: {
 export const eventsHeroSection: SectionDefinition = {
   type: EVENTS_HERO_SECTION_TYPE,
   label: "events:section.hero.label",
+  group: EVENTS_SECTION_GROUP,
   placements: ["page"],
   entitlement: EVENTS_ENTITLEMENT.key,
   settings: eventsHeroSettings({

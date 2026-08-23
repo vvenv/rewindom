@@ -1,4 +1,4 @@
-import { SITE_DOCS_ENTITLEMENT } from "../../entitlements.js";
+import { SITE_DOCS_ENTITLEMENT, SITE_DOCS_SECTION_GROUP } from "../../entitlements.js";
 import { DOCS_ARTICLE_PAGE_KIND } from "../../page-kinds.js";
 
 import { layoutSettings } from "@rewindom/builtin/marketing/shared/sections/_common/settings.js";
@@ -15,6 +15,7 @@ export const SITE_DOCS_TOC_SECTION_TYPE = "site-docs.toc";
 export const siteDocsTocSection: SectionDefinition = {
   type: SITE_DOCS_TOC_SECTION_TYPE,
   label: "site-docs:section.toc.label",
+  group: SITE_DOCS_SECTION_GROUP,
   placements: ["page"],
   entitlement: SITE_DOCS_ENTITLEMENT.key,
   page_kinds: [DOCS_ARTICLE_PAGE_KIND],

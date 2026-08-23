@@ -13,7 +13,7 @@
  * 不限 `page_kinds`：订阅入口摆在任何页面上都成立——它自己会按上下文挑地址。
  */
 
-import { EVENTS_ENTITLEMENT } from "./entitlements.js";
+import { EVENTS_ENTITLEMENT, EVENTS_SECTION_GROUP } from "./entitlements.js";
 
 import { layoutSettings } from "@rewindom/builtin/marketing/shared/sections/_common/settings.js";
 
@@ -24,6 +24,7 @@ export const EVENTS_SUBSCRIBE_SECTION_TYPE = "events.subscribe";
 export const eventsSubscribeSection: SectionDefinition = {
   type: EVENTS_SUBSCRIBE_SECTION_TYPE,
   label: "events:section.subscribe.label",
+  group: EVENTS_SECTION_GROUP,
   placements: ["page"],
   entitlement: EVENTS_ENTITLEMENT.key,
   settings: [

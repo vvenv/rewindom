@@ -11,3 +11,6 @@ export const SITE_FORM_ENTITLEMENT: TenantModuleEntitlement = {
   disabled_hint: "该站点未开通表单",
   default_enabled: true,
 };
+
+/** 编辑器「添加区块」分组。 */
+export const SITE_FORM_SECTION_GROUP = "site-form:section.group";

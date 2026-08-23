@@ -4,7 +4,7 @@ import {
   layoutSettings,
 } from "../_common/settings.js";
 
-import type { SectionDefinition } from "../types.js";
+import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
 
 /**
  * 卖点网格：图标 + 标题 + 说明，2–4 列。落地页最常用的视觉积木。
@@ -12,6 +12,7 @@ import type { SectionDefinition } from "../types.js";
 export const featureGridSection: SectionDefinition = {
   type: "feature-grid",
   label: "editor.sectionType.feature-grid",
+  group: MARKETING_SECTION_GROUP,
   placements: ["page"],
   settings: [
     ...headingSettings({

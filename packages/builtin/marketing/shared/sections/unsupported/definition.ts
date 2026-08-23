@@ -1,4 +1,4 @@
-import type { SectionDefinition } from "../types.js";
+import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
 
 /**
  * 「这份代码不认识的段」的容器。
@@ -12,6 +12,7 @@ import type { SectionDefinition } from "../types.js";
 export const unsupportedSection: SectionDefinition = {
   type: "unsupported",
   label: "editor.sectionType.unsupported",
+  group: MARKETING_SECTION_GROUP,
   placements: [],
   settings: [],
 };

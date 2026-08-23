@@ -33,6 +33,7 @@ const TYPE = "demo.calendar";
 const demoSection: SectionDefinition = {
   type: TYPE,
   label: "demo:section.calendar",
+  group: "demo:section.group",
   placements: ["page"],
   entitlement: "tenant-demo",
   settings: [{ type: "text", id: "heading", label: "demo:heading" }],
@@ -64,6 +65,12 @@ describe("注册", () => {
     expect(() =>
       registerSectionDefinition({ ...demoSection, type: "hero" }),
     ).toThrow(/section_type_conflict/u);
+  });
+
+  it("type 不带模块前缀直接抛", () => {
+    expect(() =>
+      registerSectionDefinition({ ...demoSection, type: "calendar" }),
+    ).toThrow(/section_type_unprefixed/u);
   });
 
   it("两个模块用同一个 type 也直接抛", () => {

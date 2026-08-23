@@ -9,7 +9,7 @@
  * 设置多一项少一项都会让租户在两张页面上看到两套不一样的「商品列表」。
  */
 
-import { SHOP_ENTITLEMENT } from "./entitlements.js";
+import { SHOP_ENTITLEMENT, SHOP_SECTION_GROUP } from "./entitlements.js";
 
 import {
   columnsSetting,
@@ -95,6 +95,7 @@ export function productGridSettings(input: {
 export const productGridSection: SectionDefinition = {
   type: SHOP_PRODUCT_GRID_SECTION_TYPE,
   label: "shop:section.productGrid.label",
+  group: SHOP_SECTION_GROUP,
   placements: ["page"],
   entitlement: SHOP_ENTITLEMENT.key,
   settings: productGridSettings({

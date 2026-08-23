@@ -11,7 +11,7 @@
 
 import { headingSettings } from "../../marketing/shared/sections/_common/settings.js";
 
-import { SITE_MEMBER_ENTITLEMENT } from "./entitlements.js";
+import { SITE_MEMBER_ENTITLEMENT, SITE_MEMBER_SECTION_GROUP } from "./entitlements.js";
 import {
   memberCardSettings,
   memberPageLayoutSettings,
@@ -150,6 +150,7 @@ export const memberLoginFormSection: SectionDefinition = {
   // 站点关掉会员功能后，这个段既不进「添加区块」菜单，也不再渲染
   entitlement: SITE_MEMBER_ENTITLEMENT.key,
   label: "site-member:section.loginForm.label",
+  group: SITE_MEMBER_SECTION_GROUP,
   placements: ["page"],
   page_kinds: [MEMBER_LOGIN_PAGE_KIND],
   settings: [
@@ -171,6 +172,7 @@ export const memberRegisterFormSection: SectionDefinition = {
   // 站点关掉会员功能后，这个段既不进「添加区块」菜单，也不再渲染
   entitlement: SITE_MEMBER_ENTITLEMENT.key,
   label: "site-member:section.registerForm.label",
+  group: SITE_MEMBER_SECTION_GROUP,
   placements: ["page"],
   page_kinds: [MEMBER_REGISTER_PAGE_KIND],
   settings: [

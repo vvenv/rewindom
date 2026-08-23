@@ -6,7 +6,7 @@
  * 用块自己的 row / align / mobile 定位。有购物车时才带件数。
  */
 
-import { SHOP_ENTITLEMENT } from "./entitlements.js";
+import { SHOP_ENTITLEMENT, SHOP_SECTION_GROUP } from "./entitlements.js";
 
 import { chromeSlotSettings } from "@rewindom/builtin/marketing/shared/sections/_common/chrome-blocks.js";
 import {
@@ -26,6 +26,7 @@ export const SHOP_CART_PAGE_KIND = "shop_cart";
 export const cartSection: SectionDefinition = {
   type: SHOP_CART_SECTION_TYPE,
   label: "shop:section.cart.label",
+  group: SHOP_SECTION_GROUP,
   placements: ["page"],
   page_kinds: [SHOP_CART_PAGE_KIND],
   entitlement: SHOP_ENTITLEMENT.key,

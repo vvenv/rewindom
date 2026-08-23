@@ -10,7 +10,9 @@ import { Button } from "@rewindom/ui/button";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@rewindom/ui/select";
@@ -32,8 +34,11 @@ import { getPageTemplateKind } from "../../../shared/page-templates.js";
 import { sectionHiddenOnCurrentPage } from "../../../shared/section-page-visibility.js";
 import {
   addableBlockDefinitions,
+  blockPickerGroup,
   getSectionDefinition,
+  groupByPickerKey,
   isContainerSection,
+  sectionPickerGroup,
   sectionTypesFor,
   settingText,
   type SectionType,
@@ -261,7 +266,11 @@ export function SectionTree({
 
   const pageSectionOptions = sectionTypesFor("page", entitlements, pageKind, isDefaultTenant)
     .filter((type) => type !== requiredSectionType)
-    .map((type) => ({ value: type, label: sectionTypeLabel(t, type) }));
+    .map((type) => ({
+      value: type,
+      label: sectionTypeLabel(t, type),
+      group: sectionPickerGroup(type),
+    }));
 
   /** 容器段的列里能放什么：除了容器段自己——嵌套只允许一层。 */
   const childSectionOptions = pageSectionOptions.filter(
@@ -306,6 +315,7 @@ export function SectionTree({
             .map((type) => ({
               value: type,
               label: sectionTypeLabel(t, type),
+              group: sectionPickerGroup(type),
             }))}
           onSelect={(type) =>
             onAddSection(type as SectionType, { kind: "area", area })
@@ -513,6 +523,7 @@ export function SectionTree({
                 options={addableBlockTypes.map((block) => ({
                   value: block.type,
                   label: t(block.label),
+                  group: blockPickerGroup(block),
                 }))}
                 onSelect={(type) => onAddBlock(section.id, type)}
               />
@@ -833,9 +844,15 @@ function ColumnDropZone({
   );
 }
 
+interface AddMenuOption {
+  value: string;
+  label: string;
+  group: string;
+}
+
 interface AddMenuProps {
   placeholder: string;
-  options: Array<{ value: string; label: string }>;
+  options: AddMenuOption[];
   disabled?: boolean;
   onSelect: (value: string) => void;
 }
@@ -846,20 +863,33 @@ function AddMenu({
   disabled,
   onSelect,
 }: AddMenuProps): ReactElement {
+  const { t } = useTranslation("marketing");
+  const grouped = groupByPickerKey(options, (option) => option.group);
+  const showGroups = grouped.length > 1;
+
+  const renderItem = (option: AddMenuOption): ReactElement => (
+    <SelectItem key={option.value} value={option.value}>
+      <span className="inline-flex items-center gap-2">
+        <Plus className="size-3.5" />
+        {option.label}
+      </span>
+    </SelectItem>
+  );
+
   return (
     <Select disabled={disabled} onValueChange={onSelect}>
       <SelectTrigger className="mt-1 w-full" size="sm">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        {options.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
-            <span className="inline-flex items-center gap-2">
-              <Plus className="size-3.5" />
-              {option.label}
-            </span>
-          </SelectItem>
-        ))}
+        {showGroups
+          ? grouped.map((entry) => (
+              <SelectGroup key={entry.group}>
+                <SelectLabel>{t(entry.group)}</SelectLabel>
+                {entry.items.map(renderItem)}
+              </SelectGroup>
+            ))
+          : options.map(renderItem)}
       </SelectContent>
     </Select>
   );

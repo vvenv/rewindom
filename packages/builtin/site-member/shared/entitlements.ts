@@ -17,3 +17,10 @@ export const SITE_MEMBER_ENTITLEMENT: TenantModuleEntitlement = {
   disabled_hint: "该站点未开通会员功能",
   default_enabled: true,
 };
+
+/**
+ * 编辑器「添加区块」分组。所有 `/member/*` 相关段共用这一 key——登录 / 注册 /
+ * 账户由本模块登记，套餐与账单由 site-billing 复用。分组身份是 key，不是各写一份
+ * 碰巧同名的文案。
+ */
+export const SITE_MEMBER_SECTION_GROUP = "site-member:section.group";

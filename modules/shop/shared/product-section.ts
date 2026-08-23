@@ -5,7 +5,7 @@
  * 提交地址与校验仍由代码写死。`buy` 块是真 `<form method="post">`，没有 JS 也能加购。
  */
 
-import { SHOP_ENTITLEMENT } from "./entitlements.js";
+import { SHOP_ENTITLEMENT, SHOP_SECTION_GROUP } from "./entitlements.js";
 
 import { layoutSettings } from "@rewindom/builtin/marketing/shared/sections/_common/settings.js";
 
@@ -17,6 +17,7 @@ export const SHOP_PRODUCT_PAGE_KIND = "shop_product";
 export const productSection: SectionDefinition = {
   type: SHOP_PRODUCT_SECTION_TYPE,
   label: "shop:section.product.label",
+  group: SHOP_SECTION_GROUP,
   placements: ["page"],
   page_kinds: [SHOP_PRODUCT_PAGE_KIND],
   entitlement: SHOP_ENTITLEMENT.key,

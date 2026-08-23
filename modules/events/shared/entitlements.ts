@@ -7,3 +7,6 @@ export const EVENTS_ENTITLEMENT: TenantModuleEntitlement = {
   disabled_hint: "该组织未开通事件雷达模块",
   default_enabled: true,
 };
+
+/** 编辑器「添加区块」分组。事件段共用这一 key。 */
+export const EVENTS_SECTION_GROUP = "events:section.group";

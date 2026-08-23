@@ -28,6 +28,7 @@ Rule：`.cursor/rules/site-section-css.mdc`、`.cursor/rules/site-section-i18n.m
 | 贡献方模块 | 定义写在贡献方 `shared/`，**不要**改 marketing 内核 |
 | 类型 | section / chrome 块 / 模板页 / 首页版式（可组合） |
 | `type` 前缀 | 必须带模块前缀（`shop.product`、`shop.cart-link`）；撞名启动即抛 |
+| `group` | 编辑器「添加区块」分组（i18n key）。同一 key = 同一组；跨模块同属一个产品概念时共用（如全部会员段用 `site-member:section.group`） |
 | `entitlement` | 有租户开关则声明；未开通不进「添加区块」、不渲染 |
 | 库存文案 | setting `default` 与预设 `text` / `titleKey` 用 `ns:key`，禁止先 `t()` |
 
@@ -39,7 +40,7 @@ Rule：`.cursor/rules/site-section-css.mdc`、`.cursor/rules/site-section-i18n.m
 
 | 顺序 | 写 | 做什么 |
 | --- | --- | --- |
-| 1 | `<模块>/shared/xxx-section.ts`（或等价） | `SectionDefinition`；`type` 带前缀；按需 `entitlement`、`page_kinds`、`placements` |
+| 1 | `<模块>/shared/xxx-section.ts`（或等价） | `SectionDefinition`；`type` 带前缀；`group`（i18n key，同一 key = 同一组）；按需 `entitlement`、`page_kinds`、`placements` |
 | 2 | `<模块>/shared/sections/*-html.ts` | **一份** HTML 渲染器 |
 | 3 | `<模块>/shared/site-css/<name>.css` | CSS 真源，只用官网 token（`--surface` / `--border` / `--muted-fg` / `--accent` / `--radius`） |
 | 4 | `pnpm --filter @rewindom/builtin assemble:module-css` | 生成 `shared/site-css.generated.ts`（禁止手改） |

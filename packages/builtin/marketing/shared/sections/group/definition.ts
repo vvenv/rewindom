@@ -1,6 +1,6 @@
 import { layoutSettings, styleSettings } from "../_common/settings.js";
 
-import type { SectionDefinition } from "../types.js";
+import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
 
 /**
  * 容器段：唯一的布局原语，一段里并排 2–4 列，每列装任意子段。
@@ -17,6 +17,7 @@ import type { SectionDefinition } from "../types.js";
 export const groupSection: SectionDefinition = {
   type: "group",
   label: "editor.sectionType.group",
+  group: MARKETING_SECTION_GROUP,
   placements: ["page", "footer"],
   settings: [
     { type: "header", content: "editor.group.layout", group: "layout" },

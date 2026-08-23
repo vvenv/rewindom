@@ -142,6 +142,7 @@
     "generic": "Something went wrong, please try again"
   },
   "section": {
+    "group": "Members",
     "gate": {
       "label": "Members-only content",
       "body": "Content for members",

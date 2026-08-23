@@ -6,7 +6,7 @@
  * 升温 / 正在发生下面——让首页也链到实体页，而不另做一朵词云。
  */
 
-import { EVENTS_ENTITLEMENT } from "./entitlements.js";
+import { EVENTS_ENTITLEMENT, EVENTS_SECTION_GROUP } from "./entitlements.js";
 
 import {
   headingSettings,
@@ -24,6 +24,7 @@ export const EVENTS_ENTITY_STRIP_LIMIT_MAX = 48;
 export const eventsEntityStripSection: SectionDefinition = {
   type: EVENTS_ENTITY_STRIP_SECTION_TYPE,
   label: "events:section.entityStrip.label",
+  group: EVENTS_SECTION_GROUP,
   placements: ["page"],
   entitlement: EVENTS_ENTITLEMENT.key,
   settings: [

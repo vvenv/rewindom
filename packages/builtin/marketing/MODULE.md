@@ -705,7 +705,7 @@ iframe **只**注入 `MARKETING_SITE_CSS` 与主题变量，**不**克隆工作�
 
 | 位置 | 做什么 |
 | --- | --- |
-| `<模块>/shared/xxx-section.ts` | `SectionDefinition`（type 必须带模块前缀） |
+| `<模块>/shared/xxx-section.ts` | `SectionDefinition`（type 必须带模块前缀；`group` 声明「添加区块」分组） |
 | `<模块>/shared/sections/*-html.ts` | **一份** HTML 渲染器 |
 | `<模块>/shared/site-css/<name>.css` | 贡献段 CSS 真源；assemble 成 `site-css.generated.ts`，禁止手写 `*-css.ts` |
 | `<模块>/server/…` → `registerSiteSectionHtml(def, render, { css })` | 在 `onBoot` 里注册 SSR |
@@ -717,7 +717,12 @@ Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包�
 
 **type 必须带模块前缀**（`site-member.gate`）：段 type 会落进租户页面的存储里，两个模块
 撞名的后果是页面内容被另一个模块的 schema 解析——所以注册表对撞名**直接抛**，启动时炸掉
-远好过在某个租户的页面上悄悄错乱。
+远好过在某个租户的页面上悄悄错乱。没带点号的 type 同样直接抛（`site.section_type_unprefixed`）。
+
+**`group`（添加菜单分组）**：i18n key，口径同模板页——**同一 key = 同一组**。内置段用
+`editor.sectionGroup.content`；贡献段用 `{ns}:section.group`。跨模块同属一个产品概念
+（如全部会员段）必须共用归属方的 key，不要各写一份碰巧相同的文案。chrome 块不声明时按
+type 前缀落入对应组（`shop.cart-link` 与商店段排在一起）。
 
 **entitlement**：定义里声明 `entitlement`，租户没开通就不进「添加区块」菜单
 （`/api/site/capabilities` 回传已开通列表），也不渲染（`SectionRenderContext.enabledEntitlements`，

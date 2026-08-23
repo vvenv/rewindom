@@ -1,11 +1,12 @@
 import { headingSettings, layoutSettings } from "../_common/settings.js";
 
-import type { SectionDefinition } from "../types.js";
+import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
 
 /** 有先后的流程：编号 + 标题 + 说明。 */
 export const stepsSection: SectionDefinition = {
   type: "steps",
   label: "editor.sectionType.steps",
+  group: MARKETING_SECTION_GROUP,
   placements: ["page"],
   settings: [
     ...headingSettings({

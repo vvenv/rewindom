@@ -1,10 +1,11 @@
 import { layoutSettings } from "../_common/settings.js";
 
-import type { SectionDefinition } from "../types.js";
+import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
 
 export const proseSection: SectionDefinition = {
   type: "prose",
   label: "editor.sectionType.prose",
+  group: MARKETING_SECTION_GROUP,
   // 页头 / 页脚里的自由文案（备案号、免责声明、公告正文）
   placements: ["page", "header", "footer"],
   settings: [

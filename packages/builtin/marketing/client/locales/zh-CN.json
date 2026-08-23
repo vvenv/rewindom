@@ -816,6 +816,10 @@
       "serif": "衬线",
       "mono": "等宽"
     },
+    "sectionGroup": {
+      "content": "内容",
+      "chrome": "页头与页脚"
+    },
     "sectionType": {
       "header": "页头",
       "footer": "页脚",

@@ -7,3 +7,6 @@ export const SITE_DOCS_ENTITLEMENT: TenantModuleEntitlement = {
   disabled_hint: "该站点未开通文档库",
   default_enabled: true,
 };
+
+/** 编辑器「添加区块」分组。文档段共用这一 key。 */
+export const SITE_DOCS_SECTION_GROUP = "site-docs:section.group";

@@ -22,7 +22,7 @@ import {
   layoutSettings,
 } from "../../marketing/shared/sections/_common/settings.js";
 
-import { BILLING_ENTITLEMENT } from "./entitlements.js";
+import { BILLING_ENTITLEMENT, BILLING_SECTION_GROUP } from "./entitlements.js";
 
 import type { SectionDefinition } from "../../marketing/shared/section-schema.js";
 import type { SectionRenderContext } from "../../marketing/shared/sections/render-context.js";
@@ -70,6 +70,7 @@ export type { ResolvedPlan };
 export const billingPlansSection: SectionDefinition = {
   type: BILLING_PLANS_SECTION_TYPE,
   label: "billing:section.plans.label",
+  group: BILLING_SECTION_GROUP,
   placements: ["page"],
   // 组织没开通订阅模块时不进「添加区块」菜单，也不渲染；已摆上的那段原样兜住
   entitlement: BILLING_ENTITLEMENT.key,

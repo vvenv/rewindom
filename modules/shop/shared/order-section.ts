@@ -5,7 +5,7 @@
  * 的历史。两张都是模板页，版式归租户，数据由代码按请求填。
  */
 
-import { SHOP_ENTITLEMENT } from "./entitlements.js";
+import { SHOP_ENTITLEMENT, SHOP_SECTION_GROUP } from "./entitlements.js";
 
 import {
   headingSettings,
@@ -22,6 +22,7 @@ export const SHOP_MEMBER_ORDERS_PAGE_KIND = "shop_member_orders";
 export const orderSection: SectionDefinition = {
   type: SHOP_ORDER_SECTION_TYPE,
   label: "shop:section.order.label",
+  group: SHOP_SECTION_GROUP,
   placements: ["page"],
   page_kinds: [SHOP_ORDER_PAGE_KIND],
   entitlement: SHOP_ENTITLEMENT.key,
@@ -82,6 +83,7 @@ export const orderSection: SectionDefinition = {
 export const orderListSection: SectionDefinition = {
   type: SHOP_ORDER_LIST_SECTION_TYPE,
   label: "shop:section.orderList.label",
+  group: SHOP_SECTION_GROUP,
   placements: ["page"],
   page_kinds: [SHOP_MEMBER_ORDERS_PAGE_KIND],
   entitlement: SHOP_ENTITLEMENT.key,

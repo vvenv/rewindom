@@ -12,3 +12,6 @@ export const NEWSLETTER_ENTITLEMENT: TenantModuleEntitlement = {
    */
   default_enabled: false,
 };
+
+/** 编辑器「添加区块」分组。邮件订阅段共用这一 key。 */
+export const NEWSLETTER_SECTION_GROUP = "newsletter:section.group";

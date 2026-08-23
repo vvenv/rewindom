@@ -46,6 +46,7 @@ import { normalizeSiteColor } from "./site-color.js";
 import { localizeSiteHref } from "./site-locale.js";
 
 export * from "./section-settings.js";
+export * from "./section-picker-groups.js";
 export * from "./sections/index.js";
 
 export function createSectionId(): string {

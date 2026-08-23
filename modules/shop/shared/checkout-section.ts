@@ -7,7 +7,7 @@
  * 提交时就会丢一半。
  */
 
-import { SHOP_ENTITLEMENT } from "./entitlements.js";
+import { SHOP_ENTITLEMENT, SHOP_SECTION_GROUP } from "./entitlements.js";
 
 import {
   headingSettings,
@@ -22,6 +22,7 @@ export const SHOP_CHECKOUT_PAGE_KIND = "shop_checkout";
 export const checkoutSection: SectionDefinition = {
   type: SHOP_CHECKOUT_SECTION_TYPE,
   label: "shop:section.checkout.label",
+  group: SHOP_SECTION_GROUP,
   placements: ["page"],
   page_kinds: [SHOP_CHECKOUT_PAGE_KIND],
   entitlement: SHOP_ENTITLEMENT.key,

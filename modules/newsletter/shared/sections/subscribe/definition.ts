@@ -3,7 +3,7 @@ import {
   layoutSettings,
 } from "@rewindom/builtin/marketing/shared/sections/_common/settings.js";
 
-import { NEWSLETTER_ENTITLEMENT } from "../../entitlements.js";
+import { NEWSLETTER_ENTITLEMENT, NEWSLETTER_SECTION_GROUP } from "../../entitlements.js";
 
 import type { SectionDefinition } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
@@ -28,6 +28,7 @@ export const NEWSLETTER_SUBSCRIBE_SECTION_TYPE = "newsletter.subscribe";
 export const newsletterSubscribeSection: SectionDefinition = {
   type: NEWSLETTER_SUBSCRIBE_SECTION_TYPE,
   label: "newsletter:section.subscribe.label",
+  group: NEWSLETTER_SECTION_GROUP,
   placements: ["page"],
   entitlement: NEWSLETTER_ENTITLEMENT.key,
   settings: [

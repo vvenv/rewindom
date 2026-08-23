@@ -4,7 +4,7 @@ import {
   layoutSettings,
 } from "../_common/settings.js";
 
-import type { SectionDefinition } from "../types.js";
+import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
 
 /**
  * 动态页面菜单：条目来自已发布页面目录（`site.pages`），不是手填 blocks。
@@ -13,6 +13,7 @@ import type { SectionDefinition } from "../types.js";
 export const pageMenuSection: SectionDefinition = {
   type: "page-menu",
   label: "editor.sectionType.page-menu",
+  group: MARKETING_SECTION_GROUP,
   placements: ["page"],
   settings: [
     ...headingSettings(),

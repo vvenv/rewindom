@@ -1,4 +1,4 @@
-import { SITE_DOCS_ENTITLEMENT } from "../../entitlements.js";
+import { SITE_DOCS_ENTITLEMENT, SITE_DOCS_SECTION_GROUP } from "../../entitlements.js";
 
 import {
   columnsSetting,
@@ -20,6 +20,7 @@ export const SITE_DOCS_LIST_SECTION_TYPE = "site-docs.list";
 export const siteDocsListSection: SectionDefinition = {
   type: SITE_DOCS_LIST_SECTION_TYPE,
   label: "site-docs:section.list.label",
+  group: SITE_DOCS_SECTION_GROUP,
   placements: ["page"],
   entitlement: SITE_DOCS_ENTITLEMENT.key,
   settings: [

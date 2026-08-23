@@ -220,6 +220,7 @@
     }
   },
   "section": {
+    "group": "事件",
     "feed": {
       "label": "事件列表",
       "source": "取哪一批",

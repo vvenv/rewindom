@@ -7,7 +7,7 @@
  * `events.feed` 是存量页上的旧 type：仍登记、仍渲染，但不进「添加区块」。
  */
 
-import { EVENTS_ENTITLEMENT } from "./entitlements.js";
+import { EVENTS_ENTITLEMENT, EVENTS_SECTION_GROUP } from "./entitlements.js";
 import { EVENT_TOPICS, type EventFeedTab } from "./events.js";
 
 import {
@@ -104,6 +104,7 @@ function eventFeedSection(tab: EventFeedTab): SectionDefinition {
   return {
     type: eventFeedSectionType(tab),
     label: `events:sections.${tab}`,
+    group: EVENTS_SECTION_GROUP,
     placements: ["page"],
     entitlement: EVENTS_ENTITLEMENT.key,
     settings: [
@@ -129,6 +130,7 @@ export const eventsNowSection = eventFeedSection("now");
 export const eventsFeedSection: SectionDefinition = {
   type: EVENTS_FEED_SECTION_TYPE,
   label: "events:section.feed.label",
+  group: EVENTS_SECTION_GROUP,
   placements: [],
   entitlement: EVENTS_ENTITLEMENT.key,
   settings: [

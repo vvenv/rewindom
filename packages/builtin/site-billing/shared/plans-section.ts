@@ -15,6 +15,7 @@ import {
 } from "../../marketing/shared/sections/_common/settings.js";
 
 import { SITE_BILLING_ENTITLEMENT } from "./entitlements.js";
+import { SITE_MEMBER_SECTION_GROUP } from "../../site-member/shared/entitlements.js";
 
 import type {
   MemberPlanInterval,
@@ -93,6 +94,7 @@ export function siteBillingContextEntry(
 export const memberPlansSection: SectionDefinition = {
   type: MEMBER_PLANS_SECTION_TYPE,
   label: "site-billing:section.plans.label",
+  group: SITE_MEMBER_SECTION_GROUP,
   placements: ["page"],
   entitlement: SITE_BILLING_ENTITLEMENT.key,
   settings: [

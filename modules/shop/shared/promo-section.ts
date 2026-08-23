@@ -8,7 +8,7 @@
  * 没有生效中的码时**整段不渲染**——挂着一个空条比不挂更糟。
  */
 
-import { SHOP_ENTITLEMENT } from "./entitlements.js";
+import { SHOP_ENTITLEMENT, SHOP_SECTION_GROUP } from "./entitlements.js";
 
 import {
   ALIGN_OPTIONS,
@@ -22,6 +22,7 @@ export const SHOP_PROMO_SECTION_TYPE = "shop.promo";
 export const promoSection: SectionDefinition = {
   type: SHOP_PROMO_SECTION_TYPE,
   label: "shop:section.promo.label",
+  group: SHOP_SECTION_GROUP,
   placements: ["header", "page", "footer"],
   entitlement: SHOP_ENTITLEMENT.key,
   settings: [

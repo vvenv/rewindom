@@ -5,7 +5,7 @@ import {
   MEDIA_SIDE_OPTIONS,
 } from "../_common/settings.js";
 
-import type { SectionDefinition } from "../types.js";
+import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
 
 /**
  * 图文分栏：一侧主张与按钮，一侧图片或强调卡。没有图时用强调卡撑住版式，
@@ -14,6 +14,7 @@ import type { SectionDefinition } from "../types.js";
 export const splitSection: SectionDefinition = {
   type: "split",
   label: "editor.sectionType.split",
+  group: MARKETING_SECTION_GROUP,
   placements: ["page"],
   settings: [
     ...headingSettings({

@@ -54,6 +54,7 @@
     "description": "Their subscriptions are removed too. This cannot be undone."
   },
   "section": {
+    "group": "Newsletter",
     "subscribe": {
       "label": "Newsletter signup",
       "group": "Subscription",

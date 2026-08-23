@@ -7,11 +7,12 @@ import {
   styleSettings,
 } from "../_common/settings.js";
 
-import type { SectionDefinition } from "../types.js";
+import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
 
 export const heroSection: SectionDefinition = {
   type: "hero",
   label: "editor.sectionType.hero",
+  group: MARKETING_SECTION_GROUP,
   placements: ["page"],
   settings: [
     { type: "header", content: "editor.group.content" },

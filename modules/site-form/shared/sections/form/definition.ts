@@ -4,7 +4,7 @@ import {
   styleSettings,
 } from "@rewindom/builtin/marketing/shared/sections/_common/settings.js";
 
-import { SITE_FORM_ENTITLEMENT } from "../../entitlements.js";
+import { SITE_FORM_ENTITLEMENT, SITE_FORM_SECTION_GROUP } from "../../entitlements.js";
 
 import { FORM_FIELD_TYPES, FORM_VALIDATION_RULES } from "./fields.js";
 
@@ -31,6 +31,7 @@ export const SITE_FORM_SECTION_TYPE = "site-form.form";
 export const formSection: SectionDefinition = {
   type: SITE_FORM_SECTION_TYPE,
   label: "site-form:section.form.label",
+  group: SITE_FORM_SECTION_GROUP,
   placements: ["page"],
   entitlement: SITE_FORM_ENTITLEMENT.key,
   settings: [

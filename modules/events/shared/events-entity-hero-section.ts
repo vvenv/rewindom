@@ -13,7 +13,7 @@
  * 首页 / 专题那一段不长这个开关（`profile: true` 只给这里）。
  */
 
-import { EVENTS_ENTITLEMENT } from "./entitlements.js";
+import { EVENTS_ENTITLEMENT, EVENTS_SECTION_GROUP } from "./entitlements.js";
 import { EVENTS_ENTITY_PAGE_KIND } from "./events-entity-section.js";
 import { eventsHeroSettings } from "./events-hero-section.js";
 
@@ -24,6 +24,7 @@ export const EVENTS_ENTITY_HERO_SECTION_TYPE = "events.entity-hero";
 export const eventsEntityHeroSection: SectionDefinition = {
   type: EVENTS_ENTITY_HERO_SECTION_TYPE,
   label: "events:section.entityHero.label",
+  group: EVENTS_SECTION_GROUP,
   placements: ["page"],
   entitlement: EVENTS_ENTITLEMENT.key,
   page_kinds: [EVENTS_ENTITY_PAGE_KIND],

@@ -560,6 +560,7 @@ describe("saveEditorDraft", () => {
     const requiredSection = {
       type: REQUIRED,
       label: "demo:required",
+      group: "demo:section.group",
       placements: ["page"] as const,
       page_kinds: ["demo_template"],
       settings: [],

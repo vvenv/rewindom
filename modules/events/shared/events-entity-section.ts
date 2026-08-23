@@ -9,7 +9,7 @@
  * 不做「相关实体」——那要另一套共现数据，且很容易变成一堆噪声链接。
  */
 
-import { EVENTS_ENTITLEMENT } from "./entitlements.js";
+import { EVENTS_ENTITLEMENT, EVENTS_SECTION_GROUP } from "./entitlements.js";
 
 import { layoutSettings } from "@rewindom/builtin/marketing/shared/sections/_common/settings.js";
 
@@ -21,6 +21,7 @@ export const EVENTS_ENTITY_PAGE_KIND = "events_entity";
 export const eventsEntitySection: SectionDefinition = {
   type: EVENTS_ENTITY_SECTION_TYPE,
   label: "events:section.entity.label",
+  group: EVENTS_SECTION_GROUP,
   placements: ["page"],
   entitlement: EVENTS_ENTITLEMENT.key,
   // 摆到普通页面上没有「当前实体」可渲染，只会是一块空白

@@ -5,7 +5,7 @@ import {
 import { chromeShellSettings } from "../_common/chrome-shell.js";
 import { styleSettings } from "../_common/settings.js";
 
-import type { SectionDefinition } from "../types.js";
+import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
 
 /**
  * 页头。与页脚是**同一套**块与同一个渲染器，差别只有三样：语义元素 `<header>`、
@@ -19,6 +19,7 @@ import type { SectionDefinition } from "../types.js";
 export const headerSection: SectionDefinition = {
   type: "header",
   label: "editor.sectionType.header",
+  group: MARKETING_SECTION_GROUP,
   placements: ["header"],
   /*
    * 默认页头：品牌 + 导航 + 语言 + 明暗。
