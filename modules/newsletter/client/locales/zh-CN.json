@@ -22,7 +22,8 @@
     "pending": "待确认",
     "confirmed": "已确认",
     "unsubscribed": "已退订",
-    "bounced": "退信"
+    "bounced": "退信",
+    "complained": "被举报"
   },
   "cadence": {
     "daily": "每日",
@@ -43,7 +44,9 @@
     "confirmed": "确认时间",
     "delete": "删除",
     "deleted": "已删除订阅者",
-    "none": "无"
+    "none": "无",
+    "reactivate": "恢复发送",
+    "reactivated": "已恢复发送"
   },
   "empty": {
     "title": "还没有订阅者",
@@ -59,18 +62,72 @@
       "label": "邮件订阅",
       "group": "订阅设置",
       "listKey": "订阅列表",
-      "listKeyInfo": "留空即订阅本站全部可订阅列表（多数站点就该留空）。只想订某一个时，填工作台「可订阅列表」里的 key。",
+      "listKeyInfo": "选「本站全部」时，访客订的是所有内容源提供的列表。站点接了多个内容源时，建议明确选一个——否则读者会收到他没想订的东西。",
       "cadence": "摘要周期",
       "placeholder": "输入框提示",
       "submitLabel": "按钮文案",
       "hint": "补充说明",
       "hintInfo": "摆在输入框下面的一行小字，比如「不需要注册账号，随时可退订」",
-      "successMessage": "提交成功后说什么"
+      "successMessage": "提交成功后说什么",
+      "listAll": "本站全部",
+      "listAllCount": "本站全部（{{count}} 个列表）"
+    },
+    "confirm": {
+      "label": "确认订阅面板",
+      "group": "面板文案",
+      "submitLabel": "按钮文案",
+      "successMessage": "确认成功后说什么",
+      "invalidMessage": "链接失效时说什么"
+    },
+    "unsubscribe": {
+      "label": "取消订阅面板",
+      "group": "面板文案",
+      "submitLabel": "按钮文案",
+      "successMessage": "退订成功后说什么",
+      "invalidMessage": "链接失效时说什么"
     }
   },
   "form": {
     "emailPlaceholder": "你的邮箱地址",
     "submit": "订阅",
     "successDefault": "确认邮件已发出，请到收件箱点确认链接"
+  },
+  "block": {
+    "subscribeLink": {
+      "label": "邮件订阅入口",
+      "linkLabel": "按钮文案",
+      "href": "跳转地址",
+      "hrefInfo": "指向你摆了「邮件订阅」区块的那张页面。留空则整个入口不显示。",
+      "iconOnly": "只显示图标",
+      "iconOnlyInfo": "页头那一排位置紧张时打开；打开后仍会给读屏软件保留名称。"
+    }
+  },
+  "template": {
+    "group": "订阅页版式",
+    "confirm": {
+      "label": "确认订阅页"
+    },
+    "unsubscribe": {
+      "label": "取消订阅页"
+    }
+  },
+  "confirm": {
+    "title": "确认订阅",
+    "subtitle": "点一下按钮就完成了。在你确认之前，我们不会给你发任何内容。",
+    "submit": "确认订阅",
+    "success": "订阅完成。之后的新进展会按你选的周期发到这个邮箱。",
+    "invalid": "这个确认链接已失效，请重新订阅。"
+  },
+  "unsubscribe": {
+    "title": "取消订阅",
+    "subtitle": "确认后不会再给这个邮箱发信。",
+    "submitAll": "全部退订",
+    "success": "已退订。不会再给这个邮箱发信了。",
+    "invalid": "这个链接已失效，或者你已经退订了。"
+  },
+  "suppressed": {
+    "hard_bounce": "地址不存在",
+    "soft_bounce": "连续退信，已暂停",
+    "complaint": "被举报为垃圾邮件"
   }
 }

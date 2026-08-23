@@ -1,67 +1,73 @@
 /**
- * 确认 / 退订页（SSR）。
+ * 确认 / 退订页（SSR，走站点模板页）。
  *
  * **副作用只发生在 POST。** GET 只渲染一个带 token 的表单。原因是邮件客户端和企业
  * 安全网关会替用户「预取」邮件里的链接——GET 就落确认的话，扫描器点一遍等于用户
  * 确认了；退订更糟，Gmail 的图片代理能把整个名单退光。
  *
- * **无 JS 也要能用。** 两张页都是真 `<form method="post">`，走 POST-重定向-GET。
- * 订阅入口可以依赖 JS（enhance 脚本），退订不行——读者退不掉订阅就只能点
- * 「举报垃圾邮件」，那会烧掉整个发信域的声誉。
+ * **无 JS 也要能用。** 两张页都是真 `<form method="post">`。订阅入口可以依赖 JS
+ * （enhance 脚本），退订不行——读者退不掉订阅就只能点「举报垃圾邮件」，
+ * 那会烧掉整个发信域的声誉。
  *
- * 这两张页**不做成可排版的模板页**（site-member 的登录/注册是那么做的）：那是读者会
- * 反复到访的目的地，值得让站长排版；确认链接一辈子只点一次。做成模板页要引入
- * page kind、preset、编辑器段与初始化按钮一整套，收益不成比例。记在 spec 的 out_of_scope。
+ * **站点没发布 / 版式没落库也要能打开**：`requireSite: false` + 预设兜底。
+ * 退订不能因为站长把官网下线、或还没点过「初始化版式」就失效。
  */
-import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
-
+import { maskEmail } from "./subscriber-query.service.js";
+import { resolveSiteOrigin } from "./site-origin.js";
+import { createNewsletterPresetTranslator } from "./preset-i18n.js";
 import {
   confirmSubscription,
   findByUnsubscribeToken,
   unsubscribe,
 } from "./subscriber.service.js";
 
-import { defineRoute } from "@rewindom/module-sdk/server";
+import { newsletterContextEntry } from "../shared/newsletter-section-context.js";
+import {
+  NEWSLETTER_CONFIRM_PATH,
+  NEWSLETTER_CONFIRM_TEMPLATE_PRESET,
+  NEWSLETTER_UNSUBSCRIBE_PATH,
+  NEWSLETTER_UNSUBSCRIBE_TEMPLATE_PRESET,
+} from "../shared/newsletter-page-templates.js";
+import { NEWSLETTER_CONFIRM_PAGE_KIND } from "../shared/sections/confirm/definition.js";
+import { NEWSLETTER_UNSUBSCRIBE_PAGE_KIND } from "../shared/sections/unsubscribe/definition.js";
 
+import { resolveSectionEntitlements } from "@rewindom/builtin/marketing/server/site-entitlements.js";
+import {
+  getPublishedTemplatePage,
+  getSiteChromeOrFallback,
+} from "@rewindom/builtin/marketing/server/site.service.js";
+import { renderMarketingHtml } from "@rewindom/builtin/marketing/server/ssr-render.js";
+import { buildPresetSections } from "@rewindom/builtin/marketing/shared/page-presets.js";
+import { parseMarketingSsrPath } from "@rewindom/builtin/marketing/shared/site-locale.js";
+import {
+  defineRoute,
+  normalizeLocale,
+  requestOriginFromHeaders,
+} from "@rewindom/module-sdk/server";
+
+import type { NewsletterRenderContext } from "../shared/newsletter-section-context.js";
+import type { PagePreset } from "@rewindom/builtin/marketing/shared/page-presets.types.js";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
-export const NEWSLETTER_CONFIRM_PATH = "/newsletter/confirm";
-export const NEWSLETTER_UNSUBSCRIBE_PATH = "/newsletter/unsubscribe";
+export { NEWSLETTER_CONFIRM_PATH, NEWSLETTER_UNSUBSCRIBE_PATH };
 
-const isZh = (locale: string): boolean => locale.toLowerCase().startsWith("zh");
-
-/**
- * 极简独立页。刻意不套站点 chrome：这两张页在站点没发布时也必须打得开
- * ——退订不能因为站长把官网下线了就失效。
- */
-function page(input: { title: string; body: string; locale: string }): string {
-  return [
-    `<!doctype html>`,
-    `<html lang="${escapeHtml(input.locale)}">`,
-    `<head>`,
-    `<meta charset="utf-8" />`,
-    `<meta name="viewport" content="width=device-width,initial-scale=1" />`,
-    // 事务页不该进搜索索引
-    `<meta name="robots" content="noindex,nofollow" />`,
-    `<title>${escapeHtml(input.title)}</title>`,
-    `<style>`,
-    `:root{color-scheme:light dark}`,
-    `body{font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:Canvas;color:CanvasText}`,
-    `main{max-width:32rem;width:100%}`,
-    `h1{font-size:1.375rem;margin:0 0 .5rem}`,
-    `p{margin:.5rem 0}`,
-    `ul{margin:.5rem 0;padding-left:1.25rem}`,
-    `button{font:inherit;padding:.625rem 1.125rem;border:0;border-radius:6px;background:CanvasText;color:Canvas;cursor:pointer}`,
-    `.muted{opacity:.7;font-size:.875rem}`,
-    `</style>`,
-    `</head>`,
-    `<body><main>${input.body}</main></body></html>`,
-  ].join("");
+interface PageSpec {
+  kind: string;
+  path: string;
+  preset: PagePreset;
 }
 
-function reply200(reply: FastifyReply, html: string): FastifyReply {
-  return reply.type("text/html; charset=utf-8").send(html);
-}
+const CONFIRM_SPEC: PageSpec = {
+  kind: NEWSLETTER_CONFIRM_PAGE_KIND,
+  path: NEWSLETTER_CONFIRM_PATH,
+  preset: NEWSLETTER_CONFIRM_TEMPLATE_PRESET,
+};
+
+const UNSUBSCRIBE_SPEC: PageSpec = {
+  kind: NEWSLETTER_UNSUBSCRIBE_PAGE_KIND,
+  path: NEWSLETTER_UNSUBSCRIBE_PATH,
+  preset: NEWSLETTER_UNSUBSCRIBE_TEMPLATE_PRESET,
+};
 
 function queryToken(request: FastifyRequest): string {
   const { token } = request.query as { token?: string };
@@ -73,11 +79,6 @@ function bodyField(request: FastifyRequest, key: string): string[] {
   const value = body[key];
   if (Array.isArray(value)) return value.map(String);
   return typeof value === "string" && value ? [value] : [];
-}
-
-function localeOf(request: FastifyRequest): string {
-  const header = request.headers["accept-language"];
-  return typeof header === "string" && /zh/iu.test(header) ? "zh-CN" : "en";
 }
 
 /**
@@ -94,6 +95,76 @@ function sameOrigin(request: FastifyRequest): boolean {
   return Boolean(host) && origin.endsWith(`//${host}`);
 }
 
+/** 把模板页（或兜底预设）+ 按请求上下文渲染成整页 HTML。 */
+async function renderPanelPage(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  spec: PageSpec,
+  buildContext: (locale: string) => NewsletterRenderContext,
+): Promise<FastifyReply> {
+  const hostTenant = request.hostTenantContext;
+  if (!hostTenant) {
+    return reply.status(404).send({ code: "site.host_unbound" });
+  }
+
+  const requested = parseMarketingSsrPath(request.url).locale;
+  const site = await getSiteChromeOrFallback(
+    hostTenant.tenant_id,
+    hostTenant.tenant_slug,
+    hostTenant.tenant_slug,
+    requested,
+  );
+  const locale = normalizeLocale(requested, site.default_locale);
+
+  const stored = await getPublishedTemplatePage(
+    hostTenant.tenant_id,
+    spec.kind,
+    locale,
+    // 站点没发布时也要能确认 / 退订，那时用兜底版式
+    { requireSite: false },
+  );
+  const translate = createNewsletterPresetTranslator(locale);
+  const template = stored ?? {
+    sections: buildPresetSections(spec.preset, translate),
+    title: translate(spec.preset.titleKey ?? ""),
+    description: translate(spec.preset.descriptionKey ?? ""),
+  };
+
+  const entitlements = await resolveSectionEntitlements(hostTenant.tenant_id);
+  /*
+   * 请求头拿不到 origin（代理没透传 Host 之类）时回落到按租户解析的站点地址——
+   * 这两张页的 canonical / og 都靠它，空着会让整页的绝对地址全错。
+   */
+  const origin =
+    requestOriginFromHeaders(request) ??
+    (await resolveSiteOrigin(hostTenant.tenant_id));
+
+  return reply.type("text/html; charset=utf-8").send(
+    renderMarketingHtml({
+      origin,
+      tenant_id: hostTenant.tenant_id,
+      tenant_slug: hostTenant.tenant_slug,
+      site,
+      page: {
+        slug: spec.path,
+        locale,
+        kind: spec.kind,
+        title: template.title,
+        description: template.description,
+        sections: template.sections,
+        // 事务页不该被收录：对搜索引擎没有内容，收进去只会分走真正内容的权重
+        settings: { noindex: true },
+        visibility: "public",
+        path: spec.path,
+        alternates: [],
+        updated_at: new Date().toISOString(),
+      },
+      enabledEntitlements: entitlements,
+      contributed: newsletterContextEntry(buildContext(locale)),
+    }),
+  );
+}
+
 export async function newsletterSsrRoutes(app: FastifyInstance): Promise<void> {
   defineRoute(app, {
     method: "GET",
@@ -101,35 +172,15 @@ export async function newsletterSsrRoutes(app: FastifyInstance): Promise<void> {
     context: "NewsletterConfirmPage",
     errorCode: "NEWSLETTER_CONFIRM_PAGE_FAILED",
     handler: async (request, reply) => {
-      const locale = localeOf(request);
-      const zh = isZh(locale);
       const token = queryToken(request);
-      const title = zh ? "确认订阅" : "Confirm subscription";
-      if (!token) {
-        return reply200(
-          reply,
-          page({
-            title,
-            locale,
-            body: `<h1>${title}</h1><p>${zh ? "这个链接不完整。" : "This link is incomplete."}</p>`,
-          }),
-        );
-      }
-      return reply200(
-        reply,
-        page({
-          title,
-          locale,
-          body: [
-            `<h1>${title}</h1>`,
-            `<p>${zh ? "点下面的按钮完成订阅。" : "Press the button to finish subscribing."}</p>`,
-            `<form method="post" action="${NEWSLETTER_CONFIRM_PATH}">`,
-            `<input type="hidden" name="token" value="${escapeHtml(token)}" />`,
-            `<button type="submit">${zh ? "确认订阅" : "Confirm"}</button>`,
-            `</form>`,
-          ].join(""),
-        }),
-      );
+      return renderPanelPage(request, reply, CONFIRM_SPEC, () => ({
+        confirm: {
+          // 没有 token 的裸访问直接给失效态，不出一个点了没反应的按钮
+          result: token ? "form" : "invalid",
+          token,
+          action: NEWSLETTER_CONFIRM_PATH,
+        },
+      }));
     },
   });
 
@@ -139,11 +190,8 @@ export async function newsletterSsrRoutes(app: FastifyInstance): Promise<void> {
     context: "NewsletterConfirm",
     errorCode: "NEWSLETTER_CONFIRM_FAILED",
     handler: async (request, reply) => {
-      const locale = localeOf(request);
-      const zh = isZh(locale);
-      const title = zh ? "确认订阅" : "Confirm subscription";
       if (!sameOrigin(request)) {
-        return reply.status(403).send({ error: "origin mismatch" });
+        return reply.status(403).send({ code: "site.form_origin_invalid" });
       }
       const hostTenant = request.hostTenantContext;
       const token = bodyField(request, "token")[0] ?? "";
@@ -152,17 +200,14 @@ export async function newsletterSsrRoutes(app: FastifyInstance): Promise<void> {
           ? await confirmSubscription(hostTenant.tenant_id, token)
           : false;
 
-      return reply200(
-        reply,
-        page({
-          title,
-          locale,
-          body: ok
-            ? `<h1>${zh ? "订阅完成" : "You're subscribed"}</h1><p>${zh ? "之后的新进展会按你选的周期发到这个邮箱。" : "New items will arrive on the schedule you picked."}</p>`
-            : // 失效与不存在给同一句话：不透露某个 token 是否真的存在过
-              `<h1>${title}</h1><p>${zh ? "这个确认链接已失效，请重新订阅。" : "This confirmation link is no longer valid. Please subscribe again."}</p>`,
-        }),
-      );
+      return renderPanelPage(request, reply, CONFIRM_SPEC, () => ({
+        // 失效与不存在给同一个状态：不透露某个 token 是否真的存在过
+        confirm: {
+          result: ok ? "ok" : "invalid",
+          token,
+          action: NEWSLETTER_CONFIRM_PATH,
+        },
+      }));
     },
   });
 
@@ -172,56 +217,19 @@ export async function newsletterSsrRoutes(app: FastifyInstance): Promise<void> {
     context: "NewsletterUnsubscribePage",
     errorCode: "NEWSLETTER_UNSUBSCRIBE_PAGE_FAILED",
     handler: async (request, reply) => {
-      const locale = localeOf(request);
-      const zh = isZh(locale);
-      const title = zh ? "取消订阅" : "Unsubscribe";
       const token = queryToken(request);
       const found = token ? await findByUnsubscribeToken(token) : null;
 
-      if (!found) {
-        return reply200(
-          reply,
-          page({
-            title,
-            locale,
-            body: `<h1>${title}</h1><p>${zh ? "这个链接已失效，或者你已经退订了。" : "This link is no longer valid, or you have already unsubscribed."}</p>`,
-          }),
-        );
-      }
-
-      const lists = found.target.lists;
-      const checkboxes = lists
-        .map(
-          (listKey) =>
-            `<li><label><input type="checkbox" name="list_keys" value="${escapeHtml(listKey)}" /> ${escapeHtml(listKey)}</label></li>`,
-        )
-        .join("");
-
-      return reply200(
-        reply,
-        page({
-          title,
-          locale,
-          body: [
-            `<h1>${title}</h1>`,
-            `<p>${zh ? "这个邮箱" : "This address"}（${escapeHtml(found.target.email)}）${zh ? "订阅了：" : "is subscribed to:"}</p>`,
-            `<form method="post" action="${NEWSLETTER_UNSUBSCRIBE_PATH}">`,
-            `<input type="hidden" name="token" value="${escapeHtml(token)}" />`,
-            lists.length > 1 ? `<ul>${checkboxes}</ul>` : "",
-            /*
-             * 「全部退订」始终是**默认且最显眼**的那颗：读者点退订链接的意图九成是
-             * 「别再发了」。挑着退是次要路径，勾了才走。
-             */
-            `<p><button type="submit">${zh ? "全部退订" : "Unsubscribe from all"}</button></p>`,
-            lists.length > 1
-              ? `<p class="muted">${zh ? "勾选上面某几项则只退这几项。" : "Tick items above to unsubscribe from just those."}</p>`
-              : "",
-            `</form>`,
-          ]
-            .filter(Boolean)
-            .join(""),
-        }),
-      );
+      return renderPanelPage(request, reply, UNSUBSCRIBE_SPEC, () => ({
+        unsubscribe: {
+          result: found ? "form" : "invalid",
+          token,
+          action: NEWSLETTER_UNSUBSCRIBE_PATH,
+          // 掩码：这张页面不需要登录就能打开，不该把完整地址回显出去
+          email: found ? maskEmail(found.target.email) : "",
+          lists: found?.target.lists ?? [],
+        },
+      }));
     },
   });
 
@@ -231,23 +239,19 @@ export async function newsletterSsrRoutes(app: FastifyInstance): Promise<void> {
     context: "NewsletterUnsubscribe",
     errorCode: "NEWSLETTER_UNSUBSCRIBE_FAILED",
     handler: async (request, reply) => {
-      const locale = localeOf(request);
-      const zh = isZh(locale);
-      const title = zh ? "取消订阅" : "Unsubscribe";
       const token = bodyField(request, "token")[0] ?? queryToken(request);
       const listKeys = bodyField(request, "list_keys");
       const ok = token ? await unsubscribe(token, listKeys) : false;
 
-      return reply200(
-        reply,
-        page({
-          title,
-          locale,
-          body: ok
-            ? `<h1>${zh ? "已退订" : "Unsubscribed"}</h1><p>${zh ? "不会再给这个邮箱发信了。" : "We won't email this address again."}</p>`
-            : `<h1>${title}</h1><p>${zh ? "这个链接已失效，或者你已经退订了。" : "This link is no longer valid, or you have already unsubscribed."}</p>`,
-        }),
-      );
+      return renderPanelPage(request, reply, UNSUBSCRIBE_SPEC, () => ({
+        unsubscribe: {
+          result: ok ? "ok" : "invalid",
+          token,
+          action: NEWSLETTER_UNSUBSCRIBE_PATH,
+          email: "",
+          lists: [],
+        },
+      }));
     },
   });
 }

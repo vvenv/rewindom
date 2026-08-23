@@ -22,7 +22,8 @@
     "pending": "Pending",
     "confirmed": "Confirmed",
     "unsubscribed": "Unsubscribed",
-    "bounced": "Bounced"
+    "bounced": "Bounced",
+    "complained": "Complained"
   },
   "cadence": {
     "daily": "Daily",
@@ -43,7 +44,9 @@
     "confirmed": "Confirmed",
     "delete": "Delete",
     "deleted": "Subscriber deleted",
-    "none": "None"
+    "none": "None",
+    "reactivate": "Reactivate",
+    "reactivated": "Sending reactivated"
   },
   "empty": {
     "title": "No subscribers yet",
@@ -59,18 +62,72 @@
       "label": "Newsletter signup",
       "group": "Subscription",
       "listKey": "List",
-      "listKeyInfo": "Leave blank to subscribe to every list on this site (usually what you want). To target one list, use a key from the Available lists panel.",
+      "listKeyInfo": "Choosing all subscribes visitors to every source on this site. With more than one source, pick a specific list — otherwise readers get things they never asked for.",
       "cadence": "Digest frequency",
       "placeholder": "Input placeholder",
       "submitLabel": "Button label",
       "hint": "Supporting line",
       "hintInfo": "A small line under the input, e.g. \"No account needed, unsubscribe any time\"",
-      "successMessage": "Message after submitting"
+      "successMessage": "Message after submitting",
+      "listAll": "All lists on this site",
+      "listAllCount": "All lists on this site ({{count}})"
+    },
+    "confirm": {
+      "label": "Confirm panel",
+      "group": "Panel copy",
+      "submitLabel": "Button label",
+      "successMessage": "Message after confirming",
+      "invalidMessage": "Message when the link is invalid"
+    },
+    "unsubscribe": {
+      "label": "Unsubscribe panel",
+      "group": "Panel copy",
+      "submitLabel": "Button label",
+      "successMessage": "Message after unsubscribing",
+      "invalidMessage": "Message when the link is invalid"
     }
   },
   "form": {
     "emailPlaceholder": "your@email.com",
     "submit": "Subscribe",
     "successDefault": "Check your inbox and click the confirmation link"
+  },
+  "block": {
+    "subscribeLink": {
+      "label": "Newsletter link",
+      "linkLabel": "Button label",
+      "href": "Target address",
+      "hrefInfo": "Point this at the page holding your Newsletter section. Leave blank to hide the entry entirely.",
+      "iconOnly": "Icon only",
+      "iconOnlyInfo": "Turn on when the header row is tight; screen readers still get a name."
+    }
+  },
+  "template": {
+    "group": "Subscription pages",
+    "confirm": {
+      "label": "Confirm page"
+    },
+    "unsubscribe": {
+      "label": "Unsubscribe page"
+    }
+  },
+  "confirm": {
+    "title": "Confirm your subscription",
+    "subtitle": "One press and you're done. We won't send you anything until you confirm.",
+    "submit": "Confirm subscription",
+    "success": "You're subscribed. New items will arrive on the schedule you picked.",
+    "invalid": "This confirmation link is no longer valid. Please subscribe again."
+  },
+  "unsubscribe": {
+    "title": "Unsubscribe",
+    "subtitle": "We won't email this address again once you confirm.",
+    "submitAll": "Unsubscribe from all",
+    "success": "Unsubscribed. We won't email this address again.",
+    "invalid": "This link is no longer valid, or you have already unsubscribed."
+  },
+  "suppressed": {
+    "hard_bounce": "Address does not exist",
+    "soft_bounce": "Repeated bounces; paused",
+    "complaint": "Reported as spam"
   }
 }

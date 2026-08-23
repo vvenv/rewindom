@@ -39,7 +39,8 @@
     "smtpPasswordHint": "Leave blank to keep it unchanged; save a single space to clear the site password",
     "save": "Save",
     "saved": "Mail transport saved",
-    "driverInheritResolved": "Follow platform default (currently: {{driver}})"
+    "driverInheritResolved": "Follow platform default (currently: {{driver}})",
+    "driverResend": "Resend (HTTP API, delivery callbacks)"
   },
   "test": {
     "trigger": "Send test email",
@@ -56,7 +57,9 @@
     "queued": "Queued",
     "sent": "Sent",
     "failed": "Failed",
-    "dropped": "Dropped"
+    "dropped": "Dropped",
+    "bounced": "Bounced",
+    "complained": "Complained"
   },
   "filters": {
     "q": "Search recipient or subject",
@@ -76,7 +79,9 @@
     "retry": "Retry",
     "retried": "Delivery retried",
     "driver": "Transport",
-    "notReallySent": "Not actually sent"
+    "notReallySent": "Not actually sent",
+    "bounceHard": "Hard bounce",
+    "bounceSoft": "Soft bounce"
   },
   "empty": {
     "title": "No deliveries yet"

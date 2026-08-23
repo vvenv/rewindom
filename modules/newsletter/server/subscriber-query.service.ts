@@ -42,6 +42,10 @@ type SubscriberRow = {
   source_path: string | null;
   confirmed_at: Date | null;
   unsubscribed_at: Date | null;
+  bounce_count: number;
+  last_bounce_type: string | null;
+  last_bounce_at: Date | null;
+  suppressed_reason: string | null;
   created_at: Date;
   subscriptions: { list_key: string; cadence: string }[];
 };
@@ -58,6 +62,10 @@ function toListItem(
     source_path: row.source_path,
     confirmed_at: row.confirmed_at?.toISOString() ?? null,
     unsubscribed_at: row.unsubscribed_at?.toISOString() ?? null,
+    bounce_count: row.bounce_count,
+    last_bounce_type: (row.last_bounce_type as "hard" | "soft" | null) ?? null,
+    last_bounce_at: row.last_bounce_at?.toISOString() ?? null,
+    suppressed_reason: row.suppressed_reason,
     created_at: row.created_at.toISOString(),
     subscriptions: row.subscriptions.map((sub) => ({
       list_key: sub.list_key,
@@ -114,6 +122,10 @@ export async function listSubscribers(params: ListSubscribersParams): Promise<{
         source_path: true,
         confirmed_at: true,
         unsubscribed_at: true,
+        bounce_count: true,
+        last_bounce_type: true,
+        last_bounce_at: true,
+        suppressed_reason: true,
         created_at: true,
         subscriptions: { select: { list_key: true, cadence: true } },
       },

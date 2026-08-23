@@ -1,0 +1,88 @@
+# 退信与投诉的处置：把发不到的地址停掉。
+#
+# 承接 mailer 的 `resend-driver.spec.yaml`——那条把回调收下来并广播成领域事件，
+# 这条决定「收到之后怎么办」。两条必须分开写，因为决定权本来就不在 mailer：
+# 它是基础设施，不该替业务决定某个地址以后还发不发。
+#
+# 不做的代价是复利式的：死地址一直留在名单里，每一轮摘要都对着它发一次，
+# 退信率持续走高 → 发信域声誉下滑 → **活着的订阅者**也开始进垃圾箱。
+# 到那一步再清名单已经晚了，声誉要几周才养得回来。
+
+# ---------- 必填 ----------
+module: newsletter
+surfaces: [tenant]
+goal: |
+  订阅 mailer 广播的 `mail.bounced` / `mail.complained` 领域事件：把对应订阅者
+  标成 bounced（硬退信与投诉）或累计计数（软退信），摘要投递跳过他们；
+  工作台能看见「谁因为什么被停发」并可人工恢复。
+gold: modules/newsletter/server/digest.service.ts
+touch:
+  - modules/newsletter/features/bounce-suppression.spec.yaml
+  - modules/newsletter/MODULE.md
+  - modules/newsletter/MODULE.spec.yaml
+  - modules/newsletter/prisma/schema.prisma # NewsletterSubscriber 加退信字段
+  - modules/newsletter/shared/newsletter.ts # 状态加 complained；列表项带退信信息
+  - modules/newsletter/server/bounce.service.ts
+  - modules/newsletter/server/bounce.service.test.ts
+  - modules/newsletter/server/module.ts # onBoot 订阅领域事件
+  - modules/newsletter/server/digest.service.ts # 收件人筛选排除停发的
+  - modules/newsletter/server/subscriber-query.service.ts # 列表回退信原因
+  - modules/newsletter/server/newsletter.routes.ts # 人工恢复
+  - modules/newsletter/server/i18n.ts
+  - modules/newsletter/client/components/NewsletterSubscribersTable.tsx
+  - modules/newsletter/client/hooks/useNewsletterMutations.ts
+  - modules/newsletter/client/locales/en.json
+  - modules/newsletter/client/locales/zh-CN.json
+  - packages/builtin/audit/shared/audit.ts # NEWSLETTER_SUBSCRIBER_REACTIVATE
+out_of_scope:
+  - 接收 webhook 本身（mailer 的事，见 resend-driver.spec）
+  - 自动清理长期 bounced 的行（先让它可见，删是站长的决定）
+  - 按域名批量停发（某个企业邮箱整体拒收——等真遇到再说）
+  - 退信率看板与告警阈值
+  - 把 bounced 地址同步给其它模块（会员、订单通知都还没有发信需求）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/newsletter test
+  - node scripts/verify-module.mjs newsletter
+  - pnpm check:modules
+  - pnpm check:i18n
+
+# ---------- 可选 ----------
+entitlement: newsletter
+permissions: [] # 恢复停发用现有的 newsletter.write
+models: [] # 不新增表；NewsletterSubscriber 加列，见设计要点 3
+
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. **走 EventBus，不反向 import mailer。**
+#    跨限界上下文的写用领域事件（决策表那一行）。newsletter 在 onBoot 订阅
+#    `mail.bounced` / `mail.complained`，mailer 不认识订阅者这个概念。
+#    `requires` 里**依然不写 mailer**——订阅一个事件名不是编译期依赖。
+#
+# 2. **硬退信立刻停，软退信要累计。**
+#    hard bounce（地址不存在）：一次就够，直接停发。
+#    soft bounce（邮箱满了、临时故障）：**连续 3 次**才停，且中间成功投递一次就清零。
+#    软退信一次就停的话，对方邮箱满一天就永久丢掉一个真实读者。
+#
+# 3. **投诉比退信更严重，且要单独记。**
+#    用户点「举报垃圾邮件」= 立刻停发，没有累计。而且**绝不能**给他发任何
+#    「你被停发了」的通知信——那是往一个刚举报过你的人再发一封，等着第二次举报。
+#    新增列：`bounce_count`、`last_bounce_type`、`last_bounce_at`、`suppressed_reason`。
+#    状态加 `complained`，与 `bounced` 分开：两者的恢复策略不同（见 5）。
+#
+# 4. **筛选在查询里，不在循环里。**
+#    `digest.service.ts` 取收件人时就把 `status: "confirmed"` 收窄掉停发的行，
+#    而不是取出来再 `if` 掉——后者每轮都会白读几千行，也容易在下一次改动里漏掉。
+#
+# 5. **人工恢复要留痕，且投诉过的地址默认不给恢复按钮。**
+#    退信可能是暂时的（换了邮箱服务商），给站长一个恢复入口是合理的；
+#    但把一个投诉过的人重新加回名单，法律与声誉上都是站长在给自己挖坑。
+#    要恢复得先手工改状态——**故意做得比点一下麻烦**。
+#
+# 6. **停发原因必须常驻可见。**
+#    订阅者列表里那一行要能一眼看出「为什么不再给他发」，与投递记录页把
+#    `last_error` 摊在状态列旁边是同一条口径：这个页面存在的理由就是回答
+#    「为什么没收到」。
+#
+# 7. **事件处理失败不阻塞发布方。** EventBus 的既有约定。但处理失败要落
+#    error-log——回调丢了意味着一个死地址会继续被投递，那是要能查到的。

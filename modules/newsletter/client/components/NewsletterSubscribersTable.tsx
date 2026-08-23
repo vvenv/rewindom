@@ -12,10 +12,13 @@ import { Badge } from "@rewindom/ui/badge";
 import { Button } from "@rewindom/ui/button";
 import { Spinner } from "@rewindom/ui/spinner";
 import { toast } from "@rewindom/ui/toast";
-import { Mail, Trash2 } from "lucide-react";
+import { Mail, RotateCcw, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { useDeleteSubscriber } from "../hooks/useNewsletterMutations.js";
+import {
+  useDeleteSubscriber,
+  useReactivateSubscriber,
+} from "../hooks/useNewsletterMutations.js";
 
 import type {
   NewsletterSubscriberListItem,
@@ -32,6 +35,7 @@ const STATUS_VARIANTS: Record<
   confirmed: "default",
   unsubscribed: "outline",
   bounced: "destructive",
+  complained: "destructive",
 };
 
 function DeleteButton({
@@ -72,6 +76,48 @@ function DeleteButton({
   );
 }
 
+function ReactivateButton({
+  subscriber,
+}: {
+  subscriber: NewsletterSubscriberListItem;
+}) {
+  const { t } = useTranslation(["newsletter", "common"]);
+  const reactivate = useReactivateSubscriber();
+  const [pending, setPending] = useState(false);
+
+  async function handleReactivate(): Promise<void> {
+    setPending(true);
+    try {
+      await reactivate.mutateAsync(subscriber.id);
+      toast.success(t("table.reactivated"));
+    } catch (err) {
+      toast.error(
+        err instanceof ApiError || err instanceof Error
+          ? err.message
+          : t("common:saveFailed"),
+      );
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => void handleReactivate()}
+      disabled={pending}
+      aria-label={t("table.reactivate")}
+    >
+      {pending ? (
+        <Spinner className="size-4" />
+      ) : (
+        <RotateCcw className="size-4" />
+      )}
+    </Button>
+  );
+}
+
 function buildColumns(
   t: TFunction,
   canWrite: boolean,
@@ -96,10 +142,22 @@ function buildColumns(
         enableSorting: true,
         cell: ({ row }) => {
           const status = row.original.status;
+          const reason = row.original.suppressed_reason;
           return (
-            <Badge variant={STATUS_VARIANTS[status]}>
-              {t(`status.${status}`)}
-            </Badge>
+            <div className="flex flex-col gap-1">
+              <Badge variant={STATUS_VARIANTS[status]}>
+                {t(`status.${status}`)}
+              </Badge>
+              {/*
+                为什么不再给他发，必须常驻可见——把它藏进详情等于每次排障多点一次
+                （与投递记录页把 last_error 摊在状态列旁边同一条口径）。
+              */}
+              {reason ? (
+                <span className="text-destructive text-xs">
+                  {t(`suppressed.${reason.split(".").pop()}`)}
+                </span>
+              ) : null}
+            </div>
           );
         },
       },
@@ -151,6 +209,14 @@ function buildColumns(
       meta: { align: "right" },
       cell: ({ row }) => (
         <div className="flex gap-1">
+          {/*
+            只给退信的地址出恢复按钮。投诉过的不给——把一个刚举报过你的人重新
+            加回名单，法律与声誉上都是站长在给自己挖坑；要恢复得手工改库。
+            后端同样会拒（409），两处口径一致。
+          */}
+          {row.original.status === "bounced" ? (
+            <ReactivateButton subscriber={row.original} />
+          ) : null}
           <DeleteButton subscriber={row.original} />
         </div>
       ),

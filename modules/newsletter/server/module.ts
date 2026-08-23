@@ -1,11 +1,16 @@
 import { NEWSLETTER_ENTITLEMENT } from "../shared/entitlements.js";
 
+import {
+  clearBounceCount,
+  handleBounce,
+  handleComplaint,
+} from "./bounce.service.js";
 import { registerNewsletterDigestJob } from "./digest.job.js";
 import { NEWSLETTER_SERVER_I18N } from "./i18n.js";
 import { newsletterRoutes } from "./newsletter.routes.js";
 import { newsletterSsrRoutes } from "./newsletter.ssr.js";
 import { publicNewsletterRoutes } from "./public-subscribe.routes.js";
-import { registerNewsletterSection } from "./register.js";
+import { registerNewsletterSiteContributions } from "./register.js";
 
 import { registerTenantGatedRoutes } from "@rewindom/module-sdk/server";
 
@@ -44,12 +49,64 @@ export const newsletterServerModule: ServerAppModule = {
       { action: "NEWSLETTER_SUBSCRIBER_DELETE", label: "删除订阅者" },
       { action: "NEWSLETTER_SUBSCRIBER_EXPORT", label: "导出订阅者名单" },
       { action: "NEWSLETTER_DIGEST_RUN", label: "手动触发摘要投递" },
+      { action: "NEWSLETTER_SUBSCRIBER_REACTIVATE", label: "恢复订阅者发送" },
     ],
   },
   server: {
     i18n: NEWSLETTER_SERVER_I18N,
-    onBoot: async () => {
-      registerNewsletterSection();
+    onBoot: async (ctx) => {
+      registerNewsletterSiteContributions();
+
+      /*
+       * 订阅 mailer 广播的退信 / 投诉。**这不是编译期依赖**——只是一个事件名，
+       * 所以 `requires` 里依然没有 mailer。
+       *
+       * 处理失败不阻塞发布方（EventBus 的既有约定），但要落日志：回调丢了意味着
+       * 一个死地址会继续被投递，那是要能查到的。
+       */
+      ctx.events.on("mail.bounced", async (payload) => {
+        try {
+          const result = await handleBounce({
+            tenant_id: payload.tenant_id,
+            email: payload.email,
+            bounce_type: payload.bounce_type,
+          });
+          if (result === "suppressed") {
+            ctx.log.info(
+              { email: payload.email, type: payload.bounce_type },
+              "[newsletter] 退信停发",
+            );
+          }
+        } catch (err) {
+          ctx.log.error({ err }, "[newsletter] 处理退信失败");
+        }
+      });
+
+      /*
+       * 送达确认清软退信计数。这一步是「连续 N 次」里**连续**二字的全部实现——
+       * 放在「交给中继成功」那一刻是不对的：那不代表收件方真的收到了。
+       */
+      ctx.events.on("mail.delivered", async (payload) => {
+        try {
+          await clearBounceCount({
+            tenant_id: payload.tenant_id,
+            email: payload.email,
+          });
+        } catch (err) {
+          ctx.log.error({ err }, "[newsletter] 清退信计数失败");
+        }
+      });
+
+      ctx.events.on("mail.complained", async (payload) => {
+        try {
+          await handleComplaint({
+            tenant_id: payload.tenant_id,
+            email: payload.email,
+          });
+        } catch (err) {
+          ctx.log.error({ err }, "[newsletter] 处理投诉失败");
+        }
+      });
     },
     registerRoutes: async (app) => {
       /*

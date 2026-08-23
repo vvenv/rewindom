@@ -1,0 +1,100 @@
+# 把订阅入口真正交到租户手里：编辑器视图（**修 bug**）+ 页脚常驻块 + 两张模板页。
+#
+# 第一条是缺陷不是增强：模块交付时只调了 `registerSiteSectionHtml`（实站 SSR），
+# **漏了 `registerSiteSectionView`（编辑器预览）**。后果是租户在 Theme Editor 的
+# 段列表里根本找不到「邮件订阅」，段能渲染但没人放得上去——整个模块从头到尾用不了。
+# site-form 的 MODULE.md 把这两处并列写着，我只做了其中一处。
+#
+# 另外两条是这次交付时按「先跑通」砍掉的，现在补回来：
+#   - **chrome 块**：订阅入口和购物车入口、语言切换是同一类东西——站点级常驻，
+#     不该只能作为正文里的一个段存在。events 的 RSS 订阅走了两版才想明白这件事
+#     （见 public-rss.spec 的设计要点 6），这里直接抄结论，不再重走一遍。
+#   - **模板页**：确认页与退订页现在是零品牌的裸 HTML。读者从邮件点进来，落在一个
+#     跟这个站毫无关系的白页上——「我是不是被钓鱼了」。退订页尤其：那是读者对这个
+#     站的最后一次印象。
+
+# ---------- 必填 ----------
+module: newsletter
+surfaces: [ssr, tenant]
+goal: |
+  1）补上编辑器段视图注册，让「邮件订阅」段在 Theme Editor 里可见可放置；
+  2）新增页头/页脚 chrome 块 `newsletter.subscribe-link`（singleton）；
+  3）把 /newsletter/confirm 与 /newsletter/unsubscribe 做成租户可排版的模板页，
+     必备段由代码渲染，版式交给站长。
+gold: modules/site-form/client/module.tsx # 编辑器注册；模板页看 site-member 三张会员页
+touch:
+  - modules/newsletter/features/site-editor-contributions.spec.yaml
+  - modules/newsletter/MODULE.md
+  - modules/newsletter/MODULE.spec.yaml # site_contributions 补块与模板页
+  - modules/newsletter/client/module.tsx # registerSiteSectionView + registerChromeBlockView
+  - modules/newsletter/shared/sections/subscribe-link/definition.ts
+  - modules/newsletter/shared/sections/subscribe-link/html.ts
+  - modules/newsletter/shared/sections/subscribe-link/html.test.ts
+  - modules/newsletter/shared/sections/confirm/definition.ts
+  - modules/newsletter/shared/sections/confirm/html.ts
+  - modules/newsletter/shared/sections/unsubscribe/definition.ts
+  - modules/newsletter/shared/sections/unsubscribe/html.ts
+  - modules/newsletter/shared/newsletter-page-templates.ts
+  - modules/newsletter/shared/site-css/newsletter.css
+  - modules/newsletter/server/register.ts # 段 / 块 / 模板 kind + preset
+  - modules/newsletter/server/newsletter.ssr.ts # 改走 renderMarketingHtml
+  - modules/newsletter/server/newsletter.ssr.test.ts
+  - modules/newsletter/client/locales/en.json
+  - modules/newsletter/client/locales/zh-CN.json
+out_of_scope:
+  - 订阅段的列表下拉选择器（要接 options_from + per-request 贡献上下文，见 MODULE.spec）
+  - 把 chrome 块做成「输入框直接内嵌页脚」（先做成链接/按钮，见设计要点 3）
+  - 会员登录态预填邮箱（订阅刻意不要求注册，别把两件事绑一起）
+  - 邮件正文模板编辑器（那是另一件事，仍在 out_of_scope）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/newsletter test
+  - node scripts/verify-module.mjs newsletter # 规则 11 会校验 kind/preset 成对登记
+  - pnpm --filter @rewindom/builtin check:section-css
+  - pnpm check:modules
+  - pnpm check:i18n
+
+# ---------- 可选 ----------
+entitlement: newsletter
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. **编辑器预览灌同一个 HTML 渲染器，不另写 React。**
+#    `registerSiteSectionView(def, htmlSectionView(render), { css, icon })`，
+#    与 site-form 逐字同构。公开站是 SSR HTML，预览再写一套 JSX 只会让两边慢慢漂。
+#    编辑器里 `HtmlFragment` 已经把 submit 拦掉了，预览中的表单点不出提交。
+#    顺带补上 client manifest 漏掉的 `requires: ["marketing"]`。
+#
+# 2. **chrome 块必须 `singleton: true`。**
+#    一个站只该有一个常驻订阅入口。与 `events.subscribe-link`、`shop.cart-link` 同形，
+#    默认落**页脚**（`chromeSlotSettings({ align: "end", mobile: "menu" })`）——
+#    订阅是常驻但次要的入口，不该和主导航抢位置。
+#
+# 3. **chrome 块是「链接/按钮」，不是内嵌输入框。**
+#    页头页脚那一排寸土寸金，塞一个 email input 会把版式挤垮，而且它得带上
+#    提交、校验、回执三套状态。块点开跳到摆了订阅段的页面（setting 里配目标路径，
+#    默认取本站第一张含订阅段的页面）。想要「页脚直接填邮箱」是后续，先验证入口有没有人点。
+#
+# 4. **两张模板页各只有一个必备段，编辑器不给删。**
+#    `newsletter.confirm-panel` / `newsletter.unsubscribe-panel`，
+#    与 site-member 三张会员页同一套机制（`page-templates.ts`）。
+#    kind 决定 slug（`newsletter-confirm` / `newsletter-unsubscribe`），租户改不了——
+#    改了地址，那些已经发出去的邮件里的链接就全废了。
+#    分组 key 新开一个 `NEWSLETTER_PAGE_TEMPLATE_GROUP`（这不是 `/member/*` 那一族）。
+#
+# 5. **`auto_init: false`。** 与会员版式同口径：不预建，租户点「初始化版式」或开通
+#    订阅开关时由 marketing 落库。默认给所有存量站点凭空多两张页面是骚扰。
+#
+# 6. **站点没发布时仍要能打开。** 走 `getSiteChromeOrFallback`——退订不能因为站长
+#    把官网下线了就失效。这是现在那版裸 HTML 唯一做对的事，改造后不能丢。
+#    模板页快照缺失时同样回落到当前的极简版式，而不是 500。
+#
+# 7. **副作用仍然只在 POST，同源规则不变。**
+#    确认页校验 Origin，退订页**不校验**（`List-Unsubscribe-Post` 的一键退订来自
+#    邮件服务商的服务器，没有我们的 Origin）。改成模板页只换外壳，不碰这条。
+#
+# 8. **`/newsletter/*` 仍然不进 SITE_APP_PREFIXES。**
+#    它像普通 CMS 路径一样落到 Fastify，静态路由比 `/:first/:second` 更具体会先命中。
+#    nginx / vite 那三份表不需要动——site-member 需要，是因为 `member` 在应用区前缀里。
+#    改造后这一点不变，别顺手加进去。

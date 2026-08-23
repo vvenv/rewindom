@@ -15,9 +15,17 @@
 
 /** 可订阅列表。`list_key` 建议带模块前缀（`events:topic:ai`），避免撞车。 */
 export interface NewsletterList {
+  /** 建议带模块前缀（`events:topic:ai`），避免撞车。 */
   list_key: string;
   label: string;
   description?: string;
+  /**
+   * 值里含 `{token}`、要按当前页面插值才成立的候选（如「当前主题」）。
+   *
+   * 它只进编辑器下拉，**不进「本站全部」的解析结果**——没有页面上下文时那个 key
+   * 根本解不开，订上去等于订了一个永远不会有内容的列表。
+   */
+  dynamic?: boolean;
 }
 
 /** 摘要里的一条。中立结构——本模块不认识它从哪来。 */

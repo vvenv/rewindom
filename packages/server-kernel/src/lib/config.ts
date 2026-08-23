@@ -369,13 +369,28 @@ function buildEventsConfig() {
      * LLM 重分析的基础冷却（分钟）。事件越老、倍数越大——一个跑了两天、
      * 已有六条信号的事件，第七条带来的摘要变化基本为零。
      */
-    llmCooldownMinutes: clampIntEnv("EVENTS_LLM_COOLDOWN_MINUTES", 30, 0, 24 * 60),
+    llmCooldownMinutes: clampIntEnv(
+      "EVENTS_LLM_COOLDOWN_MINUTES",
+      30,
+      0,
+      24 * 60,
+    ),
     /**
      * 语料保留期（天）。信号无上限增长是这个模块最早会撞上的墙——
      * 采集每 15 分钟按站点追加，从来没有回收路径。
      */
-    signalRetentionDays: clampIntEnv("EVENTS_SIGNAL_RETENTION_DAYS", 90, 7, 3650),
-    eventRetentionDays: clampIntEnv("EVENTS_EVENT_RETENTION_DAYS", 180, 7, 3650),
+    signalRetentionDays: clampIntEnv(
+      "EVENTS_SIGNAL_RETENTION_DAYS",
+      90,
+      7,
+      3650,
+    ),
+    eventRetentionDays: clampIntEnv(
+      "EVENTS_EVENT_RETENTION_DAYS",
+      180,
+      7,
+      3650,
+    ),
   };
 }
 
@@ -459,8 +474,10 @@ function buildShopConfig() {
  */
 function buildMailConfig() {
   const driver = strEnv("MAIL_DRIVER", isProduction ? "" : "log").toLowerCase();
-  if (driver && driver !== "smtp" && driver !== "log") {
-    throw new Error(`MAIL_DRIVER 取值非法：${driver}（可选 smtp / log）`);
+  if (driver && driver !== "smtp" && driver !== "resend" && driver !== "log") {
+    throw new Error(
+      `MAIL_DRIVER 取值非法：${driver}（可选 smtp / resend / log）`,
+    );
   }
   if (driver === "log" && isProduction) {
     throw new Error(
@@ -468,7 +485,15 @@ function buildMailConfig() {
     );
   }
   return {
-    driver: driver as "" | "smtp" | "log",
+    driver: driver as "" | "smtp" | "resend" | "log",
+    /*
+     * 投递回调的验签密钥（Svix `whsec_…`）。回调地址是**全站一个**、没有租户上下文，
+     * 所以只能放平台级——按租户存的话，一条回调进来我们不知道该拿谁的密钥去验。
+     * 空 = 不接回调：验签一律失败，退信与投诉就收不到（不是静默通过）。
+     */
+    webhookSecret: strEnv("MAIL_WEBHOOK_SECRET", ""),
+    /** resend 的平台默认 API key；租户可在设置页覆盖（与 SMTP 密码共用 secret 列）。 */
+    resendApiKey: strEnv("MAIL_RESEND_API_KEY", ""),
     /** 信封发件人；留空则发信能力视为未配置（收件方一律拒收无 From 的信）。 */
     from: strEnv("MAIL_FROM", ""),
     smtp: {

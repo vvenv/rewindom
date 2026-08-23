@@ -33,8 +33,20 @@ import {
   interpolateSiteText,
 } from "./site-interpolation.js";
 
-/** 走文本插值的设置类型。`link` 另走 href 那一支。 */
-const TEXT_SETTING_TYPES = new Set(["text", "textarea", "richtext", "list"]);
+/**
+ * 走文本插值的设置类型。`link` 另走 href 那一支。
+ *
+ * `select` 在列里是为了「按当前页面取值」的动态候选：邮件订阅段要在主题页上默认订
+ * 当前主题，选项的值就是 `events:topic:{topic_slug}`。绝大多数 select 存的是枚举值、
+ * 一个 `{` 都没有，上面那道 `raw.includes("{")` 已经先挡掉了，加进来不产生额外开销。
+ */
+const TEXT_SETTING_TYPES = new Set([
+  "text",
+  "textarea",
+  "richtext",
+  "list",
+  "select",
+]);
 
 function interpolateValues(
   defs: readonly SettingDef[],
@@ -77,7 +89,11 @@ export function interpolateSectionSettings(
   const definition = getSectionDefinition(section.type);
   if (!definition) return section;
 
-  const settings = interpolateValues(definition.settings, section.settings, tokens);
+  const settings = interpolateValues(
+    definition.settings,
+    section.settings,
+    tokens,
+  );
 
   let blocks = section.blocks;
   if (blocks.length > 0 && definition.blocks) {
@@ -97,6 +113,7 @@ export function interpolateSectionSettings(
     blocks = nextBlocks ?? blocks;
   }
 
-  if (settings === section.settings && blocks === section.blocks) return section;
+  if (settings === section.settings && blocks === section.blocks)
+    return section;
   return { ...section, settings, blocks };
 }

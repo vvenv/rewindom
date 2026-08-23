@@ -1,0 +1,103 @@
+# Resend 原生 driver + 投递回调。
+#
+# 现状：SMTP 中继已经能把信发出去（Resend 也提供 SMTP，host=smtp.resend.com、
+# user=resend、password=API key）。**能发信不是这条 spec 的理由**——理由是拿不到
+# 退信与投诉回调：
+#
+#   SMTP 是「交出去就结束」的协议。信被收件方拒了、进了垃圾箱、用户点了「举报垃圾邮件」，
+#   我们一概不知道。投递记录会一直显示「已发出」，而真实的送达率在悄悄下滑，
+#   等发现时发信域已经被烧了。
+#
+# 摘要投递一旦按订阅者规模跑起来，这就从「少个功能」变成「看不见的持续损失」。
+# 顺带的好处是批量发送接口：SMTP 是一封一次往返，几千个收件人时差别很明显。
+
+# ---------- 必填 ----------
+module: mailer
+surfaces: [tenant]
+goal: |
+  给 mailer 加一个原生 `resend` driver（HTTP API），并接住它的投递回调 webhook：
+  把 delivered / bounced / complained 落进 MailDelivery，通过领域事件广播出去，
+  供 newsletter 之类的调用方据此停发。SMTP driver 原样保留，不迁移存量配置。
+gold: packages/builtin/mailer/server/drivers/smtp.driver.ts
+touch:
+  - packages/builtin/mailer/features/resend-driver.spec.yaml
+  - packages/builtin/mailer/MODULE.md
+  - packages/builtin/mailer/MODULE.spec.yaml # drivers 清单 + out_of_scope 收敛
+  - packages/builtin/mailer/models.prisma # MailDelivery 加回调字段
+  - packages/builtin/mailer/shared/mailer.ts # MailDriver 加 "resend"；状态加 bounced/complained
+  - packages/builtin/mailer/server/drivers/resend.driver.ts
+  - packages/builtin/mailer/server/drivers/resend.driver.test.ts
+  - packages/builtin/mailer/server/drivers/driver.ts # 错误分级要认 HTTP 状态码
+  - packages/builtin/mailer/server/mail.service.ts # driver 选择
+  - packages/builtin/mailer/server/mailer.config.ts # api_key 字段（复用 secret 列）
+  - packages/builtin/mailer/server/webhook.routes.ts
+  - packages/builtin/mailer/server/webhook.routes.test.ts
+  - packages/builtin/mailer/server/module.ts # 注册 webhook 路由
+  - packages/builtin/mailer/server/i18n.ts
+  - packages/builtin/mailer/client/components/MailerConfigSheet.tsx # driver 三选一
+  - packages/builtin/mailer/client/components/MailDeliveriesTable.tsx # 新状态的角标
+  - packages/builtin/mailer/client/locales/en.json
+  - packages/builtin/mailer/client/locales/zh-CN.json
+  - packages/server-kernel/src/lib/config.ts # MAIL_RESEND_API_KEY / MAIL_WEBHOOK_SECRET
+  - docker-compose.prod.yml # 新 env 透传（check:prod-app-env 会拦）
+  - scripts/env.production.example
+out_of_scope:
+  - 迁移存量 SMTP 配置到 resend（两个 driver 并存，租户自己改）
+  - 批量发送接口（Resend 的 /emails/batch）——先把单封与回调做对，见设计要点 7
+  - 其它服务商的 driver（Brevo / SES）；driver 层已经是接口，加一个是增量
+  - 送达率看板 / 统计图表（先让原始事件可查，聚合等有量再说）
+  - 把 bounced 地址停发（那是调用方的决定，见 newsletter 的 bounce-suppression.spec）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'mailer/*'
+  - node scripts/verify-module.mjs mailer
+  - pnpm check:i18n
+  - pnpm check:prod-app-env
+  - pnpm --filter @rewindom/builtin typecheck
+
+# ---------- 可选 ----------
+entitlement: mailer
+permissions: [] # 不新增；webhook 是机器对机器，配置仍是 mailer.write
+models: [] # 不新增表；MailDelivery 加列，见设计要点 4
+
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. **凭据复用现有的 secret 列，不新开字段。**
+#    `TenantSetting` 那一行已经存了加密的 `smtp_password`；resend 的 API key 走同一个
+#    位置（语义是「当前通道的密钥」），配置解析里按 driver 决定怎么用。
+#    新开一个 `resend_api_key` 字段的话，切换 driver 时会留下一份用不上的旧密钥，
+#    而它同样是需要被清理的敏感数据。
+#
+# 2. **webhook 必须验签，且验签失败一律 401 不给细节。**
+#    Resend 的回调签名是 Svix 格式（`svix-id` / `svix-timestamp` / `svix-signature`，
+#    HMAC-SHA256）。密钥来自平台 env（`MAIL_WEBHOOK_SECRET`）——回调地址是全站一个，
+#    没有租户上下文，不能按租户存。**时间戳偏差超过 5 分钟直接拒**，否则签名重放
+#    可以把任意一封信标成 bounced。
+#
+# 3. **靠 provider_message_id 回找投递记录，不靠收件人地址。**
+#    地址会重复（同一个人订了几个列表），只有消息号是一一对应的。找不到就丢弃并
+#    记一条 info——回调可能对应的是保留期清理掉的老记录，那不是错误。
+#
+# 4. **MailDelivery 新增：`bounce_type`、`bounced_at`、`complained_at`。**
+#    状态机加两个终态：`bounced`（收件方拒收）、`complained`（用户点了举报垃圾邮件）。
+#    两者必须分开：bounce 是地址问题，complaint 是**内容或频率**问题——把 complaint
+#    当 bounce 处理，等于把「你发太多了」误读成「这个地址不存在」，改错方向。
+#    `hard` / `soft` 也要分：soft bounce（邮箱满了）过几天可能就好了，hard 是永久的。
+#
+# 5. **回调只落数据 + 发领域事件，不做业务决定。**
+#    `events.emit("mail.bounced", { tenant_id, email, bounce_type })`。
+#    「这个地址以后还发不发」是调用方的事——newsletter 要停发，将来 site-member 的
+#    验证信可能只想提示用户换个邮箱。mailer 是基础设施，不替业务决定。
+#
+# 6. **错误分级要认 HTTP 状态码。** 现在的 `isRetriableError` 只看 SMTP 的
+#    `responseCode`。HTTP driver 下：429 与 5xx 可重试，4xx（除 429）是永久失败。
+#    422（域名未验证）尤其不能重试——重试一百次也还是没验证，只会刷满投递记录。
+#
+# 7. **先做单封，不做批量。** Resend 的批量接口一次最多 100 封且**不返回每封的
+#    消息号**，那会让上面第 3 条（靠消息号回找）失效。等回调链路跑顺了，再决定
+#    是否为批量单独设计一套对账。
+#
+# 8. **回调路由不进 entitlement 网关，也不进租户 Host 分流。**
+#    它是机器对机器的固定地址（`/api/public/mailer/webhook`），验签就是它的认证。
+#    租户把 mailer 关掉之后，在途的回调仍然应该被记下来——那正是「为什么关掉前
+#    最后几封没送到」的证据。

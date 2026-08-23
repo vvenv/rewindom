@@ -1,6 +1,7 @@
 import { type prisma } from "@rewindom/server-kernel/lib/prisma.js";
 
 import type {
+  MailBounceType,
   MailDeliveryDetail,
   MailDeliveryListItem,
   MailDeliveryStatus,
@@ -39,6 +40,9 @@ export function toMailDeliveryListItem(
     driver: record.driver,
     attempt_count: record.attempt_count,
     last_error: record.last_error,
+    bounce_type: (record.bounce_type as MailBounceType | null) ?? null,
+    bounced_at: record.bounced_at?.toISOString() ?? null,
+    complained_at: record.complained_at?.toISOString() ?? null,
     next_attempt_at: record.next_attempt_at?.toISOString() ?? null,
     sent_at: record.sent_at?.toISOString() ?? null,
     created_at: record.created_at.toISOString(),

@@ -89,14 +89,20 @@ function ConfigForm({
 
       <FieldGroup className="min-h-0 flex-1 overflow-y-auto px-4">
         <Field>
-          <FieldLabel htmlFor="mailer_driver" className="flex items-center gap-1">
+          <FieldLabel
+            htmlFor="mailer_driver"
+            className="flex items-center gap-1"
+          >
             {t("config.driver")}
             <FieldInfoTip text={t("config.driverHint")} side="left" />
           </FieldLabel>
           <Select
             value={values.driver || INHERIT}
             onValueChange={(value) =>
-              set("driver", value === INHERIT ? "" : (value as "smtp" | "log"))
+              set(
+                "driver",
+                value === INHERIT ? "" : (value as "smtp" | "resend" | "log"),
+              )
             }
           >
             <SelectTrigger id="mailer_driver">
@@ -111,6 +117,7 @@ function ConfigForm({
                   : t("config.driverInherit")}
               </SelectItem>
               <SelectItem value="smtp">{t("config.driverSmtp")}</SelectItem>
+              <SelectItem value="resend">{t("config.driverResend")}</SelectItem>
               <SelectItem value="log">{t("config.driverLog")}</SelectItem>
             </SelectContent>
           </Select>
@@ -180,7 +187,9 @@ function ConfigForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent position="popper" align="start">
-              <SelectItem value={INHERIT}>{t("config.driverInherit")}</SelectItem>
+              <SelectItem value={INHERIT}>
+                {t("config.driverInherit")}
+              </SelectItem>
               <SelectItem value="on">{t("common:yes")}</SelectItem>
               <SelectItem value="off">{t("common:no")}</SelectItem>
             </SelectContent>

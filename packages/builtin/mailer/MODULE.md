@@ -22,13 +22,13 @@ if (!mail || !(await mail.isConfigured(tenantId))) {
 
 ## 面划分
 
-| 面 | 路由 | 目录 | 所需权限 |
-| --- | --- | --- | --- |
-| 租户侧 | `/app/mailer` | `client/` | `mailer.read`（写操作另需 `mailer.write`） |
-| 配置 API | `GET/PUT /api/mailer/config` | `server/mailer.config.ts` | 同上 |
-| 测试发信 | `POST /api/mailer/test` | `server/mailer.routes.ts` | `mailer.write` |
-| 投递记录 | `GET /api/mailer`、`GET /api/mailer/:deliveryId` | `server/delivery.service.ts` | `mailer.read` |
-| 人工重试 | `POST /api/mailer/:deliveryId/retry` | `server/mail.service.ts` | `mailer.write` |
+| 面       | 路由                                             | 目录                         | 所需权限                                   |
+| -------- | ------------------------------------------------ | ---------------------------- | ------------------------------------------ |
+| 租户侧   | `/app/mailer`                                    | `client/`                    | `mailer.read`（写操作另需 `mailer.write`） |
+| 配置 API | `GET/PUT /api/mailer/config`                     | `server/mailer.config.ts`    | 同上                                       |
+| 测试发信 | `POST /api/mailer/test`                          | `server/mailer.routes.ts`    | `mailer.write`                             |
+| 投递记录 | `GET /api/mailer`、`GET /api/mailer/:deliveryId` | `server/delivery.service.ts` | `mailer.read`                              |
+| 人工重试 | `POST /api/mailer/:deliveryId/retry`             | `server/mail.service.ts`     | `mailer.write`                             |
 
 **投递没有 HTTP 入口。** 一封信只能由服务端调 `MailProvider.send()` 发出。开一个「发任意邮件」
 的接口等于给后台账号一台开放中继，一旦某个角色被过度授权，这个站的发信域会被拿去发垃圾邮件，
@@ -42,10 +42,10 @@ if (!mail || !(await mail.isConfigured(tenantId))) {
 合并是**逐字段**的，不是整体二选一：租户只想改发件人、继续用平台 SMTP 主机是常见诉求。
 因此 status 同时回两组值——
 
-| 字段 | 含义 |
-| --- | --- |
+| 字段                         | 含义                                        |
+| ---------------------------- | ------------------------------------------- |
 | `driver` / `from` / `smtp_*` | **本站覆盖的原值**，`null` = 该字段跟随平台 |
-| `resolved_*` | 实际生效值 |
+| `resolved_*`                 | 实际生效值                                  |
 
 设置页用第一组预填、第二组做 placeholder。只回生效值的话，预填后一保存就会把平台默认
 原样固化成本站覆盖，之后平台改配置这个站就跟不上了。
@@ -87,6 +87,42 @@ if (!mail || !(await mail.isConfigured(tenantId))) {
 
 正文**不出现在任何 DTO 里**：邮件全文常含确认链接与退订 token，摊在运营页面上等于把它们
 泄给每一个后台账号。收件人地址默认掩码，看全址要 `mailer.write`。
+
+## 通道：SMTP vs Resend
+
+|                 | `smtp` | `resend` | `log`            |
+| --------------- | ------ | -------- | ---------------- |
+| 能发信          | ✅     | ✅       | ❌（只写日志）   |
+| 退信 / 投诉回调 | ❌     | ✅       | —                |
+| 生产可用        | ✅     | ✅       | ❌（两道闸门拦） |
+
+**Resend 也提供 SMTP 中继**（host=smtp.resend.com、user=resend、password=API key），
+所以「能不能发信」不是做原生 driver 的理由。理由是 SMTP 是「交出去就结束」的协议：
+信被拒了、进了垃圾箱、用户点了举报，我们一概不知道，投递记录会一直显示「已发出」，
+而真实送达率在悄悄下滑，等发现时发信域已经被烧了。
+
+API key 与 SMTP 密码**共用 secret 列**（语义都是「当前通道的密钥」）。新开一个
+`resend_api_key` 字段的话，切换 driver 会留下一份用不上却同样敏感的旧密钥。
+平台回落那侧是两个 env（`MAIL_RESEND_API_KEY` / `MAIL_SMTP_PASSWORD`），按 driver 取。
+
+## 投递回调
+
+`POST /api/public/mailer/webhook`。**不进 entitlement 网关，也不认租户 Host**——
+机器对机器的固定地址，验签就是它的认证。租户关掉 mailer 之后在途的回调仍要记下来，
+那是「关掉前最后几封为什么没送到」的证据。
+
+| 口径                                              | 为什么                                                           |
+| ------------------------------------------------- | ---------------------------------------------------------------- |
+| Svix 验签（HMAC-SHA256），失败一律 401 且不说原因 | 说「时间戳过期」还是「签名不对」等于给爆破者一个进度条           |
+| 时间戳偏差 > 5 分钟直接拒                         | 否则抓到一次合法回调就能无限重放，把任意一封信标成 bounced       |
+| 密钥在**平台级** env                              | 回调地址全站一个、没有租户上下文，按租户存的话不知道拿谁的密钥验 |
+| 靠 `provider_message_id` 回找                     | 地址会重复（同一个人订几个列表），只有消息号一一对应             |
+| 找不到记录 → 202 + info 日志                      | 可能对应保留期清理掉的老记录，那不是错误                         |
+| `delivered` **不覆盖** bounced/complained         | 回调乱序到达是常态，后到的成功会把一条已知退信洗白               |
+
+**只落数据 + 发领域事件，不做业务决定**：`mail.bounced` / `mail.complained` /
+`mail.delivered`。「这个地址以后还发不发」是调用方的事——newsletter 要停发，
+将来 site-member 的验证信可能只想提示用户换个邮箱。
 
 ## 如何单独测试
 

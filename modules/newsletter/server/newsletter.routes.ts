@@ -10,6 +10,7 @@ import {
   listDigestRuns,
   listSubscribers,
 } from "./subscriber-query.service.js";
+import { reactivateSubscriber } from "./bounce.service.js";
 import { runDigests } from "./digest.service.js";
 import { listAvailableLists } from "./subscriber.service.js";
 
@@ -20,6 +21,7 @@ import {
   emitAuditLogFromRequestSafe,
   parsePagination,
   parseSortDir,
+  resolveRequestLocale,
   sendCodedError,
 } from "@rewindom/module-sdk/server";
 
@@ -62,12 +64,20 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
     context: "NewsletterLists",
     errorCode: "NEWSLETTER_LISTS_FAILED",
     preHandler: [app.requirePermission("newsletter.read")],
-    handler: async (request) => ({
-      items: await listAvailableLists({
-        tenant_id: request.tenantContext!.tenant_id,
-        locale: "zh-CN",
-      }),
-    }),
+    handler: async (request) => {
+      /*
+       * 显式 `locale` 优先于 `resolveRequestLocale`：编辑器预览要的是**当前选中页面**
+       * 的语言，而 api client 的 Accept-Language 写的是工作台界面语言。
+       * 两者不一致时，下拉里的列表名会和实站显示的不是同一份。
+       */
+      const { locale } = request.query as { locale?: string };
+      return {
+        items: await listAvailableLists({
+          tenant_id: request.tenantContext!.tenant_id,
+          locale: locale?.trim() || resolveRequestLocale(request),
+        }),
+      };
+    },
   });
 
   defineRoute(app, {
@@ -136,6 +146,43 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
         }
         throw err;
       }
+    },
+  });
+
+  /**
+   * 人工恢复停发。
+   *
+   * **投诉过的地址走不到这里**（service 直接拒）：把一个刚举报过你的人重新加回名单，
+   * 法律与声誉上都是站长在给自己挖坑。要恢复得手工改库，故意做得比点一下麻烦。
+   */
+  defineRoute(app, {
+    method: "POST",
+    url: "/:subscriberId/reactivate",
+    context: "NewsletterSubscriberReactivate",
+    errorCode: "NEWSLETTER_REACTIVATE_FAILED",
+    preHandler: [app.requirePermission("newsletter.write")],
+    handler: async (request, reply) => {
+      const { subscriberId } = request.params as { subscriberId: string };
+      const tenantId = request.tenantContext!.tenant_id;
+      const outcome = await reactivateSubscriber(tenantId, subscriberId);
+
+      if (outcome === "not_found") {
+        return sendCodedError(reply, 404, "newsletter.subscriber_not_found");
+      }
+      if (outcome === "complained") {
+        return sendCodedError(reply, 409, "newsletter.reactivate_complained");
+      }
+
+      await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+        userId: request.authUser!.userId,
+        username: request.authUser!.username,
+        action: AuditAction.NEWSLETTER_SUBSCRIBER_REACTIVATE,
+        resource: subscriberId,
+        detail_key: "newsletter.audit.reactivated",
+        detail_params: {},
+      });
+
+      return { reactivated: true };
     },
   });
 

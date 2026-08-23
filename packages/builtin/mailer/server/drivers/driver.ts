@@ -31,11 +31,23 @@ export interface MailTransport {
  * 被拒（地址不存在、内容被判垃圾、超配额）：重试只会把发信域的声誉越烧越糟，
  * 应当直接判 failed 并让人来看。
  *
- * 判据用 SMTP 响应码：5xx 是永久失败，4xx 是临时失败，没有响应码的一律当连接级。
+ * 两套判据，因为两种协议的语义正好相反：
+ *
+ * - **SMTP**（`responseCode`）：5xx 永久失败，4xx 临时失败 → `< 500` 可重试
+ * - **HTTP**（`statusCode`）：5xx 与 429 可重试，其余 4xx 永久失败
+ *
+ * HTTP 的 422（域名未验证）尤其不能重试——重试一百次也还是没验证，
+ * 只会把投递记录刷满，真正该做的是去把域名验了。
+ *
+ * 都拿不到就当连接级失败（连不上、超时），可重试。
  */
 export function isRetriableError(err: unknown): boolean {
-  const code = (err as { responseCode?: number })?.responseCode;
-  if (typeof code === "number") return code < 500;
+  const httpStatus = (err as { statusCode?: number })?.statusCode;
+  if (typeof httpStatus === "number") {
+    return httpStatus === 429 || httpStatus >= 500;
+  }
+  const smtpCode = (err as { responseCode?: number })?.responseCode;
+  if (typeof smtpCode === "number") return smtpCode < 500;
   return true;
 }
 

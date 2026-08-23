@@ -43,12 +43,13 @@ describe("订阅段 SSR", () => {
     expect(html).toContain('data-list-key=""');
   });
 
-  it("周期缺省为 weekly", () => {
+  it("周期缺省为每日", () => {
+    // 事件类内容隔一周再说就不叫「进展」了；没有新内容的那天不会发空信
     const html = renderNewsletterSubscribeHtml(
       section({ submit_label: "订阅" }),
       ctx,
     );
-    expect(html).toContain('data-cadence="weekly"');
+    expect(html).toContain('data-cadence="daily"');
   });
 
   it("转义租户填的文案", () => {
@@ -78,5 +79,29 @@ describe("订阅段 SSR", () => {
       ctx,
     );
     expect(html).not.toContain("newsletter-hint");
+  });
+});
+
+describe("动态列表（当前主题）", () => {
+  it("token 已插值时原样用", () => {
+    // 聚合层在 SSR 时把 `{topic_slug}` 替成了实际主题
+    const html = renderNewsletterSubscribeHtml(
+      section({ submit_label: "订阅", list_key: "events:topic:ai" }),
+      ctx,
+    );
+    expect(html).toContain('data-list-key="events:topic:ai"');
+  });
+
+  it("token 没插上就退回「本站全部」，不把解不开的 key 发出去", () => {
+    /*
+     * 把「当前主题」摆到首页这类没有 topic_slug 的页面上时会走到这里。
+     * 原样发出去的话服务端只会回一个 400，读者看到的是「提交失败」。
+     */
+    const html = renderNewsletterSubscribeHtml(
+      section({ submit_label: "订阅", list_key: "events:topic:{topic_slug}" }),
+      ctx,
+    );
+    expect(html).toContain('data-list-key="newsletter.all"');
+    expect(html).not.toContain("{topic_slug}");
   });
 });

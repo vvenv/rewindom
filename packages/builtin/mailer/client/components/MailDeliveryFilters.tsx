@@ -27,7 +27,9 @@ export function MailDeliveryFilters({
 }: MailDeliveryFiltersProps) {
   const { t } = useTranslation(["mailer", "common"]);
 
-  const hasActiveFilters = Boolean(filters.q || filters.status || filters.source);
+  const hasActiveFilters = Boolean(
+    filters.q || filters.status || filters.source,
+  );
 
   return (
     <FilterBar

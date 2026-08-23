@@ -62,11 +62,56 @@ export interface TenantEntitlementsUpdatedEventPayload {
   enabled_keys: string[];
 }
 
+/**
+ * 一封信被收件方退回 / 被用户举报。由 `mailer` 的投递回调发布。
+ *
+ * mailer 只落数据 + 广播，**不做业务决定**：「这个地址以后还发不发」是调用方的事
+ * ——newsletter 要停发，将来 site-member 的验证信可能只想提示用户换个邮箱。
+ *
+ * `hard` / `soft` 必须分开：soft（邮箱满了）过几天可能就好了，一次就永久停发
+ * 等于因为对方邮箱满了一天而丢掉一个真实读者。
+ */
+export interface MailBouncedEventPayload {
+  tenant_id: string;
+  email: string;
+  bounce_type: "hard" | "soft";
+  delivery_id: string;
+  reason?: string;
+}
+
+/**
+ * 用户点了「举报垃圾邮件」。
+ *
+ * 与退信是两回事：退信是**地址**问题，投诉是**内容或频率**问题。把投诉当退信处理，
+ * 等于把「你发太多了」误读成「这个地址不存在」，改错方向。
+ */
+export interface MailComplainedEventPayload {
+  tenant_id: string;
+  email: string;
+  delivery_id: string;
+}
+
+/**
+ * 收件方确认送达。
+ *
+ * 只有支持投递回调的通道会有——SMTP 是「交出去就结束」，永远不会发这个事件。
+ * 订阅方拿它清软退信计数：「连续 N 次退信」里的**连续**就靠这一步，
+ * 不清零的话一个订阅者三年里零散退信三次也会被停发，而他其实一直收得到。
+ */
+export interface MailDeliveredEventPayload {
+  tenant_id: string;
+  email: string;
+  delivery_id: string;
+}
+
 export interface DomainEventMap {
   "audit.log": AuditLogEventPayload;
   "notification.create": NotificationCreateEventPayload;
   "tenant.created": TenantCreatedEventPayload;
   "tenant.entitlements.updated": TenantEntitlementsUpdatedEventPayload;
+  "mail.bounced": MailBouncedEventPayload;
+  "mail.complained": MailComplainedEventPayload;
+  "mail.delivered": MailDeliveredEventPayload;
 }
 
 export type DomainEventName = keyof DomainEventMap & string;

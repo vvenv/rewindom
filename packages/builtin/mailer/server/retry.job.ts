@@ -8,7 +8,6 @@
 import { closeSmtpTransports } from "./drivers/smtp.driver.js";
 import { retryDueDeliveries } from "./mail.service.js";
 
-
 import type { JobRegistryContext } from "@rewindom/server-kernel/runtime/job-registry.js";
 
 const INTERVAL_MS = 60_000;

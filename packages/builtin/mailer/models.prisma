@@ -25,6 +25,10 @@ model MailDelivery {
   idempotency_key     String
   attempt_count       Int       @default(0)
   last_error          String?
+  /// 回调带来的终态信息。只有支持投递回调的通道（resend）会写；SMTP 永远为空
+  bounce_type         String?
+  bounced_at          DateTime?
+  complained_at       DateTime?
   next_attempt_at     DateTime?
   sent_at             DateTime?
   created_at          DateTime  @default(now())

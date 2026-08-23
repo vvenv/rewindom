@@ -25,9 +25,7 @@ export function Mailer() {
   });
 
   const hasFilters = Boolean(
-    pageState.filters.q ||
-      pageState.filters.status ||
-      pageState.filters.source,
+    pageState.filters.q || pageState.filters.status || pageState.filters.source,
   );
 
   return (

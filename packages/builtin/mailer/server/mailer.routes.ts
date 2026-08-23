@@ -6,12 +6,14 @@
  * 这个站的发信域就会被拿去发垃圾邮件，然后整域进黑名单。
  */
 
-
 import { defineRoute } from "@rewindom/server-kernel/http/define-route.js";
 import { parseSortDir } from "@rewindom/server-kernel/http/list-sort.js";
 import { parsePagination } from "@rewindom/server-kernel/http/pagination.js";
 import { sendCodedError } from "@rewindom/server-kernel/http/route-error-handler.js";
-import { AppError, ValidationError } from "@rewindom/server-kernel/lib/app-errors.js";
+import {
+  AppError,
+  ValidationError,
+} from "@rewindom/server-kernel/lib/app-errors.js";
 import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
 
 import { AuditAction } from "../../audit/shared/index.js";
@@ -167,11 +169,9 @@ export async function mailerRoutes(app: FastifyInstance): Promise<void> {
     handler: async (request, reply) => {
       try {
         const { deliveryId } = request.params as { deliveryId: string };
-        return await getDelivery(
-          request.tenantContext!.tenant_id,
-          deliveryId,
-          { unmask: await app.hasPermission(request, "mailer.write") },
-        );
+        return await getDelivery(request.tenantContext!.tenant_id, deliveryId, {
+          unmask: await app.hasPermission(request, "mailer.write"),
+        });
       } catch (err) {
         if (err instanceof AppError && err.code) {
           return sendCodedError(reply, err.status, err.code, err.params);

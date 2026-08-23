@@ -73,7 +73,7 @@ async function submit(
           email,
           // 空串是有意义的值：表示「本站全部可订阅列表」，由服务端解析
           list_key: form.dataset.listKey || "",
-          cadence: form.dataset.cadence || "weekly",
+          cadence: form.dataset.cadence || "daily",
           source_path: context.pagePath,
         }),
       },

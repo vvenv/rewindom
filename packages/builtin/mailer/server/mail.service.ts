@@ -21,9 +21,13 @@ import {
   type MailTransport,
 } from "./drivers/driver.js";
 import { createLogTransport } from "./drivers/log.driver.js";
+import { createResendTransport } from "./drivers/resend.driver.js";
 import { createSmtpTransport } from "./drivers/smtp.driver.js";
-import { isUsable, resolveMailConfig, type ResolvedMailConfig  } from "./mailer.config.js";
-
+import {
+  isUsable,
+  resolveMailConfig,
+  type ResolvedMailConfig,
+} from "./mailer.config.js";
 
 import type {
   MailSendInput,
@@ -49,6 +53,7 @@ async function buildTransport(
   log: FastifyBaseLogger,
 ): Promise<MailTransport> {
   if (resolved.driver === "log") return createLogTransport(log);
+  if (resolved.driver === "resend") return createResendTransport(resolved);
   return createSmtpTransport(resolved);
 }
 

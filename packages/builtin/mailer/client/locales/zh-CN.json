@@ -39,7 +39,8 @@
     "smtpPasswordHint": "留空表示不修改；要清掉本站密码请填一个空格后保存",
     "save": "保存",
     "saved": "发信配置已保存",
-    "driverInheritResolved": "跟随平台默认（当前：{{driver}}）"
+    "driverInheritResolved": "跟随平台默认（当前：{{driver}}）",
+    "driverResend": "Resend（HTTP API，可收退信回调）"
   },
   "test": {
     "trigger": "发送测试邮件",
@@ -56,7 +57,9 @@
     "queued": "排队中",
     "sent": "已发出",
     "failed": "失败",
-    "dropped": "已放弃"
+    "dropped": "已放弃",
+    "bounced": "退信",
+    "complained": "被举报"
   },
   "filters": {
     "q": "搜索收件人或主题",
@@ -76,7 +79,9 @@
     "retry": "重试",
     "retried": "已重新投递",
     "driver": "通道",
-    "notReallySent": "未真正发出"
+    "notReallySent": "未真正发出",
+    "bounceHard": "永久退信",
+    "bounceSoft": "临时退信"
   },
   "empty": {
     "title": "还没有任何投递记录"

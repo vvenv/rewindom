@@ -10,7 +10,7 @@
  * 只有两类失败会如实回：填的不是邮箱（填表人自己要看），以及本站根本发不了信
  * （站长要看）。限流命中回 429，那是给脚本看的。
  */
-import { isDigestCadence } from "../shared/index.js";
+import { DEFAULT_DIGEST_CADENCE, isDigestCadence } from "../shared/index.js";
 
 import { isValidEmail, subscribe } from "./subscriber.service.js";
 
@@ -78,7 +78,9 @@ export async function publicNewsletterRoutes(
           email: body.email,
           locale: queryLocale(request),
           list_keys: listKeys,
-          cadence: isDigestCadence(body.cadence) ? body.cadence : "weekly",
+          cadence: isDigestCadence(body.cadence)
+            ? body.cadence
+            : DEFAULT_DIGEST_CADENCE,
           source_path:
             typeof body.source_path === "string"
               ? body.source_path.slice(0, 512)

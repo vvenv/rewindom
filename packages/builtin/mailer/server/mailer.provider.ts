@@ -12,9 +12,6 @@ import { MAILER_ENTITLEMENT } from "../shared/index.js";
 
 import { isMailConfigured, sendMail } from "./mail.service.js";
 
-
-
-
 import type {
   MailProvider,
   MailSendInput,

@@ -4,7 +4,6 @@ import { MAILER_I18N } from "./i18n.js";
 import { MAILER_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderMailerRoutes } from "./tenant/routes.js";
 
-
 import type { ClientAppModule } from "@rewindom/client-kit";
 
 export const mailerClientModule: ClientAppModule = {

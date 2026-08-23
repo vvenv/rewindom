@@ -48,6 +48,9 @@ export type MailDeliveryMinAggregateOutputType = {
   idempotency_key: string | null
   attempt_count: number | null
   last_error: string | null
+  bounce_type: string | null
+  bounced_at: Date | null
+  complained_at: Date | null
   next_attempt_at: Date | null
   sent_at: Date | null
   created_at: Date | null
@@ -68,6 +71,9 @@ export type MailDeliveryMaxAggregateOutputType = {
   idempotency_key: string | null
   attempt_count: number | null
   last_error: string | null
+  bounce_type: string | null
+  bounced_at: Date | null
+  complained_at: Date | null
   next_attempt_at: Date | null
   sent_at: Date | null
   created_at: Date | null
@@ -89,6 +95,9 @@ export type MailDeliveryCountAggregateOutputType = {
   idempotency_key: number
   attempt_count: number
   last_error: number
+  bounce_type: number
+  bounced_at: number
+  complained_at: number
   next_attempt_at: number
   sent_at: number
   created_at: number
@@ -119,6 +128,9 @@ export type MailDeliveryMinAggregateInputType = {
   idempotency_key?: true
   attempt_count?: true
   last_error?: true
+  bounce_type?: true
+  bounced_at?: true
+  complained_at?: true
   next_attempt_at?: true
   sent_at?: true
   created_at?: true
@@ -139,6 +151,9 @@ export type MailDeliveryMaxAggregateInputType = {
   idempotency_key?: true
   attempt_count?: true
   last_error?: true
+  bounce_type?: true
+  bounced_at?: true
+  complained_at?: true
   next_attempt_at?: true
   sent_at?: true
   created_at?: true
@@ -160,6 +175,9 @@ export type MailDeliveryCountAggregateInputType = {
   idempotency_key?: true
   attempt_count?: true
   last_error?: true
+  bounce_type?: true
+  bounced_at?: true
+  complained_at?: true
   next_attempt_at?: true
   sent_at?: true
   created_at?: true
@@ -268,6 +286,9 @@ export type MailDeliveryGroupByOutputType = {
   idempotency_key: string
   attempt_count: number
   last_error: string | null
+  bounce_type: string | null
+  bounced_at: Date | null
+  complained_at: Date | null
   next_attempt_at: Date | null
   sent_at: Date | null
   created_at: Date
@@ -312,6 +333,9 @@ export type MailDeliveryWhereInput = {
   idempotency_key?: Prisma.StringFilter<"MailDelivery"> | string
   attempt_count?: Prisma.IntFilter<"MailDelivery"> | number
   last_error?: Prisma.StringNullableFilter<"MailDelivery"> | string | null
+  bounce_type?: Prisma.StringNullableFilter<"MailDelivery"> | string | null
+  bounced_at?: Prisma.DateTimeNullableFilter<"MailDelivery"> | Date | string | null
+  complained_at?: Prisma.DateTimeNullableFilter<"MailDelivery"> | Date | string | null
   next_attempt_at?: Prisma.DateTimeNullableFilter<"MailDelivery"> | Date | string | null
   sent_at?: Prisma.DateTimeNullableFilter<"MailDelivery"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"MailDelivery"> | Date | string
@@ -333,6 +357,9 @@ export type MailDeliveryOrderByWithRelationInput = {
   idempotency_key?: Prisma.SortOrder
   attempt_count?: Prisma.SortOrder
   last_error?: Prisma.SortOrderInput | Prisma.SortOrder
+  bounce_type?: Prisma.SortOrderInput | Prisma.SortOrder
+  bounced_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  complained_at?: Prisma.SortOrderInput | Prisma.SortOrder
   next_attempt_at?: Prisma.SortOrderInput | Prisma.SortOrder
   sent_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -358,6 +385,9 @@ export type MailDeliveryWhereUniqueInput = Prisma.AtLeast<{
   idempotency_key?: Prisma.StringFilter<"MailDelivery"> | string
   attempt_count?: Prisma.IntFilter<"MailDelivery"> | number
   last_error?: Prisma.StringNullableFilter<"MailDelivery"> | string | null
+  bounce_type?: Prisma.StringNullableFilter<"MailDelivery"> | string | null
+  bounced_at?: Prisma.DateTimeNullableFilter<"MailDelivery"> | Date | string | null
+  complained_at?: Prisma.DateTimeNullableFilter<"MailDelivery"> | Date | string | null
   next_attempt_at?: Prisma.DateTimeNullableFilter<"MailDelivery"> | Date | string | null
   sent_at?: Prisma.DateTimeNullableFilter<"MailDelivery"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"MailDelivery"> | Date | string
@@ -379,6 +409,9 @@ export type MailDeliveryOrderByWithAggregationInput = {
   idempotency_key?: Prisma.SortOrder
   attempt_count?: Prisma.SortOrder
   last_error?: Prisma.SortOrderInput | Prisma.SortOrder
+  bounce_type?: Prisma.SortOrderInput | Prisma.SortOrder
+  bounced_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  complained_at?: Prisma.SortOrderInput | Prisma.SortOrder
   next_attempt_at?: Prisma.SortOrderInput | Prisma.SortOrder
   sent_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -408,6 +441,9 @@ export type MailDeliveryScalarWhereWithAggregatesInput = {
   idempotency_key?: Prisma.StringWithAggregatesFilter<"MailDelivery"> | string
   attempt_count?: Prisma.IntWithAggregatesFilter<"MailDelivery"> | number
   last_error?: Prisma.StringNullableWithAggregatesFilter<"MailDelivery"> | string | null
+  bounce_type?: Prisma.StringNullableWithAggregatesFilter<"MailDelivery"> | string | null
+  bounced_at?: Prisma.DateTimeNullableWithAggregatesFilter<"MailDelivery"> | Date | string | null
+  complained_at?: Prisma.DateTimeNullableWithAggregatesFilter<"MailDelivery"> | Date | string | null
   next_attempt_at?: Prisma.DateTimeNullableWithAggregatesFilter<"MailDelivery"> | Date | string | null
   sent_at?: Prisma.DateTimeNullableWithAggregatesFilter<"MailDelivery"> | Date | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"MailDelivery"> | Date | string
@@ -429,6 +465,9 @@ export type MailDeliveryCreateInput = {
   idempotency_key: string
   attempt_count?: number
   last_error?: string | null
+  bounce_type?: string | null
+  bounced_at?: Date | string | null
+  complained_at?: Date | string | null
   next_attempt_at?: Date | string | null
   sent_at?: Date | string | null
   created_at?: Date | string
@@ -450,6 +489,9 @@ export type MailDeliveryUncheckedCreateInput = {
   idempotency_key: string
   attempt_count?: number
   last_error?: string | null
+  bounce_type?: string | null
+  bounced_at?: Date | string | null
+  complained_at?: Date | string | null
   next_attempt_at?: Date | string | null
   sent_at?: Date | string | null
   created_at?: Date | string
@@ -471,6 +513,9 @@ export type MailDeliveryUpdateInput = {
   idempotency_key?: Prisma.StringFieldUpdateOperationsInput | string
   attempt_count?: Prisma.IntFieldUpdateOperationsInput | number
   last_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bounce_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bounced_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  complained_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   next_attempt_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -492,6 +537,9 @@ export type MailDeliveryUncheckedUpdateInput = {
   idempotency_key?: Prisma.StringFieldUpdateOperationsInput | string
   attempt_count?: Prisma.IntFieldUpdateOperationsInput | number
   last_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bounce_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bounced_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  complained_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   next_attempt_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -513,6 +561,9 @@ export type MailDeliveryCreateManyInput = {
   idempotency_key: string
   attempt_count?: number
   last_error?: string | null
+  bounce_type?: string | null
+  bounced_at?: Date | string | null
+  complained_at?: Date | string | null
   next_attempt_at?: Date | string | null
   sent_at?: Date | string | null
   created_at?: Date | string
@@ -534,6 +585,9 @@ export type MailDeliveryUpdateManyMutationInput = {
   idempotency_key?: Prisma.StringFieldUpdateOperationsInput | string
   attempt_count?: Prisma.IntFieldUpdateOperationsInput | number
   last_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bounce_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bounced_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  complained_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   next_attempt_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -555,6 +609,9 @@ export type MailDeliveryUncheckedUpdateManyInput = {
   idempotency_key?: Prisma.StringFieldUpdateOperationsInput | string
   attempt_count?: Prisma.IntFieldUpdateOperationsInput | number
   last_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bounce_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bounced_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  complained_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   next_attempt_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sent_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -581,6 +638,9 @@ export type MailDeliveryCountOrderByAggregateInput = {
   idempotency_key?: Prisma.SortOrder
   attempt_count?: Prisma.SortOrder
   last_error?: Prisma.SortOrder
+  bounce_type?: Prisma.SortOrder
+  bounced_at?: Prisma.SortOrder
+  complained_at?: Prisma.SortOrder
   next_attempt_at?: Prisma.SortOrder
   sent_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -605,6 +665,9 @@ export type MailDeliveryMaxOrderByAggregateInput = {
   idempotency_key?: Prisma.SortOrder
   attempt_count?: Prisma.SortOrder
   last_error?: Prisma.SortOrder
+  bounce_type?: Prisma.SortOrder
+  bounced_at?: Prisma.SortOrder
+  complained_at?: Prisma.SortOrder
   next_attempt_at?: Prisma.SortOrder
   sent_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -625,6 +688,9 @@ export type MailDeliveryMinOrderByAggregateInput = {
   idempotency_key?: Prisma.SortOrder
   attempt_count?: Prisma.SortOrder
   last_error?: Prisma.SortOrder
+  bounce_type?: Prisma.SortOrder
+  bounced_at?: Prisma.SortOrder
+  complained_at?: Prisma.SortOrder
   next_attempt_at?: Prisma.SortOrder
   sent_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -652,6 +718,9 @@ export type MailDeliverySelect<ExtArgs extends runtime.Types.Extensions.Internal
   idempotency_key?: boolean
   attempt_count?: boolean
   last_error?: boolean
+  bounce_type?: boolean
+  bounced_at?: boolean
+  complained_at?: boolean
   next_attempt_at?: boolean
   sent_at?: boolean
   created_at?: boolean
@@ -673,6 +742,9 @@ export type MailDeliverySelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   idempotency_key?: boolean
   attempt_count?: boolean
   last_error?: boolean
+  bounce_type?: boolean
+  bounced_at?: boolean
+  complained_at?: boolean
   next_attempt_at?: boolean
   sent_at?: boolean
   created_at?: boolean
@@ -694,6 +766,9 @@ export type MailDeliverySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   idempotency_key?: boolean
   attempt_count?: boolean
   last_error?: boolean
+  bounce_type?: boolean
+  bounced_at?: boolean
+  complained_at?: boolean
   next_attempt_at?: boolean
   sent_at?: boolean
   created_at?: boolean
@@ -715,13 +790,16 @@ export type MailDeliverySelectScalar = {
   idempotency_key?: boolean
   attempt_count?: boolean
   last_error?: boolean
+  bounce_type?: boolean
+  bounced_at?: boolean
+  complained_at?: boolean
   next_attempt_at?: boolean
   sent_at?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type MailDeliveryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "to_email" | "subject" | "source" | "status" | "driver" | "html" | "text" | "headers" | "provider_message_id" | "idempotency_key" | "attempt_count" | "last_error" | "next_attempt_at" | "sent_at" | "created_at" | "updated_at", ExtArgs["result"]["mailDelivery"]>
+export type MailDeliveryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "to_email" | "subject" | "source" | "status" | "driver" | "html" | "text" | "headers" | "provider_message_id" | "idempotency_key" | "attempt_count" | "last_error" | "bounce_type" | "bounced_at" | "complained_at" | "next_attempt_at" | "sent_at" | "created_at" | "updated_at", ExtArgs["result"]["mailDelivery"]>
 
 export type $MailDeliveryPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "MailDelivery"
@@ -758,6 +836,12 @@ export type $MailDeliveryPayload<ExtArgs extends runtime.Types.Extensions.Intern
     idempotency_key: string
     attempt_count: number
     last_error: string | null
+    /**
+     * 回调带来的终态信息。只有支持投递回调的通道（resend）会写；SMTP 永远为空
+     */
+    bounce_type: string | null
+    bounced_at: Date | null
+    complained_at: Date | null
     next_attempt_at: Date | null
     sent_at: Date | null
     created_at: Date
@@ -1199,6 +1283,9 @@ export interface MailDeliveryFieldRefs {
   readonly idempotency_key: Prisma.FieldRef<"MailDelivery", 'String'>
   readonly attempt_count: Prisma.FieldRef<"MailDelivery", 'Int'>
   readonly last_error: Prisma.FieldRef<"MailDelivery", 'String'>
+  readonly bounce_type: Prisma.FieldRef<"MailDelivery", 'String'>
+  readonly bounced_at: Prisma.FieldRef<"MailDelivery", 'DateTime'>
+  readonly complained_at: Prisma.FieldRef<"MailDelivery", 'DateTime'>
   readonly next_attempt_at: Prisma.FieldRef<"MailDelivery", 'DateTime'>
   readonly sent_at: Prisma.FieldRef<"MailDelivery", 'DateTime'>
   readonly created_at: Prisma.FieldRef<"MailDelivery", 'DateTime'>

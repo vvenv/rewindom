@@ -20,6 +20,7 @@ import {
 import { maskApiKeyHint } from "@rewindom/shared";
 
 import {
+  MAIL_DRIVERS,
   TENANT_SETTING_KEY_MAIL,
   type MailDriver,
   type MailerConfigStatus,
@@ -34,6 +35,14 @@ interface MailPublicValue {
   smtp_port: number | null;
   smtp_secure: boolean | null;
   smtp_user: string | null;
+}
+
+/** 单一判据：加 driver 时只改 `MAIL_DRIVERS`，不必再去数有几处 if。 */
+function isMailDriver(value: unknown): value is MailDriver {
+  return (
+    typeof value === "string" &&
+    (MAIL_DRIVERS as readonly string[]).includes(value)
+  );
 }
 
 const EMPTY_PUBLIC: MailPublicValue = {
@@ -68,7 +77,7 @@ function parsePublicValue(raw: unknown): MailPublicValue {
   const value = raw as Record<string, unknown>;
   const driver = value.driver;
   return {
-    driver: driver === "smtp" || driver === "log" ? driver : null,
+    driver: isMailDriver(driver) ? driver : null,
     from: typeof value.from === "string" ? value.from : null,
     smtp_host: typeof value.smtp_host === "string" ? value.smtp_host : null,
     smtp_port:
@@ -95,7 +104,9 @@ function decryptStored(cipher: string | null | undefined): string | null {
 async function readStored(tenantId: string): Promise<StoredRow> {
   try {
     const row = await prisma.tenantSetting.findUnique({
-      where: { tenant_id_key: { tenant_id: tenantId, key: TENANT_SETTING_KEY_MAIL } },
+      where: {
+        tenant_id_key: { tenant_id: tenantId, key: TENANT_SETTING_KEY_MAIL },
+      },
       select: { secret: true, value: true },
     });
     return {
@@ -123,14 +134,22 @@ export async function resolveMailConfig(
 
   const driver = tenant.driver ?? (platform.driver || null);
   const resolved: ResolvedMailConfig = {
-    driver: driver === "smtp" || driver === "log" ? driver : null,
+    driver: isMailDriver(driver) ? driver : null,
     from: tenant.from ?? platform.from,
     smtp: {
       host: tenant.smtp_host ?? platform.smtp.host,
       port: tenant.smtp_port ?? platform.smtp.port,
       secure: tenant.smtp_secure ?? platform.smtp.secure,
       user: tenant.smtp_user ?? platform.smtp.user,
-      password: stored.password ?? platform.smtp.password,
+      /*
+       * 密钥的平台回落按 driver 分：resend 用 `MAIL_RESEND_API_KEY`，SMTP 用
+       * `MAIL_SMTP_PASSWORD`。两者共用同一个字段（语义都是「当前通道的密钥」），
+       * 但平台那侧是两个 env——混用会让「配了 SMTP 密码却切到 resend」时
+       * 拿一个 SMTP 密码去当 API key 发请求。
+       */
+      password:
+        stored.password ??
+        (driver === "resend" ? platform.resendApiKey : platform.smtp.password),
     },
     /*
      * 只要本站动过任意一个字段就算 tenant 来源——设置页据此显示「本站覆盖」，
@@ -158,6 +177,14 @@ export function isUsable(resolved: ResolvedMailConfig): boolean {
   if (!resolved.driver) return false;
   if (!resolved.from.trim()) return false;
   if (resolved.driver === "smtp" && !resolved.smtp.host.trim()) return false;
+  /*
+   * resend 的 API key 与 SMTP 密码共用 secret 列（语义都是「当前通道的密钥」）。
+   * 新开一个 `resend_api_key` 字段的话，切换 driver 会留下一份用不上却同样敏感的
+   * 旧密钥——那也是需要被清理的数据。
+   */
+  if (resolved.driver === "resend" && !resolved.smtp.password.trim()) {
+    return false;
+  }
   return true;
 }
 
@@ -182,7 +209,9 @@ export async function getMailerConfigStatus(
      * 只提示**本站存的**密码。回落平台时若显示平台密码的尾码，
      * 清空本站覆盖后看起来像「没清掉」——LLM 设置页踩过同一个坑。
      */
-    smtp_password_hint: stored.password ? maskApiKeyHint(stored.password) : null,
+    smtp_password_hint: stored.password
+      ? maskApiKeyHint(stored.password)
+      : null,
 
     // 实际生效值：设置页拿它做 placeholder，状态卡拿它显示「现在到底在用什么」
     resolved_driver: resolved.driver,
@@ -213,7 +242,9 @@ export async function updateMailerConfig(
   }
 
   await prisma.tenantSetting.upsert({
-    where: { tenant_id_key: { tenant_id: tenantId, key: TENANT_SETTING_KEY_MAIL } },
+    where: {
+      tenant_id_key: { tenant_id: tenantId, key: TENANT_SETTING_KEY_MAIL },
+    },
     create: {
       tenant_id: tenantId,
       key: TENANT_SETTING_KEY_MAIL,
@@ -243,7 +274,9 @@ function mergePublicValue(
         ? stored.smtp_host
         : blankToNull(body.smtp_host),
     smtp_port:
-      body.smtp_port === undefined ? stored.smtp_port : parsePort(body.smtp_port),
+      body.smtp_port === undefined
+        ? stored.smtp_port
+        : parsePort(body.smtp_port),
     smtp_secure:
       body.smtp_secure === undefined ? stored.smtp_secure : body.smtp_secure,
     smtp_user:
@@ -263,13 +296,14 @@ function nextSecret(
 
 function blankToNull(raw: string | null): string | null {
   if (raw === null) return null;
-  if (typeof raw !== "string") throw new ValidationError("mailer.field_invalid");
+  if (typeof raw !== "string")
+    throw new ValidationError("mailer.field_invalid");
   return raw.trim() || null;
 }
 
 function parseDriver(raw: MailDriver | null): MailDriver | null {
   if (raw === null) return null;
-  if (raw !== "smtp" && raw !== "log") {
+  if (raw !== "smtp" && raw !== "resend" && raw !== "log") {
     throw new ValidationError("mailer.driver_invalid");
   }
   /*

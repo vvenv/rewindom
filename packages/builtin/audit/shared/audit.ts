@@ -101,6 +101,7 @@ export const AuditAction = {
   NEWSLETTER_SUBSCRIBER_DELETE: "NEWSLETTER_SUBSCRIBER_DELETE",
   NEWSLETTER_SUBSCRIBER_EXPORT: "NEWSLETTER_SUBSCRIBER_EXPORT",
   NEWSLETTER_DIGEST_RUN: "NEWSLETTER_DIGEST_RUN",
+  NEWSLETTER_SUBSCRIBER_REACTIVATE: "NEWSLETTER_SUBSCRIBER_REACTIVATE",
 } as const;
 
 export type AuditActionType = (typeof AuditAction)[keyof typeof AuditAction];
@@ -262,6 +263,7 @@ export const AUDIT_ACTION_LABELS: Record<AuditActionType, string> = {
   [AuditAction.NEWSLETTER_SUBSCRIBER_DELETE]: "删除订阅者",
   [AuditAction.NEWSLETTER_SUBSCRIBER_EXPORT]: "导出订阅者名单",
   [AuditAction.NEWSLETTER_DIGEST_RUN]: "手动触发摘要投递",
+  [AuditAction.NEWSLETTER_SUBSCRIBER_REACTIVATE]: "恢复订阅者发送",
 };
 
 export const AUDIT_ACTION_GROUPS = [
@@ -418,6 +420,7 @@ export const AUDIT_ACTION_GROUPS = [
       AuditAction.NEWSLETTER_SUBSCRIBER_DELETE,
       AuditAction.NEWSLETTER_SUBSCRIBER_EXPORT,
       AuditAction.NEWSLETTER_DIGEST_RUN,
+      AuditAction.NEWSLETTER_SUBSCRIBER_REACTIVATE,
     ],
   },
 ] as const;

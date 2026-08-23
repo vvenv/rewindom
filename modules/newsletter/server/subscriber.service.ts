@@ -13,6 +13,7 @@
 import { randomBytes } from "node:crypto";
 
 import {
+  NEWSLETTER_ALL_LISTS,
   findNewsletterSource,
   listNewsletterSources,
   type DigestCadence,
@@ -97,19 +98,24 @@ export async function listAvailableLists(input: {
 /**
  * 把请求里的 list_key 解析成真正要订的列表。
  *
- * **留空 = 本站全部可订阅列表**：绝大多数站点只有一个内容源，段拖上去就该能用，
- * 不该逼站长先去抄一串 key。给了 key 就必须有内容源认领它，否则拒——
- * 不然读者会订上一个永远不会有内容的列表。
+ * `newsletter:all`（或空串，存量数据）= 本站全部可订阅列表。
+ * 其余 key 必须有内容源认领，否则拒——不然读者会订上一个永远不会有内容的列表。
  */
 export async function resolveListKeys(input: {
   tenant_id: string;
   locale: string;
   requested: string[];
 }): Promise<string[]> {
-  const requested = input.requested.map((key) => key.trim()).filter(Boolean);
+  const requested = input.requested
+    .map((key) => key.trim())
+    .filter((key) => key && key !== NEWSLETTER_ALL_LISTS);
+  // 空串与 `newsletter:all` 同义：前者是下拉之前存量段里的写法
   if (requested.length === 0) {
     const lists = await listAvailableLists(input);
-    return lists.map((list) => list.list_key);
+    // 动态候选（含 `{token}`）没有页面上下文就解不开，不能混进「全部」
+    return lists
+      .filter((list) => !list.dynamic && !list.list_key.includes("{"))
+      .map((list) => list.list_key);
   }
   const unknown = requested.filter((key) => !findNewsletterSource(key));
   if (unknown.length > 0) {

@@ -145,6 +145,22 @@ export const eventsNewsletterSource: NewsletterSource = {
         }),
       },
     ];
+    /*
+     * 「当前主题」：值里带 `{topic_slug}`，由 marketing 的聚合层按页面插值
+     *（那个 token 由本模块在 `events-page-templates.ts` 里登记，只长在主题页
+     * 与详情页上）。摆到没有这个 token 的页面上时，newsletter 的渲染器会退回
+     * 「本站全部」——不会把一个解不开的 key 发出去。
+     *
+     * 排在具体主题之前：主题页上摆订阅段，九成想要的就是它。
+     */
+    lists.push({
+      list_key: `${TOPIC_PREFIX}{topic_slug}`,
+      label: translateServerMessage(normalizeLocale(locale), {
+        code: "events.list.currentTopic",
+      }),
+      dynamic: true,
+    });
+
     for (const topic of await getEnabledTopics(tenant_id)) {
       const listKey = eventsTopicList(topic);
       lists.push({ list_key: listKey, label: listLabel(listKey, locale) });

@@ -17,6 +17,18 @@ export function useDeleteSubscriber() {
   });
 }
 
+export function useReactivateSubscriber() {
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: (subscriberId: string) =>
+      api.post<{ reactivated: boolean }>(
+        `/newsletter/${subscriberId}/reactivate`,
+        {},
+      ),
+    onSuccess: invalidate,
+  });
+}
+
 export function useRunDigests() {
   const invalidate = useInvalidate();
   return useMutation({

@@ -1,3 +1,8 @@
+import {
+  DEFAULT_DIGEST_CADENCE,
+  NEWSLETTER_ALL_LISTS,
+} from "../../newsletter.js";
+
 import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
 import { settingText } from "@rewindom/builtin/marketing/shared/section-schema.js";
 import { sectionHeading } from "@rewindom/builtin/marketing/shared/sections/_common/html.js";
@@ -19,8 +24,14 @@ export const renderNewsletterSubscribeHtml: SectionHtmlRenderer = (section) => {
   // 没有按钮文案就整段不渲染——与事件订阅块同一条口径：没有可主张的就留白
   if (!submitLabel) return "";
 
-  const listKey = settingText(s, "list_key");
-  const cadence = settingText(s, "cadence") || "weekly";
+  /*
+   * 到这里 `{token}` 已由聚合层替好。仍然含 `{` 说明这一页没有那个 token
+   *（比如把「当前主题」摆到了首页上）——退回「本站全部」，而不是把一个解不开的
+   * key 发给服务端换一个 400。
+   */
+  const rawListKey = settingText(s, "list_key");
+  const listKey = rawListKey.includes("{") ? NEWSLETTER_ALL_LISTS : rawListKey;
+  const cadence = settingText(s, "cadence") || DEFAULT_DIGEST_CADENCE;
   const placeholder = settingText(s, "placeholder");
   const hint = settingText(s, "hint");
   const success = settingText(s, "success_message");

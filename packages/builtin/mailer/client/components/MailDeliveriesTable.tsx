@@ -32,6 +32,8 @@ const STATUS_VARIANTS: Record<
   sent: "default",
   failed: "destructive",
   dropped: "outline",
+  bounced: "destructive",
+  complained: "destructive",
 };
 
 interface MailDeliveriesTableProps {
@@ -76,7 +78,11 @@ function RetryButton({ delivery }: { delivery: MailDeliveryListItem }) {
       onClick={() => void handleRetry()}
       disabled={pending}
     >
-      {pending ? <Spinner className="size-4" /> : <RotateCw className="size-4" />}
+      {pending ? (
+        <Spinner className="size-4" />
+      ) : (
+        <RotateCw className="size-4" />
+      )}
       <span className="sr-only">{t("table.retry")}</span>
     </Button>
   );

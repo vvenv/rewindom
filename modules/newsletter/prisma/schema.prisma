@@ -22,6 +22,14 @@ model NewsletterSubscriber {
   unsubscribed_at          DateTime?
   /// 订阅来源页，用于站长判断哪个入口有效
   source_path              String?
+  /// 退信 / 投诉的处置状态。软退信要**连续**几次才停发，所以要计数而不是布尔——
+  /// 一次就停的话，对方邮箱满一天就永久丢掉一个真实读者
+  bounce_count             Int       @default(0)
+  /// hard | soft
+  last_bounce_type         String?
+  last_bounce_at           DateTime?
+  /// 为什么不再给他发。必须常驻可见——订阅名单页存在的理由就是回答这个
+  suppressed_reason        String?
   ip                       String
   user_agent               String
   created_at               DateTime  @default(now())
@@ -44,7 +52,7 @@ model NewsletterSubscription {
   subscriber_id String
   list_key      String
   /// daily | weekly —— 周期跟订阅走，同一个人可以按不同频率订不同列表
-  cadence       String   @default("weekly")
+  cadence       String   @default("daily")
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 

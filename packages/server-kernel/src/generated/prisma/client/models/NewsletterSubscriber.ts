@@ -21,8 +21,18 @@ export type NewsletterSubscriberModel = runtime.Types.Result.DefaultSelection<Pr
 
 export type AggregateNewsletterSubscriber = {
   _count: NewsletterSubscriberCountAggregateOutputType | null
+  _avg: NewsletterSubscriberAvgAggregateOutputType | null
+  _sum: NewsletterSubscriberSumAggregateOutputType | null
   _min: NewsletterSubscriberMinAggregateOutputType | null
   _max: NewsletterSubscriberMaxAggregateOutputType | null
+}
+
+export type NewsletterSubscriberAvgAggregateOutputType = {
+  bounce_count: number | null
+}
+
+export type NewsletterSubscriberSumAggregateOutputType = {
+  bounce_count: number | null
 }
 
 export type NewsletterSubscriberMinAggregateOutputType = {
@@ -37,6 +47,10 @@ export type NewsletterSubscriberMinAggregateOutputType = {
   unsubscribe_token: string | null
   unsubscribed_at: Date | null
   source_path: string | null
+  bounce_count: number | null
+  last_bounce_type: string | null
+  last_bounce_at: Date | null
+  suppressed_reason: string | null
   ip: string | null
   user_agent: string | null
   created_at: Date | null
@@ -55,6 +69,10 @@ export type NewsletterSubscriberMaxAggregateOutputType = {
   unsubscribe_token: string | null
   unsubscribed_at: Date | null
   source_path: string | null
+  bounce_count: number | null
+  last_bounce_type: string | null
+  last_bounce_at: Date | null
+  suppressed_reason: string | null
   ip: string | null
   user_agent: string | null
   created_at: Date | null
@@ -73,6 +91,10 @@ export type NewsletterSubscriberCountAggregateOutputType = {
   unsubscribe_token: number
   unsubscribed_at: number
   source_path: number
+  bounce_count: number
+  last_bounce_type: number
+  last_bounce_at: number
+  suppressed_reason: number
   ip: number
   user_agent: number
   created_at: number
@@ -80,6 +102,14 @@ export type NewsletterSubscriberCountAggregateOutputType = {
   _all: number
 }
 
+
+export type NewsletterSubscriberAvgAggregateInputType = {
+  bounce_count?: true
+}
+
+export type NewsletterSubscriberSumAggregateInputType = {
+  bounce_count?: true
+}
 
 export type NewsletterSubscriberMinAggregateInputType = {
   id?: true
@@ -93,6 +123,10 @@ export type NewsletterSubscriberMinAggregateInputType = {
   unsubscribe_token?: true
   unsubscribed_at?: true
   source_path?: true
+  bounce_count?: true
+  last_bounce_type?: true
+  last_bounce_at?: true
+  suppressed_reason?: true
   ip?: true
   user_agent?: true
   created_at?: true
@@ -111,6 +145,10 @@ export type NewsletterSubscriberMaxAggregateInputType = {
   unsubscribe_token?: true
   unsubscribed_at?: true
   source_path?: true
+  bounce_count?: true
+  last_bounce_type?: true
+  last_bounce_at?: true
+  suppressed_reason?: true
   ip?: true
   user_agent?: true
   created_at?: true
@@ -129,6 +167,10 @@ export type NewsletterSubscriberCountAggregateInputType = {
   unsubscribe_token?: true
   unsubscribed_at?: true
   source_path?: true
+  bounce_count?: true
+  last_bounce_type?: true
+  last_bounce_at?: true
+  suppressed_reason?: true
   ip?: true
   user_agent?: true
   created_at?: true
@@ -174,6 +216,18 @@ export type NewsletterSubscriberAggregateArgs<ExtArgs extends runtime.Types.Exte
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: NewsletterSubscriberAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: NewsletterSubscriberSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: NewsletterSubscriberMinAggregateInputType
@@ -204,6 +258,8 @@ export type NewsletterSubscriberGroupByArgs<ExtArgs extends runtime.Types.Extens
   take?: number
   skip?: number
   _count?: NewsletterSubscriberCountAggregateInputType | true
+  _avg?: NewsletterSubscriberAvgAggregateInputType
+  _sum?: NewsletterSubscriberSumAggregateInputType
   _min?: NewsletterSubscriberMinAggregateInputType
   _max?: NewsletterSubscriberMaxAggregateInputType
 }
@@ -220,11 +276,17 @@ export type NewsletterSubscriberGroupByOutputType = {
   unsubscribe_token: string
   unsubscribed_at: Date | null
   source_path: string | null
+  bounce_count: number
+  last_bounce_type: string | null
+  last_bounce_at: Date | null
+  suppressed_reason: string | null
   ip: string
   user_agent: string
   created_at: Date
   updated_at: Date
   _count: NewsletterSubscriberCountAggregateOutputType | null
+  _avg: NewsletterSubscriberAvgAggregateOutputType | null
+  _sum: NewsletterSubscriberSumAggregateOutputType | null
   _min: NewsletterSubscriberMinAggregateOutputType | null
   _max: NewsletterSubscriberMaxAggregateOutputType | null
 }
@@ -259,6 +321,10 @@ export type NewsletterSubscriberWhereInput = {
   unsubscribe_token?: Prisma.StringFilter<"NewsletterSubscriber"> | string
   unsubscribed_at?: Prisma.DateTimeNullableFilter<"NewsletterSubscriber"> | Date | string | null
   source_path?: Prisma.StringNullableFilter<"NewsletterSubscriber"> | string | null
+  bounce_count?: Prisma.IntFilter<"NewsletterSubscriber"> | number
+  last_bounce_type?: Prisma.StringNullableFilter<"NewsletterSubscriber"> | string | null
+  last_bounce_at?: Prisma.DateTimeNullableFilter<"NewsletterSubscriber"> | Date | string | null
+  suppressed_reason?: Prisma.StringNullableFilter<"NewsletterSubscriber"> | string | null
   ip?: Prisma.StringFilter<"NewsletterSubscriber"> | string
   user_agent?: Prisma.StringFilter<"NewsletterSubscriber"> | string
   created_at?: Prisma.DateTimeFilter<"NewsletterSubscriber"> | Date | string
@@ -278,6 +344,10 @@ export type NewsletterSubscriberOrderByWithRelationInput = {
   unsubscribe_token?: Prisma.SortOrder
   unsubscribed_at?: Prisma.SortOrderInput | Prisma.SortOrder
   source_path?: Prisma.SortOrderInput | Prisma.SortOrder
+  bounce_count?: Prisma.SortOrder
+  last_bounce_type?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_bounce_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  suppressed_reason?: Prisma.SortOrderInput | Prisma.SortOrder
   ip?: Prisma.SortOrder
   user_agent?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -301,6 +371,10 @@ export type NewsletterSubscriberWhereUniqueInput = Prisma.AtLeast<{
   confirmed_at?: Prisma.DateTimeNullableFilter<"NewsletterSubscriber"> | Date | string | null
   unsubscribed_at?: Prisma.DateTimeNullableFilter<"NewsletterSubscriber"> | Date | string | null
   source_path?: Prisma.StringNullableFilter<"NewsletterSubscriber"> | string | null
+  bounce_count?: Prisma.IntFilter<"NewsletterSubscriber"> | number
+  last_bounce_type?: Prisma.StringNullableFilter<"NewsletterSubscriber"> | string | null
+  last_bounce_at?: Prisma.DateTimeNullableFilter<"NewsletterSubscriber"> | Date | string | null
+  suppressed_reason?: Prisma.StringNullableFilter<"NewsletterSubscriber"> | string | null
   ip?: Prisma.StringFilter<"NewsletterSubscriber"> | string
   user_agent?: Prisma.StringFilter<"NewsletterSubscriber"> | string
   created_at?: Prisma.DateTimeFilter<"NewsletterSubscriber"> | Date | string
@@ -320,13 +394,19 @@ export type NewsletterSubscriberOrderByWithAggregationInput = {
   unsubscribe_token?: Prisma.SortOrder
   unsubscribed_at?: Prisma.SortOrderInput | Prisma.SortOrder
   source_path?: Prisma.SortOrderInput | Prisma.SortOrder
+  bounce_count?: Prisma.SortOrder
+  last_bounce_type?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_bounce_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  suppressed_reason?: Prisma.SortOrderInput | Prisma.SortOrder
   ip?: Prisma.SortOrder
   user_agent?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.NewsletterSubscriberCountOrderByAggregateInput
+  _avg?: Prisma.NewsletterSubscriberAvgOrderByAggregateInput
   _max?: Prisma.NewsletterSubscriberMaxOrderByAggregateInput
   _min?: Prisma.NewsletterSubscriberMinOrderByAggregateInput
+  _sum?: Prisma.NewsletterSubscriberSumOrderByAggregateInput
 }
 
 export type NewsletterSubscriberScalarWhereWithAggregatesInput = {
@@ -344,6 +424,10 @@ export type NewsletterSubscriberScalarWhereWithAggregatesInput = {
   unsubscribe_token?: Prisma.StringWithAggregatesFilter<"NewsletterSubscriber"> | string
   unsubscribed_at?: Prisma.DateTimeNullableWithAggregatesFilter<"NewsletterSubscriber"> | Date | string | null
   source_path?: Prisma.StringNullableWithAggregatesFilter<"NewsletterSubscriber"> | string | null
+  bounce_count?: Prisma.IntWithAggregatesFilter<"NewsletterSubscriber"> | number
+  last_bounce_type?: Prisma.StringNullableWithAggregatesFilter<"NewsletterSubscriber"> | string | null
+  last_bounce_at?: Prisma.DateTimeNullableWithAggregatesFilter<"NewsletterSubscriber"> | Date | string | null
+  suppressed_reason?: Prisma.StringNullableWithAggregatesFilter<"NewsletterSubscriber"> | string | null
   ip?: Prisma.StringWithAggregatesFilter<"NewsletterSubscriber"> | string
   user_agent?: Prisma.StringWithAggregatesFilter<"NewsletterSubscriber"> | string
   created_at?: Prisma.DateTimeWithAggregatesFilter<"NewsletterSubscriber"> | Date | string
@@ -362,6 +446,10 @@ export type NewsletterSubscriberCreateInput = {
   unsubscribe_token: string
   unsubscribed_at?: Date | string | null
   source_path?: string | null
+  bounce_count?: number
+  last_bounce_type?: string | null
+  last_bounce_at?: Date | string | null
+  suppressed_reason?: string | null
   ip: string
   user_agent: string
   created_at?: Date | string
@@ -381,6 +469,10 @@ export type NewsletterSubscriberUncheckedCreateInput = {
   unsubscribe_token: string
   unsubscribed_at?: Date | string | null
   source_path?: string | null
+  bounce_count?: number
+  last_bounce_type?: string | null
+  last_bounce_at?: Date | string | null
+  suppressed_reason?: string | null
   ip: string
   user_agent: string
   created_at?: Date | string
@@ -400,6 +492,10 @@ export type NewsletterSubscriberUpdateInput = {
   unsubscribe_token?: Prisma.StringFieldUpdateOperationsInput | string
   unsubscribed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   source_path?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bounce_count?: Prisma.IntFieldUpdateOperationsInput | number
+  last_bounce_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_bounce_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suppressed_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ip?: Prisma.StringFieldUpdateOperationsInput | string
   user_agent?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -419,6 +515,10 @@ export type NewsletterSubscriberUncheckedUpdateInput = {
   unsubscribe_token?: Prisma.StringFieldUpdateOperationsInput | string
   unsubscribed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   source_path?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bounce_count?: Prisma.IntFieldUpdateOperationsInput | number
+  last_bounce_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_bounce_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suppressed_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ip?: Prisma.StringFieldUpdateOperationsInput | string
   user_agent?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -438,6 +538,10 @@ export type NewsletterSubscriberCreateManyInput = {
   unsubscribe_token: string
   unsubscribed_at?: Date | string | null
   source_path?: string | null
+  bounce_count?: number
+  last_bounce_type?: string | null
+  last_bounce_at?: Date | string | null
+  suppressed_reason?: string | null
   ip: string
   user_agent: string
   created_at?: Date | string
@@ -456,6 +560,10 @@ export type NewsletterSubscriberUpdateManyMutationInput = {
   unsubscribe_token?: Prisma.StringFieldUpdateOperationsInput | string
   unsubscribed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   source_path?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bounce_count?: Prisma.IntFieldUpdateOperationsInput | number
+  last_bounce_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_bounce_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suppressed_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ip?: Prisma.StringFieldUpdateOperationsInput | string
   user_agent?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -474,6 +582,10 @@ export type NewsletterSubscriberUncheckedUpdateManyInput = {
   unsubscribe_token?: Prisma.StringFieldUpdateOperationsInput | string
   unsubscribed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   source_path?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bounce_count?: Prisma.IntFieldUpdateOperationsInput | number
+  last_bounce_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_bounce_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suppressed_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ip?: Prisma.StringFieldUpdateOperationsInput | string
   user_agent?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -497,10 +609,18 @@ export type NewsletterSubscriberCountOrderByAggregateInput = {
   unsubscribe_token?: Prisma.SortOrder
   unsubscribed_at?: Prisma.SortOrder
   source_path?: Prisma.SortOrder
+  bounce_count?: Prisma.SortOrder
+  last_bounce_type?: Prisma.SortOrder
+  last_bounce_at?: Prisma.SortOrder
+  suppressed_reason?: Prisma.SortOrder
   ip?: Prisma.SortOrder
   user_agent?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+}
+
+export type NewsletterSubscriberAvgOrderByAggregateInput = {
+  bounce_count?: Prisma.SortOrder
 }
 
 export type NewsletterSubscriberMaxOrderByAggregateInput = {
@@ -515,6 +635,10 @@ export type NewsletterSubscriberMaxOrderByAggregateInput = {
   unsubscribe_token?: Prisma.SortOrder
   unsubscribed_at?: Prisma.SortOrder
   source_path?: Prisma.SortOrder
+  bounce_count?: Prisma.SortOrder
+  last_bounce_type?: Prisma.SortOrder
+  last_bounce_at?: Prisma.SortOrder
+  suppressed_reason?: Prisma.SortOrder
   ip?: Prisma.SortOrder
   user_agent?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -533,10 +657,18 @@ export type NewsletterSubscriberMinOrderByAggregateInput = {
   unsubscribe_token?: Prisma.SortOrder
   unsubscribed_at?: Prisma.SortOrder
   source_path?: Prisma.SortOrder
+  bounce_count?: Prisma.SortOrder
+  last_bounce_type?: Prisma.SortOrder
+  last_bounce_at?: Prisma.SortOrder
+  suppressed_reason?: Prisma.SortOrder
   ip?: Prisma.SortOrder
   user_agent?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+}
+
+export type NewsletterSubscriberSumOrderByAggregateInput = {
+  bounce_count?: Prisma.SortOrder
 }
 
 export type NewsletterSubscriberScalarRelationFilter = {
@@ -570,6 +702,10 @@ export type NewsletterSubscriberCreateWithoutSubscriptionsInput = {
   unsubscribe_token: string
   unsubscribed_at?: Date | string | null
   source_path?: string | null
+  bounce_count?: number
+  last_bounce_type?: string | null
+  last_bounce_at?: Date | string | null
+  suppressed_reason?: string | null
   ip: string
   user_agent: string
   created_at?: Date | string
@@ -588,6 +724,10 @@ export type NewsletterSubscriberUncheckedCreateWithoutSubscriptionsInput = {
   unsubscribe_token: string
   unsubscribed_at?: Date | string | null
   source_path?: string | null
+  bounce_count?: number
+  last_bounce_type?: string | null
+  last_bounce_at?: Date | string | null
+  suppressed_reason?: string | null
   ip: string
   user_agent: string
   created_at?: Date | string
@@ -622,6 +762,10 @@ export type NewsletterSubscriberUpdateWithoutSubscriptionsInput = {
   unsubscribe_token?: Prisma.StringFieldUpdateOperationsInput | string
   unsubscribed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   source_path?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bounce_count?: Prisma.IntFieldUpdateOperationsInput | number
+  last_bounce_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_bounce_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suppressed_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ip?: Prisma.StringFieldUpdateOperationsInput | string
   user_agent?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -640,6 +784,10 @@ export type NewsletterSubscriberUncheckedUpdateWithoutSubscriptionsInput = {
   unsubscribe_token?: Prisma.StringFieldUpdateOperationsInput | string
   unsubscribed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   source_path?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bounce_count?: Prisma.IntFieldUpdateOperationsInput | number
+  last_bounce_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_bounce_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suppressed_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ip?: Prisma.StringFieldUpdateOperationsInput | string
   user_agent?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -689,6 +837,10 @@ export type NewsletterSubscriberSelect<ExtArgs extends runtime.Types.Extensions.
   unsubscribe_token?: boolean
   unsubscribed_at?: boolean
   source_path?: boolean
+  bounce_count?: boolean
+  last_bounce_type?: boolean
+  last_bounce_at?: boolean
+  suppressed_reason?: boolean
   ip?: boolean
   user_agent?: boolean
   created_at?: boolean
@@ -709,6 +861,10 @@ export type NewsletterSubscriberSelectCreateManyAndReturn<ExtArgs extends runtim
   unsubscribe_token?: boolean
   unsubscribed_at?: boolean
   source_path?: boolean
+  bounce_count?: boolean
+  last_bounce_type?: boolean
+  last_bounce_at?: boolean
+  suppressed_reason?: boolean
   ip?: boolean
   user_agent?: boolean
   created_at?: boolean
@@ -727,6 +883,10 @@ export type NewsletterSubscriberSelectUpdateManyAndReturn<ExtArgs extends runtim
   unsubscribe_token?: boolean
   unsubscribed_at?: boolean
   source_path?: boolean
+  bounce_count?: boolean
+  last_bounce_type?: boolean
+  last_bounce_at?: boolean
+  suppressed_reason?: boolean
   ip?: boolean
   user_agent?: boolean
   created_at?: boolean
@@ -745,13 +905,17 @@ export type NewsletterSubscriberSelectScalar = {
   unsubscribe_token?: boolean
   unsubscribed_at?: boolean
   source_path?: boolean
+  bounce_count?: boolean
+  last_bounce_type?: boolean
+  last_bounce_at?: boolean
+  suppressed_reason?: boolean
   ip?: boolean
   user_agent?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type NewsletterSubscriberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "email" | "locale" | "status" | "confirm_token" | "confirm_token_expires_at" | "confirmed_at" | "unsubscribe_token" | "unsubscribed_at" | "source_path" | "ip" | "user_agent" | "created_at" | "updated_at", ExtArgs["result"]["newsletterSubscriber"]>
+export type NewsletterSubscriberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "email" | "locale" | "status" | "confirm_token" | "confirm_token_expires_at" | "confirmed_at" | "unsubscribe_token" | "unsubscribed_at" | "source_path" | "bounce_count" | "last_bounce_type" | "last_bounce_at" | "suppressed_reason" | "ip" | "user_agent" | "created_at" | "updated_at", ExtArgs["result"]["newsletterSubscriber"]>
 export type NewsletterSubscriberInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   subscriptions?: boolean | Prisma.NewsletterSubscriber$subscriptionsArgs<ExtArgs>
   _count?: boolean | Prisma.NewsletterSubscriberCountOutputTypeDefaultArgs<ExtArgs>
@@ -792,6 +956,20 @@ export type $NewsletterSubscriberPayload<ExtArgs extends runtime.Types.Extension
      * 订阅来源页，用于站长判断哪个入口有效
      */
     source_path: string | null
+    /**
+     * 退信 / 投诉的处置状态。软退信要**连续**几次才停发，所以要计数而不是布尔——
+     * 一次就停的话，对方邮箱满一天就永久丢掉一个真实读者
+     */
+    bounce_count: number
+    /**
+     * hard | soft
+     */
+    last_bounce_type: string | null
+    last_bounce_at: Date | null
+    /**
+     * 为什么不再给他发。必须常驻可见——订阅名单页存在的理由就是回答这个
+     */
+    suppressed_reason: string | null
     ip: string
     user_agent: string
     created_at: Date
@@ -1231,6 +1409,10 @@ export interface NewsletterSubscriberFieldRefs {
   readonly unsubscribe_token: Prisma.FieldRef<"NewsletterSubscriber", 'String'>
   readonly unsubscribed_at: Prisma.FieldRef<"NewsletterSubscriber", 'DateTime'>
   readonly source_path: Prisma.FieldRef<"NewsletterSubscriber", 'String'>
+  readonly bounce_count: Prisma.FieldRef<"NewsletterSubscriber", 'Int'>
+  readonly last_bounce_type: Prisma.FieldRef<"NewsletterSubscriber", 'String'>
+  readonly last_bounce_at: Prisma.FieldRef<"NewsletterSubscriber", 'DateTime'>
+  readonly suppressed_reason: Prisma.FieldRef<"NewsletterSubscriber", 'String'>
   readonly ip: Prisma.FieldRef<"NewsletterSubscriber", 'String'>
   readonly user_agent: Prisma.FieldRef<"NewsletterSubscriber", 'String'>
   readonly created_at: Prisma.FieldRef<"NewsletterSubscriber", 'DateTime'>

@@ -6,8 +6,7 @@ import { MAILER_SERVER_I18N } from "./i18n.js";
 import { createMailProvider } from "./mailer.provider.js";
 import { mailerRoutes } from "./mailer.routes.js";
 import { registerMailerRetryJob } from "./retry.job.js";
-
-
+import { mailerWebhookRoutes } from "./webhook.routes.js";
 
 import type { ServerAppModule } from "@rewindom/server-kernel/runtime/module-contract.js";
 
@@ -50,6 +49,13 @@ export const mailerServerModule: ServerAppModule = {
   server: {
     i18n: MAILER_SERVER_I18N,
     registerRoutes: async (app) => {
+      /*
+       * 回调**不进 entitlement 网关**：它是机器对机器的固定地址，验签就是认证。
+       * 租户关掉 mailer 之后在途的回调仍要记下来——那是「关掉前最后几封为什么
+       * 没送到」的证据。
+       */
+      await app.register(mailerWebhookRoutes, { prefix: "/api/public/mailer" });
+
       await registerTenantGatedRoutes(app, "mailer", async (scoped) => {
         await scoped.register(mailerRoutes, { prefix: "/api/mailer" });
       });

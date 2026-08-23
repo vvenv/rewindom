@@ -21,10 +21,16 @@ export const MAIL_DELIVERY_STATUSES = [
   "sent",
   "failed",
   "dropped",
+  /*
+   * 下面两个是**回调**带来的终态，只有支持投递回调的通道（resend）才会出现。
+   * SMTP 是「交出去就结束」的协议，它永远停在 sent——这正是要做原生 driver 的理由。
+   */
+  "bounced",
+  "complained",
 ] as const;
 export type MailDeliveryStatus = (typeof MAIL_DELIVERY_STATUSES)[number];
 
-export const MAIL_DRIVERS = ["smtp", "log"] as const;
+export const MAIL_DRIVERS = ["smtp", "resend", "log"] as const;
 export type MailDriver = (typeof MAIL_DRIVERS)[number];
 
 export interface MailDeliveryListItem {
@@ -37,11 +43,17 @@ export interface MailDeliveryListItem {
   driver: string;
   attempt_count: number;
   last_error: string | null;
+  bounce_type: MailBounceType | null;
+  bounced_at: string | null;
+  complained_at: string | null;
   next_attempt_at: string | null;
   sent_at: string | null;
   created_at: string;
   updated_at: string;
 }
+
+/** `hard` 是永久的（地址不存在）；`soft` 是临时的（邮箱满了、对方服务器抽风）。 */
+export type MailBounceType = "hard" | "soft";
 
 export interface MailDeliveryDetail extends MailDeliveryListItem {
   tenant_id: string;

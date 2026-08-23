@@ -2,12 +2,18 @@
  * 投递记录的查询面。发信本身在 `mail.service.ts`，这里只读。
  */
 
-import { resolveSortField, resolveSortOrder } from "@rewindom/server-kernel/http/list-sort.js";
+import {
+  resolveSortField,
+  resolveSortOrder,
+} from "@rewindom/server-kernel/http/list-sort.js";
 import { NotFoundError } from "@rewindom/server-kernel/lib/app-errors.js";
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 
-import { toMailDeliveryDetail, toMailDeliveryListItem } from "./mailer.mapper.js";
+import {
+  toMailDeliveryDetail,
+  toMailDeliveryListItem,
+} from "./mailer.mapper.js";
 
 import type {
   MailDeliveryDetail,

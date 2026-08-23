@@ -65,3 +65,13 @@ describe("list key 构造", () => {
     expect(eventsEntityList("openai")).toBe("events:entity:openai");
   });
 });
+
+describe("动态候选", () => {
+  it("认领带 token 的主题 key——聚合层插值前后都得认得", () => {
+    // 插值前编辑器里存的是它；插值后变成 events:topic:ai，两种都归 events 管
+    expect(eventsNewsletterSource.ownsList("events:topic:{topic_slug}")).toBe(
+      true,
+    );
+    expect(eventsNewsletterSource.ownsList("events:topic:ai")).toBe(true);
+  });
+});
