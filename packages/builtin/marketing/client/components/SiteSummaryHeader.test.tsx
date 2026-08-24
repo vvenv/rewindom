@@ -10,10 +10,27 @@ import { SiteSummaryHeader } from "./SiteSummaryHeader.js";
 
 import type { MarketingSite } from "../../shared/site-cms.js";
 
+const impersonation = { active: false };
+const capabilities = {
+  entitlements: [] as string[],
+  tenant_slug: "acme",
+  custom_domain: null as string | null,
+};
+
 vi.mock("@rewindom/client-kit", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@rewindom/client-kit")>()),
   useConfirm: () => ({ confirm: vi.fn(async () => true) }),
   usePermissions: () => ({ hasPermission: () => false }),
+  usePublicConfig: () => ({
+    data: {
+      tenant_base_domain: "localhost",
+      platform_url: "http://127.0.0.1:7300",
+    },
+  }),
+}));
+
+vi.mock("../../../platform/client/lib/impersonation-session.js", () => ({
+  isInImpersonationSession: () => impersonation.active,
 }));
 
 vi.mock("../hooks/useSite.js", () => ({
@@ -22,7 +39,7 @@ vi.mock("../hooks/useSite.js", () => ({
     applyHomeLayout: { mutate: vi.fn(), isPending: false },
   }),
   useSitePages: () => ({ data: [] }),
-  useSiteCapabilities: () => ({ data: { entitlements: [] } }),
+  useSiteCapabilities: () => ({ data: capabilities }),
 }));
 
 registerI18nBundles([MARKETING_I18N]);
@@ -75,6 +92,9 @@ function renderHeader(summary?: {
 describe("SiteSummaryHeader", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    impersonation.active = false;
+    capabilities.custom_domain = null;
+    capabilities.tenant_slug = "acme";
   });
 
   it("fills the counts in (interpolation names must match the catalog)", () => {
@@ -103,6 +123,25 @@ describe("SiteSummaryHeader", () => {
     const link = screen.getByRole("link", { name: "查看官网" });
     expect(link).toHaveAttribute("href", "/");
     expect(link).toHaveAttribute("target", "_blank");
+  });
+
+  it("opens the custom domain while impersonating", () => {
+    impersonation.active = true;
+    capabilities.custom_domain = "acme.io";
+    renderHeader();
+
+    expect(screen.getByRole("link", { name: "查看官网" })).toHaveAttribute(
+      "href",
+      "https://acme.io",
+    );
+  });
+
+  it("opens the default subdomain while impersonating without a custom domain", () => {
+    impersonation.active = true;
+    renderHeader();
+
+    const link = screen.getByRole("link", { name: "查看官网" });
+    expect(link.getAttribute("href")).toMatch(/^https?:\/\/acme\.localhost(?::\d+)?$/u);
   });
 
   it("does not offer a duplicate page-editor entrance on the card header", () => {

@@ -305,6 +305,10 @@ export interface MarketingSiteCapabilities {
    * 别人的站点编辑器里（渲染那边同样会拦，见 `sections/html.ts`）。
    */
   is_default_tenant: boolean;
+  /** 当前租户 slug；代登录时拼默认子域 `{slug}.{TENANT_BASE_DOMAIN}`。 */
+  tenant_slug: string;
+  /** 已绑定的自定义域名（无协议）；未绑定时为 null。 */
+  custom_domain: string | null;
 }
 
 export interface UpdateMarketingPageBody {

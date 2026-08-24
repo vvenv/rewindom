@@ -2,6 +2,7 @@ import { defineRoute } from "@rewindom/server-kernel/http/define-route.js";
 import { parseMultipartFileUpload } from "@rewindom/server-kernel/http/multipart-upload.js";
 import { sendCodedError } from "@rewindom/server-kernel/http/route-error-handler.js";
 import { AppError } from "@rewindom/server-kernel/lib/app-errors.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
 import { DEFAULT_TENANT_ID, normalizeLocale } from "@rewindom/shared";
 
@@ -100,18 +101,24 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
     preHandler: [app.requirePermission("site.read")],
     handler: async (request) => {
       const tenant = request.tenantContext!;
-      const entry = await resolveSiteAccountEntry({
-        tenantId: tenant.tenant_id,
-        locale: normalizeLocale(null),
-      });
+      const [entry, entitlements, tenantRow] = await Promise.all([
+        resolveSiteAccountEntry({
+          tenantId: tenant.tenant_id,
+          locale: normalizeLocale(null),
+        }),
+        resolveSectionEntitlements(tenant.tenant_id),
+        // eslint-disable-next-line tenant-scope/require-tenant-scope -- Tenant 是内核模型，主键就是 tenant_id
+        prisma.tenant.findUnique({
+          where: { id: tenant.tenant_id },
+          select: { custom_domain: true },
+        }),
+      ]);
       return {
         account_entry: entry.available,
-        entitlements: [
-          ...(await resolveSectionEntitlements(
-            request.tenantContext!.tenant_id,
-          )),
-        ],
+        entitlements: [...entitlements],
         is_default_tenant: tenant.tenant_id === DEFAULT_TENANT_ID,
+        tenant_slug: tenant.tenant_slug,
+        custom_domain: tenantRow?.custom_domain ?? null,
       } satisfies MarketingSiteCapabilities;
     },
   });

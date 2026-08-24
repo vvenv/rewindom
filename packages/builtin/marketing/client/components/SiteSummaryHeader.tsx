@@ -1,3 +1,4 @@
+import { usePublicConfig } from "@rewindom/client-kit";
 import { Badge } from "@rewindom/ui/badge";
 import { Button } from "@rewindom/ui/button";
 import { CardAction, CardHeader, CardTitle } from "@rewindom/ui/card";
@@ -6,8 +7,11 @@ import { ExternalLink, Palette, Settings2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
+import { isInImpersonationSession } from "../../../platform/client/lib/impersonation-session.js";
 import { localizeSiteText } from "../../shared/section-schema.js";
+import { useSiteCapabilities } from "../hooks/useSite.js";
 import { siteEditorPath } from "../lib/site-editor-url.js";
+import { resolveViewSiteHref } from "../lib/view-site-href.js";
 
 import { SiteSettingsSheet } from "./SiteSettingsSheet.js";
 
@@ -42,6 +46,17 @@ export function SiteSummaryHeader({
   summary,
 }: SiteSummaryHeaderProps) {
   const { t } = useTranslation("marketing");
+  const {
+    data: { tenant_base_domain },
+  } = usePublicConfig();
+  const { data: capabilities } = useSiteCapabilities();
+  const viewSiteHref = resolveViewSiteHref({
+    impersonating: isInImpersonationSession(),
+    customDomain: capabilities?.custom_domain,
+    tenantSlug: capabilities?.tenant_slug,
+    tenantBaseDomain: tenant_base_domain,
+    location: window.location,
+  });
 
   if (!site) {
     if (!isLoading) return null;
@@ -88,12 +103,12 @@ export function SiteSummaryHeader({
       </CardTitle>
       <CardAction className="flex items-center gap-2">
         {/*
-          官网就挂在当前 Host 的 `/`（见 Host 分流），所以用相对地址即可——写死
-          域名会在自定义域名 / 本地 `{slug}.localhost` 上指错站点。
+          租户从绑定域进工作台时官网就在当前 Host 的 `/`。平台代登录停在控制台
+          Host，相对地址会打开中台，所以改指自定义域或默认子域。
         */}
         <Button asChild variant="outline" size="sm">
           <a
-            href="/"
+            href={viewSiteHref}
             target="_blank"
             rel="noreferrer noopener"
             aria-label={t("cms.viewSite")}

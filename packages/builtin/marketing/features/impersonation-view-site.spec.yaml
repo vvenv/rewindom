@@ -1,0 +1,25 @@
+# 平台代登录停在控制台 Host。站点卡「查看官网」若仍用相对 `/`，会打开中台
+# 而不是访客站。代登录时改指当前租户的自定义域，没有则用默认子域。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [tenant]
+goal: 平台代登录时，「查看官网」指向当前租户自定义域名，否则 `{slug}.{TENANT_BASE_DOMAIN}`。
+gold: packages/builtin/marketing/client/components/SiteSummaryHeader.tsx
+touch:
+  - packages/builtin/marketing/features/impersonation-view-site.spec.yaml
+  - packages/builtin/marketing/shared/site-cms.ts
+  - packages/builtin/marketing/server/site.routes.ts
+  - packages/builtin/marketing/client/lib/view-site-href.ts
+  - packages/builtin/marketing/client/lib/view-site-href.test.ts
+  - packages/builtin/marketing/client/components/SiteSummaryHeader.tsx
+  - packages/builtin/marketing/client/components/SiteSummaryHeader.test.tsx
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - 把代登录落地页改到租户 Host
+  - 普通租户从绑定域进工作台时仍走相对 `/`
+  - 平台租户卡片上的默认/自定义 URL 展示
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client lib/view-site-href.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client components/SiteSummaryHeader.test.tsx
