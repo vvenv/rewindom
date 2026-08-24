@@ -453,6 +453,12 @@
   color: var(--accent-text);
 }
 
+.events-back:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 3px;
+  border-radius: 0.25rem;
+}
+
 .events-detail-header {
   display: flex;
   flex-direction: column;
@@ -504,9 +510,26 @@
 }
 
 .events-timeline-row {
+  position: relative;
   display: flex;
   gap: 12px;
   align-items: baseline;
+}
+
+/*
+ * 节点圆点画在竖线上：`.events-timeline` 的 padding-left 是 1.25rem、border 1px，
+ * 所以线心在 -1.25rem - 0.5px，圆点（0.5rem）再往左半个半径。
+ * 用伪元素而不是加 markup——SSR 与编辑器预览共用同一份渲染器，动结构要连带改实体页。
+ */
+.events-timeline-row::before {
+  content: "";
+  position: absolute;
+  left: calc(-1.5rem - 0.5px);
+  top: 0.4375rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--border);
 }
 
 .events-timeline-body {
@@ -591,11 +614,20 @@
   text-decoration: underline;
 }
 
+/*
+ * 组间距归外层。原来每组自己挂 `margin-bottom: 1.25rem`，而外层 `.events-block`
+ * 又有 `gap: .75rem`：组之间叠成 2rem，最后一组底下还白挂一截 1.25rem。
+ */
+.events-source-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 .events-source-group {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-bottom: 1.25rem;
 }
 
 .events-source-kind {
@@ -630,8 +662,45 @@
   background: var(--surface);
 }
 
+/*
+ * 悬停 / 焦点只给描边，**不做整块可点**（首页卡片那次用的 stretched-link）。
+ * 那次换的是「59% 的面积点下去什么都不发生」；详情页来源是证据列表，
+ * 读者要能选中标题拿去搜——覆盖层会吃掉文本选中，这里不付那个代价。
+ */
+@media (hover: hover) {
+  .events-source-list li {
+    transition: border-color 0.16s ease;
+  }
+
+  .events-source-list li:hover {
+    border-color: color-mix(in srgb, var(--accent-text) 45%, var(--border));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .events-source-list li {
+    transition: none;
+  }
+}
+
+.events-source-list li:has(a:focus-visible) {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 2px;
+}
+
 .events-source-list a {
   color: inherit;
+}
+
+.events-source-list a:focus-visible {
+  outline: none;
+}
+
+.events-source-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.625rem;
 }
 
 .events-source-name {
@@ -640,6 +709,16 @@
   gap: 0.3rem;
   color: var(--muted-fg);
   font-size: 0.75rem;
+}
+
+/*
+ * 每条证据是什么时候发的。`published_at` 一直在数据上，公开面从来没画过——
+ * 读者没法判断这条还算不算数、还是三天前的旧稿（与卡片补时间同一条口径）。
+ */
+.events-source-time {
+  color: var(--muted-fg);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
 }
 
 /*
@@ -662,13 +741,7 @@
 .events-related {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-
-.events-related-title {
-  margin: 0;
-  font-size: 1rem;
-  color: var(--muted-fg);
+  gap: 0.75rem;
 }
 
 .events-related ul {
@@ -708,17 +781,17 @@
   color: var(--accent-text);
 }
 
+.events-related a:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
 /* 「为什么在扩散」：只有事实，且已证实 / 仅讨论必须一眼分清。 */
 .events-why {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-
-.events-why-title {
-  margin: 0;
-  font-size: 1rem;
-  color: var(--muted-fg);
+  gap: 0.75rem;
 }
 
 .events-why ul {

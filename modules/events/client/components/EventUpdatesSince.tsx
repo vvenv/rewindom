@@ -1,6 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@rewindom/ui/card";
+import { Card, CardContent, CardHeader } from "@rewindom/ui/card";
 import { useTranslation } from "react-i18next";
 
+import { EventBlockTitle } from "./EventBlockTitle.js";
 import { RelativeTime } from "./RelativeTime.js";
 
 import type { EventRevisionItem } from "../../shared/index.js";
@@ -28,9 +29,9 @@ export function EventUpdatesSince({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">
+        <EventBlockTitle>
           {isFollowing ? t("updates.sinceLastSeen") : t("updates.recent")}
-        </CardTitle>
+        </EventBlockTitle>
       </CardHeader>
       <CardContent>
         <ul className="flex flex-col gap-2 text-sm">

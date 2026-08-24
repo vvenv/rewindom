@@ -1,6 +1,8 @@
 import { Badge } from "@rewindom/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@rewindom/ui/card";
+import { Card, CardContent, CardHeader } from "@rewindom/ui/card";
 import { useTranslation } from "react-i18next";
+
+import { EventBlockTitle } from "./EventBlockTitle.js";
 
 import type { EventTrendingFactor } from "../../shared/index.js";
 
@@ -29,7 +31,7 @@ export function EventWhyTrending({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{t("why.title")}</CardTitle>
+        <EventBlockTitle>{t("why.title")}</EventBlockTitle>
       </CardHeader>
       <CardContent>
         <ul className="flex flex-col gap-2 text-sm">

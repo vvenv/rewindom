@@ -6,12 +6,13 @@ import {
 import { Alert, AlertDescription } from "@rewindom/ui/alert";
 import { Badge } from "@rewindom/ui/badge";
 import { Button } from "@rewindom/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@rewindom/ui/card";
+import { Card, CardContent, CardHeader } from "@rewindom/ui/card";
 import { Skeleton } from "@rewindom/ui/skeleton";
-import { ArrowLeft, Radar } from "lucide-react";
+import { Radar } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
 
+import { EventBlockTitle } from "../components/EventBlockTitle.js";
+import { EventDetailMobileHeader } from "../components/EventDetailMobileHeader.js";
 import { EventEditSheet } from "../components/EventEditSheet.js";
 import { EventSourceGroups } from "../components/EventSourceGroups.js";
 import { EventStatusBadge } from "../components/EventStatusBadge.js";
@@ -49,31 +50,32 @@ export function EventDetail() {
     removingId,
   } = useEventDetailPage();
 
+  const actions =
+    data && eventId && (canWrite || canFollow) ? (
+      <>
+        {canWrite ? <EventEditSheet event={data} /> : null}
+        <FollowEventButton eventId={data.id} isFollowing={data.is_following} />
+      </>
+    ) : null;
+
   return (
     <PageLayout
       icon={Radar}
       title={data?.title ?? t("title")}
       description={data ? (data.headline ?? t("pageDescription")) : ""}
+      backLink={{ to: "/app/events", label: t("detail.back") }}
+      /*
+       * 收成 `hidden md:flex`：PageLayout 把 `action` 渲染两遍，桌面那份进 header，
+       * 移动那份进 `fixed inset-0` 的 FAB 层——那层只接自己定位的 trigger，
+       * 普通按钮进去会浮在视口左上角压住正文。移动端的入口在 EventDetailMobileHeader。
+       */
       action={
-        data && eventId && (canWrite || canFollow) ? (
-          <div className="flex items-center gap-2">
-            {canWrite ? <EventEditSheet event={data} /> : null}
-            <FollowEventButton
-              eventId={data.id}
-              isFollowing={data.is_following}
-            />
-          </div>
+        actions ? (
+          <div className="hidden items-center gap-2 md:flex">{actions}</div>
         ) : null
       }
     >
       <div className="flex flex-col gap-6">
-        <Button asChild variant="ghost" size="sm" className="w-fit">
-          <Link to="/app/events">
-            <ArrowLeft className="size-4" />
-            {t("detail.back")}
-          </Link>
-        </Button>
-
         {isLoading ? <DetailSkeleton /> : null}
 
         {isError ? (
@@ -91,32 +93,51 @@ export function EventDetail() {
 
         {data ? (
           <>
-            <div className="flex flex-wrap items-center gap-2">
-              <EventStatusBadge status={data.status} />
-              <Badge
-                variant="secondary"
-                // 主题现在由分类器每轮重算；人工指定过的会被保住，
-                // 这里如实告诉读者这一格是谁定的（与摘要的出处说明同口径）
-                title={data.manual_topic ? t("detail.topicManual") : undefined}
-              >
-                {t(`topic.${data.topic}`)}
-                {data.manual_topic ? " ·" : ""}
-              </Badge>
-              <EventFactChips event={data} />
-              <EventMomentumBadge event={data} />
-              <span className="text-muted-foreground text-xs">
-                {t("detail.firstSeen")}{" "}
-                <RelativeTime iso={data.first_seen_at} />
-              </span>
-              <span className="text-muted-foreground text-xs">
-                {t("detail.updatedAt")}{" "}
-                <RelativeTime iso={data.last_activity_at} />
-              </span>
+            <EventDetailMobileHeader
+              title={data.title}
+              headline={data.headline ?? ""}
+              actions={actions}
+            />
+
+            {/*
+             * 事件抬头：身份（阶段 / 主题 / 类型事实 / 势头）与时间分成两簇。
+             * 原来六种角标一锅 flex-wrap，「已解决」和「更新于 3 小时前」挨着排，
+             * 读者得逐个辨认哪一格说的是什么。
+             */}
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <EventStatusBadge status={data.status} />
+                  <Badge
+                    variant="secondary"
+                    // 主题现在由分类器每轮重算；人工指定过的会被保住，
+                    // 这里如实告诉读者这一格是谁定的（与摘要的出处说明同口径）
+                    title={
+                      data.manual_topic ? t("detail.topicManual") : undefined
+                    }
+                  >
+                    {t(`topic.${data.topic}`)}
+                    {data.manual_topic ? " ·" : ""}
+                  </Badge>
+                  <EventFactChips event={data} />
+                  <EventMomentumBadge event={data} />
+                </div>
+                <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                  <span>
+                    {t("detail.firstSeen")}{" "}
+                    <RelativeTime iso={data.first_seen_at} />
+                  </span>
+                  <span>
+                    {t("detail.updatedAt")}{" "}
+                    <RelativeTime iso={data.last_activity_at} />
+                  </span>
+                </div>
+              </div>
+
+              <EventPlacement facts={data.placement} />
+
+              <EventEntities entities={data.entities} canFollow={canFollow} />
             </div>
-
-            <EventPlacement facts={data.placement} />
-
-            <EventEntities entities={data.entities} canFollow={canFollow} />
 
             {/* 「为什么」是对结论的补充，摆在变化之后、正文之前 */}
             <EventWhyTrending factors={data.why_trending} />
@@ -129,9 +150,7 @@ export function EventDetail() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm tracking-wide uppercase">
-                  {t("detail.whatHappened")}
-                </CardTitle>
+                <EventBlockTitle>{t("detail.whatHappened")}</EventBlockTitle>
               </CardHeader>
               <CardContent className="flex flex-col gap-3">
                 {data.summary.trim().length > 0 ? (
@@ -156,9 +175,7 @@ export function EventDetail() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm tracking-wide uppercase">
-                  {t("detail.timeline")}
-                </CardTitle>
+                <EventBlockTitle>{t("detail.timeline")}</EventBlockTitle>
               </CardHeader>
               <CardContent>
                 <EventTimeline entries={data.timeline} />
@@ -167,9 +184,7 @@ export function EventDetail() {
 
             <Card>
               <CardHeader className="gap-1">
-                <CardTitle className="text-sm tracking-wide uppercase">
-                  {t("detail.sources")}
-                </CardTitle>
+                <EventBlockTitle>{t("detail.sources")}</EventBlockTitle>
                 <p className="text-muted-foreground text-xs">
                   {t("detail.sourcesHint")}
                 </p>
@@ -200,12 +215,24 @@ export function EventDetail() {
   );
 }
 
+/**
+ * 骨架屏按真实版面画：角标行 → 摘要块 → 时间线块 → 来源块。
+ * 原来是三条通用色块，数量与高度都对不上，加载完整页跳一次。
+ */
 function DetailSkeleton() {
   return (
-    <div className="flex flex-col gap-4" aria-hidden>
-      <Skeleton className="h-6 w-2/3" />
-      <Skeleton className="h-32 w-full rounded-xl" />
-      <Skeleton className="h-48 w-full rounded-xl" />
+    <div className="flex flex-col gap-6" aria-hidden>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Skeleton className="h-5 w-20 rounded-full" />
+          <Skeleton className="h-5 w-16 rounded-full" />
+          <Skeleton className="h-5 w-24 rounded-full" />
+        </div>
+        <Skeleton className="h-4 w-64" />
+      </div>
+      <Skeleton className="h-36 w-full rounded-xl" />
+      <Skeleton className="h-72 w-full rounded-xl" />
+      <Skeleton className="h-56 w-full rounded-xl" />
     </div>
   );
 }

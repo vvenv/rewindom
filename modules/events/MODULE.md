@@ -290,6 +290,46 @@ path handler，由 `renderEventsTemplatePage` 补上，否则页头会退回七�
 段占掉重叠项之后，后面仍能凑满自己的数量。渲染器不再自己截断。
 厚卡对比留在网格里，不再抽成单独一段。
 
+## 详情页
+
+工作台 `/app/events/:eventId` 与公开面 `/events/:slug` 是同一个页面的两副面孔，
+区块顺序也是同一条主张：**发生了什么 → 时间线 → 来源**（先给结论，再给过程，
+最后把证据摊开让读者自己核对）。规格上的偏差要两端一起修，不然下一轮又各漂各的。
+
+### 板块标题只有一套规格
+
+「发生了什么 / 时间线 / 来源 / 为什么在扩散 / 更新 / 相关事件」标的都是**板块**，
+不是内容标题——所以一律小号大写字距的块标签，让事件标题保持这一页上唯一的大字。
+工作台走 `EventBlockTitle`，公开面走 `.events-block-title`。
+
+曾经是两套：工作台里前三块 `text-sm uppercase`、后三块 `text-base`，公开面
+`.events-block-title` 是 `.75rem uppercase` 而 `.events-why-title` /
+`.events-related-title` 是 `1rem`——同一次疏漏在两端各犯了一遍。收成组件 / 单一类名
+就是为了别再散六处各写一遍同一串样式。
+
+### 来源条目必须有时间
+
+与卡片同一条口径（见「卡片上必须有时间」）：一份证据列表不说每条是什么时候发的，
+读者没法判断哪条还算数、哪条是三天前的旧稿。`published_at` 一直在数据上，
+公开面从来没画过。落成文案在 `toPublicSource`（`published_label`）而不是渲染器——
+段渲染器是同步的、也拿不到 i18n；复用卡片那份 `site.relative.*`，不另起一套。
+
+来源条目**不做整块可点**。卡片那次换的是「五分之三的面积点下去什么都不发生」，
+代价是来源名选不中；详情页来源是证据列表，读者要能选中标题拿去搜，这里不付那个代价——
+只给悬停描边与 `:has(a:focus-visible)` 的焦点框。
+
+### 工作台详情页的移动端抬头
+
+`PageLayout` 的 header 是 `hidden md:flex`，移动端标题由 `AppMobileHeader` 从
+**导航项的静态 `title`** 解析。列表页那是对的（「事件」就是这一页），详情页却因此
+变成「打开一个事件，屏幕上一个字都没说这是哪个事件」——所以详情页自带一个
+`md:hidden` 的 `EventDetailMobileHeader`，写当前事件的标题 + headline。
+
+动作也挂在那里，而 `action` 收成 `hidden md:flex`：`PageLayout` 会把 `action`
+再渲染进移动端那层 `fixed inset-0`，**那层只接 `DraggableFabTrigger` 这类自己定位的
+东西**，普通按钮进去会浮在视口左上角压住正文。返回链接用 `PageLayout` 的 `backLink`
+（与 shop 两个编辑页同口径），不要在内容区自己摆一个。
+
 ## 流水线
 
 ```

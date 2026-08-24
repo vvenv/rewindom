@@ -186,6 +186,7 @@ describe("renderEventsDetailHtml json-ld", () => {
                 source_kind: "official",
                 icon_url: null,
                 published_at: "2026-08-17T10:00:00.000Z",
+                published_label: "2 小时前",
               },
             ],
           },
@@ -204,12 +205,8 @@ describe("renderEventsDetailHtml json-ld", () => {
       isBasedOn: string[];
     };
     expect(payload["@type"]).toBe("Article");
-    expect(payload.url).toBe(
-      "https://example.com/events/openai-ships-abc123",
-    );
-    expect(payload.citation).toEqual([
-      "https://openai.com/news/announcement",
-    ]);
+    expect(payload.url).toBe("https://example.com/events/openai-ships-abc123");
+    expect(payload.citation).toEqual(["https://openai.com/news/announcement"]);
     expect(payload.isBasedOn).toEqual(payload.citation);
   });
 
@@ -252,5 +249,94 @@ describe("renderEventsDetailHtml why trending", () => {
     );
     expect(html).toContain("Community discussion only");
     expect(html).not.toContain("events-why-cite");
+  });
+});
+
+describe("renderEventsDetailHtml sources", () => {
+  function sourceGroups() {
+    return [
+      {
+        kind: "official" as const,
+        label: "Official",
+        items: [
+          {
+            title: "Announcement",
+            url: "https://openai.com/news/announcement",
+            source_name: "OpenAI",
+            source_kind: "official" as const,
+            icon_url: null,
+            published_at: "2026-08-17T10:00:00.000Z",
+            published_label: "2 小时前",
+          },
+        ],
+      },
+      {
+        kind: "news" as const,
+        label: "News",
+        items: [
+          {
+            title: "Coverage",
+            url: "https://example.com/coverage",
+            source_name: "Example",
+            source_kind: "news" as const,
+            icon_url: null,
+            published_at: "2026-08-17T11:00:00.000Z",
+            published_label: "1 小时前",
+          },
+        ],
+      },
+    ];
+  }
+
+  /*
+   * 一份证据列表不说每条是什么时候发的，读者没法判断哪条还算数、哪条是三天前的旧稿。
+   * `published_at` 一直在数据上，公开面从来没画过（与卡片补时间同一条口径）。
+   */
+  it("dates every source — 读者看相对时间，爬虫读 <time datetime>", () => {
+    const html = render(detail({ source_groups: sourceGroups() }));
+    expect(html).toContain(
+      '<time class="events-source-time" datetime="2026-08-17T10:00:00.000Z">2 小时前</time>',
+    );
+    expect(html).toContain(">1 小时前</time>");
+  });
+
+  /* 组间距归外层容器：每组自己挂 margin 会和 `.events-block` 的 gap 叠加，末组还多一截。 */
+  it("wraps the groups so spacing comes from one container", () => {
+    const html = render(detail({ source_groups: sourceGroups() }));
+    expect(html).toContain('<div class="events-source-groups">');
+    expect(html.match(/class="events-source-group"/g)).toHaveLength(2);
+  });
+});
+
+/*
+ * 板块标题只有一套规格。原来「发生了什么 / 时间线 / 来源」是 `.events-block-title`，
+ * 「为什么在扩散 / 相关事件」另起了 `.events-why-title` / `.events-related-title`——
+ * 同一页两套二级标题。工作台那份是同一次疏漏（`text-sm uppercase` vs `text-base`）。
+ */
+describe("renderEventsDetailHtml block titles", () => {
+  it("labels every block with the same class", () => {
+    const html = render(
+      detail({
+        why_trending: [
+          {
+            text: "Community discussion only",
+            confidence: "discussion",
+            confidence_label: "Discussion",
+          },
+        ],
+        related: [
+          {
+            href: "/events/other-def456",
+            title: "Other",
+            last_activity_at: "2026-08-16T12:00:00.000Z",
+            fact_labels: [],
+          },
+        ],
+      }),
+    );
+    expect(html).not.toContain("events-why-title");
+    expect(html).not.toContain("events-related-title");
+    expect(html).toContain('<h2 class="events-block-title">为什么在扩散</h2>');
+    expect(html).toContain('<h2 class="events-block-title">相关事件</h2>');
   });
 });

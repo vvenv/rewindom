@@ -160,9 +160,10 @@ function buildMomentum(
 export function toPublicDetail(
   detail: EventDetail,
   t: EventsTranslate,
+  now: number = Date.now(),
 ): PublicEventDetailView {
   return {
-    ...toPublicCard(detail, t),
+    ...toPublicCard(detail, t, now),
     summary: detail.summary,
     analyzer: detail.analyzer,
     provenance_note: buildProvenanceNote(detail, t),
@@ -198,7 +199,9 @@ export function toPublicDetail(
     source_groups: SOURCE_KIND_ORDER.map((kind) => ({
       kind,
       label: t(`sourceKind.${kind}`),
-      items: detail.sources[kind].map(toPublicSource),
+      items: detail.sources[kind].map((source) =>
+        toPublicSource(source, t, now),
+      ),
     })).filter((group) => group.items.length > 0),
   };
 }
@@ -217,14 +220,18 @@ function resolvePlacementParams(
   return { ...params, kind: t(params.kind) };
 }
 
-function toPublicSource(source: {
-  title: string;
-  url: string;
-  source_name: string;
-  source_kind: EventSourceKind;
-  icon_url: string | null;
-  published_at: string;
-}): PublicEventSource {
+function toPublicSource(
+  source: {
+    title: string;
+    url: string;
+    source_name: string;
+    source_kind: EventSourceKind;
+    icon_url: string | null;
+    published_at: string;
+  },
+  t: EventsTranslate,
+  now: number,
+): PublicEventSource {
   return {
     title: source.title,
     url: source.url,
@@ -232,6 +239,8 @@ function toPublicSource(source: {
     source_kind: source.source_kind,
     icon_url: source.icon_url,
     published_at: source.published_at,
+    // 复用卡片那份 `site.relative.*`，不为详情页另起一套时间文案
+    published_label: relativeTime(new Date(source.published_at), now, t),
   };
 }
 

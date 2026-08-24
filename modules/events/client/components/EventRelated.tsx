@@ -1,7 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@rewindom/ui/card";
+import { Card, CardContent, CardHeader } from "@rewindom/ui/card";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
+import { EventBlockTitle } from "./EventBlockTitle.js";
 import { EventFactChips } from "./EventFactChips.js";
 
 import {
@@ -30,7 +31,7 @@ export function EventRelated({ related }: { related: EventRelatedItem[] }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{t("detail.related")}</CardTitle>
+        <EventBlockTitle>{t("detail.related")}</EventBlockTitle>
       </CardHeader>
       <CardContent>
         <ul className="flex flex-col gap-3">

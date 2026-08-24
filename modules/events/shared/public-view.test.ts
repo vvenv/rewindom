@@ -290,3 +290,29 @@ describe("toPublicSourceCatalog", () => {
     expect(view.groups.map((group) => group.topic)).toEqual(["ai", "tech"]);
   });
 });
+
+/*
+ * 一份证据列表不说每条是什么时候发的，读者没法判断哪条还算数、哪条是三天前的旧稿。
+ * 落成文案在这里而不是渲染器：段渲染器是同步的、也拿不到 i18n（同卡片时间口径）。
+ */
+describe("toPublicDetail 来源时间", () => {
+  const NOW = Date.parse("2026-08-17T13:02:00.000Z");
+
+  it("每条来源都带落成文案的相对时间 + 机器可读的绝对时刻", () => {
+    const view = toPublicDetail(sampleEventDetail(t), t, NOW);
+    const official = view.source_groups.find(
+      (group) => group.kind === "official",
+    );
+    expect(official?.items[0]?.published_label).toBe("site.relative.hours(3)");
+    expect(official?.items[0]?.published_at).toBe("2026-08-17T10:02:00.000Z");
+  });
+
+  it("复用卡片那份 site.relative.*，不为详情页另起一套文案", () => {
+    const view = toPublicDetail(sampleEventDetail(t), t, NOW);
+    for (const group of view.source_groups) {
+      for (const item of group.items) {
+        expect(item.published_label).toMatch(/^site\.relative\./);
+      }
+    }
+  });
+});

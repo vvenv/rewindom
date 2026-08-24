@@ -106,6 +106,14 @@ export interface PublicEventSource {
   source_kind: EventSourceKind;
   icon_url: string | null;
   published_at: string;
+  /**
+   * 「3 小时前」。落成文案在 `toPublicSource`，不在渲染器——段渲染器是同步的、
+   * 也拿不到 i18n（与状态名、主题名、卡片时间同一条口径）。
+   *
+   * `published_at` 一直在这个类型上，公开面却从来没画过：一份证据列表不说
+   * 每条是什么时候发的，读者没法判断哪条还算数、哪条是三天前的旧稿。
+   */
+  published_label: string;
 }
 
 /**

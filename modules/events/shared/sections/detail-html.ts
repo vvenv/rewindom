@@ -225,14 +225,24 @@ function sourcesHtml(event: PublicEventDetailView, label: string): string {
             (item) =>
               `<li><a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer noopener">${escapeHtml(
                 item.title,
-              )}</a><span class="events-source-name" translate="no">${sourceIconImgHtml(item.icon_url)}${escapeHtml(item.source_name)}</span></li>`,
+              )}</a><span class="events-source-meta"><span class="events-source-name" translate="no">${sourceIconImgHtml(
+                item.icon_url,
+              )}${escapeHtml(
+                item.source_name,
+              )}</span><time class="events-source-time" datetime="${escapeHtml(
+                item.published_at,
+              )}">${escapeHtml(item.published_label)}</time></span></li>`,
           )
           .join("")}</ul></div>`,
     )
     .join("");
+  /*
+   * 各组包一层 `.events-source-groups`：组间距原来是每组自己挂 `margin-bottom`，
+   * 而外层 `.events-block` 又有 `gap`——两者叠加成 2rem，末组底下还白挂一截。
+   */
   return `<section class="events-block"><h2 class="events-block-title">${escapeHtml(
     label,
-  )}</h2>${body}</section>`;
+  )}</h2><div class="events-source-groups">${body}</div></section>`;
 }
 
 /**
@@ -252,7 +262,7 @@ function relatedHtml(
     return "";
   }
   const heading = label
-    ? `<h2 class="events-related-title">${escapeHtml(label)}</h2>`
+    ? `<h2 class="events-block-title">${escapeHtml(label)}</h2>`
     : "";
   const items = sortRelatedForReading(event.related)
     .map((item) => {
@@ -284,7 +294,7 @@ function whyHtml(event: PublicEventDetailView, label: string): string {
     return "";
   }
   const heading = label
-    ? `<h2 class="events-why-title">${escapeHtml(label)}</h2>`
+    ? `<h2 class="events-block-title">${escapeHtml(label)}</h2>`
     : "";
   const items = event.why_trending
     .map((factor) => {

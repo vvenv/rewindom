@@ -1,0 +1,96 @@
+# 事件详情页的 UI/UX：修确切缺陷 + 两端视觉一致性。
+#
+# 工作台与公开面是同一个页面的两副面孔，眼下各自都攒了一批小偏差，而且有几处
+# 是**同一次疏漏在两边各犯一遍**（二级标题两套规格），所以一次修完，不分两批。
+#
+# 现场核对到的确切缺陷：
+# - `PageLayout` 自带 `backLink` prop（shop/product-editor 在用），详情页却在内容区
+#   手搓了一个 ArrowLeft ghost Button，白占一整行。
+# - `PageLayout` 的 header 是 `hidden md:flex`，移动端标题由 `AppMobileHeader` 从
+#   **导航项的静态 title** 解析（「事件」）——于是手机上根本读不到当前是哪个事件。
+# - `PageLayout` 把 `action` 同时挂进移动端的 `fixed inset-0` FAB 层，那一层只接
+#   `DraggableFabTrigger` 这类自己定位的东西；详情页传的是普通 `<div class="flex gap-2">`，
+#   于是编辑 / 关注按钮浮在视口左上角压住正文。
+# - `.events-source-group` 用 `margin-bottom` 而不是 gap，`.events-block` 自己又有
+#   `gap:.75rem`：组间距变成 2rem，末组底下还多挂 1.25rem 空白。
+# - 公开面来源条目**没有时间**。`published_at` 一直在 `PublicEventSource` 上，从来没画过——
+#   与 card-affordance 给卡片补时间是同一条口径：一张事件雷达不说「什么时候」，
+#   读者没法判断这条还算不算数。
+# - `.events-back` / `.events-source-list a` / `.events-related a` 没有 `:focus-visible`，
+#   而同一份 CSS 里的 `.events-more`、`.events-entity-chip` 都有。
+# - 骨架屏三块，真实版面九块，加载完整页跳一次。
+#
+# 视觉一致性（两端同一次疏漏）：
+# - 二级标题两套规格。工作台：whatHappened/timeline/sources 是 `text-sm uppercase
+#   tracking-wide`，why/updates/related 是 `text-base`；公开面：`.events-block-title`
+#   是 `.75rem uppercase muted`，`.events-why-title`/`.events-related-title` 是 `1rem`。
+#   收敛到「块标签」那一套——它们标的是板块而不是内容标题。
+# - 公开面时间线只有一条竖线，工作台那份有节点圆点。两端「显示的必须是同一件事」。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 事件详情页两端修掉返回链接 / 移动端标题 / 移动端 action 浮层 / 来源组间距 / 来源缺时间 / 焦点态 / 骨架屏这几处确切缺陷，并把二级标题与时间线节点两套规格收敛成一套。不动信息架构与区块顺序。
+gold: modules/shop/client/pages/product-editor.tsx # backLink 的用法；公开面抄 features/card-affordance.spec.yaml 那次的口径
+touch:
+  - modules/events/features/detail-page-polish.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/client/pages/event-detail.tsx
+  - modules/events/client/components/EventBlockTitle.tsx
+  - modules/events/client/components/EventDetailMobileHeader.tsx
+  - modules/events/client/components/EventWhyTrending.tsx
+  - modules/events/client/components/EventUpdatesSince.tsx
+  - modules/events/client/components/EventRelated.tsx
+  - modules/events/shared/sections/detail-html.ts
+  - modules/events/shared/sections/detail-html.test.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/public-view.test.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/site-css/events.css
+  - modules/events/shared/site-css.generated.ts
+out_of_scope:
+  - 版式重构（两栏 + sticky 侧栏）与任何区块顺序调整——本次只修缺陷与规格，信息架构不动
+  - 公开面时间线按天分组（现在只画 HH:MM，跨天事件会歧义；那是 IA 改动，另立 spec）
+  - marketing 内核的 base.css / 段间距 / 容器限宽
+  - PageLayout / WorkbenchPageShell 本身（`fixed inset-0` FAB 层的口径是全站共用，本次绕开它而不是改它）
+  - 段设置项的增删（show_why / show_timeline / show_sources / show_related 保持原样）
+  - 实体页、主题页、首页卡片
+  - 工作台的 EventCard / EventList / EventFeed
+i18n: none # 没有新文案：移动端抬头写的是事件自己的标题，来源时间复用已有的 site.relative.*
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/sections/detail-html.test.ts shared/public-view.test.ts
+  - pnpm --filter @rewindom/builtin assemble:module-css 后 site-css.generated.ts 与 events.css 一致
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. 返回链接用 `PageLayout` 的 `backLink`，不要自己摆 Button。它渲染的
+#    `PageBackLink` 是 `hidden md:inline-flex`——移动端靠系统返回，与 shop 两个
+#    编辑页同口径，本次不为详情页单开一套。
+# 2. 移动端标题块只在 `md:hidden` 出现，写事件标题 + headline + 那一行身份角标。
+#    **不是**把桌面 header 复制一份：桌面 header 里的 icon / description 是页面身份，
+#    移动端 `AppMobileHeader` 已经给了，这里补的是**当前事件**是谁。
+# 3. `action` 整体收成 `hidden md:flex`：PageLayout 会把它渲染两遍，桌面那份在
+#    header 里（本身已 `hidden md:flex`，再套一层无害），移动那份在 `fixed inset-0`
+#    里被 `md:hidden` 的祖先兜住不显示。移动端的编辑 / 关注按钮改挂在第 2 点的标题块里。
+# 4. 二级标题唯一规格 = 块标签：工作台 `text-xs font-semibold tracking-wide uppercase
+#    text-muted-foreground`，公开面 `.events-block-title`。why / updates / related
+#    三块从 `text-base` 收过来；公开面 `.events-why-title` / `.events-related-title`
+#    并入 `.events-block-title`（保留旧类名做钩子，只把字号规格指过去）。工作台那份
+#    收进 `EventBlockTitle`——六处各写一遍同一串 className 正是当初漂移的成因。
+# 5. 来源时间落成文案在 `toPublicSource`，不在渲染器——段渲染器是同步的、也拿不到
+#    i18n（与状态名、主题名、卡片时间同一条口径）。复用 `relativeTime` 与既有的
+#    `site.relative.*`，不新起一套文案。读者看「3 小时前」，爬虫读 `<time datetime>`。
+# 6. 来源条目只给 hover + focus-visible，**不做整块可点**（stretched-link）。首页卡片
+#    那次换的是「59% 面积点不动」，代价是吃掉文本选中；详情页来源是证据列表，
+#    读者要能选中标题去搜——这里不付那个代价。
+# 7. 时间线节点圆点用伪元素画在 `.events-timeline-row` 上，不改 markup：SSR 与编辑器
+#    预览共用同一份渲染器，动结构要连带改实体页。
+# 8. 只用官网 token（--surface / --border / --muted-fg / --accent / --accent-text /
+#    --fg / --radius），见 `site-section-css` rule。强调色的**笔画**一律走 `--accent-text`。
+# 9. 骨架屏与真实版面同构：角标行 + 摘要块 + 时间线块 + 来源块，四块而不是三条。
