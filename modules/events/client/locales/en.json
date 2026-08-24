@@ -280,11 +280,13 @@
     },
     "hero": {
       "label": "Hero",
-      "showStats": "Show live counts",
-      "showStatsInfo": "Hidden automatically until there are events — never shows a row of zeros",
       "interpolationInfo": "Use {topic} / {topic_slug} on topic pages, {entity} / {entity_kind} on entity pages, and {feed} for this page's RSS. Tokens for the other identity are empty.",
       "subscribeHrefInfo": "Default {feed} — this page's RSS (topic, entity, or site). Pin a slot with /topics/ai/feed.xml.",
       "subscribeEmailHrefInfo": "Points at the site's signup page by default. On topic/entity pages pick \"Newsletter: current topic/entity\" so readers subscribe to what that page is about."
+    },
+    "live": {
+      "label": "Live counts",
+      "info": "The header and the three labels are system copy; the numbers come straight from ingest — there is nothing to edit here. The whole section is dropped while the site has no events."
     },
     "entityHero": {
       "label": "Entity hero",

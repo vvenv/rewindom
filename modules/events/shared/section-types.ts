@@ -1,6 +1,6 @@
 import { EVENTS_ENTITY_STRIP_SECTION_TYPE } from "./events-entity-strip-section.js";
 import { EVENTS_FEED_CONTEXT_TYPES } from "./events-feed-section.js";
-import { EVENTS_HERO_SECTION_TYPE } from "./events-hero-section.js";
+import { EVENTS_LIVE_SECTION_TYPE } from "./events-live-section.js";
 import { EVENTS_NAV_SOURCES } from "./nav-sources.js";
 
 /**
@@ -14,6 +14,6 @@ import { EVENTS_NAV_SOURCES } from "./nav-sources.js";
 export const EVENTS_CONTEXT_SECTION_TYPES = [
   ...EVENTS_FEED_CONTEXT_TYPES,
   EVENTS_ENTITY_STRIP_SECTION_TYPE,
-  EVENTS_HERO_SECTION_TYPE,
+  EVENTS_LIVE_SECTION_TYPE,
   ...EVENTS_NAV_SOURCES,
 ] as const;

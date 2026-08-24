@@ -14,13 +14,14 @@ import { getEnabledTopics } from "../event/topic-settings.service.js";
 import {
   EVENTS_ENTITY_STRIP_SECTION_TYPE,
   EVENTS_FEED_CONTEXT_TYPES,
-  EVENTS_HERO_SECTION_TYPE,
+  EVENTS_LIVE_SECTION_TYPE,
   emptyEventsContext,
   eventsContextEntry,
   eventsDetailSection,
   eventsEntityHeroSection,
   eventsFeedSection,
   eventsHeroSection,
+  eventsLiveSection,
   eventsLinkTargets,
   eventsNowSection,
   eventsEntityIndexSection,
@@ -48,6 +49,7 @@ import {
 } from "../../shared/sections/subscribe-html.js";
 import { renderEventsFeedHtml } from "../../shared/sections/feed-html.js";
 import { renderEventsHeroHtml } from "../../shared/sections/hero-html.js";
+import { renderEventsLiveHtml } from "../../shared/sections/live-html.js";
 import { EVENTS_CSS } from "../../shared/site-css.generated.js";
 
 import { registerLinkTargetProvider } from "@rewindom/builtin/marketing/server/link-target-providers.js";
@@ -87,13 +89,13 @@ function registerEventsContextProvider(): void {
       const wantStrip = wantsAny(input.usedTypes, [
         EVENTS_ENTITY_STRIP_SECTION_TYPE,
       ]);
-      const wantHero = wantsAny(input.usedTypes, [EVENTS_HERO_SECTION_TYPE]);
+      const wantLive = wantsAny(input.usedTypes, [EVENTS_LIVE_SECTION_TYPE]);
       const [feed, entityRows, heroStats] = await Promise.all([
         wantFeed
           ? getPublicEventFeed(input.tenantId)
           : Promise.resolve({ rising: [], now: [] }),
         wantStrip ? getPublicEntityIndex(input.tenantId) : Promise.resolve([]),
-        wantHero ? getPublicHeroStats(input.tenantId) : Promise.resolve(null),
+        wantLive ? getPublicHeroStats(input.tenantId) : Promise.resolve(null),
       ]);
 
       return eventsContextEntry(
@@ -148,6 +150,7 @@ function registerEventsLinkTargets(): void {
 /** 在模块 `onBoot` 里调。 */
 export function registerEventsSections(): void {
   registerSiteSectionHtml(eventsHeroSection, renderEventsHeroHtml, css);
+  registerSiteSectionHtml(eventsLiveSection, renderEventsLiveHtml, css);
   registerSiteSectionHtml(eventsEntityHeroSection, renderEventsHeroHtml, css);
   registerSiteSectionHtml(eventsRisingSection, renderEventsFeedHtml, css);
   registerSiteSectionHtml(eventsNowSection, renderEventsFeedHtml, css);

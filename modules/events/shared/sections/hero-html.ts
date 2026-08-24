@@ -1,11 +1,9 @@
 /**
  * 官网首屏的 markup（SSR 与编辑器预览共用同一份）。
  *
- * 两列：左边是主张（全是 setting，租户随时改），右边是**系统查出来的**实时计数。
- * 分工是刻意的——广告词归租户，数字归系统，谁都不能替对方说话。
- *
- * 计数拿不到（provider 还没回来）或站点还没有事件时整块不画，左列独占整行：
- * 首屏挂一串 0 比不挂更糟，与 entity_strip 空态返回 "" 同一条纪律。
+ * 只有主张：eyebrow / 标题 / lead / 两个按钮，外加实体页的累计档案，全是 setting。
+ * 实时计数已经拆成自己的一段（`events.live`）——广告词归租户，数字归系统，
+ * 那条分工现在是编辑器里看得见的事实，不再只是这里的一句注释。
  *
  * 首页 / 专题 / 实体是三张模板。文案与按钮链接走与页脚同一套 `{token}`：
  * `{topic}` 是主题名，`{entity}` 是实体名，`{feed}` 是当前页 RSS。
@@ -30,7 +28,6 @@ import {
   readContributedInterpolation,
 } from "@rewindom/builtin/marketing/shared/site-interpolation.js";
 
-import type { PublicHeroView } from "../events-section-context.js";
 import type { SectionHtmlRenderer } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 import type { SettingValues } from "@rewindom/builtin/marketing/shared/section-settings.js";
 
@@ -83,36 +80,6 @@ function renderProfile(profile: readonly string[]): string {
   return `<ul class="events-profile events-hero-profile">${items}</ul>`;
 }
 
-/**
- * 实时计数面板。
- *
- * 每格里 `dt`（行名）在 `dd`（读数）**之前**——`dl` 的语义要求如此，读屏也该先听见
- * 「正在追踪」再听见「137 个事件」。视觉上数字在上、行名在下，那是 CSS 用 `order`
- * 翻的：把 `dd` 写在 `dt` 前面能省掉一行样式，但会写出一份不合法的 `dl`。
- */
-function renderStats(hero: PublicHeroView): string {
-  const rows = hero.stats
-    .map((stat) => {
-      const unit = stat.unit
-        ? `<span class="events-hero-stat-unit">${escapeHtml(stat.unit)}</span>`
-        : "";
-      return `<div class="events-hero-stat"><dt>${escapeHtml(stat.label)}</dt><dd><span class="events-hero-stat-value">${escapeHtml(stat.value)}</span>${unit}</dd></div>`;
-    })
-    .join("");
-  // 读者看「6 分钟前」，爬虫读 datetime——同一件事留两份
-  const updated = hero.updated
-    ? `<time class="events-hero-updated" datetime="${escapeHtml(hero.updated.datetime)}">${escapeHtml(hero.updated.value)}</time>`
-    : "";
-  /*
-   * 抬头那颗点是这块面板唯一的动效，也是它存在的理由：读者不必读完三行数字
-   * 就知道这台雷达是开着的。`prefers-reduced-motion` 下由 CSS 停掉。
-   */
-  return `<div class="events-hero-panel">
-  <p class="events-hero-live"><span class="events-hero-pulse" aria-hidden="true"></span>${escapeHtml(hero.live_label)}${updated}</p>
-  <dl class="events-hero-stats">${rows}</dl>
-</div>`;
-}
-
 export const renderEventsHeroHtml: SectionHtmlRenderer = (section, ctx) => {
   const s = section.settings;
   const context = readEventsContext(ctx);
@@ -123,12 +90,6 @@ export const renderEventsHeroHtml: SectionHtmlRenderer = (section, ctx) => {
   const eyebrow = settingText(s, "eyebrow");
   const subhead = settingText(s, "subhead");
 
-  const hero = context?.hero ?? null;
-  const stats =
-    settingBool(s, "show_stats") && hero && hero.stats.length > 0
-      ? renderStats(hero)
-      : "";
-
   // 窗口内不足两件事时 service 给空数组 → 整块不画（同 entity 正文段的口径）
   const entityProfile = context?.entity?.profile ?? [];
   const profile =
@@ -136,13 +97,11 @@ export const renderEventsHeroHtml: SectionHtmlRenderer = (section, ctx) => {
       ? renderProfile(entityProfile)
       : "";
 
-  const main = `<div class="events-hero-main">
+  return `<div class="events-hero">
   ${eyebrow ? `<p class="events-hero-eyebrow">${escapeHtml(eyebrow)}</p>` : ""}
   <h1 class="events-hero-headline">${escapeHtml(headline)}</h1>
   ${profile}
   ${subhead ? `<p class="events-hero-lead">${escapeHtml(subhead)}</p>` : ""}
   ${buttonRow(withResolvedCtaHrefs(s, ctx, values), "left")}
 </div>`;
-
-  return `<div class="events-hero${stats ? " has-panel" : ""}">${main}${stats}</div>`;
 };

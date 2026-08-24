@@ -1,12 +1,11 @@
 /**
- * 官网首屏 —— 左侧主张，右侧实时计数。
+ * 官网首屏 —— 产品主张。
  *
- * 为什么是 events 自己的段而不是通用 `hero`：右侧那四个数（在追踪的事件、24 小时里
- * 合并的报道、在采集的来源、最近更新）只有这个模块查得到，而**这两个数就是产品主张
- * 本身**——「多条报道合并成一个事件」不写成数字就只是一句广告词。通用 hero 的
- * stat 块是租户手填的静态文本，写上去当天就开始过期。
+ * 为什么是 events 自己的段而不是通用 `hero`：默认文案是这个产品的主张，添加区块时
+ * 选的就是产品切面。实时计数曾经也长在这一段上（`show_stats`），现在是自己的一段
+ * `events.live`——主张归租户、数字归系统那条分工，拆开之后在编辑器里看得见。
  *
- * 文案仍然全是 setting：主张归租户，数字归系统。首页 / 专题共用这一段，库存文案
+ * 文案全是 setting。首页 / 专题共用这一段，库存文案
  * 自己写 `{topic}`，不要再长 topic_* 覆盖字段。实体页是另一段 `events.entity-hero`
  * ——添加区块时选的就是产品切面，默认值才能写在各自的 setting 上。
  */
@@ -29,7 +28,6 @@ export function eventsHeroSettings(defaults: {
   eyebrow: string;
   headline: string;
   subhead: string;
-  showStatsDefault: boolean;
   /**
    * 实体首屏专属：把累计档案画在标题下面。
    *
@@ -68,13 +66,6 @@ export function eventsHeroSettings(defaults: {
       rows: 3,
       default: defaults.subhead,
       info: "events:section.hero.interpolationInfo",
-    },
-    {
-      type: "checkbox",
-      id: "show_stats",
-      label: "events:section.hero.showStats",
-      default: defaults.showStatsDefault,
-      info: "events:section.hero.showStatsInfo",
     },
     ...(defaults.profile
       ? ([
@@ -140,6 +131,5 @@ export const eventsHeroSection: SectionDefinition = {
     eyebrow: "events:site.hero.eyebrow",
     headline: "events:site.hero.headline",
     subhead: "events:site.hero.subhead",
-    showStatsDefault: true,
   }),
 };

@@ -19,6 +19,7 @@ import {
   EVENTS_ENTITY_STRIP_SECTION_TYPE,
   EVENTS_FEED_CONTEXT_TYPES,
   EVENTS_HERO_SECTION_TYPE,
+  EVENTS_LIVE_SECTION_TYPE,
   EVENT_TOPICS,
   emptyEventsContext,
   eventsContextEntry,
@@ -60,6 +61,7 @@ const EVENTS_EDITOR_CONTEXT_TYPES = [
   EVENTS_ENTITY_INDEX_SECTION_TYPE,
   EVENTS_ENTITY_STRIP_SECTION_TYPE,
   EVENTS_HERO_SECTION_TYPE,
+  EVENTS_LIVE_SECTION_TYPE,
   ...EVENTS_NAV_SOURCES,
 ] as const;
 
@@ -88,6 +90,7 @@ export function registerEventsEditorContext(): void {
       const wantStrip = input.usedTypes.has(EVENTS_ENTITY_STRIP_SECTION_TYPE);
       const wantHub = input.usedTypes.has(EVENTS_ENTITY_INDEX_SECTION_TYPE);
       const wantHero = input.usedTypes.has(EVENTS_HERO_SECTION_TYPE);
+      const wantLive = input.usedTypes.has(EVENTS_LIVE_SECTION_TYPE);
       const wantEntityHero = input.usedTypes.has(
         EVENTS_ENTITY_HERO_SECTION_TYPE,
       );
@@ -115,7 +118,7 @@ export function registerEventsEditorContext(): void {
           ? loadFeed(t, sampleTopic)
           : Promise.resolve({ rising: [], now: [] }),
         wantStrip || wantHub ? loadEntityIndex() : Promise.resolve([]),
-        wantHero ? loadHeroStats(sampleTopic) : Promise.resolve(null),
+        wantLive ? loadHeroStats(sampleTopic) : Promise.resolve(null),
       ]);
       const event =
         wantFeed && input.pageKind === EVENTS_DETAIL_PAGE_KIND

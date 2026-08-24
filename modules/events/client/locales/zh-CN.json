@@ -280,11 +280,13 @@
     },
     "hero": {
       "label": "首屏",
-      "showStats": "显示实时计数",
-      "showStatsInfo": "还没有事件时自动隐藏，不会在首屏挂一串 0",
       "interpolationInfo": "专题页可写 {topic} / {topic_slug}，实体页可写 {entity} / {entity_kind}，{feed} 是当前页 RSS。另一种身份的 token 为空。",
       "subscribeHrefInfo": "默认 {feed}：订当前页对应的 feed（专题 / 实体 / 全站）。想钉死某一格就改成 /topics/ai/feed.xml。",
       "subscribeEmailHrefInfo": "默认指向站点的订阅页。主题页 / 实体页上可用「邮件订阅：当前主题 / 当前实体」，读者订的就是这一页对应的范围。"
+    },
+    "live": {
+      "label": "实时计数",
+      "info": "抬头与三个行名走系统文案，数字由采集实时查出来——这一段没有可改的文案。站点还没有事件时整段不画。"
     },
     "entityHero": {
       "label": "实体首屏",

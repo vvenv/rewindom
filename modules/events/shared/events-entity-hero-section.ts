@@ -32,7 +32,6 @@ export const eventsEntityHeroSection: SectionDefinition = {
     eyebrow: "events:site.hero.entityEyebrow",
     headline: "events:site.hero.entityHeadline",
     subhead: "events:site.hero.entitySubhead",
-    showStatsDefault: false,
     profile: true,
     paddingY: { top: 56, bottom: 24 },
   }),

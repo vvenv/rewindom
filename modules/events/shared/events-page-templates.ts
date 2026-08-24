@@ -31,6 +31,7 @@ import {
 import { EVENTS_ENTITY_STRIP_SECTION_TYPE } from "./events-entity-strip-section.js";
 import { EVENTS_ENTITY_HERO_SECTION_TYPE } from "./events-entity-hero-section.js";
 import { EVENTS_HERO_SECTION_TYPE } from "./events-hero-section.js";
+import { EVENTS_LIVE_SECTION_TYPE } from "./events-live-section.js";
 import {
   EVENTS_FEED_HREF_TEMPLATE,
   EVENTS_HOME_LAYOUT_KEY,
@@ -91,7 +92,7 @@ export const EVENTS_ENTITY_PATH = withEventsPrefix(
 export const EVENTS_ENTITY_INDEX_PATH = entityIndexPath();
 
 /**
- * 首页版式的首屏：产品主张 + 实时计数。专题页另写带 `{topic}` 的那一套，
+ * 首页版式的首屏：产品主张。专题页另写带 `{topic}` 的那一套，
  * 实体页另写带 `{entity}` 的那一套，不要把三种身份揉进这一段。
  */
 const EVENTS_HOME_HERO_SECTION: PresetSection = {
@@ -106,10 +107,21 @@ const EVENTS_HOME_HERO_SECTION: PresetSection = {
   raw: {
     primary_href: NEWSLETTER_SUBSCRIBE_PATH,
     secondary_href: EVENTS_FEED_HREF_TEMPLATE,
-    show_stats: true,
     show_glow: true,
   },
 };
+
+/**
+ * 实时计数带，紧跟在首屏下面。
+ *
+ * 一个 setting 都不填：这一段没有文案，抬头与行名走 events 自己的 i18n，
+ * 数字由系统查（见 `events-live-section.ts`）。留白用段定义的默认值——
+ * 上边距 0，靠首屏自己的 padding_bottom 让出距离。
+ *
+ * 首页与专题共用同一份：读数按当前页的口径查（专题页第三个数是「贡献来源」
+ * 而不是「在采集的来源」），段自己不必知道自己站在哪张页上。
+ */
+const EVENTS_LIVE_SECTION: PresetSection = { type: EVENTS_LIVE_SECTION_TYPE };
 
 /**
  * 枢纽与站点首页共用的段：Rising → 实体条 → Now。
@@ -160,6 +172,7 @@ export const EVENTS_TOPIC_TEMPLATE_PRESET: PagePreset = {
         primary_href: `${NEWSLETTER_SUBSCRIBE_PATH}?list={topic_list}`,
       },
     },
+    EVENTS_LIVE_SECTION,
     ...EVENTS_HUB_SECTIONS,
   ],
 };
@@ -178,7 +191,11 @@ export const EVENTS_HOME_LAYOUT_PRESET: PagePreset = {
   slug: "home",
   titleKey: "events:site.index.title",
   descriptionKey: "events:site.index.subtitle",
-  sections: [EVENTS_HOME_HERO_SECTION, ...EVENTS_HUB_SECTIONS],
+  sections: [
+    EVENTS_HOME_HERO_SECTION,
+    EVENTS_LIVE_SECTION,
+    ...EVENTS_HUB_SECTIONS,
+  ],
 };
 
 const EVENTS_HOME_LAYOUT: HomeLayoutDefinition = {

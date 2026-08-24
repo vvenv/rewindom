@@ -778,37 +778,15 @@
 }
 
 /* ==========================================================================
- * 首屏（events.hero）
+ * 首屏（events.hero）—— 只有主张
  *
- * 只用官网 token。计数面板曾经是一张带边框的卡片，暗色下 `--surface` 与 `--bg`
- * 几乎同色，于是只剩四条横线在撑场面——读起来就是一张后台数据表，和这张页面其余
- * 部分的排版气质对不上。现在不画卡片：三行读数靠左边一条 accent 竖线立住，
- * 数字自己做重量。
+ * 单列。实时计数曾经在右列，可三个短读数填不满容器 30% 的宽度：墨迹止于 1103
+ * 而页面右边距在 1244，首屏因此比页上任何一段都短一截，右边空出 141px。整页
+ * （升温 / 实体 / 订阅）本来就是左置的，读数拆成自己一段落到下面（`events.live`），
+ * 这里就没有第二列要平衡了，标题也拿回了整行。
  * ========================================================================== */
 
 .events-hero {
-  display: grid;
-  gap: 2.5rem;
-}
-
-/*
- * 计数面板在桌面右侧、正文左侧。比例 1.4 : 0.6——上一版是 1.15 : 0.85，那是给一张
- * 撑满右列的卡片留的宽度；读数只有三行短标签，占不满 0.85fr，右边会空出一大片。
- * 没有面板时（新站、或租户关掉）左列独占整行。
- *
- * 两列垂直居中，不再是同高拉伸：上一版面板有边框，两条边不齐会很显眼，所以要
- * 让两列都取行高；现在面板没有边也没有底，能看见的只有那条竖线，它跟着内容长，
- * 拉满整列高度反倒会在标题只有一行时吊在半空。
- */
-@media (min-width: 900px) {
-  .events-hero.has-panel {
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.6fr);
-    gap: 3.5rem;
-    align-items: center;
-  }
-}
-
-.events-hero-main {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -853,28 +831,32 @@
   line-height: 1.6;
 }
 
-.events-hero-main .btn-row {
+.events-hero .btn-row {
   margin-top: 1.75rem;
 }
 
-/* -------------------------------------------------------------------------- */
-/* 实时计数面板                                                                */
-/* -------------------------------------------------------------------------- */
+/* ==========================================================================
+ * 实时计数带（events.live）
+ *
+ * 自己的一段，通常紧跟在首屏下面。不是卡片：上一版是带边框的面板，暗色下
+ * `--surface` 与 `--bg` 几乎同色，只剩几条横线在撑场面，读起来就是一张后台数据表。
+ * 现在只有一道横线把它与上面的主张隔开，读数自己用字重立住。
+ * ========================================================================== */
 
 /*
- * 那条竖线是这块唯一的框。它用 accent 而不是 `--border`：`--border` 在两种主题下都
- * 只有 12–14% 的对比，画一条 2px 的细线等于没画。accent 兑到 65% 在黑底白底上都读得出，
- * 又不至于亮到跟主按钮抢。
+ * 44rem 是这条带子的上限，不跟着容器铺满 64rem：三个读数摊到 976px 上会变成
+ * 三座各自为政的孤岛，收在 44rem 里才读得出它们是同一台仪器的三个表盘。
  */
-.events-hero-panel {
+.events-live {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding-left: 1.5rem;
-  border-left: 2px solid color-mix(in srgb, var(--accent) 65%, transparent);
+  gap: 1.25rem;
+  max-width: 44rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
 }
 
-.events-hero-live {
+.events-live-head {
   display: flex;
   align-items: baseline;
   gap: 0.5rem;
@@ -887,18 +869,18 @@
 }
 
 /* 那颗点要跟「实时」两个字的中线对齐，而抬头整行是按基线排的 */
-.events-hero-pulse {
+.events-live-pulse {
   align-self: center;
   width: 0.5rem;
   height: 0.5rem;
   flex: none;
   border-radius: 999px;
   background: var(--accent);
-  animation: events-hero-pulse 2.4s ease-in-out infinite;
+  animation: events-live-pulse 2.4s ease-in-out infinite;
 }
 
-/* 面板上唯一的动效：不必读完三行数字就知道这台雷达是开着的 */
-@keyframes events-hero-pulse {
+/* 这一段唯一的动效：不必读完三个数就知道这台雷达是开着的 */
+@keyframes events-live-pulse {
   0%,
   100% {
     opacity: 1;
@@ -911,54 +893,61 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .events-hero-pulse {
+  .events-live-pulse {
     animation: none;
   }
 }
 
 /* 新鲜度戳跟着「实时」走，所以不套用抬头那身全大写字距——它是一句话，不是标签 */
-.events-hero-updated {
+.events-live-updated {
   font-weight: 400;
   letter-spacing: 0.01em;
   text-transform: none;
   font-variant-numeric: tabular-nums;
 }
 
-.events-hero-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 1.375rem;
+/*
+ * `auto-fit` 而不是写死三列：站点页与专题页恒是三个读数（见 `toPublicHero`），
+ * 空轨道会被 auto-fit 折掉，于是同一条规则在窄屏自动折成两列、一列，不必再写断点。
+ */
+.events-live-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 1.5rem;
   margin: 0;
   padding: 0;
 }
 
 /*
  * 数字在上、行名在下，靠 `order` 翻——DOM 里 `dt` 仍在 `dd` 前面（`dl` 的语义要求，
- * 读屏也该先听见行名）。上一版是「行名左 / 数字右」的两列，三个数右端跟着长短不一的
- * 单位词走，怎么调 `tabular-nums` 都对不齐；一律左对齐之后，数字的左边界天然成了
- * 一条线。
+ * 读屏也该先听见行名）。上一版是「行名左 / 数字右」的两列表，三个数右端跟着长短
+ * 不一的单位词走，怎么调 `tabular-nums` 都对不齐；一律左对齐之后，数字的左边界
+ * 天然成了一条线。
  */
-.events-hero-stat {
+.events-live-stat {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
-.events-hero-stat dt {
+.events-live-stat dt {
   order: 1;
   margin-top: 0.125rem;
   color: var(--muted-fg);
   font-size: 0.8125rem;
 }
 
-.events-hero-stat dd {
+/* 单位允许折到数字下面：`1,284 条报道` 在最窄的那一格里放不下一行 */
+.events-live-stat dd {
   display: flex;
   align-items: baseline;
+  flex-wrap: wrap;
   gap: 0.375rem;
   margin: 0;
 }
 
 /* 数字放大、单位不放大：数字是证据，单位只是让它读得通 */
-.events-hero-stat-value {
+.events-live-value {
   font-size: 2rem;
   font-weight: 600;
   line-height: 1.15;
@@ -966,30 +955,13 @@
   font-variant-numeric: tabular-nums;
 }
 
-.events-hero-stat-unit {
+.events-live-value-unit {
   color: var(--muted-fg);
   font-size: 0.8125rem;
 }
 
-/*
- * 窄屏面板落到正文下面，整块跨满一行。竖线在这个宽度上会变成一条贴着屏幕左沿的
- * 长杆，所以换成一道横线把它与上面的按钮隔开，读数改横向排：三格在平板一行放得下，
- * 手机上折成两行。
- */
-@media (max-width: 899px) {
-  .events-hero-panel {
-    gap: 1.25rem;
-    padding-top: 1.5rem;
-    padding-left: 0;
-    border-left: 0;
-    border-top: 1px solid var(--border);
-  }
-  .events-hero-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
-    gap: 1.25rem;
-  }
-  .events-hero-stat-value {
+@media (max-width: 599px) {
+  .events-live-value {
     font-size: 1.75rem;
   }
 }

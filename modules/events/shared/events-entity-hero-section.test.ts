@@ -29,6 +29,11 @@ describe("eventsEntityHeroSection", () => {
     expect(settingDefault(eventsEntityHeroSection, "subhead")).toBe(
       "events:site.hero.entitySubhead",
     );
-    expect(settingDefault(eventsEntityHeroSection, "show_stats")).toBe(false);
+    /* 实时计数是自己的一段（events.live），首屏上不该再留一个开关。 */
+    expect(
+      settingDefault(eventsEntityHeroSection, "show_stats"),
+    ).toBeUndefined();
+    /* 累计档案的开关只长在这一段上——首页 / 专题没有当前实体。 */
+    expect(settingDefault(eventsEntityHeroSection, "show_profile")).toBe(true);
   });
 });

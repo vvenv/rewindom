@@ -69,7 +69,6 @@ function section(extra: Record<string, unknown> = {}): SiteSection {
       eyebrow: "事件雷达 · 持续追踪",
       headline: "同一件事，来自多个来源，合成一条时间线",
       subhead: "不是热榜。",
-      show_stats: true,
       primary_label: "它是怎么工作的",
       primary_href: "/about",
       secondary_label: "订阅 RSS",
@@ -100,55 +99,21 @@ describe("renderEventsHeroHtml", () => {
     );
   });
 
-  it("paints every live count plus the CTA", () => {
+  it("paints the CTA", () => {
     const html = render(hero());
-    expect(html).toContain("events-hero-panel");
-    expect(html).toContain("37");
-    expect(html).toContain("1,284");
-    expect(html).toContain("18");
     expect(html).toContain('href="/feed.xml"');
   });
 
-  it("keeps a machine-readable stamp next to the relative time", () => {
+  /* 读数已经是自己的一段（events.live），首屏不该再画任何数字。 */
+  it("no longer paints the live counts — that is events.live now", () => {
     const html = render(hero());
-    expect(html).toContain("site.relative.minutes(6)");
-    expect(html).toContain('datetime="2026-08-19T11:54:00.000Z"');
-  });
-
-  /* 它没有数字也没有单位，夹在三行大数中间就是一行掉队的灰字（见 PublicHeroUpdated）。 */
-  it("hangs the freshness stamp off the LIVE header, not the readings", () => {
-    const html = render(hero());
-    expect(html).toContain("events-hero-updated");
-    expect(html.indexOf("events-hero-updated")).toBeLessThan(
-      html.indexOf("events-hero-stats"),
-    );
-  });
-
-  /* `dl` 的语义要求 dt 在 dd 前面，读屏也该先听见行名——视觉顺序是 CSS 用 order 翻的。 */
-  it("keeps dt before dd so the list stays a valid dl", () => {
-    const html = render(hero());
-    expect(html).toContain(
-      '<dt>site.hero.stat.live</dt><dd><span class="events-hero-stat-value">37</span>',
-    );
-  });
-
-  it("drops the panel but keeps the copy when the site has no events yet", () => {
-    const html = render(hero({ live_events: 0 }));
-    expect(html).not.toContain("events-hero-panel");
-    expect(html).not.toContain("has-panel");
-    expect(html).toContain("events-hero-headline");
-  });
-
-  it("drops the panel when the tenant turns counts off", () => {
-    expect(render(hero(), { show_stats: false })).not.toContain(
-      "events-hero-panel",
-    );
+    expect(html).not.toContain("events-live");
+    expect(html).not.toContain("1,284");
   });
 
   it("still renders while the context provider has not answered", () => {
     const html = renderHero(section());
     expect(html).toContain("events-hero-headline");
-    expect(html).not.toContain("events-hero-panel");
   });
 
   it("escapes tenant copy", () => {
@@ -160,40 +125,6 @@ describe("renderEventsHeroHtml", () => {
   it("falls back to the current-topic feed template when href is missing", () => {
     const html = render(hero(), { secondary_href: "" });
     expect(html).toContain('href="/feed.xml"');
-  });
-});
-
-describe("toPublicHero", () => {
-  it("returns null when nothing is live — a hero of zeros is worse than no hero", () => {
-    expect(hero({ live_events: 0 })).toBeNull();
-  });
-
-  it("keeps a zero row that is genuinely zero", () => {
-    const view = hero({ merged_reports: 0 });
-    expect(view?.stats.find((stat) => stat.key === "merged")?.value).toBe("0");
-  });
-
-  it("buckets the relative time by minute, hour and day", () => {
-    const at = (iso: string) => hero({ updated_at: iso })?.updated?.value;
-    expect(at("2026-08-19T11:59:30.000Z")).toBe("site.relative.now");
-    expect(at("2026-08-19T09:00:00.000Z")).toBe("site.relative.hours(3)");
-    expect(at("2026-08-17T12:00:00.000Z")).toBe("site.relative.days(2)");
-  });
-
-  it("never shows a negative age when the ingest clock runs ahead", () => {
-    expect(
-      hero({ updated_at: "2026-08-19T12:05:00.000Z" })?.updated?.value,
-    ).toBe("site.relative.now");
-  });
-
-  it("omits the stamp when the site has no activity — the readings stay", () => {
-    const view = hero({ updated_at: null });
-    expect(view?.updated).toBeNull();
-    expect(view?.stats.map((stat) => stat.key)).toEqual([
-      "live",
-      "merged",
-      "sources",
-    ]);
   });
 });
 
@@ -235,7 +166,6 @@ describe("renderEventsHeroHtml · 专题页", () => {
   it("keeps the topic copy even when the panel is empty", () => {
     const html = render(null, { headline: "{topic} 正在发生什么" }, AI);
     expect(html).toContain("AI 正在发生什么");
-    expect(html).not.toContain("events-hero-panel");
   });
 
   it("leaves the site page untouched — no placeholder leaks onto /", () => {
@@ -276,14 +206,12 @@ describe("renderEventsHeroHtml · 实体页", () => {
     const html = renderEntity({
       eyebrow: "事件雷达 · {entity_kind}",
       headline: "与 {entity} 相关的全部事件",
-      show_stats: false,
     });
     expect(html).toContain(
       '<h1 class="events-hero-headline">与 OpenAI 相关的全部事件</h1>',
     );
     expect(html).toContain("事件雷达 · 公司");
     expect(html).not.toContain("同一件事，来自多个来源");
-    expect(html).not.toContain("events-hero-panel");
   });
 
   it("points the subscribe button at that entity's feed via {feed}", () => {
@@ -326,15 +254,5 @@ describe("renderEventsHeroHtml · 实体页", () => {
     expect(
       renderEntity({}, { ...openai.entity, profile: ["近 90 天 12 件事"] }),
     ).not.toContain("events-hero-profile");
-  });
-});
-
-describe("toPublicHero · 专题页", () => {
-  it("reads the third row as contributing sources so all three rows share one scope", () => {
-    const site = hero()!.stats.map((stat) => stat.key);
-    const topic = hero({ topic_scoped: true })!.stats.map((stat) => stat.key);
-    expect(site).toContain("sources");
-    expect(topic).toContain("contributors");
-    expect(topic).not.toContain("sources");
   });
 });
