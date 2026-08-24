@@ -1331,6 +1331,30 @@ HN 讨论页、PDF、图片不抓。单篇失败不影响整轮；旧的空摘�
    `NewsEvent.source_kinds` 过滤，与 `source_names` 同一处写入。
 3. **它们只按 `canonical_url` 归属**（`clustersByUrlOnly`），不走词面与语义聚类。
 
+#### `source_kinds` 必须 NOT NULL（线上撞过的静默失效）
+
+上面三条口径里，第 2 条（Rising 排除只有非新闻源的事件）与公开列表的 `?kind=`
+都是**在库里**按 `source_kinds` 过滤的。而 Postgres 的 `&&` 对 NULL 返回 NULL——
+于是 Prisma 的 `hasSome` / `has` 对 `source_kinds IS NULL` 的行**恒不命中**：
+那批事件被整批排除，两处都不报错，只是少一批数据。
+
+本地库量到过 966 行（31%）是 NULL，最早的一条在 2026-05-28。加列那次
+（`20260819100000_events_non_news_sources`）**是回填过的**，但 UPDATE 只覆盖执行那一刻
+的行——迁移先跑、旧代码还在写入的那段窗口里新建的事件仍然是 NULL。而 `refreshEvents`
+只碰热窗内与降温扫描捞到的事件（每轮最多 200 个），凉透的老事件再也轮不到。
+
+`20260825110000_events_source_kinds_backfill` 补了两件事，**第二件才是根治**：
+
+1. 按信号表重新派生（与 `refreshEvents` 里那行同一口径，含 `removed_at` 过滤）；
+2. `ALTER COLUMN … SET NOT NULL`。一次性回填只解决眼前这批——上一次也回填过，
+   照样漏了 966 行。Prisma 把标量列表建模成非空，所以 NOT NULL 才是这一列本来的形状，
+   加它反而是在**消除**漂移（`migrate diff` 验过是空迁移）。
+   **但不要加 `DEFAULT '{}'`**：Prisma 不给标量列表建 DB 默认值，加了下次 diff
+   就会冒出一条 `DROP DEFAULT`。
+
+`centroid` / `tokens` / `related_event_ids` 同样有 NULL，但**无害、不必跟着改**：
+它们只被读进应用层（Prisma 读出来就是 `[]`）。受伤的只有在库里当谓词用的那一列。
+
 #### 状态页的标题是模板，不是标题（实测）
 
 githubstatus.com/history.rss，2026-08-19 抓的 25 条：**3 组指纹完全相同**，

@@ -15,14 +15,15 @@
 #   2. 把「有没有增量」变成一个可测的库内谓词，用它守索引口径：
 #      没有增量的页不主动送去索引，但仍然可访问、仍进列表与 RSS。
 #
-# 顺带修一个存量口径漏洞：966 行（31%）的 `source_kinds` 是 NULL（加列时没回填，
-# 而刷新只碰热窗内的事件），DB 层的 `hasSome` / `has` 对它们恒不命中——
-# Rising 的非新闻源闸门与 `?kind=` 筛选对这批事件静默失效。
+# 顺带修一个存量口径漏洞：966 行（31%）的 `source_kinds` 是 NULL，DB 层的
+# `hasSome` / `has` 对它们恒不命中——Rising 的非新闻源闸门与 `?kind=` 筛选
+# 对这批事件静默失效。加列那次**回填过**，但迁移先跑、旧代码还在写入的那段窗口里
+# 新建的事件仍是 NULL，而刷新只碰热窗内的事件，凉透的再也轮不到。
 
 # ---------- 必填 ----------
 module: events
 surfaces: [tenant, ssr]
-goal: 单格时间线不再画成板块（两端一致）；没有增量的事件页 noindex 且不进 sitemap；回填存量 source_kinds。
+goal: 单格时间线不再画成板块（两端一致）；没有增量的事件页 noindex 且不进 sitemap；回填存量 source_kinds 并加 NOT NULL 堵死复发。
 gold: modules/events/shared/sections/detail-html.ts
 touch:
   - modules/events/features/thin-event-value.spec.yaml
@@ -34,7 +35,7 @@ touch:
   - modules/events/server/ssr/public-events.service.ts
   - modules/events/server/ssr/events-path-handler.ts
   - modules/events/client/pages/event-detail.tsx
-  - apps/server/scripts/backfill-events-source-kinds.ts
+  - apps/server/prisma/migrations/
 out_of_scope:
   - 把薄事件从列表 / 主题页 / RSS 里摘掉（它们仍然是语料，读者仍可浏览）
   - 删除薄事件（保留期清理是另一条路径）
@@ -47,7 +48,8 @@ acceptance:
   - node scripts/verify-module.mjs events
   - pnpm check:i18n
   - pnpm check:modules
-  - 本地跑一遍回填脚本，核对 source_kinds NULL 的行数归零
+  - pnpm --filter server exec prisma migrate deploy（本地造回 NULL 再跑，核对归零）
+  - prisma migrate diff --from-migrations ./prisma/migrations --to-schema ./prisma（必须是空迁移）
 
 # ---------- 可选 ----------
 entitlement: events
@@ -76,9 +78,22 @@ models: []
 #
 # 5. **sitemap 的 500 条上限不动**，但筛掉薄页之后同样的配额能装下更多真有内容的页。
 #
-# 6. **回填脚本与 `rename-events-section-types.ts` 同一套写法**：一次性、幂等、
-#    可重跑。回填的是 `source_kinds`（从该事件现存信号的 `source_kind` 去重），
-#    不重算热度与分析——那是 refresh 的活，脚本不越界。
+# 6. **回填走 SQL 迁移，不走一次性脚本**。生产部署链路是
+#    `docker/entrypoint.sh` → `prisma migrate deploy` → 启动，所以迁移**本来就会
+#    自动跑**；换成脚本就得往 entrypoint 里加一步，还得自己保证幂等与执行时机。
+#    这份数据是纯关系型的（从信号表按 `source_kind` 去重聚合），SQL 表达得下——
+#    `rename-events-section-types.ts` 那类要走脚本，是因为它在改 JSON 段树。
+#
+# 7. **顺带把列改成 NOT NULL**。一次性回填只解决眼前这批，约束才解决「下次再来一遍」
+#    ——上一次加列时**也回填过**，照样漏了 966 行。Prisma 把标量列表建模成非空，
+#    所以 NOT NULL 才是这一列本来的形状，加它反而是在消除漂移
+#    （`migrate diff` 验过是空迁移）。**但不要加 `DEFAULT '{}'`**：Prisma 不给
+#    标量列表建 DB 默认值，加了下次 diff 就会冒出一条 DROP DEFAULT。
+#
+# 8. **只有 `source_kinds` / `source_names` 需要这个待遇**，`centroid` /
+#    `tokens` / `related_event_ids` 同样有 NULL 但无害：它们只被读进应用层
+#    （Prisma 读出来就是 `[]`），而 source_kinds 是**在库里当谓词用**的——
+#    `&&` 对 NULL 返回 NULL，那才是静默失效的来源。
 #
 # ---------- 下一步（不在本期）----------
 # - 把「有增量」的比例做成工作台的一张卡（今天 51.1% → 目标）
