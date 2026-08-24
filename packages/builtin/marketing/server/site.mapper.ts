@@ -14,6 +14,7 @@ import {
 } from "../shared/section-schema.js";
 import {
   parseSiteAnalytics,
+  renderSiteAnalyticsBodyHtml,
   renderSiteAnalyticsHtml,
 } from "../shared/site-analytics.js";
 import {
@@ -201,6 +202,10 @@ export function toPublicMarketingSite(
       useDraftChrome || useDraftContent
         ? ""
         : renderSiteAnalyticsHtml(site.analytics),
+    analytics_body_html:
+      useDraftChrome || useDraftContent
+        ? ""
+        : renderSiteAnalyticsBodyHtml(site.analytics),
     default_locale,
     locale: current,
     available_locales: availableLocales(pages, default_locale),

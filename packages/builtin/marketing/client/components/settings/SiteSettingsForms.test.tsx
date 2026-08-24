@@ -56,7 +56,7 @@ function site(partial: Partial<MarketingSite> = {}): MarketingSite {
     primary_color: null,
     theme_settings: {},
     theme_key: null,
-    analytics: { provider: "none", script_url: "", site_id: "" },
+    analytics: { scripts: [] },
     default_locale: "zh-CN",
     header: [],
     footer: [],
@@ -70,7 +70,7 @@ function site(partial: Partial<MarketingSite> = {}): MarketingSite {
   };
 }
 
-const EMPTY_ANALYTICS = { provider: "none", script_url: "", site_id: "" };
+const EMPTY_ANALYTICS = { scripts: [] };
 
 function Harness({ value }: { value: MarketingSite }) {
   const form = useSiteSettingsForm(value);
@@ -279,37 +279,65 @@ describe("发布", () => {
   });
 });
 
+async function addScript(name: string): Promise<void> {
+  const trigger = screen.getByRole("button", { name: "添加脚本" });
+  // Radix Dropdown 靠 pointer 打开；纯 click 在 jsdom 里经常不开
+  fireEvent.pointerDown(trigger, { button: 0, ctrlX: 0, ctrlY: 0 });
+  fireEvent.click(trigger);
+  fireEvent.click(await screen.findByRole("menuitem", { name }));
+}
+
 describe("访问分析", () => {
-  it("选 Cloudflare 不发请求；空 token 保存被拦住", async () => {
+  it("添加 Cloudflare 不发请求；空 token 保存被拦住", async () => {
     await renderForms();
 
-    await setSelect("供应商", "Cloudflare");
+    await addScript("Cloudflare");
     await waitFor(() =>
-      expect(screen.getByLabelText("供应商")).toHaveTextContent("Cloudflare"),
+      expect(screen.getByRole("combobox", { name: /供应商/ })).toHaveTextContent(
+        "Cloudflare",
+      ),
     );
     expect(mutateMock).not.toHaveBeenCalled();
 
     save();
     expect(mutateMock).not.toHaveBeenCalled();
-    expect(screen.getByLabelText("供应商")).toHaveTextContent("Cloudflare");
+    expect(screen.getByRole("combobox", { name: /供应商/ })).toHaveTextContent(
+      "Cloudflare",
+    );
   });
 
-  it("填了 token 再保存才提交", async () => {
+  it("填了 token 再保存才提交，并可同时装 GA", async () => {
     await renderForms();
 
-    await setSelect("供应商", "Cloudflare");
-    await waitFor(() => screen.getByLabelText("Beacon token"));
-    fireEvent.change(screen.getByLabelText("Beacon token"), {
+    await addScript("Cloudflare");
+    await waitFor(() =>
+      screen.getByRole("textbox", { name: /Beacon token/ }),
+    );
+    fireEvent.change(screen.getByRole("textbox", { name: /Beacon token/ }), {
       target: { value: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+    });
+    await addScript("Google Analytics");
+    await waitFor(() => screen.getByRole("textbox", { name: /衡量 ID/ }));
+    fireEvent.change(screen.getByRole("textbox", { name: /衡量 ID/ }), {
+      target: { value: "G-ABC123" },
     });
     save();
 
     await waitFor(() => expect(mutateMock).toHaveBeenCalledTimes(1));
     expect(mutateMock.mock.calls[0]?.[0]).toMatchObject({
       analytics: {
-        provider: "cloudflare",
-        script_url: "",
-        site_id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        scripts: [
+          {
+            provider: "cloudflare",
+            script_url: "",
+            site_id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          },
+          {
+            provider: "google_analytics",
+            script_url: "",
+            site_id: "G-ABC123",
+          },
+        ],
       },
     });
   });

@@ -39,6 +39,7 @@ function site(overrides: Partial<PublicMarketingSite> = {}) {
     locale: "zh-CN",
     available_locales: ["zh-CN", "en"],
     analytics_html: "",
+    analytics_body_html: "",
     header: [createSection("header")],
     footer: [createSection("footer")],
     pages: [],
@@ -518,6 +519,23 @@ describe("renderMarketingHtml analytics", () => {
       page: page(),
     });
     expect(html).not.toContain("plausible");
+  });
+
+  it("puts the GTM noscript iframe at the start of <body>", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
+      site: site({
+        analytics_html: `<script>/* gtm */</script>`,
+        analytics_body_html: `<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N7F8K2"></iframe></noscript>`,
+      }),
+      page: page(),
+    });
+    const body = html.slice(html.indexOf("<body>"));
+    expect(body.indexOf("GTM-N7F8K2")).toBeLessThan(
+      body.indexOf("marketing-site-root"),
+    );
   });
 });
 

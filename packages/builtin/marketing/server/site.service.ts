@@ -46,6 +46,7 @@ import {
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
 import {
   normalizeSiteAnalytics,
+  renderSiteAnalyticsBodyHtml,
   renderSiteAnalyticsHtml,
 } from "../shared/site-analytics.js";
 import {
@@ -1499,6 +1500,7 @@ export async function getSiteChromeOrFallback(
     theme_settings: resolveThemeSettings(site?.theme_settings),
     // 会员登录这类页面同样是公开面，访客的一次访问不该因为官网没发布就不算数
     analytics_html: renderSiteAnalyticsHtml(site?.analytics),
+    analytics_body_html: renderSiteAnalyticsBodyHtml(site?.analytics),
     default_locale: defaultLocale,
     locale: effective,
     available_locales: [defaultLocale],

@@ -29,6 +29,7 @@ function site(
       { type: "footer", settings: {}, blocks: [] },
     ]),
     analytics_html: "",
+    analytics_body_html: "",
     pages: [],
   };
 }

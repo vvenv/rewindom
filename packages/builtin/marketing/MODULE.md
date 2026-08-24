@@ -1090,11 +1090,11 @@ site-docs 登记，会员页由 site-member 登记。文案在创建时展开成
 | 语言     | 主语言                            | 确认后钉本地草稿；保存时带 `default_locale`                       |
 | 首页     | 打开 `/` 时的版式或另一张页       | 版式仍立刻 `POST /site/home-layout`；其它页随保存 `{ home_path }` |
 | 发布     | 站点总开关                        | 下线先确认；保存时带 `{ published }`                              |
-| 访问分析 | 供应商 + 脚本地址 + 站点标识      | 随保存 `{ analytics }`；空 token 提交前拦住                       |
+| 访问分析 | 多条脚本（GA / GTM / Clarity / Plausible / Umami / Cloudflare / 自定义） | 随保存 `{ analytics: { scripts } }`；不完整的条目提交前拦住 |
 | 重定向   | 旧地址 → 新地址                   | 不进这张 `<form>`，各自的 `/site/redirects` 接口                  |
 
-分析不能「换供应商即存」：Cloudflare 还没填 token 时服务端会把不完整配置归一成 none，
-下拉会当场弹回关闭。站名 / 标语展开全部语言，不再用 tab 切译文。
+分析不能「加了脚本但没填完就存」：Cloudflare 还没填 token、GA 还没填衡量 ID 时，
+提交前拦住，避免服务端把不完整条目丢掉、看起来像加了又消失。站名 / 标语展开全部语言，不再用 tab 切译文。
 
 换主语言必须先把纯字符串文案钉在原语言下（`pinToLocale`），再和站名同一次请求落库。
 
@@ -1353,17 +1353,23 @@ og:title 用完整页标题（社交卡片不必跟 SERP 一样短）；og:descr
 
 ### 访问分析（`shared/site-analytics.ts`）
 
-`MarketingSite.analytics` 一个 JSON 列：`{ provider, script_url, site_id }`。
-公开面 SSR 在 `<head>` 里发一行分析脚本，编辑器预览恒不发
-（自己人改稿的点击不该混进访客数据里）。
+`MarketingSite.analytics` 一个 JSON 列：`{ scripts: [{ provider, script_url, site_id }] }`。
+公开面 SSR 在 `<head>` 里发对应 snippet，GTM 的 `<noscript>` iframe 紧挨 `<body>` 开头；
+编辑器预览恒不发（自己人改稿的点击不该混进访客数据里）。
 
-- 收的是**一个脚本地址 + 一个站点标识**，不是任意 HTML——粘一段 `<script>` 等于
+存量曾是单个 `{ provider, script_url, site_id }`；读入口一次性升级成 `scripts` 数组。
+
+- 收的是**若干条「供应商 + 标识」**，不是任意 HTML——粘一段 `<script>` 等于
   给站点管理员开一个脚本注入位，出问题时也没人说得清页面上跑的是什么
-- 只放行 **https 绝对地址**；非法输入归一成「没配」而不是抛：填错的代价该是统计不生效，
-  不是整个站点设置存不下去
+- 一等供应商：Google Analytics（`G-`）、Google Tag Manager（`GTM-`）、Microsoft Clarity、
+  Plausible、Umami、Cloudflare、自定义 https 脚本。上限 8 条
+- 只放行 **https 绝对地址**（需要脚本地址的供应商）和安全字符集的标识；
+  非法 / 不完整的条目写入时丢掉，不把整站设置打回失败
 - **不进草稿 / 发布链**：分析是站点配置不是内容，配完就该生效
-- 供应商决定属性名（plausible → `data-domain`，umami → `data-website-id`，
-  cloudflare → `type=module` + `data-cf-beacon={"token"}`，custom 只有 src）
+- **不做同意横幅 / CMP**：cookie 类工具（GA / GTM / Clarity）能不能装，是站点自己的合规选择
+- 供应商决定 snippet 形状（plausible → `data-domain`，umami → `data-website-id`，
+  cloudflare → `type=module` + `data-cf-beacon={"token"}`，GA / GTM / Clarity 用官方 snippet，
+  custom 只有 src）
 
 ## 表单段（贡献自 `site-form`）
 

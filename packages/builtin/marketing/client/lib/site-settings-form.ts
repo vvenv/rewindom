@@ -2,7 +2,7 @@ import { type AppLocale } from "@rewindom/shared";
 
 import { readLocalizedSetting } from "../../shared/section-schema.js";
 import {
-  isAllowedAnalyticsScript,
+  isSiteAnalyticsReady,
   type SiteAnalytics,
 } from "../../shared/site-analytics.js";
 
@@ -50,21 +50,22 @@ export function primaryText(
 }
 
 export function sameAnalytics(a: SiteAnalytics, b: SiteAnalytics): boolean {
-  return (
-    a.provider === b.provider &&
-    a.script_url === b.script_url &&
-    a.site_id === b.site_id
-  );
+  if (a.scripts.length !== b.scripts.length) return false;
+  return a.scripts.every((script, index) => {
+    const other = b.scripts[index];
+    return (
+      other !== undefined &&
+      script.provider === other.provider &&
+      script.script_url === other.script_url &&
+      script.site_id === other.site_id
+    );
+  });
 }
 
 /**
- * 分析配置能不能存。空 token / 非法 custom URL 存下去会被归一成 none，
- * 看起来像「选了 Cloudflare 又弹回去」——提交前拦住。
+ * 分析配置能不能存。空 token / 非法 custom URL 存下去会被丢掉，
+ * 看起来像「加了 Cloudflare 又消失」——提交前拦住。
  */
 export function analyticsReady(value: SiteAnalytics): boolean {
-  if (value.provider === "none") return true;
-  if (value.provider === "custom") {
-    return isAllowedAnalyticsScript(value.script_url);
-  }
-  return value.site_id.trim() !== "";
+  return isSiteAnalyticsReady(value);
 }

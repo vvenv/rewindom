@@ -1,6 +1,14 @@
 import { type ReactElement } from "react";
 
-import { Field, FieldDescription, FieldLabel } from "@rewindom/ui/field";
+import { FieldInfoTip } from "@rewindom/client-kit";
+import { Button } from "@rewindom/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@rewindom/ui/dropdown-menu";
+import { Field, FieldLabel } from "@rewindom/ui/field";
 import { Input } from "@rewindom/ui/input";
 import {
   Select,
@@ -9,10 +17,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@rewindom/ui/select";
+import { Plus, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
+  analyticsScriptNeedsSiteId,
+  analyticsScriptNeedsUrl,
   defaultAnalyticsScriptUrl,
+  MAX_SITE_ANALYTICS_SCRIPTS,
   SITE_ANALYTICS_PROVIDERS,
   type SiteAnalyticsProvider,
 } from "../../../shared/site-analytics.js";
@@ -21,11 +33,27 @@ import { SettingsSection } from "./SettingsSection.js";
 
 import type { SiteSettingsForm } from "../../hooks/use-site-settings-form.js";
 
+function siteIdPlaceholder(provider: SiteAnalyticsProvider): string {
+  if (provider === "google_analytics") return "G-XXXXXXXXXX";
+  if (provider === "google_tag_manager") return "GTM-XXXXXXX";
+  if (provider === "microsoft_clarity") return "abcdefghij";
+  if (provider === "plausible") return "example.com";
+  if (provider === "cloudflare") return "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+  return "00000000-0000-0000";
+}
+
+function scriptUrlHintKey(provider: SiteAnalyticsProvider): string {
+  if (provider === "plausible") return "cms.fieldAnalyticsScriptUrlHintPlausible";
+  if (provider === "cloudflare") {
+    return "cms.fieldAnalyticsScriptUrlHintCloudflare";
+  }
+  return "cms.fieldAnalyticsScriptUrlHint";
+}
+
 /**
- * 访问分析：一个供应商 + 一个脚本地址 + 一个站点标识。
+ * 访问分析：可装多条脚本。每条是供应商 + 标识（+ 可选脚本地址），不收任意 HTML。
  *
- * 不收任意 HTML。改动只落在本地草稿，跟站点设置其它项一起保存——换供应商
- * 时 token 还是空的，不能先发一次请求（服务端会把不完整配置归一成关闭）。
+ * 改动只落在本地草稿，跟站点设置其它项一起保存。
  */
 export function SiteAnalyticsForm({
   form,
@@ -36,88 +64,138 @@ export function SiteAnalyticsForm({
 }): ReactElement {
   const { t } = useTranslation("marketing");
   const { analytics } = form;
-  const provider = analytics.value.provider;
+  const scripts = analytics.value.scripts;
+  const atMax = scripts.length >= MAX_SITE_ANALYTICS_SCRIPTS;
+  const disabled = !canWrite || form.saving;
 
   return (
     <SettingsSection
       title={t("cms.settingsSectionAnalytics")}
       description={t("cms.settingsSectionAnalyticsHint")}
+      aside={
+        canWrite ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={disabled || atMax}
+              >
+                <Plus className="size-4" />
+                {t("cms.analyticsAdd")}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {SITE_ANALYTICS_PROVIDERS.map((key) => (
+                <DropdownMenuItem
+                  key={key}
+                  onSelect={() => analytics.add(key)}
+                >
+                  {t(`cms.analyticsProvider.${key}`)}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null
+      }
     >
-      <Field>
-        <FieldLabel htmlFor="analytics_provider">
-          {t("cms.fieldAnalyticsProvider")}
-        </FieldLabel>
-        <Select
-          disabled={!canWrite || form.saving}
-          value={provider}
-          onValueChange={(next) =>
-            analytics.setProvider(next as SiteAnalyticsProvider)
-          }
-        >
-          <SelectTrigger id="analytics_provider" className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {SITE_ANALYTICS_PROVIDERS.map((key) => (
-              <SelectItem key={key} value={key}>
-                {t(`cms.analyticsProvider.${key}`)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <FieldDescription>
-          {t("cms.fieldAnalyticsProviderHint")}
-        </FieldDescription>
-      </Field>
+      {scripts.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t("cms.analyticsEmpty")}</p>
+      ) : (
+        scripts.map((script, index) => {
+          const provider = script.provider;
+          return (
+            <div
+              key={`${provider}-${index}`}
+              className="flex flex-col gap-3 rounded-lg border p-3"
+            >
+              <Field>
+                <div className="flex items-center justify-between gap-2">
+                  <FieldLabel htmlFor={`analytics_provider_${index}`}>
+                    {t("cms.fieldAnalyticsProvider")}
+                    <FieldInfoTip text={t("cms.fieldAnalyticsProviderHint")} />
+                  </FieldLabel>
+                  {canWrite ? (
+                    <Button
+                      type="button"
+                      size="icon-sm"
+                      variant="ghost"
+                      aria-label={t("cms.analyticsRemove")}
+                      disabled={disabled}
+                      onClick={() => analytics.remove(index)}
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  ) : null}
+                </div>
+                <Select
+                  disabled={disabled}
+                  value={provider}
+                  onValueChange={(next) =>
+                    analytics.setProvider(index, next as SiteAnalyticsProvider)
+                  }
+                >
+                  <SelectTrigger
+                    id={`analytics_provider_${index}`}
+                    className="w-full"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SITE_ANALYTICS_PROVIDERS.map((key) => (
+                      <SelectItem key={key} value={key}>
+                        {t(`cms.analyticsProvider.${key}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
 
-      {provider !== "none" && provider !== "custom" ? (
-        <Field>
-          <FieldLabel htmlFor="analytics_site_id">
-            {t(`cms.fieldAnalyticsSiteId.${provider}`)}
-          </FieldLabel>
-          <Input
-            id="analytics_site_id"
-            disabled={!canWrite || form.saving}
-            value={analytics.value.site_id}
-            onChange={(event) => analytics.setSiteId(event.target.value)}
-            placeholder={
-              provider === "plausible"
-                ? "example.com"
-                : provider === "cloudflare"
-                  ? "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                  : "00000000-0000-0000"
-            }
-          />
-          <FieldDescription>
-            {t(`cms.fieldAnalyticsSiteIdHint.${provider}`)}
-          </FieldDescription>
-        </Field>
-      ) : null}
+              {analyticsScriptNeedsSiteId(provider) ? (
+                <Field>
+                  <FieldLabel htmlFor={`analytics_site_id_${index}`}>
+                    {t(`cms.fieldAnalyticsSiteId.${provider}`)}
+                    <FieldInfoTip
+                      text={t(`cms.fieldAnalyticsSiteIdHint.${provider}`)}
+                    />
+                  </FieldLabel>
+                  <Input
+                    id={`analytics_site_id_${index}`}
+                    disabled={disabled}
+                    value={script.site_id}
+                    onChange={(event) =>
+                      analytics.setSiteId(index, event.target.value)
+                    }
+                    placeholder={siteIdPlaceholder(provider)}
+                  />
+                </Field>
+              ) : null}
 
-      {provider !== "none" ? (
-        <Field>
-          <FieldLabel htmlFor="analytics_script_url">
-            {t("cms.fieldAnalyticsScriptUrl")}
-          </FieldLabel>
-          <Input
-            id="analytics_script_url"
-            disabled={!canWrite || form.saving}
-            value={analytics.value.script_url}
-            onChange={(event) => analytics.setScriptUrl(event.target.value)}
-            placeholder={
-              defaultAnalyticsScriptUrl(provider) ??
-              "https://stats.example.com/script.js"
-            }
-          />
-          <FieldDescription>
-            {provider === "plausible"
-              ? t("cms.fieldAnalyticsScriptUrlHintPlausible")
-              : provider === "cloudflare"
-                ? t("cms.fieldAnalyticsScriptUrlHintCloudflare")
-                : t("cms.fieldAnalyticsScriptUrlHint")}
-          </FieldDescription>
-        </Field>
-      ) : null}
+              {analyticsScriptNeedsUrl(provider) ? (
+                <Field>
+                  <FieldLabel htmlFor={`analytics_script_url_${index}`}>
+                    {t("cms.fieldAnalyticsScriptUrl")}
+                    <FieldInfoTip text={t(scriptUrlHintKey(provider))} />
+                  </FieldLabel>
+                  <Input
+                    id={`analytics_script_url_${index}`}
+                    disabled={disabled}
+                    value={script.script_url}
+                    onChange={(event) =>
+                      analytics.setScriptUrl(index, event.target.value)
+                    }
+                    placeholder={
+                      defaultAnalyticsScriptUrl(provider) ??
+                      "https://stats.example.com/script.js"
+                    }
+                  />
+                </Field>
+              ) : null}
+            </div>
+          );
+        })
+      )}
     </SettingsSection>
   );
 }

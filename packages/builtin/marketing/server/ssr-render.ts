@@ -468,6 +468,7 @@ export function renderMarketingHtml(input: {
   ${site.analytics_html}
 </head>
 <body>
+  ${site.analytics_body_html}
   <div class="marketing-site-root" data-page-path="${escapeHtml(page.path)}" data-page-locale="${escapeHtml(locale)}">
   <div class="site-stack">
   ${headerHtml}

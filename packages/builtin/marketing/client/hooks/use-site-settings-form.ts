@@ -4,6 +4,8 @@ import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
 import {
   EMPTY_SITE_ANALYTICS,
+  MAX_SITE_ANALYTICS_SCRIPTS,
+  emptyAnalyticsScript,
   type SiteAnalytics,
   type SiteAnalyticsProvider,
 } from "../../shared/site-analytics.js";
@@ -35,8 +37,8 @@ export type SiteSettingsCommitStatus =
 /**
  * 站点设置的本地草稿。控件只改这一份；点保存才 PATCH。
  *
- * 分析脚本尤其不能「换供应商即存」：Cloudflare 还没填 token 时服务端会把不完整
- * 配置归一成 none，下拉当场弹回关闭。
+ * 分析脚本尤其不能「加了但没填完就存」：Cloudflare 还没填 token 时服务端会把
+ * 不完整条目丢掉，看起来像加了又消失。提交前拦住。
  *
  * 换主语言仍要先 `pinToLocale`（纯字符串的语言是隐含的），但只钉在这份草稿里，
  * 跟站名同一次请求落库。
@@ -119,8 +121,7 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
         default_locale: defaultLocale,
         published,
         home_path: homePath,
-        analytics:
-          analytics.provider === "none" ? EMPTY_SITE_ANALYTICS : analytics,
+        analytics,
       },
       options,
     );
@@ -173,18 +174,38 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
 
     analytics: {
       value: analytics,
-      setProvider: (next: SiteAnalyticsProvider): void => {
-        if (next === analytics.provider) return;
+      add: (provider: SiteAnalyticsProvider): void => {
+        if (analytics.scripts.length >= MAX_SITE_ANALYTICS_SCRIPTS) return;
         setAnalytics({
-          provider: next,
-          script_url: "",
-          site_id: "",
+          scripts: [...analytics.scripts, emptyAnalyticsScript(provider)],
         });
       },
-      setScriptUrl: (next: string): void =>
-        setAnalytics((current) => ({ ...current, script_url: next })),
-      setSiteId: (next: string): void =>
-        setAnalytics((current) => ({ ...current, site_id: next })),
+      remove: (index: number): void => {
+        setAnalytics({
+          scripts: analytics.scripts.filter((_, i) => i !== index),
+        });
+      },
+      setProvider: (index: number, next: SiteAnalyticsProvider): void => {
+        setAnalytics((current) => ({
+          scripts: current.scripts.map((script, i) =>
+            i === index ? emptyAnalyticsScript(next) : script,
+          ),
+        }));
+      },
+      setScriptUrl: (index: number, next: string): void => {
+        setAnalytics((current) => ({
+          scripts: current.scripts.map((script, i) =>
+            i === index ? { ...script, script_url: next } : script,
+          ),
+        }));
+      },
+      setSiteId: (index: number, next: string): void => {
+        setAnalytics((current) => ({
+          scripts: current.scripts.map((script, i) =>
+            i === index ? { ...script, site_id: next } : script,
+          ),
+        }));
+      },
     },
   };
 }

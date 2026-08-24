@@ -1,0 +1,66 @@
+# 增量功能契约 —— 多个访问分析脚本（含 GA / GTM）
+#
+# 在 `site-analytics.spec.yaml` 之上：站点不再只能装一个脚本，并且把
+# Google Analytics、Google Tag Manager、Microsoft Clarity 收成一等供应商。
+# 仍然不收任意 HTML：每条都是「供应商 + 标识（+ 可选脚本地址）」，按官方 snippet 拼。
+#
+# 同意横幅仍不做。Cookie 类工具能不能装、要不要另接 CMP，是站点自己的合规选择；
+# 产品只负责按官方形状发出脚本，不替租户做同意管理。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr, tenant]
+goal: 站点设置可装多条分析脚本（GA / GTM / Clarity / Plausible / Umami / Cloudflare / 自定义），公开面 SSR 按供应商发出对应 snippet；存量单对象配置升级成数组。
+gold: packages/builtin/marketing/shared/site-analytics.ts
+touch:
+  - packages/builtin/marketing/features/site-analytics-multi.spec.yaml
+  - packages/builtin/marketing/shared/site-analytics.ts
+  - packages/builtin/marketing/shared/site-analytics.test.ts
+  - packages/builtin/marketing/shared/site-cms.ts
+  - packages/builtin/marketing/server/site.mapper.ts
+  - packages/builtin/marketing/server/site.service.ts
+  - packages/builtin/marketing/server/ssr-render.ts
+  - packages/builtin/marketing/server/ssr-render.test.ts
+  - packages/builtin/marketing/client/hooks/use-site-settings-form.ts
+  - packages/builtin/marketing/client/hooks/use-site-editor.ts
+  - packages/builtin/marketing/client/lib/site-settings-form.ts
+  - packages/builtin/marketing/client/lib/site-settings-form.test.ts
+  - packages/builtin/marketing/client/components/settings/SiteAnalyticsForm.tsx
+  - packages/builtin/marketing/client/components/settings/SiteSettingsForms.test.tsx
+  - packages/builtin/marketing/client/components/settings/SiteHomeForm.test.tsx
+  - packages/builtin/marketing/client/components/TenantSiteView.test.tsx
+  - packages/builtin/marketing/server/render-page-sections-html.test.ts
+  - packages/builtin/marketing/features/site-analytics.spec.yaml
+  - packages/builtin/marketing/client/locales/
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - 自建统计（存 PV / UV、出报表）
+  - 同意横幅 / CMP / Google Consent Mode
+  - 任意 HTML / 任意内联脚本粘贴
+  - 事件级埋点 API 与转化目标配置
+  - 平台控制台 / 工作台页面的分析
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared site-analytics.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/server ssr-render.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client SiteSettingsForms.test.tsx
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client site-settings-form.test.ts
+  - pnpm check:i18n
+  - pnpm check:modules
+
+# ---------- 可选 ----------
+entitlement:
+permissions: [site.read, site.write]
+models:
+  - name: MarketingSite
+    scope: tenant
+    fields:
+      - { name: analytics, type: Json, required: false }
+
+# ---------- 设计要点 ----------
+# 1. JSON 列形状从 `{ provider, script_url, site_id }` 改成 `{ scripts: [...] }`。
+#    读入口一次性升级旧单对象；新形状不再写回旧形状。
+# 2. 仍不收任意 HTML。GA / GTM / Clarity 用官方 snippet，标识只允许 [A-Za-z0-9._-]。
+#    GTM 的 <noscript> iframe 放在 <body> 开头（`analytics_body_html`）。
+# 3. 上限 8 条。不完整的条目写入时丢掉，不把整站设置打回失败。
+# 4. 编辑器预览仍不发脚本。

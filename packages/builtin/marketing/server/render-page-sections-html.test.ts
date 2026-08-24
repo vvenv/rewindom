@@ -23,6 +23,7 @@ function site(): PublicMarketingSite {
     header: [],
     footer: [],
     analytics_html: "",
+    analytics_body_html: "",
     pages: [],
   };
 }

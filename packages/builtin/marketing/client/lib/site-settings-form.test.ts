@@ -67,19 +67,29 @@ describe("primaryText", () => {
 });
 
 describe("analyticsReady", () => {
-  it("Cloudflare / Plausible 没有站点标识时不能存", () => {
+  it("空列表可以存；Cloudflare / GA 没有站点标识时不能存", () => {
+    expect(analyticsReady({ scripts: [] })).toBe(true);
     expect(
       analyticsReady({
-        provider: "cloudflare",
-        script_url: "",
-        site_id: "",
+        scripts: [{ provider: "cloudflare", script_url: "", site_id: "" }],
       }),
     ).toBe(false);
     expect(
       analyticsReady({
-        provider: "cloudflare",
-        script_url: "",
-        site_id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        scripts: [
+          {
+            provider: "cloudflare",
+            script_url: "",
+            site_id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          },
+        ],
+      }),
+    ).toBe(true);
+    expect(
+      analyticsReady({
+        scripts: [
+          { provider: "google_analytics", script_url: "", site_id: "G-ABC123" },
+        ],
       }),
     ).toBe(true);
   });
@@ -87,16 +97,20 @@ describe("analyticsReady", () => {
   it("custom 只认 https 脚本地址", () => {
     expect(
       analyticsReady({
-        provider: "custom",
-        script_url: "javascript:alert(1)",
-        site_id: "",
+        scripts: [
+          { provider: "custom", script_url: "javascript:alert(1)", site_id: "" },
+        ],
       }),
     ).toBe(false);
     expect(
       analyticsReady({
-        provider: "custom",
-        script_url: "https://stats.example.com/s.js",
-        site_id: "",
+        scripts: [
+          {
+            provider: "custom",
+            script_url: "https://stats.example.com/s.js",
+            site_id: "",
+          },
+        ],
       }),
     ).toBe(true);
   });

@@ -71,7 +71,7 @@ function site(): MarketingSite {
     primary_color: null,
     theme_settings: {},
     theme_key: null,
-    analytics: { provider: "none", script_url: "", site_id: "" },
+    analytics: { scripts: [] },
     default_locale: "zh-CN",
     header: [],
     footer: [],

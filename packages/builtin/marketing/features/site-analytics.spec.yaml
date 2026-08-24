@@ -14,7 +14,7 @@
 module: marketing
 surfaces: [ssr, tenant]
 goal: 站点设置里可配一个分析脚本（Plausible / Umami / Cloudflare / 自定义 URL + 站点标识），公开面 SSR 在 <head> 里发出对应的 <script>；编辑器预览与会员占位页不发。
-gold: packages/builtin/marketing/shared/site-themes.ts
+gold: packages/builtin/marketing/shared/site-analytics.ts
 touch:
   - packages/builtin/marketing/features/site-analytics.spec.yaml
   - packages/builtin/marketing/models.prisma
@@ -32,9 +32,11 @@ touch:
   - packages/builtin/marketing/client/components/SiteSettingsSheet.tsx
   - packages/builtin/marketing/client/locales/
   - packages/builtin/marketing/MODULE.md
+# 已被 `site-analytics-multi.spec.yaml` 覆盖的约束：单脚本、不接 GA。
+# 同意横幅 / CMP 仍然不做；GA / GTM 作为一等供应商按官方 snippet 发出。
 out_of_scope:
   - 自建统计（存 PV / UV、出报表）——那是另一个模块，不是官网设置
-  - Google Analytics 的同意管理 / cookie 横幅（不接 GA 这类需要同意的供应商）
+  - 同意横幅 / CMP / Google Consent Mode（cookie 类工具能不能装，是站点自己的合规选择）
   - 事件级埋点 API（`window.plausible(...)`）与转化目标配置
   - 服务端日志分析、UTM 落库
   - 平台控制台 / 工作台页面的分析（这里只管公开官网面）

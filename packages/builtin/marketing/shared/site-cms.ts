@@ -361,6 +361,11 @@ export interface PublicMarketingSite {
    * 编辑器预览（草稿）恒为空串——自己人改稿的点击不该混进访客数据里。
    */
   analytics_html: string;
+  /**
+   * GTM 的 `<noscript>` iframe，紧挨 `<body>` 开头。
+   * 没有 GTM 时是空串。
+   */
+  analytics_body_html: string;
   /** `path` 是**逻辑路径**（不带 locale 前缀）；链接由渲染端按语言改写。 */
   pages: Array<{
     slug: string;
