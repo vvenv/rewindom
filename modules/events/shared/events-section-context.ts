@@ -118,6 +118,8 @@ export interface PublicTrendingFactor {
   text: string;
   confidence: "confirmed" | "discussion";
   confidence_label: string;
+  /** 这条事实所依据的原文。没有可核 URL 时不画链接 */
+  href?: string;
 }
 
 /** 相关事件在公开面上是一条可顺读的记录：日期 + 类型事实 + 标题。 */
@@ -258,6 +260,26 @@ export interface PublicHeroView {
   updated: PublicHeroUpdated | null;
 }
 
+/** 方法论文上的一家采集源：链出版方首页，不链 RSS。 */
+export interface PublicSourceCatalogItem {
+  name: string;
+  href: string;
+  icon_url: string | null;
+  topic: EventTopic;
+  topic_label: string;
+  kind: EventSourceKind;
+  kind_label: string;
+}
+
+export interface PublicSourceCatalogView {
+  items: PublicSourceCatalogItem[];
+  groups: {
+    topic: EventTopic;
+    label: string;
+    items: PublicSourceCatalogItem[];
+  }[];
+}
+
 export interface PublicEventFeed {
   rising: PublicEventCard[];
   now: PublicEventCard[];
@@ -303,8 +325,15 @@ export interface EventsRenderContext {
    * 仍然要用主题名——`/topics/ai` 这一格暂时没有事件，不代表它该改回站点主张。
    */
   topic_label?: string;
-  /** 编辑器「某个主题」下拉用的已落成当前语言的主题名 */
-  nav_topics?: readonly { key: EventTopic; label: string }[];
+  /**
+   * 页头主题格子。站点可关掉其中几格；没带时导航源按失效方向退回七格。
+   */
+  nav_topics?: Array<{ key: EventTopic; label: string }>;
+  /**
+   * 本站正在采集的出版方清单。方法论文段用；缺省不要写成 `undefined` 键，
+   * 以免事件模板页的 overlay 把关于页上刚查到的清单盖掉。
+   */
+  source_catalog?: PublicSourceCatalogView;
 }
 
 export function emptyEventsContext(

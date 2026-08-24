@@ -8,6 +8,7 @@ import {
   getPublicEventFeed,
   getPublicEventSitemapEntries,
   getPublicHeroStats,
+  listPublicEventFeeds,
 } from "../ssr/public-events.service.js";
 
 import { getEnabledTopics } from "../event/topic-settings.service.js";
@@ -15,6 +16,7 @@ import {
   EVENTS_ENTITY_STRIP_SECTION_TYPE,
   EVENTS_FEED_CONTEXT_TYPES,
   EVENTS_LIVE_SECTION_TYPE,
+  EVENTS_SOURCES_SECTION_TYPE,
   emptyEventsContext,
   eventsContextEntry,
   eventsDetailSection,
@@ -28,11 +30,13 @@ import {
   eventsEntitySection,
   eventsEntityStripSection,
   eventsRisingSection,
+  eventsSourcesSection,
   eventsSubscribeBlock,
   eventsSubscribeSection,
   toPublicEntityStrip,
   toPublicFeed,
   toPublicHero,
+  toPublicSourceCatalog,
 } from "../../shared/index.js";
 import {
   EVENTS_NAV_SOURCES,
@@ -43,6 +47,7 @@ import { renderEventsDetailHtml } from "../../shared/sections/detail-html.js";
 import { renderEventsEntityHtml } from "../../shared/sections/entity-html.js";
 import { renderEventsEntityIndexHtml } from "../../shared/sections/entity-index-html.js";
 import { renderEventsEntityStripHtml } from "../../shared/sections/entity-strip-html.js";
+import { renderEventsSourcesHtml } from "../../shared/sections/sources-html.js";
 import {
   renderEventsSubscribeBlockHtml,
   renderEventsSubscribeHtml,
@@ -90,12 +95,18 @@ function registerEventsContextProvider(): void {
         EVENTS_ENTITY_STRIP_SECTION_TYPE,
       ]);
       const wantLive = wantsAny(input.usedTypes, [EVENTS_LIVE_SECTION_TYPE]);
-      const [feed, entityRows, heroStats] = await Promise.all([
+      const wantSources = wantsAny(input.usedTypes, [
+        EVENTS_SOURCES_SECTION_TYPE,
+      ]);
+      const [feed, entityRows, heroStats, catalogFeeds] = await Promise.all([
         wantFeed
           ? getPublicEventFeed(input.tenantId)
           : Promise.resolve({ rising: [], now: [] }),
         wantStrip ? getPublicEntityIndex(input.tenantId) : Promise.resolve([]),
         wantLive ? getPublicHeroStats(input.tenantId) : Promise.resolve(null),
+        wantSources
+          ? listPublicEventFeeds(input.tenantId)
+          : Promise.resolve([]),
       ]);
 
       return eventsContextEntry(
@@ -104,6 +115,15 @@ function registerEventsContextProvider(): void {
           feed: toPublicFeed(feed, t),
           entity_strip: wantStrip ? toPublicEntityStrip(entityRows) : undefined,
           hero: heroStats ? toPublicHero(heroStats, t) : undefined,
+          ...(wantSources
+            ? {
+                source_catalog: toPublicSourceCatalog(
+                  catalogFeeds,
+                  enabled,
+                  t,
+                ),
+              }
+            : {}),
         }),
       );
     },
@@ -165,6 +185,11 @@ export function registerEventsSections(): void {
   registerSiteSectionHtml(
     eventsEntityStripSection,
     renderEventsEntityStripHtml,
+    css,
+  );
+  registerSiteSectionHtml(
+    eventsSourcesSection,
+    renderEventsSourcesHtml,
     css,
   );
   registerChromeBlockHtml(

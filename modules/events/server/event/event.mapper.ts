@@ -191,6 +191,7 @@ export function toEventDetail(params: {
         source_name: signal.source_name,
         source_kind: signal.source_kind as EventSourceKind,
         published_at: signal.published_at,
+        url: signal.url,
       })),
       now: params.now ?? new Date(),
     }),

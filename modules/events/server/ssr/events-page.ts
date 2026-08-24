@@ -9,7 +9,7 @@ import { getEnabledTopics } from "../event/topic-settings.service.js";
 
 import { eventsContextEntry } from "../../shared/index.js";
 import { withEventsNavTopics } from "../../shared/nav-sources.js";
-import { EVENTS_CONTEXT_SECTION_TYPES } from "../../shared/section-types.js";
+import { EVENTS_PATH_SKIP_SECTION_TYPES } from "../../shared/section-types.js";
 
 import { resolvePageContributed } from "@rewindom/builtin/marketing/server/page-contributed.js";
 import { resolveSiteAccountEntry } from "@rewindom/builtin/marketing/server/site-account-entry.js";
@@ -130,7 +130,7 @@ export async function renderEventsTemplatePage(input: {
     own: eventsContextEntry(
       withEventsNavTopics(input.events, locale, enabledTopics),
     ),
-    skipSectionTypes: EVENTS_CONTEXT_SECTION_TYPES,
+    skipSectionTypes: EVENTS_PATH_SKIP_SECTION_TYPES,
     cookies: input.request?.cookies,
     query: input.request?.query,
     homePath: home.homePath,

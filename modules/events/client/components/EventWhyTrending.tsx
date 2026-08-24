@@ -46,7 +46,18 @@ export function EventWhyTrending({
               >
                 {t(`why.${factor.confidence}`)}
               </Badge>
-              <span>{t(factor.code, factor.params)}</span>
+              {factor.href ? (
+                <a
+                  href={factor.href}
+                  className="underline-offset-2 hover:underline"
+                  rel="noreferrer noopener"
+                  target="_blank"
+                >
+                  {t(factor.code, factor.params)}
+                </a>
+              ) : (
+                <span>{t(factor.code, factor.params)}</span>
+              )}
             </li>
           ))}
         </ul>

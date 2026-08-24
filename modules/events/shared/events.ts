@@ -728,6 +728,8 @@ export interface EventTrendingFactor {
   code: string;
   params: Record<string, string | number>;
   confidence: EventTrendingConfidence;
+  /** 这条事实所依据的原文。没有可核 URL 时省略，渲染侧不造链 */
+  href?: string;
 }
 
 /** 相关事件卡片。只放跳转与顺读要用的字段，不把整条事件带进来。 */

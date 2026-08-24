@@ -68,6 +68,7 @@ describe("computeWhyTrending", () => {
           source_name: "OpenAI",
           source_kind: "official",
           published_at: hoursAgo(3),
+          url: "https://openai.com/news/announcement",
         }),
         signal({
           source_name: "TechCrunch",
@@ -80,6 +81,7 @@ describe("computeWhyTrending", () => {
     expect(result[0].code).toBe("why.officialAnnouncement");
     expect(result[0].params.source).toBe("OpenAI");
     expect(result[0].confidence).toBe("confirmed");
+    expect(result[0].href).toBe("https://openai.com/news/announcement");
   });
 
   it("跨源印证带上家数与最先报道的那家", () => {

@@ -175,6 +175,29 @@ export function sourceIconHost(feed: {
   return iconHostFromUrl(feed.url);
 }
 
+/**
+ * 采集源对应的**出版方首页**，给方法论文 / JSON-LD 当外链用。
+ *
+ * 不链 RSS / API 根：那是采集地址，不是读者或模型该去核对的权威页。
+ * 主机名与 favicon 同一套别名（HN、BBC feeds、状态页）。
+ */
+export function publisherHomepageUrl(feed: {
+  connector: string;
+  url: string;
+}): string | null {
+  const host = sourceIconHost(feed);
+  if (host) return `https://${host}/`;
+  try {
+    const parsed = new URL(feed.url);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return null;
+    }
+    return `${parsed.protocol}//${parsed.host}/`;
+  } catch {
+    return null;
+  }
+}
+
 export function sourceIconUrl(
   feed: {
     connector: string;

@@ -12,9 +12,13 @@
 import {
   CONFIRMED_SOURCES_EVIDENCE,
   EVENT_ENTITY_KINDS,
+  EVENT_TOPICS,
   describeCardEvidence,
   describeEventFacts,
   describeEventMomentum,
+  isEventSourceKind,
+  isEventTopic,
+  isFeedCollecting,
   pickCardEvidence,
   describeTimelineEntry,
   isTimelineRoleCode,
@@ -28,6 +32,7 @@ import {
   entityPath,
   eventPath,
 } from "./events-public-paths.js";
+import { publisherHomepageUrl, sourceIconUrl } from "./source-icon.js";
 
 import type {
   EventDetail,
@@ -35,6 +40,7 @@ import type {
   EventPlacementFact,
   EventSourceKind,
   EventTimelineItem,
+  EventTopic,
 } from "./events.js";
 import type {
   PublicEntityIndexView,
@@ -46,6 +52,7 @@ import type {
   PublicEventSource,
   PublicHeroStat,
   PublicHeroView,
+  PublicSourceCatalogView,
 } from "./events-section-context.js";
 
 /** 取文案的最小接口——服务端传 `eventsMessage` 的偏应用，客户端传 i18next 的 `t`。 */
@@ -165,6 +172,7 @@ export function toPublicDetail(
       text: t(factor.code, factor.params),
       confidence: factor.confidence,
       confidence_label: t(`why.${factor.confidence}`),
+      ...(factor.href ? { href: factor.href } : {}),
     })),
     placement: detail.placement.map((fact) => ({
       // kind 参数本身是个 i18n code（`kind.outage`），先落成文案再代进去
@@ -454,4 +462,61 @@ export function toPublicHero(
         }
       : null,
   };
+}
+
+/**
+ * 正在采集的出版方清单。只链首页，不暴露 RSS / API。
+ * 主题关掉的源不算「正在采集」，不进方法论文。
+ */
+export function toPublicSourceCatalog(
+  feeds: readonly {
+    name: string;
+    url: string;
+    connector: string;
+    topic: string;
+    source_kind: string;
+    enabled: boolean;
+  }[],
+  enabledTopics: readonly EventTopic[],
+  t: EventsTranslate,
+): PublicSourceCatalogView {
+  const items = feeds.flatMap((feed) => {
+    if (!isEventTopic(feed.topic) || !isEventSourceKind(feed.source_kind)) {
+      return [];
+    }
+    if (
+      !isFeedCollecting(
+        { enabled: feed.enabled, topic: feed.topic },
+        enabledTopics,
+      )
+    ) {
+      return [];
+    }
+    const href = publisherHomepageUrl({
+      connector: feed.connector,
+      url: feed.url,
+    });
+    if (!href) return [];
+    return [
+      {
+        name: feed.name,
+        href,
+        icon_url: sourceIconUrl({
+          connector: feed.connector,
+          url: feed.url,
+        }),
+        topic: feed.topic,
+        topic_label: t(`topic.${feed.topic}`),
+        kind: feed.source_kind,
+        kind_label: t(`sourceKind.${feed.source_kind}`),
+      },
+    ];
+  });
+  items.sort((a, b) => a.name.localeCompare(b.name));
+  const groups = EVENT_TOPICS.flatMap((topic) => {
+    const groupItems = items.filter((item) => item.topic === topic);
+    if (groupItems.length === 0) return [];
+    return [{ topic, label: t(`topic.${topic}`), items: groupItems }];
+  });
+  return { items, groups };
 }

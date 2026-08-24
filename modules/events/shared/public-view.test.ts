@@ -12,6 +12,7 @@ import {
   toPublicEntity,
   toPublicEntityIndex,
   toPublicEntityStrip,
+  toPublicSourceCatalog,
 } from "./public-view.js";
 
 const t = (key: string, params?: Record<string, string | number>): string => {
@@ -35,6 +36,7 @@ const t = (key: string, params?: Record<string, string | number>): string => {
   }
   if (key.startsWith("topic.")) return key.slice("topic.".length);
   if (key.startsWith("status.")) return key.slice("status.".length);
+  if (key.startsWith("sourceKind.")) return key.slice("sourceKind.".length);
   return key;
 };
 
@@ -224,5 +226,67 @@ describe("toPublicCard evidence", () => {
     const card = toPublicCard(spreading, t);
     expect(card.evidence_text).toBe("OpenAI: 4 in 90d");
     expect(card.momentum_label).toBe("heat.spreading");
+  });
+});
+
+describe("toPublicSourceCatalog", () => {
+  const feeds = [
+    {
+      name: "OpenAI",
+      url: "https://openai.com/news/rss.xml",
+      connector: "rss",
+      topic: "ai",
+      source_kind: "official",
+      enabled: true,
+    },
+    {
+      name: "Hacker News",
+      url: "https://hacker-news.firebaseio.com/v0",
+      connector: "hackernews",
+      topic: "tech",
+      source_kind: "community",
+      enabled: true,
+    },
+    {
+      name: "Disabled Wire",
+      url: "https://example.com/rss.xml",
+      connector: "rss",
+      topic: "world",
+      source_kind: "news",
+      enabled: false,
+    },
+    {
+      name: "Sports Off",
+      url: "https://espn.com/rss.xml",
+      connector: "rss",
+      topic: "sports",
+      source_kind: "news",
+      enabled: true,
+    },
+  ];
+
+  it("links publisher homepages, never RSS or API roots", () => {
+    const view = toPublicSourceCatalog(feeds, ["ai", "tech"], t);
+    expect(view.items.map((item) => item.name)).toEqual([
+      "Hacker News",
+      "OpenAI",
+    ]);
+    expect(view.items.map((item) => item.href)).toEqual([
+      "https://news.ycombinator.com/",
+      "https://openai.com/",
+    ]);
+    expect(view.items.some((item) => item.href.includes("rss"))).toBe(false);
+    expect(view.items.some((item) => item.href.includes("firebaseio"))).toBe(
+      false,
+    );
+  });
+
+  it("drops disabled feeds and topics that are switched off", () => {
+    const view = toPublicSourceCatalog(feeds, ["ai", "tech"], t);
+    expect(view.items.map((item) => item.name)).toEqual([
+      "Hacker News",
+      "OpenAI",
+    ]);
+    expect(view.groups.map((group) => group.topic)).toEqual(["ai", "tech"]);
   });
 });

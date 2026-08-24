@@ -723,6 +723,33 @@ export async function getEntityIndexSitemapEntry(
   ];
 }
 
+/**
+ * 公开面方法论文用的采集源行。不跑 ensureDefaultFeeds：访客页不该在渲染时种源。
+ */
+export async function listPublicEventFeeds(tenantId: string): Promise<
+  Array<{
+    name: string;
+    url: string;
+    connector: string;
+    topic: string;
+    source_kind: string;
+    enabled: boolean;
+  }>
+> {
+  return prisma.eventFeed.findMany({
+    where: withTenantScope(tenantId),
+    select: {
+      name: true,
+      url: true,
+      connector: true,
+      topic: true,
+      source_kind: true,
+      enabled: true,
+    },
+    orderBy: { name: "asc" },
+  });
+}
+
 async function resolvePublicSite(
   tenantId: string,
 ): Promise<{ locale: AppLocale }> {

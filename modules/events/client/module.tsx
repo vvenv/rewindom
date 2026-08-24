@@ -1,5 +1,6 @@
 import {
   Activity,
+  Newspaper,
   Radar,
   Rss,
   Signal,
@@ -28,6 +29,7 @@ import {
   eventsEntityIndexSection,
   eventsEntitySection,
   eventsEntityStripSection,
+  eventsSourcesSection,
   eventsSubscribeBlock,
   eventsSubscribeSection,
   eventsFeedSection,
@@ -42,6 +44,7 @@ import { renderEventsDetailHtml } from "../shared/sections/detail-html.js";
 import { renderEventsEntityHtml } from "../shared/sections/entity-html.js";
 import { renderEventsEntityIndexHtml } from "../shared/sections/entity-index-html.js";
 import { renderEventsEntityStripHtml } from "../shared/sections/entity-strip-html.js";
+import { renderEventsSourcesHtml } from "../shared/sections/sources-html.js";
 import {
   renderEventsSubscribeBlockHtml,
   renderEventsSubscribeHtml,
@@ -112,6 +115,11 @@ registerSiteSectionView(
   eventsEntityStripSection,
   htmlSectionView(renderEventsEntityStripHtml),
   { css: EVENTS_CSS, icon: Tags },
+);
+registerSiteSectionView(
+  eventsSourcesSection,
+  htmlSectionView(renderEventsSourcesHtml),
+  { css: EVENTS_CSS, icon: Newspaper },
 );
 registerChromeBlockView(
   eventsSubscribeBlock,

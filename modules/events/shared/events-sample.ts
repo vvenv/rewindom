@@ -8,7 +8,12 @@
 import { EMPTY_EVENT_FACTS } from "./events.js";
 import { sourceIconUrlFromHost } from "./source-icon.js";
 
-import type { EventDetail, EventListItem } from "./events.js";
+import type {
+  EventDetail,
+  EventListItem,
+  EventSourceKind,
+  EventTopic,
+} from "./events.js";
 import type { EventsTranslate } from "./public-view.js";
 
 const SAMPLE_TIME = "2026-08-17T10:02:00.000Z";
@@ -97,6 +102,7 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
         code: "why.officialAnnouncement",
         params: { source: "OpenAI" },
         confidence: "confirmed",
+        href: "https://openai.com/news/announcement",
       },
       {
         code: "why.crossSource",
@@ -268,4 +274,33 @@ export function sampleEntityData(t: EventsTranslate): {
     ],
     events,
   };
+}
+
+/** 编辑器预览采集源清单。结构与实站 `toPublicSourceCatalog` 的输入一致。 */
+export function sampleSourceFeeds(): Array<{
+  name: string;
+  url: string;
+  connector: string;
+  topic: EventTopic;
+  source_kind: EventSourceKind;
+  enabled: boolean;
+}> {
+  return [
+    {
+      name: "Hacker News",
+      url: "https://hacker-news.firebaseio.com/v0",
+      connector: "hackernews",
+      topic: "tech",
+      source_kind: "community",
+      enabled: true,
+    },
+    {
+      name: "OpenAI",
+      url: "https://openai.com/news/rss.xml",
+      connector: "rss",
+      topic: "ai",
+      source_kind: "official",
+      enabled: true,
+    },
+  ];
 }

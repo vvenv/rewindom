@@ -8,7 +8,10 @@
 import { sortRelatedForReading } from "../events.js";
 import { readEventsContext } from "../events-section-context.js";
 
-import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
+import {
+  escapeHtml,
+  jsonLdScriptText,
+} from "@rewindom/builtin/marketing/shared/html.js";
 import {
   settingBool,
   settingText,
@@ -41,6 +44,7 @@ export const renderEventsDetailHtml: SectionHtmlRenderer = (section, ctx) => {
 
   return [
     `<article class="events-detail">`,
+    jsonLdHtml(event, ctx),
     back,
     headerHtml(event),
     placementHtml(event, ctx),
@@ -283,14 +287,57 @@ function whyHtml(event: PublicEventDetailView, label: string): string {
     ? `<h2 class="events-why-title">${escapeHtml(label)}</h2>`
     : "";
   const items = event.why_trending
-    .map(
-      (factor) =>
-        `<li class="events-why-item"><span class="events-why-tag events-why-${escapeHtml(
-          factor.confidence,
-        )}">${escapeHtml(factor.confidence_label)}</span>${escapeHtml(
-          factor.text,
-        )}</li>`,
-    )
+    .map((factor) => {
+      const text = factor.href
+        ? `<a class="events-why-cite" href="${escapeHtml(
+            factor.href,
+          )}" rel="noreferrer noopener" target="_blank">${escapeHtml(
+            factor.text,
+          )}</a>`
+        : escapeHtml(factor.text);
+      return `<li class="events-why-item"><span class="events-why-tag events-why-${escapeHtml(
+        factor.confidence,
+      )}">${escapeHtml(factor.confidence_label)}</span>${text}</li>`;
+    })
     .join("");
   return `<section class="events-why">${heading}<ul>${items}</ul></section>`;
+}
+
+/**
+ * 第二条 JSON-LD，只在有原文 URL 时发。marketing 头里仍是 WebPage，不改内核。
+ * `{url}` 插值是 origin；页面地址 = origin + 带语言前缀的详情路径。
+ */
+function jsonLdHtml(
+  event: PublicEventDetailView,
+  ctx: Parameters<SectionHtmlRenderer>[1],
+): string {
+  const citations = uniqueSourceUrls(event);
+  if (citations.length === 0) {
+    return "";
+  }
+  const origin = ctx.interpolation?.url ?? "";
+  const pageUrl = `${origin.replace(/\/$/, "")}${siteHref(event.href, ctx)}`;
+  return `<script type="application/ld+json">${jsonLdScriptText({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: event.title,
+    datePublished: event.first_seen_at,
+    dateModified: event.last_activity_at,
+    url: pageUrl,
+    citation: citations,
+    isBasedOn: citations,
+  })}</script>`;
+}
+
+function uniqueSourceUrls(event: PublicEventDetailView): string[] {
+  const seen = new Set<string>();
+  const urls: string[] = [];
+  for (const group of event.source_groups) {
+    for (const item of group.items) {
+      if (!item.url || seen.has(item.url)) continue;
+      seen.add(item.url);
+      urls.push(item.url);
+    }
+  }
+  return urls;
 }

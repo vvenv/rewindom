@@ -10,6 +10,7 @@ import {
   sourceIconHost,
   sourceIconUrl,
   sourceIconUrlFromHost,
+  publisherHomepageUrl,
 } from "./source-icon.js";
 
 describe("iconHostFromUrl", () => {
@@ -106,6 +107,26 @@ describe("sourceIconHost", () => {
         url: "https://openai.com/news/rss.xml",
       }),
     ).toBe("openai.com");
+  });
+});
+
+describe("publisherHomepageUrl", () => {
+  it("hackernews 链到 HN 首页，不链 firebase API", () => {
+    expect(
+      publisherHomepageUrl({
+        connector: "hackernews",
+        url: "https://hacker-news.firebaseio.com/v0",
+      }),
+    ).toBe("https://news.ycombinator.com/");
+  });
+
+  it("rss 链到出版方首页，不链 feed 地址", () => {
+    expect(
+      publisherHomepageUrl({
+        connector: "rss",
+        url: "https://openai.com/news/rss.xml",
+      }),
+    ).toBe("https://openai.com/");
   });
 });
 

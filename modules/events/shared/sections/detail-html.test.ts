@@ -65,10 +65,14 @@ function section(): SiteSection {
   } as SiteSection;
 }
 
-function render(view: PublicEventDetailView | null) {
+function render(
+  view: PublicEventDetailView | null,
+  interpolation?: { url: string },
+) {
   const context = emptyEventsContext({ event: view });
   return renderEventsDetailHtml(section(), {
     contributed: eventsContextEntry(context),
+    interpolation,
   });
 }
 
@@ -163,5 +167,90 @@ describe("renderEventsDetailHtml timeline", () => {
     );
     expect(html).toContain("events-timeline-role-conflict");
     expect(html).toContain("Reuters reports the deal is off");
+  });
+});
+
+describe("renderEventsDetailHtml json-ld", () => {
+  it("emits Article JSON-LD with citation URLs when sources exist", () => {
+    const html = render(
+      detail({
+        source_groups: [
+          {
+            kind: "official",
+            label: "Official",
+            items: [
+              {
+                title: "Announcement",
+                url: "https://openai.com/news/announcement",
+                source_name: "OpenAI",
+                source_kind: "official",
+                icon_url: null,
+                published_at: "2026-08-17T10:00:00.000Z",
+              },
+            ],
+          },
+        ],
+      }),
+      { url: "https://example.com" },
+    );
+    const match = html.match(
+      /<script type="application\/ld\+json">([^<]+)<\/script>/,
+    );
+    expect(match).not.toBeNull();
+    const payload = JSON.parse(match![1]!) as {
+      "@type": string;
+      url: string;
+      citation: string[];
+      isBasedOn: string[];
+    };
+    expect(payload["@type"]).toBe("Article");
+    expect(payload.url).toBe(
+      "https://example.com/events/openai-ships-abc123",
+    );
+    expect(payload.citation).toEqual([
+      "https://openai.com/news/announcement",
+    ]);
+    expect(payload.isBasedOn).toEqual(payload.citation);
+  });
+
+  it("skips JSON-LD when there are no source URLs", () => {
+    const html = render(detail(), { url: "https://example.com" });
+    expect(html).not.toContain("application/ld+json");
+  });
+});
+
+describe("renderEventsDetailHtml why trending", () => {
+  it("links the fact text when a source URL exists", () => {
+    const html = render(
+      detail({
+        why_trending: [
+          {
+            text: "OpenAI published a first-party announcement",
+            confidence: "confirmed",
+            confidence_label: "Confirmed",
+            href: "https://openai.com/news/announcement",
+          },
+        ],
+      }),
+    );
+    expect(html).toContain('class="events-why-cite"');
+    expect(html).toContain('href="https://openai.com/news/announcement"');
+    expect(html).toContain(">OpenAI published a first-party announcement</a>");
+  });
+
+  it("keeps the fact as plain text when there is no URL", () => {
+    const html = render(
+      detail({
+        why_trending: [
+          {
+            text: "Community discussion only",
+            confidence: "discussion",
+            confidence_label: "Discussion",
+          },
+        ],
+      }),
+    );
+    expect(html).toContain("Community discussion only");
+    expect(html).not.toContain("events-why-cite");
   });
 });

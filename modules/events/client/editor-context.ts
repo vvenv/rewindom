@@ -20,6 +20,7 @@ import {
   EVENTS_FEED_CONTEXT_TYPES,
   EVENTS_HERO_SECTION_TYPE,
   EVENTS_LIVE_SECTION_TYPE,
+  EVENTS_SOURCES_SECTION_TYPE,
   EVENT_TOPICS,
   emptyEventsContext,
   eventsContextEntry,
@@ -29,6 +30,7 @@ import {
   toPublicEntityIndex,
   toPublicEntityStrip,
   toPublicHero,
+  toPublicSourceCatalog,
 } from "../shared/index.js";
 import { EVENTS_TOPIC_PAGE_KIND } from "../shared/events-page-templates.js";
 import {
@@ -40,16 +42,19 @@ import {
   sampleEntityIndexItems,
   sampleEventDetail,
   sampleEventList,
+  sampleSourceFeeds,
 } from "../shared/events-sample.js";
 
 import type {
   EventDetail,
+  EventFeedListResult,
   EventFeedResult,
   EventListItem,
   EventTopic,
   EventTopicSettings,
   HeroStatsInput,
   PublicEntityIndexRow,
+  PublicSourceCatalogView,
 } from "../shared/index.js";
 import type { AppLocale } from "@rewindom/module-sdk";
 
@@ -62,6 +67,7 @@ const EVENTS_EDITOR_CONTEXT_TYPES = [
   EVENTS_ENTITY_STRIP_SECTION_TYPE,
   EVENTS_HERO_SECTION_TYPE,
   EVENTS_LIVE_SECTION_TYPE,
+  EVENTS_SOURCES_SECTION_TYPE,
   ...EVENTS_NAV_SOURCES,
 ] as const;
 
@@ -91,6 +97,7 @@ export function registerEventsEditorContext(): void {
       const wantHub = input.usedTypes.has(EVENTS_ENTITY_INDEX_SECTION_TYPE);
       const wantHero = input.usedTypes.has(EVENTS_HERO_SECTION_TYPE);
       const wantLive = input.usedTypes.has(EVENTS_LIVE_SECTION_TYPE);
+      const wantSources = input.usedTypes.has(EVENTS_SOURCES_SECTION_TYPE);
       const wantEntityHero = input.usedTypes.has(
         EVENTS_ENTITY_HERO_SECTION_TYPE,
       );
@@ -113,12 +120,15 @@ export function registerEventsEditorContext(): void {
         input.pageKind === EVENTS_TOPIC_PAGE_KIND ? enabled[0] : undefined;
       const topicLabel = sampleTopic ? t(`topic.${sampleTopic}`) : undefined;
 
-      const [feed, entityRows, heroStats] = await Promise.all([
+      const [feed, entityRows, heroStats, sourceCatalog] = await Promise.all([
         wantFeed
           ? loadFeed(t, sampleTopic)
           : Promise.resolve({ rising: [], now: [] }),
         wantStrip || wantHub ? loadEntityIndex() : Promise.resolve([]),
         wantLive ? loadHeroStats(sampleTopic) : Promise.resolve(null),
+        wantSources
+          ? loadSourceCatalog(t, enabled)
+          : Promise.resolve(undefined),
       ]);
       const event =
         wantFeed && input.pageKind === EVENTS_DETAIL_PAGE_KIND
@@ -140,6 +150,7 @@ export function registerEventsEditorContext(): void {
             : undefined,
           entity_strip: wantStrip ? toPublicEntityStrip(entityRows) : undefined,
           hero: heroStats ? toPublicHero(heroStats, t) : undefined,
+          ...(sourceCatalog ? { source_catalog: sourceCatalog } : {}),
         }),
       );
     },
@@ -233,6 +244,21 @@ async function loadEntityIndex(): Promise<PublicEntityIndexRow[]> {
  * 顶上去会让租户在编辑器里排一块访客根本看不到的版。接口挂了就当没有计数，
  * 与「provider 还没回来」同一个观感。
  */
+async function loadSourceCatalog(
+  t: ReturnType<typeof translator>,
+  enabledTopics: readonly EventTopic[],
+): Promise<PublicSourceCatalogView> {
+  try {
+    const data = await api.get<EventFeedListResult>("/events/feeds");
+    if (data.items.length > 0) {
+      return toPublicSourceCatalog(data.items, enabledTopics, t);
+    }
+  } catch {
+    // 拉不到就用样张，预览结构仍与实站同一套渲染器
+  }
+  return toPublicSourceCatalog(sampleSourceFeeds(), enabledTopics, t);
+}
+
 async function loadHeroStats(
   topic?: EventTopic,
 ): Promise<HeroStatsInput | null> {

@@ -35,7 +35,9 @@
     "nowHint": "过去 24 小时内仍在持续发展",
     "nowMore": "查看全部正在发生",
     "entities": "实体",
-    "entitiesHint": "近 30 天事件里出现过的公司与人物"
+    "entitiesHint": "近 30 天事件里出现过的公司与人物",
+    "sources": "我们采集的来源",
+    "sourcesHint": "本站正在跟踪的出版方首页，不是 RSS 或 API 地址"
   },
   "status": {
     "developing": "快速发展",
@@ -175,6 +177,9 @@
     "entityStrip": {
       "more": "查看全部实体"
     },
+    "sources": {
+      "empty": "目前没有正在采集的来源。"
+    },
     "topic": {
       "title": "{topic}",
       "subtitle": "跨来源追踪 {topic} 正在发生的事"
@@ -277,6 +282,11 @@
       "limit": "最多显示",
       "showCounts": "显示事件数",
       "moreLabel": "更多按钮文案"
+    },
+    "sources": {
+      "label": "采集源清单",
+      "groupByTopic": "按主题分组",
+      "emptyText": "空态文案"
     },
     "hero": {
       "label": "首屏",

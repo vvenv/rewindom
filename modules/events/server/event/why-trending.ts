@@ -27,12 +27,15 @@ export interface TrendingFactor {
   code: string;
   params: Record<string, string | number>;
   confidence: TrendingConfidence;
+  /** 这条事实所依据的原文。没有可核 URL 时省略 */
+  href?: string;
 }
 
 export interface WhyTrendingSignal {
   source_name: string;
   source_kind: EventSourceKind;
   published_at: Date;
+  url?: string;
 }
 
 /** 最多给几条。再多就不是「为什么」而是一份报表了。 */
@@ -73,6 +76,7 @@ export function computeWhyTrending(params: {
       code: "why.officialAnnouncement",
       params: { source: officials[0].source_name },
       confidence: "confirmed",
+      ...(officials[0].url ? { href: officials[0].url } : {}),
     });
   }
 
@@ -82,6 +86,7 @@ export function computeWhyTrending(params: {
       code: "why.crossSource",
       params: { count: sourceNames.size, first: sorted[0].source_name },
       confidence,
+      ...(sorted[0].url ? { href: sorted[0].url } : {}),
     });
   }
 
@@ -102,6 +107,7 @@ export function computeWhyTrending(params: {
         sources: new Set(recent.map((s) => s.source_name)).size,
       },
       confidence,
+      ...(recent[0].url ? { href: recent[0].url } : {}),
     });
   }
 
@@ -118,6 +124,7 @@ export function computeWhyTrending(params: {
       code: "why.communityOnly",
       params: { count: sorted.length },
       confidence: "discussion",
+      ...(sorted[0].url ? { href: sorted[0].url } : {}),
     });
   }
 

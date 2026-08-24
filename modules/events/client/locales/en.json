@@ -35,7 +35,9 @@
     "nowHint": "Still developing in the last 24 hours",
     "nowMore": "See everything developing",
     "entities": "Entities",
-    "entitiesHint": "Companies and people in the last 30 days of events"
+    "entitiesHint": "Companies and people in the last 30 days of events",
+    "sources": "Sources we collect",
+    "sourcesHint": "Publisher homepages this site currently follows — not RSS or API endpoints"
   },
   "status": {
     "developing": "Developing",
@@ -175,6 +177,9 @@
     "entityStrip": {
       "more": "See all entities"
     },
+    "sources": {
+      "empty": "No sources are collecting right now."
+    },
     "topic": {
       "title": "{topic}",
       "subtitle": "What's happening in {topic}, merged across sources"
@@ -277,6 +282,11 @@
       "limit": "Show at most",
       "showCounts": "Show event counts",
       "moreLabel": "More link text"
+    },
+    "sources": {
+      "label": "Source catalog",
+      "groupByTopic": "Group by topic",
+      "emptyText": "Empty state text"
     },
     "hero": {
       "label": "Hero",

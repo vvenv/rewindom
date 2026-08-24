@@ -1,0 +1,73 @@
+# 事件页可核验出处 + 关于页采集源清单（方法论文，不是首页贴片）
+#
+# GEO 工具报「没有指向权威来源的外链」。正确做法不是在首页堆 Wikipedia/.gov，
+# 而是：每条事件主张都能点回原文，机器还能读到 citation；采集源清单只作为
+# 方法论文，由租户插进自定义「关于」页，再把该页链进页头或页脚。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: 事件详情用 JSON-LD citation / isBasedOn 标出来源原文，主张旁带可点出处；贡献「采集源列表」段供自定义关于页使用，关于页通过现有页头/页脚 pages 导航挂上。
+gold: modules/events/shared/sections/detail-html.ts
+touch:
+  - modules/events/features/source-citations.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/source-icon.ts
+  - modules/events/shared/source-icon.test.ts
+  - modules/events/shared/events.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/public-view.test.ts
+  - modules/events/shared/section-types.ts
+  - modules/events/shared/events-sources-section.ts
+  - modules/events/shared/sections/sources-html.ts
+  - modules/events/shared/sections/sources-html.test.ts
+  - modules/events/shared/sections/detail-html.ts
+  - modules/events/shared/sections/detail-html.test.ts
+  - modules/events/shared/site-css/events.css
+  - modules/events/shared/site-css.generated.ts
+  - modules/events/shared/index.ts
+  - modules/events/shared/events-sample.ts
+  - modules/events/server/event/why-trending.ts
+  - modules/events/server/event/why-trending.test.ts
+  - modules/events/server/event/event.mapper.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/ssr/events-page.ts
+  - modules/events/server/sections/register.ts
+  - modules/events/client/module.tsx
+  - modules/events/client/editor-context.ts
+  - modules/events/client/components/EventWhyTrending.tsx
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 首页 / 主题页默认插入采集源 logo 墙
+  - 为过工具去链 Wikipedia / .gov / .edu
+  - 新建固定路径 /sources 或 about 模板页（关于页由租户在 CMS 自建）
+  - 新导航源（页头页脚用内置 pages / link 挂关于页）
+  - marketing 内核 JSON-LD 管道
+i18n: "section.sources.*、site.sources.*"
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/public-view.test.ts shared/source-icon.test.ts shared/sections/detail-html.test.ts shared/sections/sources-html.test.ts server/event/why-trending.test.ts
+  - pnpm --filter @rewindom/builtin assemble:module-css
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. 事件详情在 <article> 内发第二条 JSON-LD（marketing 头里仍是 WebPage，不改内核）：
+#    @type Article；headline / datePublished / dateModified / url；
+#    citation 与 isBasedOn 来自 source_groups 里已有的原文 URL。没有来源就不发这段。
+# 2. 「为什么在扩散」每条可带 href（一手公告 / 最先报道的那条信号 URL）。
+#    有 href 就把整句事实链出去；没有就不造链。时间线出处已经是外链，不动结构。
+# 3. 新段 events.sources：placements 仅 page，不限 page_kinds。列出本站 enabled
+#    且主题未关的采集源；外链是出版方首页（sourceIconHost → https://host/），
+#    不暴露 RSS/API 地址。按主题分组（可关）。空清单仍画标题 + 空态，好让编辑器看得见。
+# 4. 采集源数据进 EventsRenderContext.source_catalog（缺省不要写成 undefined 键，
+#    以免 path handler overlay 把 CMS 页上的清单盖掉）。EVENTS_CONTEXT_SECTION_TYPES
+#    含本段；path handler 的 skip 用不含本段的 EVENTS_PATH_SKIP_SECTION_TYPES。
+# 5. 关于页 = 租户自建 CMS 页 + 插本段；页头/页脚用内置 pages 或 link 指向该页。
+#    不贡献 chrome 块、不贡献导航源。
