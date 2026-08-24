@@ -115,6 +115,23 @@ describe("renderEventsHeroHtml", () => {
     expect(html).toContain('datetime="2026-08-19T11:54:00.000Z"');
   });
 
+  /* 它没有数字也没有单位，夹在三行大数中间就是一行掉队的灰字（见 PublicHeroUpdated）。 */
+  it("hangs the freshness stamp off the LIVE header, not the readings", () => {
+    const html = render(hero());
+    expect(html).toContain("events-hero-updated");
+    expect(html.indexOf("events-hero-updated")).toBeLessThan(
+      html.indexOf("events-hero-stats"),
+    );
+  });
+
+  /* `dl` 的语义要求 dt 在 dd 前面，读屏也该先听见行名——视觉顺序是 CSS 用 order 翻的。 */
+  it("keeps dt before dd so the list stays a valid dl", () => {
+    const html = render(hero());
+    expect(html).toContain(
+      '<dt>site.hero.stat.live</dt><dd><span class="events-hero-stat-value">37</span>',
+    );
+  });
+
   it("drops the panel but keeps the copy when the site has no events yet", () => {
     const html = render(hero({ live_events: 0 }));
     expect(html).not.toContain("events-hero-panel");
@@ -157,9 +174,7 @@ describe("toPublicHero", () => {
   });
 
   it("buckets the relative time by minute, hour and day", () => {
-    const at = (iso: string) =>
-      hero({ updated_at: iso })?.stats.find((stat) => stat.key === "updated")
-        ?.value;
+    const at = (iso: string) => hero({ updated_at: iso })?.updated?.value;
     expect(at("2026-08-19T11:59:30.000Z")).toBe("site.relative.now");
     expect(at("2026-08-19T09:00:00.000Z")).toBe("site.relative.hours(3)");
     expect(at("2026-08-17T12:00:00.000Z")).toBe("site.relative.days(2)");
@@ -167,14 +182,13 @@ describe("toPublicHero", () => {
 
   it("never shows a negative age when the ingest clock runs ahead", () => {
     expect(
-      hero({ updated_at: "2026-08-19T12:05:00.000Z" })?.stats.find(
-        (stat) => stat.key === "updated",
-      )?.value,
+      hero({ updated_at: "2026-08-19T12:05:00.000Z" })?.updated?.value,
     ).toBe("site.relative.now");
   });
 
-  it("omits the update row when the site has no activity stamp", () => {
+  it("omits the stamp when the site has no activity — the readings stay", () => {
     const view = hero({ updated_at: null });
+    expect(view?.updated).toBeNull();
     expect(view?.stats.map((stat) => stat.key)).toEqual([
       "live",
       "merged",
@@ -316,7 +330,7 @@ describe("renderEventsHeroHtml · 实体页", () => {
 });
 
 describe("toPublicHero · 专题页", () => {
-  it("reads the third row as contributing sources so all four rows share one scope", () => {
+  it("reads the third row as contributing sources so all three rows share one scope", () => {
     const site = hero()!.stats.map((stat) => stat.key);
     const topic = hero({ topic_scoped: true })!.stats.map((stat) => stat.key);
     expect(site).toContain("sources");

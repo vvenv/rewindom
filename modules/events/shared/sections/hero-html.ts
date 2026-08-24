@@ -83,25 +83,32 @@ function renderProfile(profile: readonly string[]): string {
   return `<ul class="events-profile events-hero-profile">${items}</ul>`;
 }
 
+/**
+ * 实时计数面板。
+ *
+ * 每格里 `dt`（行名）在 `dd`（读数）**之前**——`dl` 的语义要求如此，读屏也该先听见
+ * 「正在追踪」再听见「137 个事件」。视觉上数字在上、行名在下，那是 CSS 用 `order`
+ * 翻的：把 `dd` 写在 `dt` 前面能省掉一行样式，但会写出一份不合法的 `dl`。
+ */
 function renderStats(hero: PublicHeroView): string {
   const rows = hero.stats
     .map((stat) => {
-      // 相对时间同时留一份机器可读的绝对时刻：读者看「6 分钟前」，爬虫读 datetime
-      const value = stat.datetime
-        ? `<time class="events-hero-stat-value" datetime="${escapeHtml(stat.datetime)}">${escapeHtml(stat.value)}</time>`
-        : `<span class="events-hero-stat-value">${escapeHtml(stat.value)}</span>`;
       const unit = stat.unit
         ? `<span class="events-hero-stat-unit">${escapeHtml(stat.unit)}</span>`
         : "";
-      return `<div class="events-hero-stat"><dt>${escapeHtml(stat.label)}</dt><dd>${value}${unit}</dd></div>`;
+      return `<div class="events-hero-stat"><dt>${escapeHtml(stat.label)}</dt><dd><span class="events-hero-stat-value">${escapeHtml(stat.value)}</span>${unit}</dd></div>`;
     })
     .join("");
+  // 读者看「6 分钟前」，爬虫读 datetime——同一件事留两份
+  const updated = hero.updated
+    ? `<time class="events-hero-updated" datetime="${escapeHtml(hero.updated.datetime)}">${escapeHtml(hero.updated.value)}</time>`
+    : "";
   /*
-   * 抬头那颗点是这块面板唯一的动效，也是它存在的理由：读者不必读完四行数字
+   * 抬头那颗点是这块面板唯一的动效，也是它存在的理由：读者不必读完三行数字
    * 就知道这台雷达是开着的。`prefers-reduced-motion` 下由 CSS 停掉。
    */
   return `<div class="events-hero-panel">
-  <p class="events-hero-live"><span class="events-hero-pulse" aria-hidden="true"></span>${escapeHtml(hero.live_label)}</p>
+  <p class="events-hero-live"><span class="events-hero-pulse" aria-hidden="true"></span>${escapeHtml(hero.live_label)}${updated}</p>
   <dl class="events-hero-stats">${rows}</dl>
 </div>`;
 }

@@ -441,15 +441,17 @@ export function toPublicHero(
           unit: t("site.hero.unit.sources"),
         },
   ];
-  if (updatedAt && !Number.isNaN(updatedAt.getTime())) {
-    stats.push({
-      key: "updated",
-      label: t("site.hero.stat.updated"),
-      value: relativeTime(updatedAt, now, t),
-      unit: "",
-      datetime: updatedAt.toISOString(),
-    });
-  }
+  const fresh = updatedAt && !Number.isNaN(updatedAt.getTime());
 
-  return { live_label: t("site.hero.live"), stats };
+  return {
+    live_label: t("site.hero.live"),
+    stats,
+    // 新鲜度不是第四行读数，它跟着抬头走（见 `PublicHeroUpdated`）
+    updated: fresh
+      ? {
+          value: relativeTime(updatedAt, now, t),
+          datetime: updatedAt.toISOString(),
+        }
+      : null,
+  };
 }

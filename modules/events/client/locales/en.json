@@ -188,7 +188,6 @@
         "live": "Tracking now",
         "merged": "Merged in 24h",
         "sources": "Sources ingested",
-        "updated": "Last update",
         "contributors": "Sources contributing"
       },
       "unit": {

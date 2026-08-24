@@ -780,9 +780,10 @@
 /* ==========================================================================
  * 首屏（events.hero）
  *
- * 只用官网 token。`--muted-bg` 在暗色主题里与 `--bg` 几乎同色——上一版首屏就是
- * 因为只靠它做背景而完全读不出「这是一块」。所以这里的分隔靠三样自带对比的东西：
- * 顶部一道 accent 渐隐细线、正文列与计数面板之间的留白、面板自身的边框与 surface。
+ * 只用官网 token。计数面板曾经是一张带边框的卡片，暗色下 `--surface` 与 `--bg`
+ * 几乎同色，于是只剩四条横线在撑场面——读起来就是一张后台数据表，和这张页面其余
+ * 部分的排版气质对不上。现在不画卡片：三行读数靠左边一条 accent 竖线立住，
+ * 数字自己做重量。
  * ========================================================================== */
 
 .events-hero {
@@ -791,21 +792,19 @@
 }
 
 /*
- * 计数面板在桌面右侧、正文左侧，比例 1.15 : 0.85 ——面板是配角，
- * 不能宽到把标题挤成两行以上。没有面板时（新站、或租户关掉）左列独占整行。
+ * 计数面板在桌面右侧、正文左侧。比例 1.4 : 0.6——上一版是 1.15 : 0.85，那是给一张
+ * 撑满右列的卡片留的宽度；读数只有三行短标签，占不满 0.85fr，右边会空出一大片。
+ * 没有面板时（新站、或租户关掉）左列独占整行。
+ *
+ * 两列垂直居中，不再是同高拉伸：上一版面板有边框，两条边不齐会很显眼，所以要
+ * 让两列都取行高；现在面板没有边也没有底，能看见的只有那条竖线，它跟着内容长，
+ * 拉满整列高度反倒会在标题只有一行时吊在半空。
  */
 @media (min-width: 900px) {
   .events-hero.has-panel {
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-    gap: 4rem;
-    /*
-     * 两列**同高**（grid 默认的 stretch），不是垂直居中。
-     *
-     * 居中会把高度差劈成上下各一半，于是两条边都不齐；顶边对齐则把差额全丢到
-     * 底部——主题页标题只有一行时那条缝有 50px 以上。让两列都取行高，上下两条边
-     * 在任何语言、任何格子上都齐，多出来的余量由面板内部分摊（见下）。
-     */
-    align-items: stretch;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.6fr);
+    gap: 3.5rem;
+    align-items: center;
   }
 }
 
@@ -862,22 +861,24 @@
 /* 实时计数面板                                                                */
 /* -------------------------------------------------------------------------- */
 
+/*
+ * 那条竖线是这块唯一的框。它用 accent 而不是 `--border`：`--border` 在两种主题下都
+ * 只有 12–14% 的对比，画一条 2px 的细线等于没画。accent 兑到 65% 在黑底白底上都读得出，
+ * 又不至于亮到跟主按钮抢。
+ */
 .events-hero-panel {
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  padding: 1.25rem 1.5rem 0.5rem;
+  gap: 1.5rem;
+  padding-left: 1.5rem;
+  border-left: 2px solid color-mix(in srgb, var(--accent) 65%, transparent);
 }
 
 .events-hero-live {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 0.5rem;
   margin: 0;
-  padding-bottom: 0.875rem;
-  border-bottom: 1px solid var(--border);
   color: var(--muted-fg);
   font-size: 0.6875rem;
   font-weight: 600;
@@ -885,8 +886,9 @@
   text-transform: uppercase;
 }
 
-/* 面板上唯一的动效：不必读完四行数字就知道这台雷达是开着的 */
+/* 那颗点要跟「实时」两个字的中线对齐，而抬头整行是按基线排的 */
 .events-hero-pulse {
+  align-self: center;
   width: 0.5rem;
   height: 0.5rem;
   flex: none;
@@ -895,6 +897,7 @@
   animation: events-hero-pulse 2.4s ease-in-out infinite;
 }
 
+/* 面板上唯一的动效：不必读完三行数字就知道这台雷达是开着的 */
 @keyframes events-hero-pulse {
   0%,
   100% {
@@ -913,32 +916,36 @@
   }
 }
 
-/*
- * 撑满面板剩下的高度，四行均分余量。左列比面板高时余量只有十几 px，摊到四行
- * 是每行几 px——看不出来；反过来面板更高时这里根本不触发。
- */
+/* 新鲜度戳跟着「实时」走，所以不套用抬头那身全大写字距——它是一句话，不是标签 */
+.events-hero-updated {
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
+}
+
 .events-hero-stats {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 1.375rem;
   margin: 0;
   padding: 0;
 }
 
+/*
+ * 数字在上、行名在下，靠 `order` 翻——DOM 里 `dt` 仍在 `dd` 前面（`dl` 的语义要求，
+ * 读屏也该先听见行名）。上一版是「行名左 / 数字右」的两列，三个数右端跟着长短不一的
+ * 单位词走，怎么调 `tabular-nums` 都对不齐；一律左对齐之后，数字的左边界天然成了
+ * 一条线。
+ */
 .events-hero-stat {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.875rem 0;
-}
-
-.events-hero-stat + .events-hero-stat {
-  border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  flex-direction: column;
 }
 
 .events-hero-stat dt {
+  order: 1;
+  margin-top: 0.125rem;
   color: var(--muted-fg);
   font-size: 0.8125rem;
 }
@@ -948,25 +955,15 @@
   align-items: baseline;
   gap: 0.375rem;
   margin: 0;
-  text-align: right;
 }
 
-/*
- * 数字放大、单位不放大：数字是证据，单位只是让它读得通。
- * tabular-nums 让四行右端对齐——不对齐的话这块面板看起来就是四条各自为政的文字。
- */
+/* 数字放大、单位不放大：数字是证据，单位只是让它读得通 */
 .events-hero-stat-value {
-  font-size: 1.375rem;
+  font-size: 2rem;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
-}
-
-/* 相对时间不是数字，放大到 1.375rem 会换行；它只需要和单位一样安静 */
-.events-hero-stat dd > time.events-hero-stat-value {
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: var(--muted-fg);
 }
 
 .events-hero-stat-unit {
@@ -974,24 +971,25 @@
   font-size: 0.8125rem;
 }
 
+/*
+ * 窄屏面板落到正文下面，整块跨满一行。竖线在这个宽度上会变成一条贴着屏幕左沿的
+ * 长杆，所以换成一道横线把它与上面的按钮隔开，读数改横向排：三格在平板一行放得下，
+ * 手机上折成两行。
+ */
 @media (max-width: 899px) {
-  /* 窄屏面板改成两列格子：竖着排四行会把「正在升温」推到第二屏 */
+  .events-hero-panel {
+    gap: 1.25rem;
+    padding-top: 1.5rem;
+    padding-left: 0;
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
   .events-hero-stats {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+    gap: 1.25rem;
   }
-  .events-hero-stat {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.125rem;
-    justify-content: flex-start;
-  }
-  .events-hero-stat dd {
-    text-align: left;
-  }
-  /* 竖排后上边框会画在格子中间，改由整行的分隔交给间距 */
-  .events-hero-stat + .events-hero-stat {
-    border-top: 0;
+  .events-hero-stat-value {
+    font-size: 1.75rem;
   }
 }

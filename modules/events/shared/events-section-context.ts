@@ -215,19 +215,33 @@ export interface PublicEntityStripView {
 /**
  * 首屏那块实时计数里的一行。
  *
- * `value` 已经格式化好（数字带千位分隔，相对时间已落成当前语言），`unit` 是单位词——
- * 拆两个字段是为了让渲染侧能把数字放大而单位不跟着放大，不是为了让它自己拼句子。
+ * `value` 已经格式化好（数字带千位分隔），`unit` 是单位词——拆两个字段是为了让渲染侧
+ * 能把数字放大而单位不跟着放大，不是为了让它自己拼句子。
+ *
+ * 这里只装**数**。新鲜度不是数，它在 `PublicHeroView.updated`。
  */
 export interface PublicHeroStat {
-  key: "live" | "merged" | "sources" | "contributors" | "updated";
+  key: "live" | "merged" | "sources" | "contributors";
   /** 已落成当前语言的行名 */
   label: string;
-  /** 已格式化的值：`1,284` 或「6 分钟前」 */
+  /** 已格式化的值：`1,284` */
   value: string;
-  /** 已落成当前语言的单位；相对时间那行为空 */
+  /** 已落成当前语言的单位 */
   unit: string;
-  /** 相对时间才有：机器可读的绝对时刻，渲染成 `<time datetime>` */
-  datetime?: string;
+}
+
+/**
+ * 新鲜度戳，画在面板抬头「实时」的右边。
+ *
+ * 它曾经是 `stats` 里的第四行，可它没有数字也没有单位，夹在三行大数中间就是一行掉队的
+ * 灰字。它证明的是**这台雷达刚才还醒着**，那正是「实时」这两个字要说的事——跟抬头站在
+ * 一起才读得通。
+ */
+export interface PublicHeroUpdated {
+  /** 已落成当前语言的相对时间：「6 分钟前」 */
+  value: string;
+  /** 机器可读的绝对时刻，渲染成 `<time datetime>` 供爬虫读 */
+  datetime: string;
 }
 
 /**
@@ -240,6 +254,8 @@ export interface PublicHeroView {
   /** 已落成当前语言的面板抬头（「实时」） */
   live_label: string;
   stats: PublicHeroStat[];
+  /** 站点还没有任何活动戳时为 null */
+  updated: PublicHeroUpdated | null;
 }
 
 export interface PublicEventFeed {
