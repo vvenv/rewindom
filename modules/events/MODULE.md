@@ -248,6 +248,29 @@ path handler，由 `renderEventsTemplatePage` 补上，否则页头会退回七�
 悬停只动描边和阴影，不动位置：一屏十五张卡各自抬 3px 是抖动不是反馈（marketing 那条
 `translateY(-3px)` 是给整段色块的，一页只有一两块才成立）。
 
+#### 卡片上必须有时间
+
+`last_activity_at` 一直在卡片数据里，但从来没画过——一张**事件雷达**的卡片不说
+「什么时候」，读者没法判断这条还算不算数。挂在来源行末尾（不是另起一行）：它和来源
+同属「这条材料的出处与新旧」，而且薄卡（单来源、无 meta）因此终于有了第二个可读信息。
+读者看「3 小时前」，爬虫读 `<time datetime>` 里的绝对时刻——与首屏「最近更新」
+共用 `site.relative.*`（所以那组 key 从 `site.hero.updated.*` 提了上来）。
+
+#### 强调色的笔画走 `--accent-text`，不走 `--accent`
+
+品牌色是照着白底挑的。实测 `#4F46E5` 在暗色卡片 `#18181b` 上只有 **2.82:1**，
+证据角标、势头、「查看全部」、首屏 eyebrow、焦点框全都读不清。marketing 现在按画布
+各发一份调过对比度的 `--accent-text`（见 marketing `accent-text-contrast` spec）。
+**笔画（color / border / outline）一律用它**；淡底填充仍用 `--accent`——
+后者同时是按钮底色，不能为了文字对比度去动它。
+
+#### 标题里的长 token
+
+`trunk/7800342457b6c0e67193ae41fd0e997fc37d176a` 这种 git ref、hash、长 URL 会把卡片
+从内部顶破：flex 项默认 `min-width: auto`，撑到那一整串的宽度。`.events-card-link`
+归零 `min-width`，标题用 `overflow-wrap: anywhere` —— **不是** `break-word`：
+只有前者把断行算进 min-content，网格轨道才不会被一串 hash 撑宽、把同排的卡一起挤变形。
+
 #### 「已证实 · N 家」和「N 家在跟进」不能同时上卡
 
 同一张卡上「已证实 · 3 家来源」+「3 个来源正在跟进」+ 底下列着的 3 个来源名，

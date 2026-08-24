@@ -29,6 +29,7 @@ function card(
     source_names: ["OpenAI"],
     source_icon_urls: [],
     last_activity_at: "2026-08-17T12:00:00.000Z",
+    last_activity_label: "5 小时前",
     evidence_text: "",
     ...overrides,
   };
@@ -64,6 +65,35 @@ function section(
 function titlesIn(html: string): string[] {
   return [...html.matchAll(/class="events-title">([^<]*)/gu)].map((m) => m[1]);
 }
+
+describe("卡底那一行", () => {
+  const ctxWith = (cards: ReturnType<typeof card>[]) => ({
+    contributed: eventsContextEntry(
+      emptyEventsContext({ feed: { rising: cards, now: [] } }),
+    ),
+  });
+
+  it("时间跟来源同一行，且留一份机器可读的绝对时刻", () => {
+    const html = renderEventsFeedHtml(
+      section("rising", 5),
+      ctxWith([card("a")]),
+    );
+    expect(html).toContain('datetime="2026-08-17T12:00:00.000Z"');
+    // 同一个 <p> 里，不另起一行
+    expect(html).toMatch(
+      /<p class="events-sources"[^>]*>.*OpenAI.*<time[^>]*>5 小时前<\/time><\/p>/u,
+    );
+  });
+
+  it("关掉来源时时间仍然画", () => {
+    const html = renderEventsFeedHtml(
+      section("rising", 5, { show_sources: false }),
+      ctxWith([card("a")]),
+    );
+    expect(html).not.toContain("OpenAI");
+    expect(html).toContain("5 小时前");
+  });
+});
 
 describe("renderEventsFeedHtml", () => {
   it("段 type 决定取哪一批，不再读 source 下拉", () => {

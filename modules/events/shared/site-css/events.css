@@ -1,7 +1,7 @@
 /*
  * 事件区块与公开详情页的样式。
  *
- * 只用官网 token（--surface / --border / --muted-fg / --accent / --radius），
+ * 只用官网 token（--surface / --border / --muted-fg / --accent / --accent-text / --radius），
  * 不引入自己的配色——段要能跟着站点主题走（site-section-css rule）。
  */
 
@@ -55,7 +55,7 @@
       box-shadow 160ms ease;
   }
   .events-card:hover {
-    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+    border-color: color-mix(in srgb, var(--accent-text) 45%, var(--border));
     box-shadow: 0 6px 20px color-mix(in srgb, var(--fg) 7%, transparent);
   }
 }
@@ -71,7 +71,7 @@
  * 蓝框框出来的是「一段文字」，读者看不出选中的是哪张卡——尺寸和颜色都得换。
  */
 .events-card:has(.events-card-link:focus-visible) {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--accent-text);
   outline-offset: 2px;
 }
 
@@ -92,12 +92,29 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  /*
+   * flex 项默认 `min-width: auto`，即「不能比自己的 min-content 更窄」。标题里
+   * 出现一整串不可断的 token（`trunk/7800342457b6c0e67193ae41fd0e997fc37d176a`
+   * 这种 git ref、长 URL、hash）时，min-content 就是那一整串的宽度，卡片被从内部
+   * 顶破。归 0 才允许它按下面的 `overflow-wrap` 断开。
+   */
+  min-width: 0;
   color: inherit;
   text-decoration: none;
 }
 
+/*
+ * 悬停时标题带一条**安静**的下划线。
+ *
+ * 默认那条实心下划线在 1.125rem 的粗体标题上太重，一屏十几张卡扫过去像在闪。
+ * 压到 1px、兑掉 65% 的色、再把它推离基线 3px：affordance 还在（能看出这行可点），
+ * 但不再跟标题本身抢。颜色走 currentColor 而不是写死，暗色 / 换主题都跟着走。
+ */
 .events-card-link:hover .events-title {
   text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+  text-underline-offset: 3px;
 }
 
 .events-meta {
@@ -118,8 +135,8 @@
 
 /* 阶段只用边框区分，不铺满色块——一屏十几张卡片时色块会盖过标题本身 */
 .events-status-developing {
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--accent-text);
+  color: var(--accent-text);
 }
 
 /*
@@ -208,12 +225,12 @@
 
 .events-entity-chip:hover {
   color: var(--fg);
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  border-color: color-mix(in srgb, var(--accent-text) 40%, var(--border));
   background: color-mix(in srgb, var(--accent) 7%, transparent);
 }
 
 .events-entity-chip:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--accent-text);
   outline-offset: 2px;
 }
 
@@ -258,11 +275,12 @@
  */
 .events-evidence {
   padding: 1px 8px;
-  border: 1px solid var(--accent);
+  border: 1px solid var(--accent-text);
   border-radius: var(--radius);
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 500;
   max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .events-velocity {
@@ -271,13 +289,21 @@
 }
 
 .events-velocity.up {
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 600;
 }
 
+/*
+ * 标题里的长 token 必须能断。
+ *
+ * 用 `anywhere` 而不是 `break-word`：只有前者会把断行算进 **min-content**，
+ * 网格轨道（`minmax(260px, 1fr)`）因此不会被一串 hash 撑宽，把同排的卡一起挤变形。
+ * 正常的词照旧按词断，只有断不开的时候才从中间切。
+ */
 .events-title {
   font-weight: 600;
   line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 /* 厚卡标题更大：对比本身就是过滤器，不要靠铺色或通栏头条 */
@@ -323,6 +349,19 @@
   gap: 0.3rem;
 }
 
+/*
+ * 卡底的时间。推到行尾（`margin-left:auto`），跟来源之间自然拉开——
+ * 来源说「谁在报」，时间说「多新」，是两件事，不该挨在一起像第四个来源。
+ * 折行时 auto 失效退回正常流，不会在窄卡上留一条诡异的空隙。
+ */
+.events-card-time {
+  margin-left: auto;
+  padding-left: 0.5rem;
+  color: var(--muted-fg);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .events-source-icon-slot {
   position: relative;
   display: inline-flex;
@@ -362,7 +401,7 @@
   align-items: center;
   gap: 0.4rem;
   margin-top: 1.25rem;
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 500;
   text-decoration: none;
 }
@@ -391,7 +430,7 @@
 }
 
 .events-more:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--accent-text);
   outline-offset: 3px;
   border-radius: 0.25rem;
 }
@@ -411,7 +450,7 @@
 }
 
 .events-back:hover {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .events-detail-header {
@@ -424,6 +463,7 @@
   margin: 0;
   font-size: 2rem;
   line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .events-block {
@@ -485,7 +525,7 @@
 }
 
 .events-timeline-role-conflict {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .events-timeline-time {
@@ -665,7 +705,7 @@
 }
 
 .events-related a:hover {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 /* 「为什么在扩散」：只有事实，且已证实 / 仅讨论必须一眼分清。 */
@@ -708,8 +748,8 @@
 }
 
 .events-why-confirmed {
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--accent-text);
+  color: var(--accent-text);
 }
 
 /*
@@ -778,7 +818,7 @@
 
 .events-hero-eyebrow {
   margin: 0;
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 0.8125rem;
   font-weight: 500;
   letter-spacing: 0.04em;

@@ -30,6 +30,9 @@ const t = (key: string, params?: Record<string, string | number>): string => {
   if (key === "card.confirmedSources") {
     return `Confirmed · ${params?.count}`;
   }
+  if (key.startsWith("site.relative.")) {
+    return params?.count === undefined ? key : `${key}(${params.count})`;
+  }
   if (key.startsWith("topic.")) return key.slice("topic.".length);
   if (key.startsWith("status.")) return key.slice("status.".length);
   return key;
@@ -173,6 +176,26 @@ describe("toPublicDetail related", () => {
       "/events/sample-event-2",
     ]);
     expect(view.related[1]?.fact_labels.length).toBeGreaterThan(0);
+  });
+});
+
+describe("toPublicCard 时间", () => {
+  const NOW = Date.parse("2026-08-19T12:00:00.000Z");
+
+  it("卡片带上落成文案的相对时间 + 机器可读的绝对时刻", () => {
+    const [first] = sampleEventList(t);
+    const item = { ...first!, last_activity_at: "2026-08-19T09:00:00.000Z" };
+    const card = toPublicCard(item, t, NOW);
+    expect(card.last_activity_label).toBe("site.relative.hours(3)");
+    expect(card.last_activity_at).toBe("2026-08-19T09:00:00.000Z");
+  });
+
+  it("采集机时钟跑快时按「刚刚」算，不吐负数", () => {
+    const [first] = sampleEventList(t);
+    const item = { ...first!, last_activity_at: "2026-08-19T12:05:00.000Z" };
+    expect(toPublicCard(item, t, NOW).last_activity_label).toBe(
+      "site.relative.now",
+    );
   });
 });
 

@@ -59,13 +59,13 @@
   display: block;
   margin-top: 0.75rem;
   font-size: 0.75rem;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .card .stat-value {
   display: block;
   font-size: 1.875rem;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .card-icon {
   display: inline-flex;
@@ -75,7 +75,7 @@
   height: 2.25rem;
   border-radius: 0.5rem;
   background: color-mix(in srgb, var(--accent) 10%, transparent);
-  color: var(--accent);
+  color: var(--accent-text);
   margin-bottom: 0.75rem;
 }
 .card-icon svg,
@@ -186,7 +186,7 @@
   margin-top: 0.5rem;
 }
 .prose a {
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 500;
   text-decoration: underline;
   text-underline-offset: 4px;

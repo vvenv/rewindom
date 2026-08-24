@@ -72,6 +72,7 @@ export const SOURCE_KIND_ORDER: readonly EventSourceKind[] = [
 export function toPublicCard(
   item: EventListItem,
   t: EventsTranslate,
+  now: number = Date.now(),
 ): PublicEventCard {
   return {
     slug: item.slug,
@@ -93,6 +94,11 @@ export function toPublicCard(
     source_names: item.source_names,
     source_icon_urls: item.source_icon_urls,
     last_activity_at: item.last_activity_at,
+    /*
+     * 落成文案在这里，不在渲染器：段渲染器是同步的、也拿不到 i18n（与状态名、
+     * 主题名、证据行同一条口径）。时间是这类产品的第一元信息，卡片上原来一个字都没有。
+     */
+    last_activity_label: relativeTime(new Date(item.last_activity_at), now, t),
     evidence_text: describeCardEvidence(item, t),
   };
 }
@@ -362,25 +368,26 @@ const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;
 
 /**
- * 「最近更新」落成相对时间。
+ * 落成相对时间。首屏的「最近更新」与每张卡片的最后动静**共用**这一份
+ *（所以 i18n key 是 `site.relative.*` 而不是挂在 hero 底下）。
  *
  * 粒度到分钟就够：SSR 发的是 `cache-control: max-age=60`，再精确也只是在缓存里
  * 躺着变陈。未来时刻（采集机与 web 时钟有偏差）按「刚刚」算，不吐负数。
  */
 function relativeTime(from: Date, now: number, t: EventsTranslate): string {
   const elapsed = Math.max(0, now - from.getTime());
-  if (elapsed < MINUTE_MS) return t("site.hero.updated.now");
+  if (elapsed < MINUTE_MS) return t("site.relative.now");
   if (elapsed < HOUR_MS) {
-    return t("site.hero.updated.minutes", {
+    return t("site.relative.minutes", {
       count: Math.floor(elapsed / MINUTE_MS),
     });
   }
   if (elapsed < DAY_MS) {
-    return t("site.hero.updated.hours", {
+    return t("site.relative.hours", {
       count: Math.floor(elapsed / HOUR_MS),
     });
   }
-  return t("site.hero.updated.days", { count: Math.floor(elapsed / DAY_MS) });
+  return t("site.relative.days", { count: Math.floor(elapsed / DAY_MS) });
 }
 
 /** 千位分隔。两端同一份格式化，避免 SSR 与编辑器预览把同一个数写成两种样子。 */

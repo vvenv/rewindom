@@ -11,7 +11,7 @@
 # ---------- 必填 ----------
 module: events
 surfaces: [public]
-goal: 公开事件卡片整块可点、有悬停与品牌焦点态，来源行沉底让网格读成一排排；实体胶囊够大够清楚；去掉「已证实 N 家」与「N 家在跟进」的重复。
+goal: 公开事件卡片整块可点、有悬停与品牌焦点态，来源行沉底让网格读成一排排；卡片补上一直没画的时间；实体胶囊够大够清楚；去掉「已证实 N 家」与「N 家在跟进」的重复；两段的「查看全部」不再是同一句。
 gold: modules/events/shared/site-css/events.css
 touch:
   - modules/events/features/card-affordance.spec.yaml
@@ -20,6 +20,13 @@ touch:
   - modules/events/shared/site-css.generated.ts
   - modules/events/shared/public-view.ts
   - modules/events/shared/public-view.test.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/events-feed-section.ts
+  - modules/events/shared/sections/event-card-html.ts
+  - modules/events/shared/sections/feed-html.test.ts
+  - modules/events/shared/sections/hero-html.test.ts
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
 out_of_scope:
   - marketing 内核的 base.css / 段间距 / hero glow（那是全站共用，不为一个段改）
   - 首屏（events.hero）版式与实时计数面板
@@ -27,7 +34,7 @@ out_of_scope:
   - 卡片厚薄两档的判定口径（见 MODULE.md「列表卡片是厚薄两档」）
   - "`↑ 1000%` 这类小基线增速的口径（另立 spec）"
   - 工作台里的 EventCard（React 那一套）
-i18n: none
+i18n: "site.relative.*（由 site.hero.updated.* 提上来，首屏与卡片共用）、sections.risingMore / sections.nowMore"
 acceptance:
   - pnpm --filter @rewindom/events exec vitest --run shared/public-view.test.ts shared/sections/feed-html.test.ts shared/events.test.ts
   - pnpm --filter @rewindom/builtin assemble:module-css 后 generated 与 .css 一致
@@ -58,5 +65,20 @@ models: []
 #    时，把 `spreading`（N 家在跟进）收掉——同一个 N 说两遍，底下还列着 N 个来源名。
 #    `placement.*` 的证据行（「Ukraine：90 天内 17 件」）与 spreading 说的不是一件事，留着。
 #    `rising` / `falling` 的百分比也留着。
-# 7. 只用官网 token（--surface / --border / --muted-fg / --accent / --fg / --radius），
-#    见 `site-section-css` rule。
+# 7. 只用官网 token（--surface / --border / --muted-fg / --accent / --accent-text /
+#    --fg / --radius），见 `site-section-css` rule。强调色的**笔画**一律走
+#    `--accent-text`（暗色下 --accent 只有 2.82:1，见 marketing 的
+#    `accent-text-contrast` spec）；淡底填充仍用 --accent。
+# 8. 时间：`last_activity_at` 本来就在卡片数据上，从来没画过——一张事件雷达的卡片
+#    不说「什么时候」，读者没法判断这条还算不算数。落成文案在 `toPublicCard`
+#    （渲染器同步、拿不到 i18n），挂在**来源行末尾**而不是另起一行：
+#    它和来源同属「这条材料的出处与新旧」，薄卡也因此终于有了第二个可读信息。
+#    读者看「3 小时前」，爬虫读 `<time datetime>` 的绝对时刻。
+# 9. 「查看全部」按 tab 各写一句：升温与正在发生同页并排，原来两句都是
+#    「See all events」，指向不同地址却长得一模一样。通用 feed 段没有 tab，留泛的那句。
+# 10. 标题里的长 token（git ref / hash / URL）要能断：`.events-card-link` 归零
+#    `min-width`（flex 项默认不能窄于 min-content，会被从内部顶破），标题用
+#    `overflow-wrap: anywhere` 而不是 `break-word`——只有前者把断行算进 min-content，
+#    网格轨道才不会被一串 hash 撑宽、把同排的卡一起挤变形。
+# 11. 悬停下划线压到 1px + 兑掉 65% 的色 + 推离基线 3px：默认那条实心线在
+#    1.125rem 粗体标题上太重，一屏十几张卡扫过去像在闪。

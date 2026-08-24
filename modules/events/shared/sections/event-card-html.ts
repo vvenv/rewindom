@@ -24,10 +24,15 @@ export function eventCardHtml(
   ctx: Parameters<SectionHtmlRenderer>[1],
 ): string {
   const thick = isThickPublicCard(card);
-  const sources =
-    showSources && card.source_names.length > 0
-      ? sourcesLineHtml(card.source_names, card.source_icon_urls)
-      : "";
+  /*
+   * 卡底那一行：来源 + 最后动静。
+   *
+   * 时间原来一个字都没上过卡片——一张事件雷达的卡片不说「什么时候」，读者没法判断
+   * 这条还算不算数。`last_activity_at` 本来就在卡片数据里，只是从没渲染过。
+   * 挂在来源行末尾而不是另起一行：它和来源同属「这条材料的出处与新旧」，
+   * 而且薄卡（单来源、无 meta）因此终于有了第二个可读信息。
+   */
+  const foot = footHtml(card, showSources);
 
   const meta = thick
     ? [
@@ -45,7 +50,26 @@ export function eventCardHtml(
     siteHref(card.href, ctx),
   )}">${
     meta ? `<span class="events-meta" translate="no">${meta}</span>` : ""
-  }<span class="events-title">${escapeHtml(card.title)}</span></a>${sources}</li>`;
+  }<span class="events-title">${escapeHtml(card.title)}</span></a>${foot}</li>`;
+}
+
+function footHtml(card: PublicEventCard, showSources: boolean): string {
+  const sources =
+    showSources && card.source_names.length > 0
+      ? sourcesLineHtml(card.source_names, card.source_icon_urls)
+      : "";
+  if (!card.last_activity_label) {
+    return sources;
+  }
+  // 读者看「3 小时前」，爬虫读 datetime 里的绝对时刻——与首屏「最近更新」同一条口径
+  const time = `<time class="events-card-time" datetime="${escapeHtml(
+    card.last_activity_at,
+  )}">${escapeHtml(card.last_activity_label)}</time>`;
+  if (!sources) {
+    return `<p class="events-sources events-sources-time-only">${time}</p>`;
+  }
+  // 塞进来源行内部，跟着一起折行；单独一个 <p> 会在窄卡上多占一行
+  return sources.replace("</p>", `${time}</p>`);
 }
 
 function evidenceHtml(text: string): string {

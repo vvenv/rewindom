@@ -111,7 +111,7 @@ describe("renderEventsHeroHtml", () => {
 
   it("keeps a machine-readable stamp next to the relative time", () => {
     const html = render(hero());
-    expect(html).toContain("site.hero.updated.minutes(6)");
+    expect(html).toContain("site.relative.minutes(6)");
     expect(html).toContain('datetime="2026-08-19T11:54:00.000Z"');
   });
 
@@ -160,9 +160,9 @@ describe("toPublicHero", () => {
     const at = (iso: string) =>
       hero({ updated_at: iso })?.stats.find((stat) => stat.key === "updated")
         ?.value;
-    expect(at("2026-08-19T11:59:30.000Z")).toBe("site.hero.updated.now");
-    expect(at("2026-08-19T09:00:00.000Z")).toBe("site.hero.updated.hours(3)");
-    expect(at("2026-08-17T12:00:00.000Z")).toBe("site.hero.updated.days(2)");
+    expect(at("2026-08-19T11:59:30.000Z")).toBe("site.relative.now");
+    expect(at("2026-08-19T09:00:00.000Z")).toBe("site.relative.hours(3)");
+    expect(at("2026-08-17T12:00:00.000Z")).toBe("site.relative.days(2)");
   });
 
   it("never shows a negative age when the ingest clock runs ahead", () => {
@@ -170,7 +170,7 @@ describe("toPublicHero", () => {
       hero({ updated_at: "2026-08-19T12:05:00.000Z" })?.stats.find(
         (stat) => stat.key === "updated",
       )?.value,
-    ).toBe("site.hero.updated.now");
+    ).toBe("site.relative.now");
   });
 
   it("omits the update row when the site has no activity stamp", () => {

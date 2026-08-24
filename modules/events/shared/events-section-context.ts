@@ -67,6 +67,11 @@ export interface PublicEventCard {
   source_icon_urls: (string | null)[];
   last_activity_at: string;
   /**
+   * 已落成当前语言的相对时间（「刚刚」/「3 小时前」）。
+   * 与 `last_activity_at` 成对：读者看这句，爬虫读 `<time datetime>` 里的绝对时刻。
+   */
+  last_activity_label: string;
+  /**
    * 已落成当前语言的那一行证据（归位或「已证实 · N 家来源」）。
    * 空串 = 没有可主张的一句，渲染侧跳过。
    */

@@ -5,7 +5,7 @@
  * 克隆宿主样式后，会和 SSR 首屏（白底 + `--accent-fg`）以及访客实站对不上。
  */
 
-import { primaryForegroundFor } from "./site-color.js";
+import { accentForCanvases, primaryForegroundFor } from "./site-color.js";
 import { themeFontCss, themeFontFaceCss } from "./theme-fonts.js";
 import {
   resolveThemeSettings,
@@ -38,9 +38,22 @@ export interface MarketingCanvasPalette {
   border: string;
   headerBg: string;
   surface: string;
+  /**
+   * 强调色**当文字 / 描边用**时的那一份，按这块画布调过对比度。
+   *
+   * 与 `--accent` 分开，因为品牌色身兼两职：按钮**底色**（只要跟 `--accent-fg`
+   * 够对比就行，黄色底配黑字完全没问题）和强调**文字**（要跟画布够对比）。
+   * 一个值同时满足两边是做不到的——把黄色压暗到能当白底上的正文，按钮就毁了。
+   *
+   * 实测：`#4F46E5` 在暗色卡片 `#18181b` 上只有 2.82:1，证据角标、势头、
+   *「查看全部」、首屏 eyebrow、焦点框全都读不清；`#facc15` 在白底上更只有 1.53:1。
+   * 亮色下品牌色本来就够的租户，这里原样返回，看不出任何区别。
+   */
+  accentText: string;
 }
 
 export interface MarketingSiteThemeTokens {
+  /** 租户设的品牌色原值——按钮 / 色块的填充色，两种画布共用。 */
   accent: string;
   accentFg: string;
   fontFamily: string;
@@ -51,35 +64,56 @@ export interface MarketingSiteThemeTokens {
   dark: MarketingCanvasPalette;
 }
 
+/**
+ * 强调色要够读的下限。取 4.5（WCAG AA 正文）而不是 3——强调色在这套站上
+ * 大量当**正文**用：「查看全部」、证据角标、首屏 eyebrow 都是小字。
+ */
+const ACCENT_MIN_CONTRAST = 4.5;
+
+/** 强调文字会落上去的底：页面底 + 卡片 / 面板的 surface，按最差的那个调。 */
+function accentTextOn(
+  accent: string,
+  palette: Omit<MarketingCanvasPalette, "accentText">,
+): string {
+  return accentForCanvases(
+    accent,
+    [palette.bg, palette.surface, palette.mutedBg],
+    ACCENT_MIN_CONTRAST,
+  );
+}
+
 function resolveCanvasPalettes(theme: ThemeSettings): {
   light: MarketingCanvasPalette;
   dark: MarketingCanvasPalette;
 } {
   const bg = theme.bg_color;
   const fg = theme.fg_color;
+  const accent = theme.primary_color ?? DEFAULT_PRIMARY;
   const lightBg = bg || "#ffffff";
   const lightFg = fg || "#0a0a0a";
   const darkBg = bg || "#0a0a0a";
   const darkFg = fg || "#fafafa";
+  const light = {
+    bg: lightBg,
+    fg: lightFg,
+    mutedFg: "#737373",
+    mutedBg: "#fafafa",
+    border: "rgba(10,10,10,.12)",
+    headerBg: "rgba(255,255,255,.85)",
+    surface: "#ffffff",
+  };
+  const dark = {
+    bg: darkBg,
+    fg: darkFg,
+    mutedFg: "#a1a1aa",
+    mutedBg: "#18181b",
+    border: "rgba(250,250,250,.14)",
+    headerBg: "rgba(10,10,10,.85)",
+    surface: "#18181b",
+  };
   return {
-    light: {
-      bg: lightBg,
-      fg: lightFg,
-      mutedFg: "#737373",
-      mutedBg: "#fafafa",
-      border: "rgba(10,10,10,.12)",
-      headerBg: "rgba(255,255,255,.85)",
-      surface: "#ffffff",
-    },
-    dark: {
-      bg: darkBg,
-      fg: darkFg,
-      mutedFg: "#a1a1aa",
-      mutedBg: "#18181b",
-      border: "rgba(250,250,250,.14)",
-      headerBg: "rgba(10,10,10,.85)",
-      surface: "#18181b",
-    },
+    light: { ...light, accentText: accentTextOn(accent, light) },
+    dark: { ...dark, accentText: accentTextOn(accent, dark) },
   };
 }
 
@@ -110,6 +144,7 @@ function paletteCssVars(
       --site-page-width: ${tokens.pageWidth};
       --accent: ${tokens.accent};
       --accent-fg: ${tokens.accentFg};
+      --accent-text: ${palette.accentText};
       --site-accent: ${tokens.accent};
       --fg: ${palette.fg};
       --muted-fg: ${palette.mutedFg};
@@ -130,7 +165,7 @@ function paletteCssVars(
       --primary-foreground: ${tokens.accentFg};
       --color-primary: ${tokens.accent};
       --color-primary-foreground: ${tokens.accentFg};
-      --ring: ${tokens.accent};
+      --ring: ${palette.accentText};
       --input: ${palette.border};
       --secondary: ${palette.mutedBg};
       --secondary-foreground: ${palette.fg};

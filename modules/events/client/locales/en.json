@@ -30,8 +30,10 @@
   "sections": {
     "rising": "Rising",
     "risingHint": "Just started to break out",
+    "risingMore": "See everything rising",
     "now": "Now",
     "nowHint": "Still developing in the last 24 hours",
+    "nowMore": "See everything developing",
     "entities": "Entities",
     "entitiesHint": "Companies and people in the last 30 days of events"
   },
@@ -195,17 +197,17 @@
         "sources": "feeds",
         "contributors": "sources"
       },
-      "updated": {
-        "now": "just now",
-        "minutes": "{{count}} min ago",
-        "hours": "{{count}} h ago",
-        "days": "{{count}} d ago"
-      },
       "topicEyebrow": "Event radar · {topic}",
       "topicHeadline": "What's happening in {topic}",
       "entityEyebrow": "Event radar · {entity_kind}",
       "entityHeadline": "{entity}",
       "entitySubhead": "Every event involving {entity}, merged across sources — most recent first."
+    },
+    "relative": {
+      "now": "just now",
+      "minutes": "{{count}} min ago",
+      "hours": "{{count}} h ago",
+      "days": "{{count}} d ago"
     },
     "subscribeEmail": "Subscribe by email"
   },

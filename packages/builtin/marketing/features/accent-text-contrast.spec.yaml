@@ -1,0 +1,58 @@
+# 品牌主色当文字用时在暗色模式下读不清。
+#
+# 实测（yestino.com 暗色）：`--accent` = #4F46E5，两种画布都不过线——
+# - vs 页面底 #0a0a0a：3.15:1
+# - vs 卡片 surface #18181b：**2.82:1**（surface 更亮 = 更难读，只按页面底调不够）
+# 强调色画的每一样东西都在这个数上：证据角标、势头角标、「查看全部」、
+# 首屏 eyebrow、developing 状态、焦点框。WCAG AA 正文要 4.5，非文本要 3。
+#
+# 根因：`--accent` 是照着白底挑的品牌色，light / dark 两套 palette 里发的是同一个值
+# ——palette 已经按明暗分了 fg / mutedFg / border / surface，唯独 accent 没分。
+#
+# 不能直接把 `--accent` 调暗 / 调亮了事：它同时是**按钮底色**。把黄色品牌
+# `#facc15`（当白底文字只有 1.53:1）压到 4.5 会变成近棕色，按钮跟着毁。
+# 所以拆 token：`--accent` 保持品牌原值管填充，新增 `--accent-text` 管笔画。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [public]
+goal: 新增 `--accent-text` token——按每块画布把品牌色调到 4.5:1 且色相不变；`--accent` 保持品牌原值继续管按钮 / 色块填充。
+gold: packages/builtin/marketing/shared/site-color.ts
+touch:
+  - packages/builtin/marketing/features/accent-text-contrast.spec.yaml
+  - packages/builtin/marketing/shared/site-color.ts
+  - packages/builtin/marketing/shared/site-color.test.ts
+  - packages/builtin/marketing/shared/marketing-site-theme.ts
+  - packages/builtin/marketing/shared/sections/_common/styles.css
+  - packages/builtin/marketing/shared/sections/hero/styles.css
+  - packages/builtin/marketing/shared/sections/steps/styles.css
+  - packages/builtin/marketing/shared/marketing-site-css.generated.ts
+out_of_scope:
+  - "改租户已存的 primary_color（品牌色是租户的，不动）"
+  - "工作台（apps/client）那套主题——它自己有一份 index.css"
+  - "把 shop / site-docs / site-form / newsletter 的 var(--accent) 笔画迁过来（各模块自己的 spec，见下）"
+  - "画布本身的明暗配色（bg / surface / border 不动）"
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run marketing/shared/site-color.test.ts marketing/shared/marketing-site-theme.test.ts
+  - pnpm --filter @rewindom/builtin test
+  - pnpm check:section-css
+
+# ---------- 可选 ----------
+entitlement: null
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. `accentForCanvases(accent, canvases, minRatio)` 朝白 / 朝黑一档档兑（步长 0.02），
+#    取**第一个**够对比度的——偏离品牌色越少越好。够了就原样返回，
+#    所以亮色下绝大多数租户一点不受影响（#4F46E5 在白底 6.29:1，不动）。
+# 2. `canvases` 必须传**全部**会落上去的底：`bg` + `surface` + `mutedBg`，按最差的算。
+#    暗色下 surface(#18181b) 比页面底(#0a0a0a) 更亮，只按页面底调在卡片上仍然不够。
+# 3. 阈值取 4.5（AA 正文）不是 3：强调色在这套站上大量当小字正文用
+#    （「查看全部」、证据角标、eyebrow）。
+# 4. 只有**笔画**迁到 `--accent-text`：color / border-color / outline。
+#    背景色的 `color-mix(--accent 10%)` 淡底留在 `--accent`——那是填充不是墨。
+# 5. `--ring` 跟 `--accent-text`（焦点框是笔画），`--primary` 系列跟 `--accent`（填充）。
+# 6. 待迁：shop(16) / site-docs(6) / site-form(3) / newsletter(3) 处 var(--accent) 笔画，
+#    各自模块开 spec。迁完前它们在暗色下仍是老对比度，不会更糟。

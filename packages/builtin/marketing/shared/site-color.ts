@@ -119,3 +119,89 @@ export function primaryForegroundFor(background: string): string {
     ? "#0a0a0a"
     : "#ffffff";
 }
+
+interface Rgb {
+  r: number;
+  g: number;
+  b: number;
+}
+
+function contrastOf(a: Rgb, b: Rgb): number {
+  const l1 = relativeLuminance(a.r, a.g, a.b);
+  const l2 = relativeLuminance(b.r, b.g, b.b);
+  return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+}
+
+/** 两个颜色之间的 WCAG 对比度；任一非法 → `null`（调用方自己决定怎么退让）。 */
+export function contrastRatio(a: string, b: string): number | null {
+  const ca = parseOpaqueRgb(a);
+  const cb = parseOpaqueRgb(b);
+  if (!ca || !cb) return null;
+  return contrastOf(ca, cb);
+}
+
+function mixRgb(from: Rgb, to: Rgb, t: number): Rgb {
+  return {
+    r: from.r + (to.r - from.r) * t,
+    g: from.g + (to.g - from.g) * t,
+    b: from.b + (to.b - from.b) * t,
+  };
+}
+
+function toHex(c: Rgb): string {
+  const part = (v: number): string =>
+    Math.round(Math.min(255, Math.max(0, v)))
+      .toString(16)
+      .padStart(2, "0");
+  return `#${part(c.r)}${part(c.g)}${part(c.b)}`;
+}
+
+const WHITE: Rgb = { r: 255, g: 255, b: 255 };
+const BLACK: Rgb = { r: 0, g: 0, b: 0 };
+/** 兑白 / 兑黑的步长。0.02 ≈ 50 档，肉眼看不出台阶，也不值得再细。 */
+const MIX_STEP = 0.02;
+
+/**
+ * 把品牌主色调到在给定画布上读得清，**色相不变**。
+ *
+ * 存在的理由：品牌色是照着白底挑的，暗色模式直接拿来用必然偏暗。实测本站
+ * `#4F46E5` 在暗色卡片 `#18181b` 上只有 2.82:1——证据角标、势头角标、
+ * 「查看全部」、首屏 eyebrow、焦点框全都是这个颜色，等于整套强调色在暗色下失效。
+ *
+ * 做法是朝白（或朝黑）一档档兑，取**第一个**够对比度的——偏离品牌色越少越好。
+ * 已经够了就原样返回，所以亮色模式下绝大多数租户一点不受影响。
+ *
+ * `canvases` 传**所有**它会落上去的底色（页面底 + 卡片 surface），按最差的那个算：
+ * 暗色下 surface 比页面底更亮，只按页面底调会在卡片上仍然不够。
+ */
+export function accentForCanvases(
+  accent: string,
+  canvases: readonly string[],
+  minRatio: number,
+): string {
+  const base = parseOpaqueRgb(accent);
+  const grounds = canvases
+    .map((c) => parseOpaqueRgb(c))
+    .filter((c): c is Rgb => c !== null);
+  if (!base || grounds.length === 0) return accent;
+
+  const worst = (c: Rgb): number =>
+    Math.min(...grounds.map((ground) => contrastOf(c, ground)));
+  if (worst(base) >= minRatio) return accent;
+
+  let best = base;
+  let bestRatio = worst(base);
+  for (const target of [WHITE, BLACK]) {
+    for (let t = MIX_STEP; t <= 1 + 1e-9; t += MIX_STEP) {
+      const candidate = mixRgb(base, target, t);
+      const ratio = worst(candidate);
+      if (ratio >= minRatio) return toHex(candidate);
+      // 兑到头都不够（画布本身就是中灰）时留下最接近的那个，不要退回原色
+      if (ratio > bestRatio) {
+        best = candidate;
+        bestRatio = ratio;
+      }
+    }
+  }
+  return toHex(best);
+}

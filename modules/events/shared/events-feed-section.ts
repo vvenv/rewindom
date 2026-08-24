@@ -52,7 +52,15 @@ export function eventFeedLimitDefault(type: string): number {
   return EVENTS_RISING_LIMIT_DEFAULT;
 }
 
-function eventFeedContentSettings(limitDefault: number): SettingDef[] {
+/*
+ * `moreDefault`：升温与正在发生同页并排，两段的「查看全部」原来都落成同一句
+ *「See all events」——读者看到的是两个一模一样的链接指向不同的地方。标题已经
+ * 按 tab 各写一句了，这一句也得跟上。通用 feed 段没有 tab，仍用那句泛的。
+ */
+function eventFeedContentSettings(
+  limitDefault: number,
+  moreDefault = "events:site.feed.more",
+): SettingDef[] {
   return [
     {
       type: "select",
@@ -93,7 +101,7 @@ function eventFeedContentSettings(limitDefault: number): SettingDef[] {
       type: "text",
       id: "more_label",
       label: "events:section.feed.moreLabel",
-      default: "events:site.feed.more",
+      default: moreDefault,
     },
     { type: "header", content: "editor.group.layout", group: "layout" },
     ...layoutSettings({ padding_top: 48, padding_bottom: 48 }),
@@ -117,6 +125,7 @@ function eventFeedSection(tab: EventFeedTab): SectionDefinition {
         tab === "rising"
           ? EVENTS_RISING_LIMIT_DEFAULT
           : EVENTS_NOW_LIMIT_DEFAULT,
+        `events:sections.${tab}More`,
       ),
     ],
   };

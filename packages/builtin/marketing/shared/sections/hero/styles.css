@@ -12,7 +12,7 @@
   line-height: 1.7;
 }
 .hero .eyebrow {
-  color: var(--accent);
+  color: var(--accent-text);
   text-transform: none;
   letter-spacing: 0.02em;
   font-size: 0.875rem;

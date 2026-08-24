@@ -30,8 +30,10 @@
   "sections": {
     "rising": "正在升温",
     "risingHint": "刚刚开始爆发的事情",
+    "risingMore": "查看全部升温事件",
     "now": "正在发生",
     "nowHint": "过去 24 小时内仍在持续发展",
+    "nowMore": "查看全部正在发生",
     "entities": "实体",
     "entitiesHint": "近 30 天事件里出现过的公司与人物"
   },
@@ -195,17 +197,17 @@
         "sources": "个",
         "contributors": "个"
       },
-      "updated": {
-        "now": "刚刚",
-        "minutes": "{{count}} 分钟前",
-        "hours": "{{count}} 小时前",
-        "days": "{{count}} 天前"
-      },
       "topicEyebrow": "事件雷达 · {topic}",
       "topicHeadline": "{topic} 正在发生什么",
       "entityEyebrow": "事件雷达 · {entity_kind}",
       "entityHeadline": "{entity}",
       "entitySubhead": "跨来源追踪 {entity} 相关的事件，最近的排在前面。"
+    },
+    "relative": {
+      "now": "刚刚",
+      "minutes": "{{count}} 分钟前",
+      "hours": "{{count}} 小时前",
+      "days": "{{count}} 天前"
     },
     "subscribeEmail": "邮件订阅"
   },
