@@ -404,7 +404,11 @@
       "connectorInvalid": "Choose a connector",
       "sourceKindInvalid": "Choose a kind",
       "topicInvalid": "Choose a topic"
-    }
+    },
+    "fieldPublisherEntity": "Publisher entity",
+    "fieldPublisherKind": "Entity type",
+    "publisherPlaceholder": "Cloudflare",
+    "publisherHint": "Who this source's posts are about. Fills in the entity for release, status and announcement events, where it never has to be guessed."
   },
   "sample": {
     "event1": {
@@ -459,6 +463,7 @@
   },
   "kind": {
     "outage": "Outage",
+    "maintenance": "Maintenance",
     "release": "Release",
     "acquisition": "Acquisition",
     "funding": "Funding",
@@ -466,8 +471,11 @@
   },
   "fact": {
     "duration": "{{minutes}} min",
+    "window": "{{minutes}} min window",
     "resolved": "Resolved",
     "ongoing": "Ongoing",
+    "completed": "Completed",
+    "inProgress": "In progress",
     "version": "{{version}}",
     "amount": "{{amount}}"
   },

@@ -1,0 +1,108 @@
+# 一手来源的出版方就是实体——不需要从标题里抽。
+#
+# 归位（placement）与累计档案（entity-profile）是这个模块对**单信号事件**唯一
+# 有效的增量，也是文档里记着的护城河。但两者都要求事件上有主实体，而实体抽取
+# 刻意保守（Title Case 整条弃权、句首要等印证），覆盖率只有三分之一。
+#
+# 本地库量的（tenant f098…，3132 个事件）：
+#   无实体 2418 个 = 77%，其中
+#     release  166/181 = 91.7%   ← 最该有实体的一格，恰恰最差
+#     status   147/231 = 63.6%
+#     official 366/590 = 62.0%
+# 于是归位那三行、实体页那份档案，在四分之三的页面上是空的。
+#
+# 但这批事件的实体**根本不用猜**：`Cloudflare Status` 的事件就是关于 Cloudflare 的，
+# `Kubernetes releases` 就是关于 Kubernetes 的。这不是从文本里推断，是采集源自己的身份。
+#
+# 与 MODULE.md「不做别名合并——把 Meta 与 Facebook 合并需要外部知识，猜错比不合并更糟」
+# 不冲突：那条禁止的是**猜**，这里是目录里人工填的策展知识，和目录本身同一性质。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 一手来源（official / release / status / filing）的采集源带一个人工标注的出版方实体，采集刷新时直接建实体关联，让归位与累计档案在这批事件上真的出现。
+gold: modules/events/server/event/entity.service.ts
+touch:
+  - modules/events/features/publisher-entity.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/models.prisma
+  - modules/events/server/ingest/feed-catalog.ts
+  - modules/events/server/ingest/feed-catalog.test.ts
+  - modules/events/server/ingest/feed-seed.ts
+  - modules/events/server/event/publisher-entity.ts
+  - modules/events/server/event/publisher-entity.test.ts
+  - modules/events/server/event/entity.service.ts
+  - modules/events/server/event/entity.service.test.ts
+  - modules/events/server/event/event-refresh.service.ts
+  - modules/events/server/event/placement.service.ts
+  - modules/events/server/feed/feed.service.ts
+  - modules/events/server/feed/feed.util.ts
+  - modules/events/shared/events.ts
+  - modules/events/client/components/EventFeedFields.tsx
+  - modules/events/client/components/EventFeedEditSheet.tsx
+  - modules/events/client/lib/event-feeds.ts
+  - modules/events/client/lib/event-feeds.test.ts
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+  - apps/server/prisma/migrations/
+out_of_scope:
+  - 把出版方实体喂进聚类判据（实体兜底聚类已被实测证伪，见 MODULE.md）
+  - 给 news / community 源标出版方（TechCrunch 的报道不是「关于 TechCrunch」）
+  - 别名合并（Meta ⟷ Facebook）与工作台的实体管理页
+  - 从 feed 名字里用后缀规则猜实体名——目录项必须显式写
+  - 给 EventSignal 加 feed_id（解析走 (connector, source_name)，见设计要点 4）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+  - pnpm check:modules
+  - 在本地库跑一轮采集刷新，核对 status / release 事件的归位是否出现
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: [] # 沿用 events.write（改采集源）
+models:
+  - EventFeed.publisher_entity_name / publisher_entity_kind（可空）
+  - EventEntityLink.is_publisher（默认 false）
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. **只对一手来源生效**（`isFirstPartySource`）。一篇 TechCrunch 报道不是
+#    「关于 TechCrunch」的——给 news 源标出版方会把每个媒体变成一个实体聚合面，
+#    正好是 `isChangelogNoiseName` 那道闸要挡的东西的放大版。
+#
+# 2. **目录项显式写，不用后缀规则猜**。`AWS Machine Learning` → AWS、
+#    `Bank of England` → Bank of England、`Kubernetes releases` → Kubernetes：
+#    这三条没有一条能被同一个剥后缀的规则做对。`feed-catalog.test.ts` 钉住
+#    「每个一手来源目录项都有 publisher_entity」，新增源时忘了填会红。
+#
+# 3. **实体是站点数据，所以落在 `EventFeed` 上而不是只在目录里查**。站点可以自己
+#    加一个官方博客源，也该能标出版方；目录只是这两列的初始值。种植时写入，
+#    存量目录源做一次性补写（`ensureDefaultFeeds` 里顺手，幂等，不需要 migration 脚本）。
+#
+# 4. **解析走 `(connector, source_name)`**，不给 `EventSignal` 加 `feed_id`。
+#    `source_name` 在采集时就是从 `feed.name` 抄过去的，两者天然相等；
+#    站点改名后旧信号解析不到——可接受且必须写进 MODULE.md，代价远小于给
+#    十万级信号表加列 + 回填。
+#
+# 5. **`is_publisher` 而不是给 mention_count 编一个大数**。归位取主实体，
+#    现在按 `mention_count` 降序取第一个；出版方实体的 mention_count 是
+#    「这个事件里它贡献了几条信号」——一条真实的计数，但单信号事件恒为 1，
+#    与抽取出来的实体打平。所以主实体的排序键改成 `[is_publisher desc, mention_count desc]`：
+#    一手来源的事件，出版方就是它在讲谁。**不要**为了排序去写一个假的提及次数。
+#
+# 6. **与分析器解耦**。`refreshEvent` 现在只在 `analysis !== null` 时才动实体
+#    （LLM 冷却期内不覆盖）。出版方实体不是分析器产物，是采集源的属性，所以：
+#      - 有 analysis：并进 wanted 集合一起 sync（否则整体替换会把它删掉）
+#      - 无 analysis：走一条**只增不删**的 `ensurePublisherEntityLinks`
+#    两条都要幂等。
+#
+# 7. **不进聚类**。MODULE.md 记着「共享实体 + 语义阈值」在真实语料上是
+#    救回 0 对、误并 1 对。出版方实体让「同一家的两次不相干故障」共享实体的
+#    情况变得**更**普遍（githubstatus 的四条 `Incident with Actions`），
+#    所以这条禁令在本期之后更重要，不是更松。
+#
+# ---------- 下一步（不在本期）----------
+# - 工作台按出版方实体筛事件（「只看 Cloudflare 的」）——列表面的改动，独立一期
+# - 出版方实体的 logo/域名（source-icon 已经有 host，可以复用）

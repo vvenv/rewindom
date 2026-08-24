@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   incidentDurationMinutes,
   incidentResolved,
+  isScheduledMaintenance,
   parseIncidentUpdates,
 } from "./incident-updates.js";
 
@@ -126,5 +127,34 @@ describe("incidentDurationMinutes / incidentResolved", () => {
       PUBLISHED,
     );
     expect(incidentResolved(ongoing)).toBe(false);
+  });
+});
+
+/**
+ * 计划维护与事故的分水岭。判据是**开头**那一格——`Completed` 与 `Resolved`
+ * 都是收尾，用末格判两条轨在结尾处长得一样。
+ */
+describe("isScheduledMaintenance", () => {
+  it("Scheduled 开场 = 计划维护", () => {
+    const updates = parseIncidentUpdates(
+      "Aug 25 , 06:00 UTC Completed - The scheduled maintenance has been completed. " +
+        "Aug 20 , 04:31 UTC Scheduled - We will be performing scheduled maintenance in ATL (Atlanta).",
+      PUBLISHED,
+    );
+    expect(updates[0]?.phase).toBe("Scheduled");
+    expect(isScheduledMaintenance(updates)).toBe(true);
+  });
+
+  it("Investigating 开场 = 事故，哪怕它也以收尾阶段结束", () => {
+    const updates = parseIncidentUpdates(
+      "Aug 18 , 11:42 UTC Resolved - This incident has been resolved. " +
+        "Aug 18 , 10:58 UTC Investigating - We are investigating reports of errors.",
+      PUBLISHED,
+    );
+    expect(isScheduledMaintenance(updates)).toBe(false);
+  });
+
+  it("没有序列时是 false —— 上游按既有先验判 outage", () => {
+    expect(isScheduledMaintenance([])).toBe(false);
   });
 });

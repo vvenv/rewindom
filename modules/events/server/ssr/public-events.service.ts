@@ -2,6 +2,7 @@ import {
   normalizeLocale,
   prisma,
   withTenantScope,
+  type Prisma,
 } from "@rewindom/module-sdk/server";
 
 import { entityIndexPath, entityPath, eventPath } from "../../shared/index.js";
@@ -458,10 +459,40 @@ export async function getPublicEntityBySlug(
 }
 
 /**
- * sitemap：只收最近 30 天还有动静的事件，且封顶 500 条。
+ * 「这条对读者有增量」的 SQL 镜像。
+ *
+ * 逐条对应 `hasReaderValue`（shared/events.ts），**两处必须一起改**——
+ * sitemap 与详情页的 noindex 用同一个口径是硬要求：不一致会让爬虫在 sitemap 里
+ * 拿到一批自称 noindex 的地址，比两边都不做更糟。
+ *
+ * 为什么不在应用层过滤：`take: 500` 发生在过滤之前，事后再筛会让 sitemap
+ * 只剩一两百条，而后面还排着真有内容的事件。
+ */
+function readerValueWhere(): Prisma.NewsEventWhereInput {
+  return {
+    OR: [
+      { signal_count: { gte: 2 } },
+      { kind: { not: null } },
+      { entities: { some: {} } },
+      {
+        AND: [
+          { analyzer: { in: ["llm", "manual"] } },
+          { summary: { not: "" } },
+        ],
+      },
+    ],
+  };
+}
+
+/**
+ * sitemap：只收最近 30 天还有动静、**且对读者有增量**的事件，封顶 500 条。
  *
  * 事件是持续产生的，全量铺给爬虫既没意义也会把 sitemap 撑爆；陈年事件页在主题仍开着时
  * 可访问，只是不主动送去索引。关掉主题的事件页 404，也不进 sitemap。
+ *
+ * 薄页（单信号、无实体、无类型、摘要就是原文那段 meta description——本地库占 48.9%）
+ * 同样只是不主动送去索引：它们仍可访问、仍在列表与 RSS 里。同样的 500 条配额，
+ * 筛掉它们之后装的是真有内容的页。
  *
  * 只输出**站点默认语言**那一条：同一个事件在各语言下是同一条记录（文案是 locale map），
  * 但「这个站开了哪几种语言」要另查站点配置，为 sitemap 多查一次不划算。
@@ -478,6 +509,7 @@ export async function getPublicEventSitemapEntries(
       where: withTenantScope(tenantId, {
         last_activity_at: { gte: cutoff },
         ...enabledTopicWhere(enabled),
+        ...readerValueWhere(),
       }),
       orderBy: { last_activity_at: "desc" },
       take: 500,

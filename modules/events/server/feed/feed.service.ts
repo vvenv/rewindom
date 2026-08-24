@@ -127,6 +127,8 @@ function toFeedItem(
     enabled: boolean;
     last_fetched_at: Date | null;
     last_error: string | null;
+    publisher_entity_name: string | null;
+    publisher_entity_kind: string | null;
   },
   tenantSlug: string,
 ): EventFeedItem {
@@ -140,6 +142,8 @@ function toFeedItem(
     enabled: row.enabled,
     last_fetched_at: row.last_fetched_at?.toISOString() ?? null,
     last_error: row.last_error,
+    publisher_entity_name: row.publisher_entity_name,
+    publisher_entity_kind: row.publisher_entity_kind,
     icon_url: sourceIconUrl(
       { connector: row.connector, url: row.url },
       bindSourceIconUrl(tenantSlug),

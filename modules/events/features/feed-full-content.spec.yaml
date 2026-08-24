@@ -1,0 +1,74 @@
+# 全文就在同一个响应体里，我们只取了 teaser。
+#
+# `feed-parser.ts` 取摘录的顺序是 `description → summary → content`，而 `readTag`
+# 的闭合正则是 `</content>`，**匹配不到 `<content:encoded>`**；何况 RSS 条目通常
+# 两个标签都有，`description` 恒先命中。
+#
+# 实测（2026-08-24）：
+#   blog.cloudflare.com/rss/   14 条 <content:encoded>（正文）+ 15 条 <description>（teaser）
+#   vercel.com/atom            53 条 <content …>（正文），没有 description
+#
+# 后果有三层，都落在那 98% 的单信号事件上：
+#   1. 摘要只有一句 teaser——本地库 83% 的 heuristic 摘要逐字等于来源摘录，
+#      而那段摘录本身就只是 meta description；
+#   2. `fact-extractor` 只有标题 + teaser 可抽，版本号 / 金额大量抽不到
+#      （kind 判出率 15%，抽不到事实的那部分与此直接相关）；
+#   3. 摘录为空时还要**再发一次 HTTP** 去扒目标页的 og:description——
+#      而正文早就在刚才那个响应里。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: RSS/Atom 解析同时读出 teaser 与正文；一手来源优先用正文当摘录，让摘要、类型事实、实体抽取都有正文可用。
+gold: modules/events/server/ingest/feed-parser.ts
+touch:
+  - modules/events/features/feed-full-content.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/server/ingest/feed-parser.ts
+  - modules/events/server/ingest/feed-parser.test.ts
+  - modules/events/server/ingest/rss.connector.ts
+  - modules/events/server/ingest/rss.connector.test.ts
+out_of_scope:
+  - 引入 XML 解析库（仓库刻意没有 XML 依赖，见 MODULE.md）
+  - 正文全文入库（摘录仍在 truncateExcerpt 的上限内）
+  - 给 news 源也换成正文（媒体的 content:encoded 常是整篇文章 + 广告位，见设计要点 2）
+  - 目标页正文抓取（`fetchPageExcerpt` 的口径不动，仍只取 meta）
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/ingest/feed-parser.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - 用 blog.cloudflare.com/rss/ 与 vercel.com/atom 的真实响应核对取到的是正文
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. **`readTag` 要认带命名空间的标签**。`<content:encoded>` 的开闭标签都带前缀，
+#    现在的正则开标签能匹配（`\b` 后面 `[^>]*` 吃掉了 `:encoded`）而闭标签不能，
+#    于是整条失配。修法是把前缀写进正则，**不是**放宽成 `[\s\S]*?</`——
+#    后者会让 `<content>` 一路吃到文档里下一个同名闭标签。
+#
+# 2. **只有一手来源换正文**。媒体的 `content:encoded` 常常是整篇文章（含广告位、
+#    「相关阅读」列表），截 600 字得到的是导语加一段噪声，不如它自己写的 teaser。
+#    一手来源（official / release / status / filing）的正文就是公告本身，
+#    第一段往往正是「发生了什么」。判断放在 `rss.connector`——它知道 source_kind，
+#    parser 不知道，也不该知道。
+#
+# 3. **正文要显著更长才换**（`FULL_CONTENT_MIN_GAIN`）。有些源两个标签内容一样，
+#    换过去只是多绕一圈；差不多长时保持 description，失效方向在安全那一侧。
+#
+# 4. **仍然走 `stripHtml` + `truncateExcerpt`**，上限不动。这一期改的是
+#    「摘录取自哪一段文本」，不是「摘录可以多长」——后者会连带影响详情页版式
+#    与 LLM 的 token 成本，是另一个决策。
+#
+# 5. **状态页那条路不能被绕开**。`incident_updates` 的解析发生在 `toSignal` 里、
+#    `truncateExcerpt` 之前，输入是**原始 description**。status 源同时也是一手来源，
+#    换成正文后必须保证解析器拿到的仍是那段带阶段词的文本——所以先解析、再挑摘录。
+#
+# ---------- 下一步（不在本期）----------
+# - 用正文做更好的摘要（取前 N 句而不是截断 600 字）——那要一个句子切分器，
+#   中英文各一套口径，独立一期

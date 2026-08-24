@@ -39,6 +39,7 @@ import {
   eventOgImagePath,
   eventPath,
   eventsHubPath,
+  hasReaderValue,
   isEventsIndexListing,
   isEventsPath,
   isEventsRootQueryTakeover,
@@ -317,6 +318,20 @@ async function renderDetail(
 
   const t = translator(locale);
   const href = eventPath(slug);
+  /*
+   * 没有增量的页不主动送去索引——但仍然渲染、仍然可访问：有人分享的链接要能打开。
+   * `noindex` 不带 `nofollow`，页上的链接照常传权重，尤其是指向实体页那几条
+   * （实体页才是这个站最该被反复索引的一面）。
+   *
+   * 口径与 sitemap 必须**一模一样**（见 `hasReaderValue` 的注释）。
+   */
+  const thin = !hasReaderValue({
+    signal_count: detail.signal_count,
+    kind: detail.kind,
+    entity_count: detail.entities.length,
+    analyzer: detail.analyzer,
+    summary: detail.summary,
+  });
   return renderEventsTemplatePage({
     request: input,
     tenantId: input.tenantId,
@@ -330,6 +345,7 @@ async function renderDetail(
     preset: EVENTS_DETAIL_TEMPLATE_PRESET,
     omitHreflang: true,
     canonicalPath: href,
+    ...(thin ? { noindex: true } : {}),
     ogImage: isEventOgImageAvailable()
       ? `${input.origin}${eventOgImagePath(slug)}`
       : undefined,

@@ -15,6 +15,7 @@ import { refreshEvents } from "../event/event-refresh.service.js";
 import { syncRelatedEvents } from "../event/related.service.js";
 import { getEnabledTopics } from "../event/topic-settings.service.js";
 
+import { pruneBoilerplateExcerpts } from "./excerpt-boilerplate.js";
 import {
   clearAnalysisForExcerptUpgrade,
   enrichStoredEmptyExcerpts,
@@ -202,6 +203,14 @@ async function runIngestForTenant(
         data: { last_fetched_at: now, last_error: message.slice(0, 500) },
       });
     }
+  }
+
+  /*
+   * 先清模板文案，再补空摘录：清空的那些如果已经过了退避期，同一轮就能被补上。
+   * 反过来的话它们要等下一轮才进候选。
+   */
+  for (const eventId of await pruneBoilerplateExcerpts(tenantId)) {
+    changedSignalEventIds.add(eventId);
   }
 
   for (const eventId of await enrichStoredEmptyExcerpts(tenantId, now)) {

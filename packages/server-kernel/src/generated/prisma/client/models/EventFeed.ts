@@ -32,6 +32,8 @@ export type EventFeedMinAggregateOutputType = {
   url: string | null
   source_kind: string | null
   topic: string | null
+  publisher_entity_name: string | null
+  publisher_entity_kind: string | null
   enabled: boolean | null
   last_fetched_at: Date | null
   last_error: string | null
@@ -47,6 +49,8 @@ export type EventFeedMaxAggregateOutputType = {
   url: string | null
   source_kind: string | null
   topic: string | null
+  publisher_entity_name: string | null
+  publisher_entity_kind: string | null
   enabled: boolean | null
   last_fetched_at: Date | null
   last_error: string | null
@@ -62,6 +66,8 @@ export type EventFeedCountAggregateOutputType = {
   url: number
   source_kind: number
   topic: number
+  publisher_entity_name: number
+  publisher_entity_kind: number
   enabled: number
   last_fetched_at: number
   last_error: number
@@ -79,6 +85,8 @@ export type EventFeedMinAggregateInputType = {
   url?: true
   source_kind?: true
   topic?: true
+  publisher_entity_name?: true
+  publisher_entity_kind?: true
   enabled?: true
   last_fetched_at?: true
   last_error?: true
@@ -94,6 +102,8 @@ export type EventFeedMaxAggregateInputType = {
   url?: true
   source_kind?: true
   topic?: true
+  publisher_entity_name?: true
+  publisher_entity_kind?: true
   enabled?: true
   last_fetched_at?: true
   last_error?: true
@@ -109,6 +119,8 @@ export type EventFeedCountAggregateInputType = {
   url?: true
   source_kind?: true
   topic?: true
+  publisher_entity_name?: true
+  publisher_entity_kind?: true
   enabled?: true
   last_fetched_at?: true
   last_error?: true
@@ -197,6 +209,8 @@ export type EventFeedGroupByOutputType = {
   url: string
   source_kind: string
   topic: string
+  publisher_entity_name: string | null
+  publisher_entity_kind: string | null
   enabled: boolean
   last_fetched_at: Date | null
   last_error: string | null
@@ -233,6 +247,8 @@ export type EventFeedWhereInput = {
   url?: Prisma.StringFilter<"EventFeed"> | string
   source_kind?: Prisma.StringFilter<"EventFeed"> | string
   topic?: Prisma.StringFilter<"EventFeed"> | string
+  publisher_entity_name?: Prisma.StringNullableFilter<"EventFeed"> | string | null
+  publisher_entity_kind?: Prisma.StringNullableFilter<"EventFeed"> | string | null
   enabled?: Prisma.BoolFilter<"EventFeed"> | boolean
   last_fetched_at?: Prisma.DateTimeNullableFilter<"EventFeed"> | Date | string | null
   last_error?: Prisma.StringNullableFilter<"EventFeed"> | string | null
@@ -248,6 +264,8 @@ export type EventFeedOrderByWithRelationInput = {
   url?: Prisma.SortOrder
   source_kind?: Prisma.SortOrder
   topic?: Prisma.SortOrder
+  publisher_entity_name?: Prisma.SortOrderInput | Prisma.SortOrder
+  publisher_entity_kind?: Prisma.SortOrderInput | Prisma.SortOrder
   enabled?: Prisma.SortOrder
   last_fetched_at?: Prisma.SortOrderInput | Prisma.SortOrder
   last_error?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -267,6 +285,8 @@ export type EventFeedWhereUniqueInput = Prisma.AtLeast<{
   url?: Prisma.StringFilter<"EventFeed"> | string
   source_kind?: Prisma.StringFilter<"EventFeed"> | string
   topic?: Prisma.StringFilter<"EventFeed"> | string
+  publisher_entity_name?: Prisma.StringNullableFilter<"EventFeed"> | string | null
+  publisher_entity_kind?: Prisma.StringNullableFilter<"EventFeed"> | string | null
   enabled?: Prisma.BoolFilter<"EventFeed"> | boolean
   last_fetched_at?: Prisma.DateTimeNullableFilter<"EventFeed"> | Date | string | null
   last_error?: Prisma.StringNullableFilter<"EventFeed"> | string | null
@@ -282,6 +302,8 @@ export type EventFeedOrderByWithAggregationInput = {
   url?: Prisma.SortOrder
   source_kind?: Prisma.SortOrder
   topic?: Prisma.SortOrder
+  publisher_entity_name?: Prisma.SortOrderInput | Prisma.SortOrder
+  publisher_entity_kind?: Prisma.SortOrderInput | Prisma.SortOrder
   enabled?: Prisma.SortOrder
   last_fetched_at?: Prisma.SortOrderInput | Prisma.SortOrder
   last_error?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -303,6 +325,8 @@ export type EventFeedScalarWhereWithAggregatesInput = {
   url?: Prisma.StringWithAggregatesFilter<"EventFeed"> | string
   source_kind?: Prisma.StringWithAggregatesFilter<"EventFeed"> | string
   topic?: Prisma.StringWithAggregatesFilter<"EventFeed"> | string
+  publisher_entity_name?: Prisma.StringNullableWithAggregatesFilter<"EventFeed"> | string | null
+  publisher_entity_kind?: Prisma.StringNullableWithAggregatesFilter<"EventFeed"> | string | null
   enabled?: Prisma.BoolWithAggregatesFilter<"EventFeed"> | boolean
   last_fetched_at?: Prisma.DateTimeNullableWithAggregatesFilter<"EventFeed"> | Date | string | null
   last_error?: Prisma.StringNullableWithAggregatesFilter<"EventFeed"> | string | null
@@ -318,6 +342,8 @@ export type EventFeedCreateInput = {
   url: string
   source_kind: string
   topic?: string
+  publisher_entity_name?: string | null
+  publisher_entity_kind?: string | null
   enabled?: boolean
   last_fetched_at?: Date | string | null
   last_error?: string | null
@@ -333,6 +359,8 @@ export type EventFeedUncheckedCreateInput = {
   url: string
   source_kind: string
   topic?: string
+  publisher_entity_name?: string | null
+  publisher_entity_kind?: string | null
   enabled?: boolean
   last_fetched_at?: Date | string | null
   last_error?: string | null
@@ -348,6 +376,8 @@ export type EventFeedUpdateInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   source_kind?: Prisma.StringFieldUpdateOperationsInput | string
   topic?: Prisma.StringFieldUpdateOperationsInput | string
+  publisher_entity_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publisher_entity_kind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   last_fetched_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   last_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -363,6 +393,8 @@ export type EventFeedUncheckedUpdateInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   source_kind?: Prisma.StringFieldUpdateOperationsInput | string
   topic?: Prisma.StringFieldUpdateOperationsInput | string
+  publisher_entity_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publisher_entity_kind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   last_fetched_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   last_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -378,6 +410,8 @@ export type EventFeedCreateManyInput = {
   url: string
   source_kind: string
   topic?: string
+  publisher_entity_name?: string | null
+  publisher_entity_kind?: string | null
   enabled?: boolean
   last_fetched_at?: Date | string | null
   last_error?: string | null
@@ -393,6 +427,8 @@ export type EventFeedUpdateManyMutationInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   source_kind?: Prisma.StringFieldUpdateOperationsInput | string
   topic?: Prisma.StringFieldUpdateOperationsInput | string
+  publisher_entity_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publisher_entity_kind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   last_fetched_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   last_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -408,6 +444,8 @@ export type EventFeedUncheckedUpdateManyInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   source_kind?: Prisma.StringFieldUpdateOperationsInput | string
   topic?: Prisma.StringFieldUpdateOperationsInput | string
+  publisher_entity_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publisher_entity_kind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   last_fetched_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   last_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -428,6 +466,8 @@ export type EventFeedCountOrderByAggregateInput = {
   url?: Prisma.SortOrder
   source_kind?: Prisma.SortOrder
   topic?: Prisma.SortOrder
+  publisher_entity_name?: Prisma.SortOrder
+  publisher_entity_kind?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   last_fetched_at?: Prisma.SortOrder
   last_error?: Prisma.SortOrder
@@ -443,6 +483,8 @@ export type EventFeedMaxOrderByAggregateInput = {
   url?: Prisma.SortOrder
   source_kind?: Prisma.SortOrder
   topic?: Prisma.SortOrder
+  publisher_entity_name?: Prisma.SortOrder
+  publisher_entity_kind?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   last_fetched_at?: Prisma.SortOrder
   last_error?: Prisma.SortOrder
@@ -458,6 +500,8 @@ export type EventFeedMinOrderByAggregateInput = {
   url?: Prisma.SortOrder
   source_kind?: Prisma.SortOrder
   topic?: Prisma.SortOrder
+  publisher_entity_name?: Prisma.SortOrder
+  publisher_entity_kind?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   last_fetched_at?: Prisma.SortOrder
   last_error?: Prisma.SortOrder
@@ -475,6 +519,8 @@ export type EventFeedSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   url?: boolean
   source_kind?: boolean
   topic?: boolean
+  publisher_entity_name?: boolean
+  publisher_entity_kind?: boolean
   enabled?: boolean
   last_fetched_at?: boolean
   last_error?: boolean
@@ -490,6 +536,8 @@ export type EventFeedSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   url?: boolean
   source_kind?: boolean
   topic?: boolean
+  publisher_entity_name?: boolean
+  publisher_entity_kind?: boolean
   enabled?: boolean
   last_fetched_at?: boolean
   last_error?: boolean
@@ -505,6 +553,8 @@ export type EventFeedSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   url?: boolean
   source_kind?: boolean
   topic?: boolean
+  publisher_entity_name?: boolean
+  publisher_entity_kind?: boolean
   enabled?: boolean
   last_fetched_at?: boolean
   last_error?: boolean
@@ -520,6 +570,8 @@ export type EventFeedSelectScalar = {
   url?: boolean
   source_kind?: boolean
   topic?: boolean
+  publisher_entity_name?: boolean
+  publisher_entity_kind?: boolean
   enabled?: boolean
   last_fetched_at?: boolean
   last_error?: boolean
@@ -527,7 +579,7 @@ export type EventFeedSelectScalar = {
   updated_at?: boolean
 }
 
-export type EventFeedOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "connector" | "name" | "url" | "source_kind" | "topic" | "enabled" | "last_fetched_at" | "last_error" | "created_at" | "updated_at", ExtArgs["result"]["eventFeed"]>
+export type EventFeedOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "connector" | "name" | "url" | "source_kind" | "topic" | "publisher_entity_name" | "publisher_entity_kind" | "enabled" | "last_fetched_at" | "last_error" | "created_at" | "updated_at", ExtArgs["result"]["eventFeed"]>
 
 export type $EventFeedPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "EventFeed"
@@ -555,6 +607,21 @@ export type $EventFeedPayload<ExtArgs extends runtime.Types.Extensions.InternalA
      * 该源默认归属的主题
      */
     topic: string
+    /**
+     * 出版方实体名——「这条源发的事，是关于谁的」。只有一手来源填。
+     * 
+     * 归位与累计档案要求事件上有主实体，而实体抽取刻意保守（覆盖率约三分之一），
+     * 于是 release / status / official 这批**最该有实体**的事件反而最缺。
+     * 但它们的实体根本不用猜：`Cloudflare Status` 的事件就是关于 Cloudflare 的。
+     * 
+     * 落在源上而不是只在目录里查：站点可以自己加一个官方博客源，也该能标出版方；
+     * 目录只是这两列的初始值（`feed-seed.ts` 种植时写入并对存量源补写）。
+     */
+    publisher_entity_name: string | null
+    /**
+     * company | product | person | place | org。与 EventEntity.kind 同一套取值
+     */
+    publisher_entity_kind: string | null
     enabled: boolean
     last_fetched_at: Date | null
     /**
@@ -993,6 +1060,8 @@ export interface EventFeedFieldRefs {
   readonly url: Prisma.FieldRef<"EventFeed", 'String'>
   readonly source_kind: Prisma.FieldRef<"EventFeed", 'String'>
   readonly topic: Prisma.FieldRef<"EventFeed", 'String'>
+  readonly publisher_entity_name: Prisma.FieldRef<"EventFeed", 'String'>
+  readonly publisher_entity_kind: Prisma.FieldRef<"EventFeed", 'String'>
   readonly enabled: Prisma.FieldRef<"EventFeed", 'Boolean'>
   readonly last_fetched_at: Prisma.FieldRef<"EventFeed", 'DateTime'>
   readonly last_error: Prisma.FieldRef<"EventFeed", 'String'>

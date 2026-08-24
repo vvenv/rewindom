@@ -21,6 +21,17 @@ model EventFeed {
   source_kind     String
   /// 该源默认归属的主题
   topic           String    @default("tech")
+  /// 出版方实体名——「这条源发的事，是关于谁的」。只有一手来源填。
+  ///
+  /// 归位与累计档案要求事件上有主实体，而实体抽取刻意保守（覆盖率约三分之一），
+  /// 于是 release / status / official 这批**最该有实体**的事件反而最缺。
+  /// 但它们的实体根本不用猜：`Cloudflare Status` 的事件就是关于 Cloudflare 的。
+  ///
+  /// 落在源上而不是只在目录里查：站点可以自己加一个官方博客源，也该能标出版方；
+  /// 目录只是这两列的初始值（`feed-seed.ts` 种植时写入并对存量源补写）。
+  publisher_entity_name String?
+  /// company | product | person | place | org。与 EventEntity.kind 同一套取值
+  publisher_entity_kind String?
   enabled         Boolean   @default(true)
   last_fetched_at DateTime?
   /// 最近一次抓取失败的原因，成功后清空
@@ -219,6 +230,13 @@ model EventEntityLink {
   entity_id String
   /// 该实体在这个事件的信号里被提到几次。排序权重，不是「重要性」的断言
   mention_count Int @default(1)
+  /// 这条关联来自采集源的**出版方标注**，不是从文本里抽出来的。
+  ///
+  /// 主实体（归位问「这条材料在谁的记录里排第几」）的排序键是
+  /// `[is_publisher desc, mention_count desc]`：一手来源的事件，出版方就是它在讲谁。
+  /// **不要**为了让它排在前面去写一个假的 mention_count——那一列的语义是
+  /// 「被提到几次」，编一个大数会让它不再是可核对的计数。
+  is_publisher  Boolean @default(false)
   created_at DateTime @default(now())
 
   event  NewsEvent   @relation(fields: [event_id], references: [id], onDelete: Cascade)

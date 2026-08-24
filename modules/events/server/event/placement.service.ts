@@ -260,9 +260,13 @@ export async function getEventPlacementsForList(params: {
  * 工作台与公开面都走这一个函数——两面给出不同的数字会立刻被读者发现，
  * 而这种漂移一旦发生很难查。
  *
- * 主实体取 `mention_count` 最高的那个（`listEventEntities` 已经按它排序）。
- * **没有实体就返回空数组**：实体抽取刻意保守（覆盖率约 36%），留白比挂到一个
- * 抽错的实体上强得多——错的实体会把这条材料放进不相干的记录里，而读者没法核对。
+ * 主实体取列表第一个（`listEventEntities` 已经按
+ * `[is_publisher desc, mention_count desc]` 排好）：一手来源的事件里出版方就是
+ * 它在讲谁，而单信号事件上出版方的提及次数恒为 1，只按次数排是随机的。
+ *
+ * **没有实体就返回空数组**：文本抽取刻意保守，留白比挂到一个抽错的实体上强得多——
+ * 错的实体会把这条材料放进不相干的记录里，而读者没法核对。出版方标注不在此列：
+ * 它是采集源自己的身份，不是猜出来的。
  */
 export async function getEventPlacementForDetail(params: {
   tenant_id: string;

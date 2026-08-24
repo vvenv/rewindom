@@ -40,6 +40,7 @@ export type EventEntityLinkMinAggregateOutputType = {
   event_id: string | null
   entity_id: string | null
   mention_count: number | null
+  is_publisher: boolean | null
   created_at: Date | null
 }
 
@@ -49,6 +50,7 @@ export type EventEntityLinkMaxAggregateOutputType = {
   event_id: string | null
   entity_id: string | null
   mention_count: number | null
+  is_publisher: boolean | null
   created_at: Date | null
 }
 
@@ -58,6 +60,7 @@ export type EventEntityLinkCountAggregateOutputType = {
   event_id: number
   entity_id: number
   mention_count: number
+  is_publisher: number
   created_at: number
   _all: number
 }
@@ -77,6 +80,7 @@ export type EventEntityLinkMinAggregateInputType = {
   event_id?: true
   entity_id?: true
   mention_count?: true
+  is_publisher?: true
   created_at?: true
 }
 
@@ -86,6 +90,7 @@ export type EventEntityLinkMaxAggregateInputType = {
   event_id?: true
   entity_id?: true
   mention_count?: true
+  is_publisher?: true
   created_at?: true
 }
 
@@ -95,6 +100,7 @@ export type EventEntityLinkCountAggregateInputType = {
   event_id?: true
   entity_id?: true
   mention_count?: true
+  is_publisher?: true
   created_at?: true
   _all?: true
 }
@@ -191,6 +197,7 @@ export type EventEntityLinkGroupByOutputType = {
   event_id: string
   entity_id: string
   mention_count: number
+  is_publisher: boolean
   created_at: Date
   _count: EventEntityLinkCountAggregateOutputType | null
   _avg: EventEntityLinkAvgAggregateOutputType | null
@@ -223,6 +230,7 @@ export type EventEntityLinkWhereInput = {
   event_id?: Prisma.StringFilter<"EventEntityLink"> | string
   entity_id?: Prisma.StringFilter<"EventEntityLink"> | string
   mention_count?: Prisma.IntFilter<"EventEntityLink"> | number
+  is_publisher?: Prisma.BoolFilter<"EventEntityLink"> | boolean
   created_at?: Prisma.DateTimeFilter<"EventEntityLink"> | Date | string
   event?: Prisma.XOR<Prisma.NewsEventScalarRelationFilter, Prisma.NewsEventWhereInput>
   entity?: Prisma.XOR<Prisma.EventEntityScalarRelationFilter, Prisma.EventEntityWhereInput>
@@ -234,6 +242,7 @@ export type EventEntityLinkOrderByWithRelationInput = {
   event_id?: Prisma.SortOrder
   entity_id?: Prisma.SortOrder
   mention_count?: Prisma.SortOrder
+  is_publisher?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   event?: Prisma.NewsEventOrderByWithRelationInput
   entity?: Prisma.EventEntityOrderByWithRelationInput
@@ -249,6 +258,7 @@ export type EventEntityLinkWhereUniqueInput = Prisma.AtLeast<{
   event_id?: Prisma.StringFilter<"EventEntityLink"> | string
   entity_id?: Prisma.StringFilter<"EventEntityLink"> | string
   mention_count?: Prisma.IntFilter<"EventEntityLink"> | number
+  is_publisher?: Prisma.BoolFilter<"EventEntityLink"> | boolean
   created_at?: Prisma.DateTimeFilter<"EventEntityLink"> | Date | string
   event?: Prisma.XOR<Prisma.NewsEventScalarRelationFilter, Prisma.NewsEventWhereInput>
   entity?: Prisma.XOR<Prisma.EventEntityScalarRelationFilter, Prisma.EventEntityWhereInput>
@@ -260,6 +270,7 @@ export type EventEntityLinkOrderByWithAggregationInput = {
   event_id?: Prisma.SortOrder
   entity_id?: Prisma.SortOrder
   mention_count?: Prisma.SortOrder
+  is_publisher?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   _count?: Prisma.EventEntityLinkCountOrderByAggregateInput
   _avg?: Prisma.EventEntityLinkAvgOrderByAggregateInput
@@ -277,6 +288,7 @@ export type EventEntityLinkScalarWhereWithAggregatesInput = {
   event_id?: Prisma.StringWithAggregatesFilter<"EventEntityLink"> | string
   entity_id?: Prisma.StringWithAggregatesFilter<"EventEntityLink"> | string
   mention_count?: Prisma.IntWithAggregatesFilter<"EventEntityLink"> | number
+  is_publisher?: Prisma.BoolWithAggregatesFilter<"EventEntityLink"> | boolean
   created_at?: Prisma.DateTimeWithAggregatesFilter<"EventEntityLink"> | Date | string
 }
 
@@ -284,6 +296,7 @@ export type EventEntityLinkCreateInput = {
   id?: string
   tenant_id: string
   mention_count?: number
+  is_publisher?: boolean
   created_at?: Date | string
   event: Prisma.NewsEventCreateNestedOneWithoutEntitiesInput
   entity: Prisma.EventEntityCreateNestedOneWithoutLinksInput
@@ -295,6 +308,7 @@ export type EventEntityLinkUncheckedCreateInput = {
   event_id: string
   entity_id: string
   mention_count?: number
+  is_publisher?: boolean
   created_at?: Date | string
 }
 
@@ -302,6 +316,7 @@ export type EventEntityLinkUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   mention_count?: Prisma.IntFieldUpdateOperationsInput | number
+  is_publisher?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   event?: Prisma.NewsEventUpdateOneRequiredWithoutEntitiesNestedInput
   entity?: Prisma.EventEntityUpdateOneRequiredWithoutLinksNestedInput
@@ -313,6 +328,7 @@ export type EventEntityLinkUncheckedUpdateInput = {
   event_id?: Prisma.StringFieldUpdateOperationsInput | string
   entity_id?: Prisma.StringFieldUpdateOperationsInput | string
   mention_count?: Prisma.IntFieldUpdateOperationsInput | number
+  is_publisher?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -322,6 +338,7 @@ export type EventEntityLinkCreateManyInput = {
   event_id: string
   entity_id: string
   mention_count?: number
+  is_publisher?: boolean
   created_at?: Date | string
 }
 
@@ -329,6 +346,7 @@ export type EventEntityLinkUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   mention_count?: Prisma.IntFieldUpdateOperationsInput | number
+  is_publisher?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -338,6 +356,7 @@ export type EventEntityLinkUncheckedUpdateManyInput = {
   event_id?: Prisma.StringFieldUpdateOperationsInput | string
   entity_id?: Prisma.StringFieldUpdateOperationsInput | string
   mention_count?: Prisma.IntFieldUpdateOperationsInput | number
+  is_publisher?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -362,6 +381,7 @@ export type EventEntityLinkCountOrderByAggregateInput = {
   event_id?: Prisma.SortOrder
   entity_id?: Prisma.SortOrder
   mention_count?: Prisma.SortOrder
+  is_publisher?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
 
@@ -375,6 +395,7 @@ export type EventEntityLinkMaxOrderByAggregateInput = {
   event_id?: Prisma.SortOrder
   entity_id?: Prisma.SortOrder
   mention_count?: Prisma.SortOrder
+  is_publisher?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
 
@@ -384,6 +405,7 @@ export type EventEntityLinkMinOrderByAggregateInput = {
   event_id?: Prisma.SortOrder
   entity_id?: Prisma.SortOrder
   mention_count?: Prisma.SortOrder
+  is_publisher?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
 
@@ -479,6 +501,7 @@ export type EventEntityLinkCreateWithoutEventInput = {
   id?: string
   tenant_id: string
   mention_count?: number
+  is_publisher?: boolean
   created_at?: Date | string
   entity: Prisma.EventEntityCreateNestedOneWithoutLinksInput
 }
@@ -488,6 +511,7 @@ export type EventEntityLinkUncheckedCreateWithoutEventInput = {
   tenant_id: string
   entity_id: string
   mention_count?: number
+  is_publisher?: boolean
   created_at?: Date | string
 }
 
@@ -526,6 +550,7 @@ export type EventEntityLinkScalarWhereInput = {
   event_id?: Prisma.StringFilter<"EventEntityLink"> | string
   entity_id?: Prisma.StringFilter<"EventEntityLink"> | string
   mention_count?: Prisma.IntFilter<"EventEntityLink"> | number
+  is_publisher?: Prisma.BoolFilter<"EventEntityLink"> | boolean
   created_at?: Prisma.DateTimeFilter<"EventEntityLink"> | Date | string
 }
 
@@ -533,6 +558,7 @@ export type EventEntityLinkCreateWithoutEntityInput = {
   id?: string
   tenant_id: string
   mention_count?: number
+  is_publisher?: boolean
   created_at?: Date | string
   event: Prisma.NewsEventCreateNestedOneWithoutEntitiesInput
 }
@@ -542,6 +568,7 @@ export type EventEntityLinkUncheckedCreateWithoutEntityInput = {
   tenant_id: string
   event_id: string
   mention_count?: number
+  is_publisher?: boolean
   created_at?: Date | string
 }
 
@@ -576,6 +603,7 @@ export type EventEntityLinkCreateManyEventInput = {
   tenant_id: string
   entity_id: string
   mention_count?: number
+  is_publisher?: boolean
   created_at?: Date | string
 }
 
@@ -583,6 +611,7 @@ export type EventEntityLinkUpdateWithoutEventInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   mention_count?: Prisma.IntFieldUpdateOperationsInput | number
+  is_publisher?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   entity?: Prisma.EventEntityUpdateOneRequiredWithoutLinksNestedInput
 }
@@ -592,6 +621,7 @@ export type EventEntityLinkUncheckedUpdateWithoutEventInput = {
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   entity_id?: Prisma.StringFieldUpdateOperationsInput | string
   mention_count?: Prisma.IntFieldUpdateOperationsInput | number
+  is_publisher?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -600,6 +630,7 @@ export type EventEntityLinkUncheckedUpdateManyWithoutEventInput = {
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   entity_id?: Prisma.StringFieldUpdateOperationsInput | string
   mention_count?: Prisma.IntFieldUpdateOperationsInput | number
+  is_publisher?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -608,6 +639,7 @@ export type EventEntityLinkCreateManyEntityInput = {
   tenant_id: string
   event_id: string
   mention_count?: number
+  is_publisher?: boolean
   created_at?: Date | string
 }
 
@@ -615,6 +647,7 @@ export type EventEntityLinkUpdateWithoutEntityInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   mention_count?: Prisma.IntFieldUpdateOperationsInput | number
+  is_publisher?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   event?: Prisma.NewsEventUpdateOneRequiredWithoutEntitiesNestedInput
 }
@@ -624,6 +657,7 @@ export type EventEntityLinkUncheckedUpdateWithoutEntityInput = {
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   event_id?: Prisma.StringFieldUpdateOperationsInput | string
   mention_count?: Prisma.IntFieldUpdateOperationsInput | number
+  is_publisher?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -632,6 +666,7 @@ export type EventEntityLinkUncheckedUpdateManyWithoutEntityInput = {
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   event_id?: Prisma.StringFieldUpdateOperationsInput | string
   mention_count?: Prisma.IntFieldUpdateOperationsInput | number
+  is_publisher?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -643,6 +678,7 @@ export type EventEntityLinkSelect<ExtArgs extends runtime.Types.Extensions.Inter
   event_id?: boolean
   entity_id?: boolean
   mention_count?: boolean
+  is_publisher?: boolean
   created_at?: boolean
   event?: boolean | Prisma.NewsEventDefaultArgs<ExtArgs>
   entity?: boolean | Prisma.EventEntityDefaultArgs<ExtArgs>
@@ -654,6 +690,7 @@ export type EventEntityLinkSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   event_id?: boolean
   entity_id?: boolean
   mention_count?: boolean
+  is_publisher?: boolean
   created_at?: boolean
   event?: boolean | Prisma.NewsEventDefaultArgs<ExtArgs>
   entity?: boolean | Prisma.EventEntityDefaultArgs<ExtArgs>
@@ -665,6 +702,7 @@ export type EventEntityLinkSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   event_id?: boolean
   entity_id?: boolean
   mention_count?: boolean
+  is_publisher?: boolean
   created_at?: boolean
   event?: boolean | Prisma.NewsEventDefaultArgs<ExtArgs>
   entity?: boolean | Prisma.EventEntityDefaultArgs<ExtArgs>
@@ -676,10 +714,11 @@ export type EventEntityLinkSelectScalar = {
   event_id?: boolean
   entity_id?: boolean
   mention_count?: boolean
+  is_publisher?: boolean
   created_at?: boolean
 }
 
-export type EventEntityLinkOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "event_id" | "entity_id" | "mention_count" | "created_at", ExtArgs["result"]["eventEntityLink"]>
+export type EventEntityLinkOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "event_id" | "entity_id" | "mention_count" | "is_publisher" | "created_at", ExtArgs["result"]["eventEntityLink"]>
 export type EventEntityLinkInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   event?: boolean | Prisma.NewsEventDefaultArgs<ExtArgs>
   entity?: boolean | Prisma.EventEntityDefaultArgs<ExtArgs>
@@ -708,6 +747,15 @@ export type $EventEntityLinkPayload<ExtArgs extends runtime.Types.Extensions.Int
      * 该实体在这个事件的信号里被提到几次。排序权重，不是「重要性」的断言
      */
     mention_count: number
+    /**
+     * 这条关联来自采集源的**出版方标注**，不是从文本里抽出来的。
+     * 
+     * 主实体（归位问「这条材料在谁的记录里排第几」）的排序键是
+     * `[is_publisher desc, mention_count desc]`：一手来源的事件，出版方就是它在讲谁。
+     * **不要**为了让它排在前面去写一个假的 mention_count——那一列的语义是
+     * 「被提到几次」，编一个大数会让它不再是可核对的计数。
+     */
+    is_publisher: boolean
     created_at: Date
   }, ExtArgs["result"]["eventEntityLink"]>
   composites: {}
@@ -1139,6 +1187,7 @@ export interface EventEntityLinkFieldRefs {
   readonly event_id: Prisma.FieldRef<"EventEntityLink", 'String'>
   readonly entity_id: Prisma.FieldRef<"EventEntityLink", 'String'>
   readonly mention_count: Prisma.FieldRef<"EventEntityLink", 'Int'>
+  readonly is_publisher: Prisma.FieldRef<"EventEntityLink", 'Boolean'>
   readonly created_at: Prisma.FieldRef<"EventEntityLink", 'DateTime'>
 }
     

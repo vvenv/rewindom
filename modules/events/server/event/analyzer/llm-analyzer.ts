@@ -75,6 +75,8 @@ const SYSTEM_PROMPT = [
   "  is about, not from which site reported it.",
   `- kind: one of ${EVENT_KINDS.join(" | ")}, or null. Use null unless the event`,
   "  clearly is one of them. A plain news report is null, not a guess.",
+  "  A planned maintenance window is maintenance, never outage — even when the",
+  "  service was unavailable during it.",
   "- timeline: a PROGRESSIVE account, not a source list. Include a signal only",
   "  if it adds facts that earlier timeline entries do not already state.",
   "  Skip wire copies and restatements (same press release, different outlet).",

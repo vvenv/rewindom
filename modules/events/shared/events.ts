@@ -115,6 +115,18 @@ export function clustersByUrlOnly(kind: EventSourceKind): boolean {
  */
 export const EVENT_KINDS = [
   "outage",
+  /*
+   * 计划维护。**与 outage 分开是一条正确性约束，不是多一个筛选项**：
+   * 状态页的 feed 里混着两条轨（Investigating → Resolved 是事故，
+   * Scheduled → Completed 是计划内的维护窗口），而归位那行
+   * 「近 90 天第 4 次故障，此前几次累计 192 分钟」与实体档案的
+   * 「故障 3 次 · 累计 192 分钟」是这个模块最强、也最经不起注水的断言。
+   * 把一次计划内维护算成事故，读者拿它去做续约谈判会被一句话戳穿。
+   *
+   * 它不违反「不设 other 兜底格」——那条反对的是**硬凑**，而这一格的判据是
+   * 来源自己写下的那个阶段词，精度 100%。
+   */
+  "maintenance",
   "release",
   "acquisition",
   "funding",
@@ -178,14 +190,28 @@ export function describeEventFacts(
   }
   const chips: EventFactChip[] = [{ code: `kind.${kind}` }];
 
+  /*
+   * 时长与结局在两种 kind 上读法不同：一次事故是「持续了多久 / 解决了没有」，
+   * 一次维护是「维护窗口多长 / 做完了没有」。同一组数字配错文案会把
+   * 「计划内的 47 分钟」说成「故障 47 分钟」，正好是分出这一格要避免的事。
+   */
+  const maintenance = kind === "maintenance";
   if (facts.duration_minutes !== null) {
     chips.push({
-      code: "fact.duration",
+      code: maintenance ? "fact.window" : "fact.duration",
       params: { minutes: facts.duration_minutes },
     });
   }
   if (facts.resolved !== null) {
-    chips.push({ code: facts.resolved ? "fact.resolved" : "fact.ongoing" });
+    chips.push({
+      code: maintenance
+        ? facts.resolved
+          ? "fact.completed"
+          : "fact.inProgress"
+        : facts.resolved
+          ? "fact.resolved"
+          : "fact.ongoing",
+    });
   }
   if (facts.version) {
     chips.push({ code: "fact.version", params: { version: facts.version } });
@@ -693,6 +719,85 @@ export function isThickEventCard(item: {
 }
 
 /**
+ * 时间线值不值得画成一个板块。
+ *
+ * **一格不成线**。本地库 3132 个事件里 3100 个（99%）的时间线只有一格，
+ * 而那一格的信息（时刻 + 来源）与紧接着的「来源」板块**逐字重复**——
+ * 于是三千张详情页各挂着一个空板块标题，把「时间线」这个词稀释成了装饰。
+ *
+ * 一格时那条信息一个字都没丢：它本来就在来源列表里。板块不画，
+ * 反过来让「有时间线」本身成为一个信号——这一件事真的被不止一家推进过。
+ *
+ * **例外**：那一格带一手更新序列时照画。一次 incident 的多次更新
+ * （Investigating → Monitoring → Resolved）本来就是一条真时间线，
+ * 只是按格子的身份规则挂在一条信号上（见 `EventSignal.incident_updates`）。
+ */
+export function showsTimelineBlock(
+  entries: readonly { incident_updates: readonly unknown[] }[],
+): boolean {
+  return (
+    entries.length >= 2 ||
+    entries.some((entry) => entry.incident_updates.length > 0)
+  );
+}
+
+/**
+ * 摘要是**原创产出**还是原文摘录的复制？
+ *
+ * 规则分析器的摘要按定义就是「最可信来源的原文摘录」（`buildSummary` 原样返回
+ * 那段 excerpt，只做截断），所以 `analyzer === "heuristic"` 等价于
+ * 「这段话读者点进原链接一样能看到」。本地库量的：2304/2780 条 heuristic 摘要
+ * 与来源摘录**逐字相同**，其余那些只差在 420 字截断上。
+ *
+ * 判 analyzer 而不是逐字比对：后者要把 excerpt 一路带进公开 DTO，
+ * 而这个字段除了这一次比较没有第二个用途。
+ */
+export function hasOriginalSummary(input: {
+  analyzer: string;
+  summary: string;
+}): boolean {
+  return (
+    input.summary.trim().length > 0 &&
+    (input.analyzer === "llm" || input.analyzer === "manual")
+  );
+}
+
+/**
+ * 这张详情页对读者有没有**增量**——比原始链接多给了什么。
+ *
+ * 本地库量的（3132 个事件）：单信号 + 无实体 + 无类型 = 2028（64.8%），
+ * 其中再叠加「摘要为空或就是原文那段 meta description」的有 1531（**48.9%**）。
+ * 近一半的事件页，读者读完拿到的东西和点原始链接完全一样。
+ *
+ * 四条任意一条成立就算有增量，全部取自详情已经载入的字段，**不额外发查询**：
+ *
+ * | 条件            | 增量是什么                                     |
+ * | --------------- | ---------------------------------------------- |
+ * | ≥2 条信号       | 跨源印证与时间线——主承诺本身                 |
+ * | 有实体          | 归位与累计档案能长出来（「近 90 天第 4 次」）  |
+ * | 有类型事实      | 埋在正文里的版本号 / 金额 / 时长被拎了出来     |
+ * | 摘要不是复制    | LLM 整理或本站编辑写过                         |
+ *
+ * 它同时是这个模块的**看板指标**：把「内容价值」从主观判断变成一个能盯的数字。
+ * 用途见 `getPublicEventSitemapEntries` 与详情页的 noindex——两处必须同一个口径，
+ * 否则爬虫会在 sitemap 里拿到一批自称 noindex 的地址，比两边都不做更糟。
+ */
+export function hasReaderValue(input: {
+  signal_count: number;
+  kind: EventKind | null;
+  entity_count: number;
+  analyzer: string;
+  summary: string;
+}): boolean {
+  return (
+    input.signal_count >= 2 ||
+    input.entity_count > 0 ||
+    input.kind !== null ||
+    hasOriginalSummary(input)
+  );
+}
+
+/**
  * 证据行落成当前语言。kindRecurrence 的 `kind` 是嵌套 code，先翻再代进去。
  */
 export function describeCardEvidence(
@@ -785,6 +890,15 @@ export interface EventFeedItem {
   last_error: string | null;
   /** 由 url + connector 推导，不落库 */
   icon_url: string | null;
+  /**
+   * 出版方实体——「这条源发的事，是关于谁的」。只有一手来源填得上。
+   *
+   * 它让归位与累计档案在 release / status / official 这批事件上真的长出来
+   *（那些事件的实体不用猜，就是这个源自己）。null = 没标。
+   */
+  publisher_entity_name: string | null;
+  /** company | product | person | place | org。名字为空时它没有意义 */
+  publisher_entity_kind: string | null;
 }
 
 export interface EventFeedListResult {
@@ -798,6 +912,9 @@ export interface EventFeedWriteBody {
   source_kind?: EventSourceKind;
   topic?: EventTopic;
   enabled?: boolean;
+  /** 空串 = 清掉标注（与「没传」区分：没传是不改） */
+  publisher_entity_name?: string;
+  publisher_entity_kind?: string;
 }
 
 export interface EventListResult {

@@ -296,6 +296,53 @@ path handler，由 `renderEventsTemplatePage` 补上，否则页头会退回七�
 区块顺序也是同一条主张：**发生了什么 → 时间线 → 来源**（先给结论，再给过程，
 最后把证据摊开让读者自己核对）。规格上的偏差要两端一起修，不然下一轮又各漂各的。
 
+### 一格不成线：单格时间线不画成板块
+
+本地库 3132 个事件里 **3100 个（99%）的时间线只有一格**，而那一格的信息
+（时刻 + 来源）与紧接着的「来源」板块**逐字重复**——于是三千张详情页各挂着一个
+空板块标题，把「时间线」这个词稀释成了装饰。
+
+`showsTimelineBlock`（`shared/events.ts`，两端共用）：**≥2 格才画**。一格时那条信息
+一个字都没丢，它本来就在来源列表里；板块不画，反过来让「有时间线」本身成为一个信号——
+这件事真的被不止一家推进过。
+
+**例外**：那一格带 `incident_updates` 时照画。一次 incident 的多次更新
+（Investigating → Monitoring → Resolved）本来就是一条真时间线，只是按格子的身份规则
+挂在一条信号上。
+
+公开面（`detail-html`）与工作台（`event-detail.tsx`）**一起改**——这一页的规格只有一套。
+
+### 详情页的内容价值门槛
+
+本地库量的：单信号 + 无实体 + 无类型 = 2028（64.8%），其中再叠加「摘要为空或就是
+原文那段 meta description」的有 **1531（48.9%）**。近一半的事件页，读者读完拿到的东西
+和点原始链接完全一样。
+
+`hasReaderValue`（`shared/events.ts`）把这件事变成一个可测的谓词，四条任意一条成立即可：
+
+| 条件         | 增量是什么                                    |
+| ------------ | --------------------------------------------- |
+| ≥2 条信号    | 跨源印证与时间线——主承诺本身                |
+| 有实体       | 归位与累计档案能长出来                        |
+| 有类型       | 埋在正文里的版本号 / 金额 / 时长被拎了出来    |
+| 摘要不是复制 | `analyzer ∈ {llm, manual}` 且非空             |
+
+最后一条**判 analyzer 而不是逐字比对**：规则分析器的摘要按定义就是「最可信来源的原文
+摘录」（`buildSummary` 原样返回那段 excerpt，只做截断），所以 heuristic 等价于
+「这段话读者点进原链接一样能看到」。本地库 2304/2780 条逐字相同，其余只差在 420 字截断上。
+逐字比对要把 excerpt 一路带进公开 DTO，而那个字段除此之外没有第二个用途。
+
+用途两处，**必须同一个口径**：
+
+- **sitemap**：`getPublicEventSitemapEntries` 的 where 里带上它（SQL 镜像
+  `readerValueWhere()`，与谓词逐条对应，两处一起改）。**不能在应用层过滤**——
+  `take: 500` 发生在过滤之前，事后再筛会让 sitemap 只剩一两百条而后面还排着真有内容的事件。
+- **详情页**：薄页发 `noindex`（**不带 `nofollow`**）。它们仍然渲染、仍然可访问——
+  有人分享的链接要能打开——只是不主动占索引配额；页上指向实体页的链接照常传权重，
+  而实体页才是这个站最该被反复索引的一面。
+
+它同时是这个模块的**看板指标**。本地库：出版方实体那一期之前 51.1%，之后 **67.2%**。
+
 ### 板块标题只有一套规格
 
 「发生了什么 / 时间线 / 来源 / 为什么在扩散 / 更新 / 相关事件」标的都是**板块**，
@@ -333,7 +380,7 @@ path handler，由 `renderEventsTemplatePage` 补上，否则页头会退回七�
 ## 流水线
 
 ```
-connector.fetch()          外部平台 → RawSignal
+connector.fetch()          外部平台 → RawSignal（一手来源的摘录取自正文，见下）
       ↓
 fillEmptyExcerpts()        摘录为空时抓目标页 og/meta description
       ↓
@@ -346,6 +393,62 @@ refreshEvents()            热度 / 增速 / 阶段 / 计数 + 分析器产出�
 ```
 
 每一步都是幂等的：信号有唯一键，事件有指纹唯一键，时间线整体重建。出问题可以直接重跑。
+
+### 一手来源的摘录取自正文，不是 teaser
+
+`feed-parser` 解析出**两份文本**：`summary`（RSS `description` / Atom `summary`）与
+`content`（RSS `content:encoded` / Atom `content`）。挑哪一份由 `rss.connector` 决定——
+只有它知道 source_kind。
+
+以前只取 `description`：`readTag(block, "content")` 的闭标签要求逐字 `</content>`，
+**匹配不到 `<content:encoded>`**（开标签的 `[^>]*` 把 `:encoded` 当属性吃掉了），
+于是整条失配；何况 RSS 条目通常两个标签都有，`description` 恒先命中。
+实测 2026-08-24：`blog.cloudflare.com/rss/` 20 条**全部**带正文（9070 字 vs teaser 216 字）。
+
+**只有一手来源换正文**。媒体的 `content:encoded` 常常是整篇文章（含广告位、
+「相关阅读」列表），截 600 字得到的是导语加一段噪声，不如它自己写的 teaser；
+而官方公告 / 发版说明 / 监管文件的正文第一段往往正是「发生了什么」。
+正文要比 teaser 长出 `FULL_CONTENT_MIN_GAIN`（120 字）才换——两个标签放同一段话时
+换过去只是多绕一圈，失效方向留在原地。
+
+**状态页解析出一手更新序列时一律用原 description**：那条序列就是从这段文本里解析出来的
+（见「状态页正文里那条一手时间线」），摘录换成别处会让详情页上嵌套的那几格与摘录说的
+不是一回事。
+
+这一步同时喂到三个下游：摘要（规则实现直接端原文摘录）、`fact-extractor`
+（版本号 / 金额埋在正文里，标题上没有）、实体抽取（句中非句首的出现正是
+「句首单词要等印证」那道闸要的东西）。
+
+### 模板文案不是摘要
+
+`isUsableExcerpt` 只判两件事：非空、不等于标题。它看不见**源模板文案**——
+同一个来源在几十条互不相干的信号上给出逐字相同的一段话。本地库量的：
+
+| 摘录                                                        | 次数 | 来源                |
+| ----------------------------------------------------------- | ---- | ------------------- |
+| `Comments`                                                   | 53   | Lobsters / HN       |
+| `We're on a journey to advance and democratize artificial…` | 23   | Hugging Face 站点简介 |
+| `automatically created by TeamCity VCS label`                | 21   | Kotlin Releases     |
+| `The European Central Bank (ECB) is the central bank of…`   | 13   | ECB 机构介绍         |
+
+它比空摘录更糟：空摘录会走目标页补齐那条路，而模板文案**看起来是内容**，
+于是补齐永远不会被触发，读者在「发生了什么」下面读到的是一句与这件事无关的话。
+
+`pruneBoilerplateExcerpts` 每轮扫一次（每站点最多 20 组）：同一来源逐字相等且出现 ≥3 次、
+长度 ≤400 的摘录判为模板，**只清空 `excerpt`**（信号是证据，标题与 URL 照旧），
+清空后它自然落进 `enrichStoredEmptyExcerpts` 的候选去抓目标页。受影响的 heuristic 事件
+`analyzed_at` 置空以重写摘要，llm / manual 的不置空——与摘录补齐同一条口径。
+
+三条口径：
+
+1. **逐字相等，不用相似度**。真实的模板文案就是一个常量字符串；换成相似度会把
+   「同一系列的两次发版说明」也吃掉，而那是真实内容。与聚类那边「误判比漏判有害得多」同源。
+2. **阈值 3 不是 2**。两条相同的短摘录还可能是同一件事的两次发布（源换 URL 重发），
+   那是身份键的活。
+3. **长文本不参与**（>400 字）。逐字相同的长文几乎一定是重复采集，同样是身份键的活。
+
+新采进来的模板文案不在当轮拦（persist 时还不知道它会重复几次），由下一轮扫描接住：
+整体是一个至多滞后一轮的自纠环，不需要额外缓存。
 
 ### 热度的权威：增速必须有基线（正负都是）
 
@@ -612,6 +715,62 @@ news / 一手来源 Jaccard ≥ 0.75 视为通稿回声，不占格。阈值高�
 在版式上与 Title Case 无法区分，会被一起弃权。放宽阈值能救它，但实测会把上面那些
 整段短语一起放回来。
 
+#### 出版方实体：一手来源的实体不用抽
+
+归位与累计档案是这个模块对**单信号事件**唯一有效的增量，但两者都要求事件上有主实体。
+而文本抽取刻意保守，本地库量到的覆盖率反过来了——**最该有实体的那批最缺**：
+
+| source_kind | 无实体占比 |
+| ----------- | ---------- |
+| release     | 91.7%      |
+| community   | 68.0%      |
+| news        | 64.9%      |
+| status      | 63.6%      |
+| official    | 62.0%      |
+
+但这批事件的实体**根本不用猜**：`Cloudflare Status` 的事件就是关于 Cloudflare 的，
+`Kubernetes Releases` 就是关于 Kubernetes 的。这不是从文本里推断，是采集源自己的身份。
+
+所以目录项多一个人工填的 `publisher_entity`（`{ name, kind }`），种植时写进
+`EventFeed.publisher_entity_name / _kind`，`refreshEvent` 里由 `resolvePublisherEntities`
+按 `(connector, source_name)` 解析回来。实测：145 个一手来源目录项全部标注，
+刷新一轮后事件的实体覆盖率 **23% → 57.9%**，其中 400 个抽样事件有 **395 个**长出了归位。
+
+与「不做别名合并——把 Meta 与 Facebook 合并需要外部知识，猜错比不合并更糟」不冲突：
+那条禁止的是**猜**，这里是目录里人工填的策展知识，和目录本身同一性质。
+
+七条口径：
+
+1. **只对一手来源生效**（`isFirstPartySource`）。一篇 TechCrunch 报道不是「关于
+   TechCrunch」的——给 news 源标出版方会把每个媒体变成一个实体聚合面。这道闸在三处守：
+   目录（测试钉住 news / community 不许标）、写入口（`normalizeFeedUpdate` 改
+   source_kind 时一并清掉）、解析（`resolvePublisherEntities` 直接跳过，连查询都不发）。
+2. **目录项显式写，不用剥后缀的规则猜**。`AWS Machine Learning` → AWS、
+   `Bank of England` → Bank of England、`Kubernetes Releases` → Kubernetes，
+   没有一条规则能同时做对这三个。`feed-catalog.test.ts` 钉住「每个一手来源都有标注」。
+3. **落在 `EventFeed` 上而不是只在目录里查**。站点可以自己加官方博客源，也该能标出版方；
+   工作台的源编辑面在 source_kind 是一手来源时才画那两个框。目录只是初始值——
+   `ensureDefaultFeeds` 每轮补一次（先一条查询问「还有没有缺这两列的源」，
+   常态开销就是这一条），站点自己改过的不覆盖。
+4. **解析走 `(connector, source_name)`**，不给 `EventSignal` 加 `feed_id`。
+   `source_name` 采集时就是从 `feed.name` 抄过去的。已知边界：**站点把源改名后旧信号解析不到**
+   ——新信号下一轮就带上新名字，代价远小于给十万级信号表加列并回填。
+5. **`is_publisher` 而不是给 `mention_count` 编一个大数**。主实体的排序键是
+   `[is_publisher desc, mention_count desc]`：单信号事件上出版方的提及次数恒为 1，
+   与抽取出来的实体打平，只按次数排是随机的。那一列的语义是「被提到几次」，
+   注水会让它不再是可核对的计数。
+6. **与分析器解耦**。`refreshEvent` 只在真重跑过分析时整体替换实体（LLM 冷却期内不覆盖），
+   而出版方不是分析器产物：有 analysis 时并进 wanted 集合一起 sync（不并进去会被整体替换删掉），
+   没有时走只增不删的 `ensurePublisherEntityLinks`。
+7. **可以接管同名的 `org` 占位**。规则抽取分不出类型时一律记 `org`，而 kind 是身份键的
+   一部分——不接管的话同一个 Cloudflare 会长出两张实体页，读者看到两份割裂的档案。
+   **只接管 `org` 这一格**（已经有明确类型的不动，那就成了别名合并），**slug 不动**
+   （它已经被收录、被分享过）。
+
+**仍然不进聚类**。MODULE.md 上面记着「共享实体 + 语义阈值」在真实语料上是救回 0 对、
+误并 1 对；出版方实体让「同一家的两次不相干故障共享实体」更普遍
+（githubstatus 那四条 `Incident with Actions`），所以那条禁令在这之后**更重要**，不是更松。
+
 #### Related Events
 
 与聚类同源、只是阈值更低：聚类回答「**这是不是同一件事**」（0.85），
@@ -791,7 +950,7 @@ confirmed 187 / discussion 106 / 留白 107。
 
 ### 类型（`kind-classifier.ts`）
 
-五格，**可空**：`outage | release | acquisition | funding | legal`。
+六格，**可空**：`outage | maintenance | release | acquisition | funding | legal`。
 不设 `other` 兜底格——绝大多数普通报道落不进任何一格，硬塞一个最像的会让整个
 类型面失去意义（与 topic 分类器「回落，不硬凑」同源）。
 
@@ -799,12 +958,42 @@ confirmed 187 / discussion 106 / 留白 107。
 
 | 依据               | 何时用                                                                                               |
 | ------------------ | ---------------------------------------------------------------------------------------------------- |
-| `source_kind` 先验 | 有 status 信号 → outage；有 release 信号 → release。状态页的一条 incident **就是**一次故障，压过模型 |
+| `source_kind` 先验 | 有 status 信号 → outage / maintenance（见下）；有 release 信号 → release。状态页的一条 incident **就是**一次故障，压过模型 |
 | LLM 给的 kind      | 有 key 且这轮真调了模型，在同一次调用里顺带产出，不新增调用                                          |
 | 关键词             | 其余。零成本，覆盖那 97.8%，是主力                                                                   |
 
 `filing` **不给先验**：SEC / FTC 既发处罚（legal）也发规则公告（不是），一刀切会把
 后者全标错。
+
+#### 计划维护不是故障
+
+状态页的 feed 里混着**两条轨**：真实事故（`Investigating → … → Resolved`）与
+计划维护（`Scheduled → In progress → Completed`）。以前只要有 status 信号就判 outage，
+无条件——本地库 231 个 status 事件全部被写成故障，其中 **16 个是 `Scheduled` 维护**
+（「ATL (Atlanta) on 2026-08-25」）。
+
+代价不在那 16 张卡，在两处**断言**：归位的「近 90 天第 4 次故障，此前几次累计 192 分钟」
+与实体档案的「故障 3 次 · 累计 192 分钟」。这是这个模块最强、也最经不起注水的两行——
+把一次计划内维护算成事故，读者拿它去做续约谈判会被一句话戳穿。
+
+判据是**阶段序列的第一格**（`isScheduledMaintenance`）：一次维护由 `Scheduled` 开场，
+一次事故由 `Investigating` / `Identified` 开场。**不能用末格判**——`Completed` 与
+`Resolved` 都是收尾，两条轨在结尾处长得一样。
+
+三条边界：
+
+1. **只要有一条是真事故就按事故算**。一个事件可能同时聚了「计划维护」与「维护期间出了
+   意外」两条记录，此时写成维护是在替系统遮丑。
+2. **解析不出一手序列的 status 信号仍判 outage**。解析很严（时间戳 + 已知阶段词缺一不可），
+   此时保持既有先验，失效方向留在原地。
+3. **facts 换读法而不是留空**：`fact_duration_minutes` 是维护窗口长度、`fact_resolved`
+   是「做完了没有」，同一条一手序列算出来，一个字都不推断。chip 文案分叉在
+   `describeEventFacts`（`fact.window` / `fact.completed` / `fact.inProgress`），
+   否则「计划内的 47 分钟」会被写成「故障 47 分钟」。
+
+它不违反「不设 `other` 兜底格」——那条反对的是**硬凑**，而这一格的判据是来源自己写下的
+那个阶段词，精度 100%。实体档案会自动多出一行「计划维护 N 次」（按 `groupBy(['kind'])` 出），
+而故障那行的 `_sum` 本来就只认 `kind = 'outage'`，不必改。
 
 #### 词表两次被真实语料打回来（别再放回去）
 
@@ -826,6 +1015,7 @@ confirmed 187 / discussion 106 / 留白 107。
 
 当前分布（893 个事件）：null 806 · outage 47 · legal 24 · release 9 ·
 acquisition 4 · funding 3。**判出来的只有 9.7%，这是刻意的**——精度换召回。
+（`maintenance` 是后来分出去的一格，见上；本地库 3778 个事件里 outage 344 · maintenance 21。）
 
 ### 关键事实（`fact-extractor.ts`）
 
@@ -1041,7 +1231,9 @@ OpenAI 报 `prompt_tokens_details.cached_tokens`）。系统提示词与响应�
 ## 采集源
 
 内置目录在 `server/ingest/feed-catalog.ts`，**229 个源**，每个 topic 至少 3 个，
-且**每个 topic 都有一手来源**（`feed-catalog.test.ts` 钉住）。清一色报道的格子里，
+且**每个 topic 都有一手来源**（`feed-catalog.test.ts` 钉住）。159 个一手来源目录项
+各带一个人工填的 `publisher_entity`（见「出版方实体」），测试同样钉住——
+新增一手来源时忘了填会红，而它不填不会报错，只会让那批事件继续没有实体。清一色报道的格子里，
 事件永远判不到 confirmed，只能等第二家媒体跟进。
 
 分布：tech 112 / ai 31 / business 24 / world 18 / gaming 17 / entertainment 17 / sports 10；
@@ -1371,7 +1563,9 @@ chrome 块这条路是走了两版才到的，两次都是被真实版式打回�
 - **中文源**：语义层已经就位，跨语言合并技术上成立了，但阈值要在中英混合语料上**单独校准**
   ——不能沿用 0.85。这是独立决策，不是顺手加几个 RSS
 - **关注实体的通知**：关注已经能记，推送还没有。事件 24h 后就凉，实体才是长期订阅面
-- **工作台的实体管理**：合并 / 改名 / 删除。别名合并要人来定，不能猜
+- **工作台的实体管理**：合并 / 改名 / 删除。别名合并要人来定，不能猜。
+  出版方实体已经能接管同名的 `org` 占位，但两个**不同名**的写法（`Meta` / `Facebook`）
+  仍然是两个实体
 - **那组 GitHub 故障仍然合不了**：词面共享不足 2 个词，语义 0.75~0.85 够不到阈值，
   实体兜底已实测证伪（见上文）。它需要的是「同一实体 + 同一时间窗 + 同一事件类型（故障）」
   这种事件类型判定，属于分析器的新职责，不是聚类参数问题
@@ -1381,3 +1575,7 @@ chrome 块这条路是走了两版才到的，两次都是被真实版式打回�
 - **带条件的对外 RSS**：`/events/feed.xml?kind=release`，要动 `rss.render` 与
   `parseEventsPublicPath`。公开列表页的 `?kind=` 已经有了，订阅侧还没有
 - **按类型订阅通知**（「只有 release 才推我」）：留存的下一步，要接 notification
+- **内容价值看板**：`hasReaderValue` 已经是库内谓词（本地库 67.2%），还没有一张卡把它
+  画给运营看。做的时候连带把「无实体的一手来源源清单」列出来——那是下一批该标出版方的源
+- **薄事件的合并展示**：同一天同一来源的一串薄事件收成一条「今日来自 X 的 N 条」，
+  比十张各自没有增量的卡片有用

@@ -152,6 +152,50 @@ describe("parseFeed —— 内置源真实条目形状", () => {
   });
 });
 
+describe("parseFeed —— 正文（content:encoded / Atom content）", () => {
+  it("按全名读 content:encoded，与 teaser 分开返回", () => {
+    const items = parseFeed(`<?xml version="1.0"?><rss version="2.0"
+      xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel>
+      <item>
+        <title>Elevated error rates in WAF</title>
+        <link>https://blog.cloudflare.com/waf-incident/</link>
+        <description><![CDATA[A short teaser.]]></description>
+        <content:encoded><![CDATA[<p>On 2026-08-20 we deployed a WAF rule that
+          matched far more requests than intended.</p><p>Mitigation was applied
+          at 11:24 UTC.</p>]]></content:encoded>
+      </item>
+    </channel></rss>`);
+    expect(items).toHaveLength(1);
+    // teaser 不被正文覆盖——两者各归各的字段
+    expect(items[0].summary).toBe("A short teaser.");
+    expect(items[0].content).toContain("matched far more requests");
+    expect(items[0].content).toContain("Mitigation was applied");
+  });
+
+  it("Atom 的 <content> 仍然读得到", () => {
+    const items =
+      parseFeed(`<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom">
+      <entry>
+        <title>Vercel Firewall update</title>
+        <link rel="alternate" href="https://vercel.com/changelog/firewall"/>
+        <content type="html">&lt;p&gt;Rules now apply at the edge.&lt;/p&gt;</content>
+      </entry></feed>`);
+    expect(items).toHaveLength(1);
+    expect(items[0].content).toBe("Rules now apply at the edge.");
+  });
+
+  it("两个标签都没有时正文是空串，不是 null", () => {
+    const items = parseFeed(`<?xml version="1.0"?><rss version="2.0"><channel>
+      <item>
+        <title>No body</title>
+        <link>https://example.com/a</link>
+        <description>teaser</description>
+      </item>
+    </channel></rss>`);
+    expect(items[0].content).toBe("");
+  });
+});
+
 describe("stripHtml", () => {
   it("去标签并折叠空白", () => {
     expect(stripHtml("<p>a</p>\n  <p>b</p>")).toBe("a b");

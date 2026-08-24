@@ -1,0 +1,74 @@
+# 「发生了什么：Comments」——53 次。
+#
+# `isUsableExcerpt` 只判了两件事：非空、不等于标题。它看不见**源模板文案**：
+# 同一个来源在几十条不相干的信号上给出逐字相同的一段话。本地库量的（tenant f098…）：
+#
+#   Comments                                                   ×53  （Lobsters / HN）
+#   We're on a journey to advance and democratize artificial…  ×23  （Hugging Face 的站点简介）
+#   The European Central Bank (ECB) is the central bank of…    ×13  （ECB 的机构介绍）
+#   Please refer to CHANGELOG.md for details.                  ×9
+#   Changelog See the full changelog for the changes included… ×6
+#   合计 131 个事件（有摘要的 4.3%）的「发生了什么」是一段与这件事无关的话。
+#
+# 它比空摘要更糟：空摘要会走目标页补齐那条路，而模板文案**看起来是内容**，
+# 于是补齐永远不会被触发，读者读到的是一句和事件无关的宣传语。
+#
+# 判据是纯计数，不推断语义：同一来源逐字重复 ≥3 次 = 这是源的模板，不是这条的摘录。
+# 因此它在规则路径上成立——正好作用在那 98% 的单信号事件上。
+#
+# 摘要出处的标注**已经有了**（`detail.analyzerHeuristic` =「摘要按规则整理自下方来源原文」），
+# 这一期不动它。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: 识别并清掉「同一来源逐字重复」的模板摘录，让它们走已有的目标页补齐路径，而不是当成事件摘要。
+gold: modules/events/server/ingest/excerpt-enrichment.ts
+touch:
+  - modules/events/features/boilerplate-excerpt.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/server/ingest/excerpt-boilerplate.ts
+  - modules/events/server/ingest/excerpt-boilerplate.test.ts
+  - modules/events/server/ingest/ingest.service.ts
+out_of_scope:
+  - 改 `isUsableExcerpt` 的既有两条判据（空、等于标题）
+  - 用相似度而不是逐字相等来判模板（见设计要点 2）
+  - 硬删信号（模板摘录只清空 excerpt，信号本身是证据）
+  - 给来源配「这个源的摘录不可用」的人工黑名单
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/ingest/excerpt-boilerplate.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - 在本地库跑一轮，核对 Lobsters 的「Comments」不再作为摘要出现
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. **判据是 (source_name, excerpt) 逐字相等且出现 ≥3 次**。一次 groupBy 就能拿到，
+#    零推断、零模型。阈值 3 而不是 2：两条相同的短摘录可能是同一件事的两次发布。
+#
+# 2. **不用相似度**。真实的模板文案是逐字相同的（它就是一个常量字符串）；
+#    换成相似度会把「同一系列的两次发版说明」也吃掉，而那是真实内容。
+#    与聚类那边「误合并比漏合并有害得多」同一条：宁可漏掉几条模板。
+#
+# 3. **只清空 `excerpt`，不动信号**。信号是证据，URL 与标题照旧；清空后它自然
+#    落进 `enrichStoredEmptyExcerpts` 的候选，去抓目标页拿真正的描述——
+#    Lobsters 的「Comments」正好因此换成文章本身的 meta description。
+#
+# 4. **长文本不参与**。超过 `MAX_BOILERPLATE_LENGTH` 的重复几乎一定是同一篇文章
+#    被重复采集（源换了 URL 重发），那是身份键的活，不是这里的。
+#
+# 5. **顺带把受影响的 heuristic 事件 `analyzed_at` 置空**，让摘要用新摘录重写；
+#    LLM / 人工改过的**不置空**——与摘录补齐同一条口径，置空会绕过冷却再付一次模型费。
+#
+# 6. **扫描要有界**。每轮每站点最多处理 N 组，与 `enrichStoredEmptyExcerpts`
+#    的 40 条同一性质：清理是背景工作，不能把采集周期吃掉。
+#
+# ---------- 下一步（不在本期）----------
+# - 把「这个源的摘录长期不可用」沉淀成源级别的事实（连续 N 轮都被判模板），
+#   在工作台的采集源列表上标出来

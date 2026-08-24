@@ -19,6 +19,8 @@ function form(
     url: "https://techcrunch.com/feed/",
     source_kind: "news",
     topic: "tech",
+    publisher_entity_name: "",
+    publisher_entity_kind: "org",
     ...overrides,
   };
 }
@@ -75,6 +77,35 @@ describe("buildEventFeedPayload", () => {
       url: undefined,
       source_kind: "news",
       topic: "tech",
+      publisher_entity_name: "",
+      publisher_entity_kind: "org",
+    });
+  });
+
+  /*
+   * 一篇 TechCrunch 报道不是「关于 TechCrunch」的。界面上切到 news 时那两个框
+   * 就消失了，但表单里可能还留着切换之前填的值——不能把它发出去。
+   */
+  it("非一手来源不带出版方，哪怕表单里还留着切换前填的值", () => {
+    expect(
+      buildEventFeedPayload(
+        form({ source_kind: "news", publisher_entity_name: "TechCrunch" }),
+      ).publisher_entity_name,
+    ).toBe("");
+  });
+
+  it("一手来源带上出版方", () => {
+    expect(
+      buildEventFeedPayload(
+        form({
+          source_kind: "status",
+          publisher_entity_name: "  Cloudflare  ",
+          publisher_entity_kind: "company",
+        }),
+      ),
+    ).toMatchObject({
+      publisher_entity_name: "Cloudflare",
+      publisher_entity_kind: "company",
     });
   });
 });

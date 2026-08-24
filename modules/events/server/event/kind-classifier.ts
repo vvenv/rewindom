@@ -14,6 +14,11 @@
  * 会让整个类型筛选面失去意义。
  */
 import {
+  isScheduledMaintenance,
+  type IncidentUpdate,
+} from "../ingest/incident-updates.js";
+
+import {
   EVENT_KINDS,
   type EventKind,
   type EventSourceKind,
@@ -23,6 +28,11 @@ export interface ClassifiableSignal {
   title: string;
   excerpt: string;
   source_kind: EventSourceKind;
+  /**
+   * 这条状态页信号解析出来的一手更新序列。有序列时它决定这次是事故还是
+   * 计划维护——来源自己写的阶段词，比任何文本判断都硬（见 `eventKindPrior`）。
+   */
+  incident_updates?: readonly IncidentUpdate[];
 }
 
 /** 与 topic 分类器同一套权重：标题里的命中比摘录里的更有说服力。 */
@@ -47,6 +57,19 @@ const MIN_MARGIN = 2;
  * 它们只会把所有事件拉向同一格——宁可判不出来。
  */
 const KIND_KEYWORDS: Record<EventKind, readonly string[]> = {
+  /*
+   * 计划维护的关键词只收**毫无歧义**的短语。裸的 `maintenance` 不收——
+   * 「maintenance mode」「maintenance release」「maintenance burden」
+   * 说的都不是维护窗口。真正的判据是状态页的阶段词（见 eventKindPrior），
+   * 关键词只兜没有一手序列可解析的那些。
+   */
+  maintenance: [
+    "scheduled maintenance",
+    "planned maintenance",
+    "maintenance window",
+    "计划维护",
+    "例行维护",
+  ],
   outage: [
     "outage",
     "downtime",
@@ -245,8 +268,18 @@ export function classifyEventKind(
 export function eventKindPrior(
   signals: readonly ClassifiableSignal[],
 ): EventKind | null {
-  if (signals.some((s) => s.source_kind === "status")) {
-    return "outage";
+  const status = signals.filter((s) => s.source_kind === "status");
+  if (status.length > 0) {
+    /*
+     * 状态页的 feed 里混着两条轨。**只要有一条是真事故就按事故算**——
+     * 一个事件可能同时聚了「计划维护」与「维护期间出了意外」两条记录，
+     * 此时把它写成「维护」是在替系统遮丑。
+     * 反过来，全部都是计划内窗口时它就不是故障，不该进故障计数。
+     */
+    const everyScheduled = status.every(
+      (s) => s.incident_updates && isScheduledMaintenance(s.incident_updates),
+    );
+    return everyScheduled ? "maintenance" : "outage";
   }
   if (signals.some((s) => s.source_kind === "release")) {
     return "release";

@@ -129,5 +129,8 @@ function fromFeed(feed: EventFeedItem): EventFeedFormValues {
     url: feed.url,
     source_kind: feed.source_kind,
     topic: feed.topic,
+    publisher_entity_name: feed.publisher_entity_name ?? "",
+    // 没标过就落在「分不出类型」那一格，与规则抽取同口径
+    publisher_entity_kind: feed.publisher_entity_kind ?? "org",
   };
 }

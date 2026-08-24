@@ -1,0 +1,85 @@
+# 近一半的详情页对读者没有任何增量。
+#
+# 本地库量的（tenant f098…，3132 个事件）：
+#
+#   单信号 + 无实体 + 无 kind                                    2028  64.8%
+#   ↑ 再叠加「摘要为空、或逐字等于来源那段 meta description」    1531  48.9%
+#   时间线只有 1 格                                              3100  99.0%
+#
+# 也就是说：近一半的事件页，读者读完拿到的东西和点原始链接完全一样——一个标题、
+# 一段 og:description、一个来源链接，外加一个**只有一格的「时间线」**，
+# 而那一格的信息（时刻 + 来源）与紧接着的「来源」板块逐字重复。
+#
+# 这一期不生产内容（那是另外四份 spec 的活），只做两件事：
+#   1. 把空板块收掉——一格不成线；
+#   2. 把「有没有增量」变成一个可测的库内谓词，用它守索引口径：
+#      没有增量的页不主动送去索引，但仍然可访问、仍进列表与 RSS。
+#
+# 顺带修一个存量口径漏洞：966 行（31%）的 `source_kinds` 是 NULL（加列时没回填，
+# 而刷新只碰热窗内的事件），DB 层的 `hasSome` / `has` 对它们恒不命中——
+# Rising 的非新闻源闸门与 `?kind=` 筛选对这批事件静默失效。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 单格时间线不再画成板块（两端一致）；没有增量的事件页 noindex 且不进 sitemap；回填存量 source_kinds。
+gold: modules/events/shared/sections/detail-html.ts
+touch:
+  - modules/events/features/thin-event-value.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/events.ts
+  - modules/events/shared/events.test.ts
+  - modules/events/shared/sections/detail-html.ts
+  - modules/events/shared/sections/detail-html.test.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/client/pages/event-detail.tsx
+  - apps/server/scripts/backfill-events-source-kinds.ts
+out_of_scope:
+  - 把薄事件从列表 / 主题页 / RSS 里摘掉（它们仍然是语料，读者仍可浏览）
+  - 删除薄事件（保留期清理是另一条路径）
+  - 改卡片的厚薄规则（`event-card-html.ts` 已有一套，不动）
+  - 给租户一个「薄页要不要收录」的开关（口径应当只有一套）
+  - 改 `?source=` 列表已有的 noindex（那条是别的理由）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+  - pnpm check:modules
+  - 本地跑一遍回填脚本，核对 source_kinds NULL 的行数归零
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. **「有增量」是一个谓词，写在 `shared/events.ts`**，两端共用一份：
+#      ≥2 条信号  或  有实体  或  有类型事实  或  有非空且不等于来源摘录的摘要
+#    它同时是看板指标（今天 51.1%）——把「内容价值」从主观判断变成一个能盯的数字。
+#    判据全部来自详情已经载入的字段，**不额外发查询**。
+#
+# 2. **时间线 ≥2 格才画**（公开面 `detail-html` 与工作台 `event-detail` 两端一起改，
+#    MODULE.md 记着「规格上的偏差要两端一起修」）。一格时那条信息不丢：
+#    它本来就在下面的「来源」板块里，逐字相同。
+#    **例外**：那一格带 `incident_updates` 嵌套序列时照画——一次 incident 的
+#    多次更新本来就是一条真时间线，只是挂在一条信号上。
+#
+# 3. **薄页是 `noindex, follow` 而不是 404 / 不可访问**。它们是真实语料，
+#    有人分享的链接要能打开；只是不主动占索引配额。`follow` 保住内链的传导
+#    （详情页链向实体页，而实体页正是这个站最该被索引的一面）。
+#
+# 4. **sitemap 与 noindex 必须同一个谓词**。两处口径不一致会让爬虫在 sitemap 里
+#    拿到一批自称 noindex 的地址——比两边都不做更糟。
+#
+# 5. **sitemap 的 500 条上限不动**，但筛掉薄页之后同样的配额能装下更多真有内容的页。
+#
+# 6. **回填脚本与 `rename-events-section-types.ts` 同一套写法**：一次性、幂等、
+#    可重跑。回填的是 `source_kinds`（从该事件现存信号的 `source_kind` 去重），
+#    不重算热度与分析——那是 refresh 的活，脚本不越界。
+#
+# ---------- 下一步（不在本期）----------
+# - 把「有增量」的比例做成工作台的一张卡（今天 51.1% → 目标）
+# - 薄事件的合并展示：同一天同一来源的一串薄事件收成一条「今日来自 X 的 N 条」

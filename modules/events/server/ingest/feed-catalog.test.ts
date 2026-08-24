@@ -7,6 +7,8 @@ import {
   sourceIconHost,
 } from "../../shared/index.js";
 
+import { isEntityKind } from "../event/entity-extractor.js";
+
 import { DEFAULT_FEEDS, feedCatalogKey } from "./feed-catalog.js";
 
 /**
@@ -76,6 +78,34 @@ describe("DEFAULT_FEEDS", () => {
     const urls = new Set(DEFAULT_FEEDS.map((feed) => feed.url));
     for (const { url, why } of REJECTED) {
       expect(urls.has(url), `${url} —— ${why}`).toBe(false);
+    }
+  });
+
+  /**
+   * 出版方实体是归位与累计档案在 release / status / official 这批事件上
+   * 能不能长出来的**前提**——它们的实体不用猜，就是这个源自己。
+   * 忘了填不会报错，只会让那批事件继续没有实体，所以在这里钉住。
+   */
+  it("每个一手来源目录项都标了出版方实体", () => {
+    for (const feed of DEFAULT_FEEDS) {
+      if (!isFirstPartySource(feed.source_kind)) {
+        continue;
+      }
+      expect(feed.publisher_entity?.name, feed.name).toBeTruthy();
+      expect(isEntityKind(feed.publisher_entity?.kind), feed.name).toBe(true);
+    }
+  });
+
+  /**
+   * 反过来也要守住：一篇 TechCrunch 报道不是「关于 TechCrunch」的。
+   * 给 news / community 源标出版方会把每个媒体变成一个实体聚合面。
+   */
+  it("news / community 源不许标出版方", () => {
+    for (const feed of DEFAULT_FEEDS) {
+      if (isFirstPartySource(feed.source_kind)) {
+        continue;
+      }
+      expect(feed.publisher_entity, feed.name).toBeUndefined();
     }
   });
 

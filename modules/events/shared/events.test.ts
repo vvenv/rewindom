@@ -10,6 +10,8 @@ import {
   enabledTopicWhere,
   EVENT_SOURCE_KINDS,
   EVENT_TOPICS,
+  hasReaderValue,
+  showsTimelineBlock,
   isFeedCollecting,
   isFirstPartySource,
   isThickEventCard,
@@ -414,5 +416,68 @@ describe("sortRelatedForReading", () => {
         { last_activity_at: "2026-08-12T00:00:00.000Z", title: "earlier" },
       ]).map((item) => item.title),
     ).toEqual(["earlier", "later"]);
+  });
+});
+
+/**
+ * 内容价值的两个谓词。数字全部取自本地库（tenant f098…，3132 个事件）——
+ * 改判据前先在真实语料上重量一遍。
+ */
+describe("hasReaderValue", () => {
+  const bare = {
+    signal_count: 1,
+    kind: null,
+    entity_count: 0,
+    analyzer: "heuristic",
+    summary: "OpenRouter's CEO described the startup as Stripe for AI.",
+  };
+
+  it("单信号 + 无实体 + 无类型 + 规则摘要 = 没有增量（本地库 48.9%）", () => {
+    expect(hasReaderValue(bare)).toBe(false);
+  });
+
+  it("≥2 条信号 = 有增量（跨源印证是主承诺本身）", () => {
+    expect(hasReaderValue({ ...bare, signal_count: 2 })).toBe(true);
+  });
+
+  it("有实体 = 有增量（归位与累计档案能长出来）", () => {
+    expect(hasReaderValue({ ...bare, entity_count: 1 })).toBe(true);
+  });
+
+  it("有类型 = 有增量（版本号 / 金额 / 时长被拎了出来）", () => {
+    expect(hasReaderValue({ ...bare, kind: "release" })).toBe(true);
+  });
+
+  it("LLM / 人工摘要 = 有增量；空摘要不算", () => {
+    expect(hasReaderValue({ ...bare, analyzer: "llm" })).toBe(true);
+    expect(hasReaderValue({ ...bare, analyzer: "manual" })).toBe(true);
+    expect(hasReaderValue({ ...bare, analyzer: "llm", summary: "  " })).toBe(
+      false,
+    );
+  });
+
+  /*
+   * 规则摘要按定义就是原文摘录的复制（buildSummary 原样返回那段 excerpt），
+   * 所以它再长也不构成增量——读者点进原链接一样能看到。
+   */
+  it("规则摘要再长也不算增量", () => {
+    expect(hasReaderValue({ ...bare, summary: "x".repeat(400) })).toBe(false);
+  });
+});
+
+describe("showsTimelineBlock", () => {
+  const plain = { incident_updates: [] };
+
+  it("一格不成线", () => {
+    expect(showsTimelineBlock([plain])).toBe(false);
+    expect(showsTimelineBlock([])).toBe(false);
+  });
+
+  it("两格起画", () => {
+    expect(showsTimelineBlock([plain, plain])).toBe(true);
+  });
+
+  it("一格但带一手更新序列时照画", () => {
+    expect(showsTimelineBlock([{ incident_updates: [{}, {}] }])).toBe(true);
   });
 });

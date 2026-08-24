@@ -11,6 +11,8 @@ import { Skeleton } from "@rewindom/ui/skeleton";
 import { Radar } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { showsTimelineBlock } from "../../shared/index.js";
+
 import { EventBlockTitle } from "../components/EventBlockTitle.js";
 import { EventDetailMobileHeader } from "../components/EventDetailMobileHeader.js";
 import { EventEditSheet } from "../components/EventEditSheet.js";
@@ -173,14 +175,20 @@ export function EventDetail() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <EventBlockTitle>{t("detail.timeline")}</EventBlockTitle>
-              </CardHeader>
-              <CardContent>
-                <EventTimeline entries={data.timeline} />
-              </CardContent>
-            </Card>
+            {/*
+              一格不成线：那条信息与下面的「来源」逐字重复，两端同一条口径
+              （公开面走 detail-html 的同一个 showsTimelineBlock）
+            */}
+            {showsTimelineBlock(data.timeline) ? (
+              <Card>
+                <CardHeader>
+                  <EventBlockTitle>{t("detail.timeline")}</EventBlockTitle>
+                </CardHeader>
+                <CardContent>
+                  <EventTimeline entries={data.timeline} />
+                </CardContent>
+              </Card>
+            ) : null}
 
             <Card>
               <CardHeader className="gap-1">

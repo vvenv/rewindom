@@ -1,0 +1,80 @@
+# 计划维护不是故障。
+#
+# `eventKindPrior` 现在是：只要有一条 `status` 信号就判 `outage`，无条件。
+# 但状态页的 feed 里混着两条完全不同的轨：真实事故（Investigating → Resolved）
+# 和**计划维护**（Scheduled → In progress → Completed）。
+#
+# 本地库量的（tenant f098…）：231 个 status 事件全部被判成 outage，其中
+# **16 个是 Scheduled 维护**（「ATL (Atlanta) on 2026-08-25 · 计划维护」被写成故障）。
+#
+# 代价不在那 16 张卡，在两处**断言**：
+#   - 归位：「Cloudflare 近 90 天第 4 次故障，此前几次累计 192 分钟」
+#   - 实体档案：「近 90 天 12 件事 · 故障 3 次 · 故障累计 192 分钟」
+# 这两行是整个模块最强、也最经不起注水的话——一次计划内的维护窗口被算成事故，
+# 读者拿它去做续约谈判或事故复盘会被对方一句话戳穿。
+#
+# 而阶段词**已经解析出来了**（`incident-updates.ts` 的 PHASES 里就有 `Scheduled`），
+# 判定几乎免费：不是推断，是来源自己写的那个词。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 状态页的计划维护判成 maintenance 而不是 outage，故障次数与累计时长不再把维护窗口算进去。
+gold: modules/events/server/event/kind-classifier.ts
+touch:
+  - modules/events/features/scheduled-maintenance.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/events.ts
+  - modules/events/server/ingest/incident-updates.ts
+  - modules/events/server/ingest/incident-updates.test.ts
+  - modules/events/server/event/kind-classifier.ts
+  - modules/events/server/event/kind-classifier.test.ts
+  - modules/events/server/event/event-refresh.service.ts
+  - modules/events/server/event/analyzer/llm-analyzer.ts
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 给 maintenance 单独做一个公开面筛选项 / 段（chips 与档案自然带上就够）
+  - 从正文里推断「这次维护是不是超时了」——那是判断，不是事实
+  - 改 `?kind=` 列表筛选（那筛的是 source_kind，与事件 kind 不是一回事）
+  - 回填存量事件（kind 与 facts 每轮重算，下一轮采集自然纠正）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/event/kind-classifier.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+  - 在本地库核对那 16 条 Scheduled 事件下一轮刷新后 kind 变成 maintenance
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: [] # kind 是既有字段，只是多一个取值
+
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. **加第六格 `maintenance`，不是判回 null**。判回 null 会把「来源明说了这是
+#    计划维护」这条最硬的事实丢掉，而 MODULE.md 里「不设 other 兜底格」反对的是
+#    **硬凑**——这一格的精度是 100%，来源自己写着 `Scheduled`。
+#
+# 2. **判据是阶段序列的第一格**，不是标题关键词。Statuspage 是倒序输出的，
+#    解析后已经转成升序；一次维护的**开头**是 `Scheduled`，一次事故的开头是
+#    `Investigating` / `Identified`。用末格判会把「维护已完成」和「事故已解决」
+#    混在一起（`Completed` 与 `Resolved` 都是收尾）。
+#
+# 3. **没有阶段序列的 status 信号仍判 outage**。不是所有状态页都能解析出序列
+#    （解析很严：时间戳 + 已知阶段词缺一不可），此时保持现有先验——
+#    失效方向留在原地，不因为这一期变得更差。
+#
+# 4. **facts 跟着改口径而不是留空**：maintenance 的 `fact_duration_minutes`
+#    是维护窗口长度、`fact_resolved` 是「是否已完成」，两者都由同一条一手序列算出，
+#    仍然一个字都不推断。展示文案要与故障区分（「维护 47 分钟」vs「持续 47 分钟」）。
+#
+# 5. **实体档案会自动多一行「维护 N 次」**——它按 `groupBy(['kind'])` 出，
+#    不需要改。要确认的是故障那一行的 `_sum` 不再把维护的分钟数加进去。
+#
+# 6. **LLM 提示词里的 kind 枚举自动跟着 `EVENT_KINDS` 走**，不要在提示词里
+#    手写第六个词；但要给它一句「计划内的维护窗口是 maintenance，不是 outage」，
+#    否则模型看见一段「服务不可用」的正文仍会判 outage（先验会压过它，
+#    但没有序列的那批走的正是模型答案）。

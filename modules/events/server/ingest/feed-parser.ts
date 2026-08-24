@@ -5,7 +5,8 @@
  * 得让整个 monorepo 承担它的供应链与升级成本。feed 的结构又极窄——
  * 只需要 title / link / id / date / summary 五个字段，正则够用且能单测穷举。
  *
- * 明确的边界：不做命名空间解析、不做 XML 校验、不处理嵌套同名标签。
+ * 明确的边界：不做通用命名空间解析（`content:encoded` 是按全名读的一条特例，
+ * 见下）、不做 XML 校验、不处理嵌套同名标签。
  * 遇到解析不出的条目就跳过，不让一条畸形 item 毁掉整轮抓取。
  */
 
@@ -14,7 +15,15 @@ export interface ParsedFeedItem {
   id: string;
   title: string;
   link: string;
+  /** 源给的短描述（RSS `description` / Atom `summary`）——通常是 teaser。 */
   summary: string;
+  /**
+   * 正文（RSS `content:encoded` / Atom `content`）。没有就是空串。
+   *
+   * 与 `summary` **分开返回**而不是就地择优：只有 connector 知道这条源是不是
+   * 一手来源，而「teaser 还是正文更该当摘录」正是按这个分的（见 rss.connector）。
+   */
+  content: string;
   author: string | null;
   /** 解析不出日期时为 null，由调用方决定用抓取时间兜底 */
   published_at: Date | null;
@@ -47,12 +56,21 @@ function parseFeedItem(block: string): ParsedFeedItem | null {
     readTag(block, "summary") ??
     readTag(block, "content") ??
     "";
+  /*
+   * `content:encoded` 必须按**全名**读。以前这里只读 `content`：开标签
+   * `<content\b[^>]*>` 会把 `:encoded` 当属性吃掉，而闭标签要求逐字
+   * `</content>` —— 于是整条失配，正文被静默丢掉。
+   * 实测 blog.cloudflare.com/rss/ 每条都同时有 teaser 与正文。
+   */
+  const content =
+    readTag(block, "content:encoded") ?? readTag(block, "content") ?? "";
 
   return {
     id,
     title,
     link,
     summary: stripHtml(summary),
+    content: stripHtml(content),
     author: readAuthor(block),
     published_at: readDate(block),
   };

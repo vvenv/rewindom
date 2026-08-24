@@ -201,3 +201,19 @@ export function incidentResolved(
   }
   return last.phase === "Resolved" || last.phase === "Completed";
 }
+
+/**
+ * 这条序列是不是一次**计划维护**（而不是一次事故）。
+ *
+ * 判据是**开头那一格**：一次维护由 `Scheduled` 开场，一次事故由
+ * `Investigating` / `Identified` 开场。**不能用末格判**——`Completed`
+ * 与 `Resolved` 都是收尾，两条轨在结尾处长得一样。
+ *
+ * 解析后的序列已经转成升序（Statuspage 自己是倒序输出的），所以 `[0]` 就是开头。
+ * 没有序列时返回 false：此时上游仍按既有先验判 outage，失效方向留在原地。
+ */
+export function isScheduledMaintenance(
+  updates: readonly IncidentUpdate[],
+): boolean {
+  return updates[0]?.phase === "Scheduled";
+}

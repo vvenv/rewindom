@@ -6,7 +6,15 @@ import {
   resolveEventAnalyzer,
 } from "./analyzer/index.js";
 import { extractEntities, isEntityKind } from "./entity-extractor.js";
-import { syncEventEntities } from "./entity.service.js";
+import {
+  ensurePublisherEntityLinks,
+  syncEventEntities,
+} from "./entity.service.js";
+import {
+  loadPublisherFeedIndex,
+  resolvePublisherEntities,
+  type PublisherFeedIndex,
+} from "./publisher-entity.js";
 import { diffEventRevisions } from "./event-revision.service.js";
 import { computeHeat, resolveStatus, type HeatSignal } from "./heat.js";
 import { pickEventTitle } from "./title-tokens.js";
@@ -105,6 +113,17 @@ export async function refreshEvents(
     return pending;
   };
 
+  // 出版方标注同样是每站点一份，与榜单同一条口径（见 loadPublisherFeedIndex）
+  const publisherFeeds = new Map<string, Promise<PublisherFeedIndex>>();
+  const publisherFeedsFor = (tenantId: string): Promise<PublisherFeedIndex> => {
+    let pending = publisherFeeds.get(tenantId);
+    if (!pending) {
+      pending = loadPublisherFeedIndex(tenantId);
+      publisherFeeds.set(tenantId, pending);
+    }
+    return pending;
+  };
+
   // 每个站点一次，不是每个事件一次——一轮刷新几百个事件共用同一份榜单
   const heatWindows = new Map<string, Promise<Set<string> | null>>();
   const heatWindowFor = (tenantId: string): Promise<Set<string> | null> => {
@@ -131,6 +150,7 @@ export async function refreshEvents(
         options,
         analyzerFor,
         heatWindowFor,
+        publisherFeedsFor,
       });
       if (changed) {
         refreshed += 1;
@@ -145,12 +165,16 @@ export async function refreshEvents(
   return refreshed;
 }
 
-/** 一轮刷新里所有事件共享的东西：按站点解析一次的分析器与热度榜单。 */
+/**
+ * 一轮刷新里所有事件共享的东西：按站点解析一次的分析器、热度榜单与出版方标注。
+ * 每一项都是「每站点一份」——放进按事件的循环等于把同一份数据读几百遍。
+ */
 interface RefreshContext {
   now: Date;
   options: RefreshEventsOptions;
   analyzerFor: (tenantId: string) => Promise<EventAnalyzer>;
   heatWindowFor: (tenantId: string) => Promise<Set<string> | null>;
+  publisherFeedsFor: (tenantId: string) => Promise<PublisherFeedIndex>;
 }
 
 async function refreshEvent(
@@ -191,6 +215,8 @@ async function refreshEvent(
       excerpt: true,
       source_name: true,
       source_kind: true,
+      // 出版方实体按 (connector, source_name) 解析回采集源
+      connector: true,
       topic: true,
       score: true,
       comment_count: true,
@@ -296,6 +322,8 @@ async function refreshEvent(
     title: signal.title,
     excerpt: signal.excerpt,
     source_kind: signal.source_kind as EventSourceKind,
+    // 状态页的阶段词决定这次是事故还是计划维护，先验要看得到它
+    incident_updates: toIncidentUpdates(signal.incident_updates),
   }));
   const kind =
     eventKindPrior(classifiableSignals) ??
@@ -303,11 +331,14 @@ async function refreshEvent(
     classifyEventKind(classifiableSignals);
 
   const facts = extractEventFacts(kind, signals);
-  if (kind === "outage") {
+  if (kind === "outage" || kind === "maintenance") {
     /*
-     * 故障时长只认一手更新序列。全事件取**最长**的那条 incident——
+     * 时长只认一手更新序列。全事件取**最长**的那条 incident——
      * 一个事件可能聚了同一次故障在多个状态页上的记录，取最长的那份最接近
      * 「这次故障持续了多久」，而取首条只是取抓到顺序里的第一份。
+     *
+     * 维护走同一套算法、不同读法：那是维护窗口的长度与「做完了没有」
+     * （文案分叉在 `describeEventFacts`，两种 kind 各一组 chip code）。
      */
     const sequences = signals
       .map((signal) => toIncidentUpdates(signal.incident_updates))
@@ -494,11 +525,34 @@ async function refreshEvent(
    * 实体在事务外同步：它要先 upsert 实体行再建关联，写法上是「读-写-读」，
    * 塞进上面那个批量事务只会拉长持锁时间，而实体关联晚一拍不影响任何读路径。
    */
+  /*
+   * 出版方实体（采集源标注的一手来源身份）与分析器**解耦**：
+   * 它不是分析器产物，没有理由跟着 LLM 的冷却走。
+   *
+   * - 重跑过分析：并进 wanted 集合一起 sync（整体替换会把没并进去的删掉）
+   * - 没重跑：走只增不删的那条，保证冷却期内关联仍在
+   */
+  const publishers = resolvePublisherEntities(
+    await ctx.publisherFeedsFor(event.tenant_id),
+    signals.map((signal) => ({
+      connector: signal.connector,
+      source_name: signal.source_name,
+      source_kind: signal.source_kind as EventSourceKind,
+    })),
+  );
+
   if (entities) {
     await syncEventEntities({
       tenant_id: event.tenant_id,
       event_id: eventId,
       entities,
+      publishers,
+    });
+  } else if (publishers.length > 0) {
+    await ensurePublisherEntityLinks({
+      tenant_id: event.tenant_id,
+      event_id: eventId,
+      publishers,
     });
   }
 

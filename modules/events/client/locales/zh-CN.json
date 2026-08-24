@@ -404,7 +404,11 @@
       "connectorInvalid": "请选择采集方式",
       "sourceKindInvalid": "请选择类型",
       "topicInvalid": "请选择主题"
-    }
+    },
+    "fieldPublisherEntity": "出版方实体",
+    "fieldPublisherKind": "实体类型",
+    "publisherPlaceholder": "Cloudflare",
+    "publisherHint": "这条源发的事是关于谁的。发版、故障、公告这类事件的实体不用猜，填了它们才有归位与累计档案。"
   },
   "sample": {
     "event1": {
@@ -459,6 +463,7 @@
   },
   "kind": {
     "outage": "故障",
+    "maintenance": "计划维护",
     "release": "发版",
     "acquisition": "收购",
     "funding": "融资",
@@ -466,8 +471,11 @@
   },
   "fact": {
     "duration": "持续 {{minutes}} 分钟",
+    "window": "维护 {{minutes}} 分钟",
     "resolved": "已解决",
     "ongoing": "进行中",
+    "completed": "已完成",
+    "inProgress": "进行中",
     "version": "{{version}}",
     "amount": "{{amount}}"
   },

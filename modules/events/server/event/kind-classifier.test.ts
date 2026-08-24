@@ -29,6 +29,74 @@ describe("source_kind 先验", () => {
     ).toBe("outage");
   });
 
+  /*
+   * 但状态页混着两条轨。本地库量的：231 个 status 事件全部被判成 outage，
+   * 其中 16 个是 `Scheduled` 维护（「ATL (Atlanta) on 2026-08-25」）。
+   * 归位与实体档案那两行故障计数是这个模块最强的断言，不能掺进维护窗口。
+   */
+  it("状态页的计划维护判 maintenance，不判 outage", () => {
+    expect(
+      classifyEventKind([
+        signal({
+          title: "ATL (Atlanta) on 2026-08-25",
+          source_kind: "status",
+          incident_updates: [
+            {
+              occurred_at: "2026-08-20T04:31:00.000Z",
+              phase: "Scheduled",
+              text: "We will be performing scheduled maintenance in ATL.",
+            },
+            {
+              occurred_at: "2026-08-25T06:00:00.000Z",
+              phase: "Completed",
+              text: "The scheduled maintenance has been completed.",
+            },
+          ],
+        }),
+      ]),
+    ).toBe("maintenance");
+  });
+
+  it("只要有一条是真事故就按事故算 —— 维护期间出的意外不该被藏起来", () => {
+    expect(
+      classifyEventKind([
+        signal({
+          title: "ATL (Atlanta) on 2026-08-25",
+          source_kind: "status",
+          incident_updates: [
+            {
+              occurred_at: "2026-08-20T04:31:00.000Z",
+              phase: "Scheduled",
+              text: "Scheduled maintenance.",
+            },
+          ],
+        }),
+        signal({
+          title: "Elevated error rates",
+          source_kind: "status",
+          incident_updates: [
+            {
+              occurred_at: "2026-08-25T06:10:00.000Z",
+              phase: "Investigating",
+              text: "We are investigating elevated error rates.",
+            },
+          ],
+        }),
+      ]),
+    ).toBe("outage");
+  });
+
+  it("解析不出一手序列的状态页信号仍判 outage —— 失效方向留在原地", () => {
+    expect(
+      classifyEventKind([
+        signal({
+          title: "Scheduled maintenance on 2026-08-25",
+          source_kind: "status",
+        }),
+      ]),
+    ).toBe("outage");
+  });
+
   it("发版源信号一律判发版", () => {
     expect(
       classifyEventKind([

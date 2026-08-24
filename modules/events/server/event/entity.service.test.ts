@@ -119,3 +119,43 @@ describe("syncEventEntities", () => {
     expect(linkUpsert.mock.calls[0][0].create.entity_id).toBe("winner");
   });
 });
+
+/**
+ * 出版方实体：采集源标注的一手来源身份。它是归位与累计档案在
+ * release / status / official 这批事件上能不能长出来的前提。
+ */
+describe("syncEventEntities —— 出版方实体", () => {
+  it("出版方并进 wanted 集合，关联打上 is_publisher", async () => {
+    await syncEventEntities({
+      tenant_id: "t1",
+      event_id: "e1",
+      entities: [{ name: "Workers", kind: "product", mention_count: 3 }],
+      publishers: [{ name: "Cloudflare", kind: "company", mention_count: 1 }],
+    });
+
+    const flags = linkUpsert.mock.calls.map((call) => [
+      call[0].create.entity_id,
+      call[0].create.is_publisher,
+    ]);
+    // 两条关联都建了，且只有出版方那条打了标
+    expect(flags).toHaveLength(2);
+    expect(flags.filter(([, flag]) => flag)).toHaveLength(1);
+  });
+
+  /*
+   * 整体替换会把不在 wanted 里的关联删掉。出版方不并进来的话，
+   * 就成了「这一轮加、下一轮删」的抖动。
+   */
+  it("出版方参与 upsert，不会被整体替换删掉", async () => {
+    await syncEventEntities({
+      tenant_id: "t1",
+      event_id: "e1",
+      entities: [],
+      publishers: [{ name: "Cloudflare", kind: "company", mention_count: 1 }],
+    });
+    expect(linkUpsert).toHaveBeenCalledTimes(1);
+    expect(linkDeleteMany.mock.calls[0][0].where.entity_id.notIn).toHaveLength(
+      1,
+    );
+  });
+});

@@ -5,7 +5,7 @@
  * 而不是把几个平台的榜单并排画出来。
  */
 
-import { sortRelatedForReading } from "../events.js";
+import { showsTimelineBlock, sortRelatedForReading } from "../events.js";
 import { readEventsContext } from "../events-section-context.js";
 
 import {
@@ -151,7 +151,8 @@ function timelineHtml(
   entries: PublicEventTimelineItem[],
   label: string,
 ): string {
-  if (entries.length === 0) {
+  // 一格不成线——那条信息与下面的「来源」逐字重复（见 showsTimelineBlock）
+  if (!showsTimelineBlock(entries)) {
     return "";
   }
   const rows = entries

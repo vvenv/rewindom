@@ -1,3 +1,5 @@
+import type { EntityKind } from "../event/entity-extractor.js";
+
 import type { EventSourceKind, EventTopic } from "../../shared/index.js";
 
 export interface FeedSeed {
@@ -6,6 +8,24 @@ export interface FeedSeed {
   url: string;
   source_kind: EventSourceKind;
   topic: EventTopic;
+  /**
+   * 这个源的**出版方实体**——「这条源发的事，是关于谁的」。
+   *
+   * 只给一手来源填（official / release / status / filing）。一篇 TechCrunch
+   * 报道不是「关于 TechCrunch」的，给 news 源填出版方会把每个媒体变成一个
+   * 实体聚合面——正好是实体抽取那几道闸要挡的东西的放大版。
+   *
+   * **显式写，不用剥后缀的规则猜**：`AWS Machine Learning` → AWS、
+   * `Bank of England` → Bank of England、`Kubernetes Releases` → Kubernetes，
+   * 三条没有一条能被同一个规则做对。`feed-catalog.test.ts` 钉住
+   * 「每个一手来源目录项都有 publisher_entity」，新增源时忘了填会红。
+   *
+   * 存在的理由：归位与累计档案要求事件上有主实体，而实体抽取刻意保守
+   *（Title Case 整条弃权、句首要等印证），本地库量到的覆盖率——
+   * release 8.3%、status 36.4%、official 38.0%。而这批事件的实体**根本不用猜**：
+   * `Cloudflare Status` 的事件就是关于 Cloudflare 的。
+   */
+  publisher_entity?: { name: string; kind: EntityKind };
 }
 
 /**
@@ -68,6 +88,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://openai.com/news/rss.xml",
     source_kind: "official",
     topic: "ai",
+    publisher_entity: { name: "OpenAI", kind: "company" },
   },
   {
     connector: "rss",
@@ -75,6 +96,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://huggingface.co/blog/feed.xml",
     source_kind: "official",
     topic: "ai",
+    publisher_entity: { name: "Hugging Face", kind: "company" },
   },
   {
     connector: "rss",
@@ -82,6 +104,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://research.google/blog/rss/",
     source_kind: "official",
     topic: "ai",
+    publisher_entity: { name: "Google", kind: "company" },
   },
   {
     connector: "rss",
@@ -89,6 +112,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://deepmind.google/blog/rss.xml",
     source_kind: "official",
     topic: "ai",
+    publisher_entity: { name: "DeepMind", kind: "company" },
   },
   {
     connector: "rss",
@@ -96,6 +120,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://blog.google/technology/ai/rss/",
     source_kind: "official",
     topic: "ai",
+    publisher_entity: { name: "Google", kind: "company" },
   },
   {
     connector: "rss",
@@ -103,6 +128,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://blogs.nvidia.com/feed/",
     source_kind: "official",
     topic: "ai",
+    publisher_entity: { name: "NVIDIA", kind: "company" },
   },
   {
     connector: "rss",
@@ -110,6 +136,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.microsoft.com/en-us/research/feed/",
     source_kind: "official",
     topic: "ai",
+    publisher_entity: { name: "Microsoft", kind: "company" },
   },
   {
     connector: "rss",
@@ -117,6 +144,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://pytorch.org/blog/feed.xml",
     source_kind: "official",
     topic: "ai",
+    publisher_entity: { name: "PyTorch", kind: "product" },
   },
   {
     connector: "rss",
@@ -124,6 +152,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://aws.amazon.com/blogs/machine-learning/feed/",
     source_kind: "official",
     topic: "ai",
+    publisher_entity: { name: "AWS", kind: "company" },
   },
   // 第三轮补：上一轮判死的几家换了地址（Mistral / Databricks / Allen AI），
   // 外加学界与厂商的一手研究博客
@@ -133,6 +162,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://allenai.org/rss.xml",
     source_kind: "official",
     topic: "ai",
+    publisher_entity: { name: "Allen Institute for AI", kind: "org" },
   },
   {
     connector: "rss",
@@ -140,6 +170,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://machinelearning.apple.com/rss.xml",
     source_kind: "official",
     topic: "ai",
+    publisher_entity: { name: "Apple", kind: "company" },
   },
   {
     connector: "rss",
@@ -147,6 +178,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://bair.berkeley.edu/blog/feed.xml",
     source_kind: "official",
     topic: "ai",
+    publisher_entity: { name: "Berkeley AI Research", kind: "org" },
   },
   {
     connector: "rss",
@@ -154,6 +186,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.databricks.com/feed",
     source_kind: "official",
     topic: "ai",
+    publisher_entity: { name: "Databricks", kind: "company" },
   },
   {
     connector: "rss",
@@ -161,6 +194,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://mistral.ai/rss.xml",
     source_kind: "official",
     topic: "ai",
+    publisher_entity: { name: "Mistral AI", kind: "company" },
   },
   {
     connector: "rss",
@@ -168,6 +202,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://news.mit.edu/rss/topic/artificial-intelligence2",
     source_kind: "official",
     topic: "ai",
+    publisher_entity: { name: "MIT", kind: "org" },
   },
   {
     connector: "rss",
@@ -175,6 +210,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://ollama.com/blog/rss.xml",
     source_kind: "official",
     topic: "ai",
+    publisher_entity: { name: "Ollama", kind: "product" },
   },
 
   // ---- ai · 报道
@@ -207,6 +243,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.blog/feed/",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "GitHub", kind: "company" },
   },
   {
     connector: "rss",
@@ -214,6 +251,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://blog.cloudflare.com/rss/",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Cloudflare", kind: "company" },
   },
   {
     connector: "rss",
@@ -221,6 +259,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://hacks.mozilla.org/feed/",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Mozilla", kind: "org" },
   },
   {
     connector: "rss",
@@ -228,6 +267,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://blog.chromium.org/feeds/posts/default",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Chromium", kind: "product" },
   },
   {
     connector: "rss",
@@ -235,6 +275,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://blog.rust-lang.org/feed.xml",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Rust", kind: "product" },
   },
   {
     connector: "rss",
@@ -242,6 +283,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://stackoverflow.blog/feed/",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Stack Overflow", kind: "company" },
   },
   {
     connector: "rss",
@@ -249,6 +291,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://engineering.fb.com/feed/",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Meta", kind: "company" },
   },
   {
     connector: "rss",
@@ -256,6 +299,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://aws.amazon.com/blogs/aws/feed/",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "AWS", kind: "company" },
   },
   {
     connector: "rss",
@@ -263,6 +307,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://devblogs.microsoft.com/feed/",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Microsoft", kind: "company" },
   },
   {
     connector: "rss",
@@ -270,6 +315,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.apple.com/newsroom/rss-feed.rss",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Apple", kind: "company" },
   },
   {
     connector: "rss",
@@ -277,6 +323,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://about.gitlab.com/atom.xml",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "GitLab", kind: "company" },
   },
   {
     connector: "rss",
@@ -284,6 +331,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://kubernetes.io/feed.xml",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Kubernetes", kind: "product" },
   },
   {
     connector: "rss",
@@ -291,6 +339,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.docker.com/blog/feed/",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Docker", kind: "company" },
   },
   {
     connector: "rss",
@@ -298,6 +347,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://vercel.com/atom",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Vercel", kind: "company" },
   },
   {
     connector: "rss",
@@ -305,6 +355,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://netflixtechblog.com/feed",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Netflix", kind: "company" },
   },
   // 第三轮补：开发者工具与运行时的官方博客，外加 CISA 安全公告（filing）
   {
@@ -313,6 +364,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.cisa.gov/cybersecurity-advisories/all.xml",
     source_kind: "filing",
     topic: "tech",
+    publisher_entity: { name: "CISA", kind: "org" },
   },
   {
     connector: "rss",
@@ -320,6 +372,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://android-developers.googleblog.com/feeds/posts/default",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Android", kind: "product" },
   },
   {
     connector: "rss",
@@ -327,6 +380,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://developer.apple.com/news/rss/news.rss",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Apple", kind: "company" },
   },
   {
     connector: "rss",
@@ -335,6 +389,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://astro.build/rss.xml",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Astro", kind: "product" },
   },
   {
     connector: "rss",
@@ -343,6 +398,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://bun.sh/rss.xml",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Bun", kind: "product" },
   },
   {
     connector: "rss",
@@ -351,6 +407,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://deno.com/feed",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Deno", kind: "product" },
   },
   {
     connector: "rss",
@@ -358,6 +415,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://discord.com/blog/rss.xml",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Discord", kind: "company" },
   },
   {
     connector: "rss",
@@ -365,6 +423,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://dropbox.tech/feed",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Dropbox", kind: "company" },
   },
   {
     connector: "rss",
@@ -372,6 +431,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://fly.io/blog/feed.xml",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Fly.io", kind: "company" },
   },
   {
     connector: "rss",
@@ -379,6 +439,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://grafana.com/blog/index.xml",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Grafana", kind: "product" },
   },
   {
     connector: "rss",
@@ -386,6 +447,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.hashicorp.com/blog/feed.xml",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "HashiCorp", kind: "company" },
   },
   {
     connector: "rss",
@@ -393,6 +455,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://newsroom.intel.com/feed",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Intel", kind: "company" },
   },
   {
     connector: "rss",
@@ -400,6 +463,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://blog.jetbrains.com/feed/",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "JetBrains", kind: "company" },
   },
   {
     connector: "rss",
@@ -407,6 +471,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://blog.mozilla.org/en/feed/",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Mozilla", kind: "org" },
   },
   {
     connector: "rss",
@@ -414,6 +479,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://planetscale.com/blog/rss.xml",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "PlanetScale", kind: "company" },
   },
   {
     connector: "rss",
@@ -422,6 +488,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.postgresql.org/news.rss",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "PostgreSQL", kind: "product" },
   },
   {
     connector: "rss",
@@ -429,6 +496,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.raspberrypi.com/news/feed/",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Raspberry Pi", kind: "company" },
   },
   {
     connector: "rss",
@@ -436,6 +504,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://news.samsung.com/global/feed",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Samsung", kind: "company" },
   },
   {
     connector: "rss",
@@ -443,6 +512,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://slack.engineering/feed/",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Slack", kind: "company" },
   },
   {
     connector: "rss",
@@ -450,6 +520,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://engineering.atspotify.com/feed/",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Spotify", kind: "company" },
   },
   {
     connector: "rss",
@@ -457,6 +528,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://stripe.com/blog/feed.rss",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Stripe", kind: "company" },
   },
   {
     connector: "rss",
@@ -465,6 +537,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://supabase.com/rss.xml",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "Supabase", kind: "company" },
   },
   {
     connector: "rss",
@@ -472,6 +545,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.w3.org/blog/news/feed/",
     source_kind: "official",
     topic: "tech",
+    publisher_entity: { name: "W3C", kind: "org" },
   },
 
   // ---- tech · 报道 / 社区
@@ -595,6 +669,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.federalreserve.gov/feeds/press_all.xml",
     source_kind: "official",
     topic: "business",
+    publisher_entity: { name: "Federal Reserve", kind: "org" },
   },
   {
     connector: "rss",
@@ -602,6 +677,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.sec.gov/news/pressreleases.rss",
     source_kind: "filing",
     topic: "business",
+    publisher_entity: { name: "SEC", kind: "org" },
   },
   // Akamai 会拦阅读器 UA，采集出口对 ftc.gov 改用浏览器族 UA（见 http.ts）
   {
@@ -610,6 +686,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.ftc.gov/feeds/press-release.xml",
     source_kind: "filing",
     topic: "business",
+    publisher_entity: { name: "FTC", kind: "org" },
   },
   {
     connector: "rss",
@@ -617,6 +694,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/press-releases/rss.xml",
     source_kind: "filing",
     topic: "business",
+    publisher_entity: { name: "FDA", kind: "org" },
   },
   {
     connector: "rss",
@@ -624,6 +702,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.ecb.europa.eu/rss/press.html",
     source_kind: "official",
     topic: "business",
+    publisher_entity: { name: "European Central Bank", kind: "org" },
   },
 
   // 第三轮补：报道面 + 监管机构（DOJ / CFPB / UK CMA）+ 大厂自己的新闻室
@@ -633,6 +712,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.consumerfinance.gov/about-us/newsroom/feed/",
     source_kind: "filing",
     topic: "business",
+    publisher_entity: { name: "CFPB", kind: "org" },
   },
   {
     connector: "rss",
@@ -640,6 +720,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.justice.gov/news/rss?type=press_release",
     source_kind: "filing",
     topic: "business",
+    publisher_entity: { name: "DOJ", kind: "org" },
   },
   {
     connector: "rss",
@@ -647,6 +728,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.gov.uk/government/organisations/competition-and-markets-authority.atom",
     source_kind: "filing",
     topic: "business",
+    publisher_entity: { name: "CMA", kind: "org" },
   },
   {
     connector: "rss",
@@ -697,6 +779,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.aboutamazon.com/news/rss",
     source_kind: "official",
     topic: "business",
+    publisher_entity: { name: "Amazon", kind: "company" },
   },
   {
     connector: "rss",
@@ -704,6 +787,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.bankofengland.co.uk/rss/news",
     source_kind: "official",
     topic: "business",
+    publisher_entity: { name: "Bank of England", kind: "org" },
   },
   {
     connector: "rss",
@@ -711,6 +795,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://about.fb.com/news/feed/",
     source_kind: "official",
     topic: "business",
+    publisher_entity: { name: "Meta", kind: "company" },
   },
   {
     connector: "rss",
@@ -718,6 +803,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://news.microsoft.com/source/feed/",
     source_kind: "official",
     topic: "business",
+    publisher_entity: { name: "Microsoft", kind: "company" },
   },
 
   // ---- world
@@ -748,6 +834,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://news.un.org/feed/subscribe/en/news/all/rss.xml",
     source_kind: "official",
     topic: "world",
+    publisher_entity: { name: "United Nations", kind: "org" },
   },
   {
     connector: "rss",
@@ -755,6 +842,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.who.int/rss-feeds/news-english.xml",
     source_kind: "official",
     topic: "world",
+    publisher_entity: { name: "WHO", kind: "org" },
   },
   {
     connector: "rss",
@@ -799,6 +887,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://ec.europa.eu/commission/presscorner/api/rss?language=en&pagesize=20",
     source_kind: "filing",
     topic: "world",
+    publisher_entity: { name: "European Commission", kind: "org" },
   },
   {
     connector: "rss",
@@ -842,6 +931,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.nasa.gov/news-release/feed/",
     source_kind: "official",
     topic: "world",
+    publisher_entity: { name: "NASA", kind: "org" },
   },
   {
     connector: "rss",
@@ -849,6 +939,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.state.gov/rss-feed/press-releases/feed/",
     source_kind: "official",
     topic: "world",
+    publisher_entity: { name: "US State Department", kind: "org" },
   },
 
   // ---- gaming
@@ -872,6 +963,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://blog.playstation.com/feed/",
     source_kind: "official",
     topic: "gaming",
+    publisher_entity: { name: "PlayStation", kind: "product" },
   },
   {
     connector: "rss",
@@ -879,6 +971,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://news.xbox.com/en-us/feed/",
     source_kind: "official",
     topic: "gaming",
+    publisher_entity: { name: "Xbox", kind: "product" },
   },
   {
     connector: "rss",
@@ -886,6 +979,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://store.steampowered.com/feeds/news.xml",
     source_kind: "official",
     topic: "gaming",
+    publisher_entity: { name: "Steam", kind: "product" },
   },
   {
     connector: "rss",
@@ -951,6 +1045,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://godotengine.org/rss.xml",
     source_kind: "official",
     topic: "gaming",
+    publisher_entity: { name: "Godot", kind: "product" },
   },
   {
     connector: "rss",
@@ -958,6 +1053,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.unrealengine.com/rss",
     source_kind: "official",
     topic: "gaming",
+    publisher_entity: { name: "Unreal Engine", kind: "product" },
   },
 
   // ---- entertainment
@@ -1064,6 +1160,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://ir.paramount.com/rss/news-releases.xml",
     source_kind: "official",
     topic: "entertainment",
+    publisher_entity: { name: "Paramount", kind: "company" },
   },
   {
     connector: "rss",
@@ -1071,6 +1168,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://newsroom.spotify.com/feed/",
     source_kind: "official",
     topic: "entertainment",
+    publisher_entity: { name: "Spotify", kind: "company" },
   },
   {
     connector: "rss",
@@ -1078,6 +1176,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.sundance.org/feed/",
     source_kind: "official",
     topic: "entertainment",
+    publisher_entity: { name: "Sundance Institute", kind: "org" },
   },
   {
     connector: "rss",
@@ -1085,6 +1184,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://thewaltdisneycompany.com/feed/",
     source_kind: "official",
     topic: "entertainment",
+    publisher_entity: { name: "Disney", kind: "company" },
   },
 
   // ---- sports
@@ -1155,6 +1255,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.formula1.com/en/latest/all.xml",
     source_kind: "official",
     topic: "sports",
+    publisher_entity: { name: "Formula 1", kind: "org" },
   },
   {
     connector: "rss",
@@ -1162,6 +1263,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.mlb.com/feeds/news/rss.xml",
     source_kind: "official",
     topic: "sports",
+    publisher_entity: { name: "MLB", kind: "org" },
   },
 
   /*
@@ -1182,6 +1284,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/kubernetes/kubernetes/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Kubernetes", kind: "product" },
   },
   {
     connector: "rss",
@@ -1189,6 +1292,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/rust-lang/rust/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Rust", kind: "product" },
   },
   {
     connector: "rss",
@@ -1196,6 +1300,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/nodejs/node/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Node.js", kind: "product" },
   },
   {
     connector: "rss",
@@ -1203,6 +1308,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/golang/go/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Go", kind: "product" },
   },
   {
     connector: "rss",
@@ -1210,6 +1316,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/python/cpython/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Python", kind: "product" },
   },
   {
     connector: "rss",
@@ -1217,6 +1324,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/microsoft/TypeScript/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "TypeScript", kind: "product" },
   },
   {
     connector: "rss",
@@ -1224,6 +1332,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/facebook/react/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "React", kind: "product" },
   },
   {
     connector: "rss",
@@ -1231,6 +1340,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/redis/redis/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Redis", kind: "product" },
   },
   {
     connector: "rss",
@@ -1238,6 +1348,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.kernel.org/feeds/kdist.xml",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Linux", kind: "product" },
   },
 
   // 第三轮补：主流运行时、框架与基础设施；ai 侧补训练/推理栈
@@ -1247,6 +1358,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/langchain-ai/langchain/releases.atom",
     source_kind: "release",
     topic: "ai",
+    publisher_entity: { name: "LangChain", kind: "product" },
   },
   {
     connector: "rss",
@@ -1254,6 +1366,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/ollama/ollama/releases.atom",
     source_kind: "release",
     topic: "ai",
+    publisher_entity: { name: "Ollama", kind: "product" },
   },
   {
     connector: "rss",
@@ -1261,6 +1374,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/pytorch/pytorch/releases.atom",
     source_kind: "release",
     topic: "ai",
+    publisher_entity: { name: "PyTorch", kind: "product" },
   },
   {
     connector: "rss",
@@ -1268,6 +1382,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/tensorflow/tensorflow/releases.atom",
     source_kind: "release",
     topic: "ai",
+    publisher_entity: { name: "TensorFlow", kind: "product" },
   },
   {
     connector: "rss",
@@ -1275,6 +1390,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/huggingface/transformers/releases.atom",
     source_kind: "release",
     topic: "ai",
+    publisher_entity: { name: "Transformers", kind: "product" },
   },
   {
     connector: "rss",
@@ -1282,6 +1398,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/vllm-project/vllm/releases.atom",
     source_kind: "release",
     topic: "ai",
+    publisher_entity: { name: "vLLM", kind: "product" },
   },
   {
     connector: "rss",
@@ -1289,6 +1406,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/angular/angular/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Angular", kind: "product" },
   },
   {
     connector: "rss",
@@ -1296,6 +1414,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/ansible/ansible/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Ansible", kind: "product" },
   },
   {
     connector: "rss",
@@ -1303,6 +1422,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/oven-sh/bun/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Bun", kind: "product" },
   },
   {
     connector: "rss",
@@ -1310,6 +1430,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/ClickHouse/ClickHouse/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "ClickHouse", kind: "product" },
   },
   {
     connector: "rss",
@@ -1317,6 +1438,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/denoland/deno/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Deno", kind: "product" },
   },
   {
     connector: "rss",
@@ -1324,6 +1446,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/django/django/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Django", kind: "product" },
   },
   {
     connector: "rss",
@@ -1331,6 +1454,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/duckdb/duckdb/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "DuckDB", kind: "product" },
   },
   {
     connector: "rss",
@@ -1338,6 +1462,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/elastic/elasticsearch/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Elasticsearch", kind: "product" },
   },
   {
     connector: "rss",
@@ -1345,6 +1470,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/electron/electron/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Electron", kind: "product" },
   },
   {
     connector: "rss",
@@ -1352,6 +1478,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/git/git/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Git", kind: "product" },
   },
   {
     connector: "rss",
@@ -1359,6 +1486,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/grafana/grafana/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Grafana", kind: "product" },
   },
   {
     connector: "rss",
@@ -1366,6 +1494,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/apache/kafka/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Kafka", kind: "product" },
   },
   {
     connector: "rss",
@@ -1373,6 +1502,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/JetBrains/kotlin/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Kotlin", kind: "product" },
   },
   {
     connector: "rss",
@@ -1380,6 +1510,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/laravel/framework/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Laravel", kind: "product" },
   },
   {
     connector: "rss",
@@ -1387,6 +1518,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/moby/moby/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Moby", kind: "product" },
   },
   {
     connector: "rss",
@@ -1394,6 +1526,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/vercel/next.js/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Next.js", kind: "product" },
   },
   {
     connector: "rss",
@@ -1401,6 +1534,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/nginx/nginx/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Nginx", kind: "product" },
   },
   {
     connector: "rss",
@@ -1408,6 +1542,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/php/php-src/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "PHP", kind: "product" },
   },
   {
     connector: "rss",
@@ -1415,6 +1550,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/pnpm/pnpm/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "pnpm", kind: "product" },
   },
   {
     connector: "rss",
@@ -1422,6 +1558,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/prisma/prisma/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Prisma", kind: "product" },
   },
   {
     connector: "rss",
@@ -1429,6 +1566,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/rails/rails/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Rails", kind: "product" },
   },
   {
     connector: "rss",
@@ -1437,6 +1575,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.ruby-lang.org/en/feeds/news.rss",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Ruby", kind: "product" },
   },
   {
     connector: "rss",
@@ -1444,6 +1583,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/sveltejs/svelte/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Svelte", kind: "product" },
   },
   {
     connector: "rss",
@@ -1451,6 +1591,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/swiftlang/swift/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Swift", kind: "product" },
   },
   {
     connector: "rss",
@@ -1458,6 +1599,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/tailwindlabs/tailwindcss/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Tailwind CSS", kind: "product" },
   },
   {
     connector: "rss",
@@ -1465,6 +1607,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/hashicorp/terraform/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Terraform", kind: "product" },
   },
   {
     connector: "rss",
@@ -1472,6 +1615,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/vitejs/vite/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Vite", kind: "product" },
   },
   {
     connector: "rss",
@@ -1479,6 +1623,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/microsoft/vscode/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "VS Code", kind: "product" },
   },
   {
     connector: "rss",
@@ -1486,6 +1631,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/vuejs/core/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Vue", kind: "product" },
   },
   {
     connector: "rss",
@@ -1493,6 +1639,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://github.com/ziglang/zig/releases.atom",
     source_kind: "release",
     topic: "tech",
+    publisher_entity: { name: "Zig", kind: "product" },
   },
 
   // ---- status · Statuspage 的 history.rss，每次故障一个独立 permalink
@@ -1502,6 +1649,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.githubstatus.com/history.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "GitHub", kind: "company" },
   },
   {
     connector: "rss",
@@ -1509,6 +1657,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.cloudflarestatus.com/history.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "Cloudflare", kind: "company" },
   },
   {
     connector: "rss",
@@ -1516,6 +1665,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.npmjs.org/history.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "npm", kind: "product" },
   },
   {
     connector: "rss",
@@ -1523,6 +1673,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.slack.com/feed/rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "Slack", kind: "company" },
   },
   {
     connector: "rss",
@@ -1530,6 +1681,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.openai.com/history.rss",
     source_kind: "status",
     topic: "ai",
+    publisher_entity: { name: "OpenAI", kind: "company" },
   },
   {
     connector: "rss",
@@ -1537,6 +1689,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.anthropic.com/history.rss",
     source_kind: "status",
     topic: "ai",
+    publisher_entity: { name: "Anthropic", kind: "company" },
   },
   {
     connector: "rss",
@@ -1544,6 +1697,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.aws.amazon.com/rss/all.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "AWS", kind: "company" },
   },
   {
     connector: "rss",
@@ -1551,6 +1705,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.cloud.google.com/feed.atom",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "Google Cloud", kind: "product" },
   },
   {
     connector: "rss",
@@ -1558,6 +1713,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.vercel-status.com/history.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "Vercel", kind: "company" },
   },
   {
     connector: "rss",
@@ -1565,6 +1721,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://discordstatus.com/history.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "Discord", kind: "company" },
   },
   {
     connector: "rss",
@@ -1572,6 +1729,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.atlassian.com/history.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "Atlassian", kind: "company" },
   },
   // 第三轮补：云与 SaaS（tech）、模型厂商（ai）、游戏平台（gaming）
   {
@@ -1581,6 +1739,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.cohere.com/history.rss",
     source_kind: "status",
     topic: "ai",
+    publisher_entity: { name: "Cohere", kind: "company" },
   },
   {
     connector: "rss",
@@ -1589,6 +1748,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://groqstatus.com/history.rss",
     source_kind: "status",
     topic: "ai",
+    publisher_entity: { name: "Groq", kind: "company" },
   },
   {
     connector: "rss",
@@ -1596,6 +1756,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.perplexity.com/history.rss",
     source_kind: "status",
     topic: "ai",
+    publisher_entity: { name: "Perplexity", kind: "company" },
   },
   {
     connector: "rss",
@@ -1603,6 +1764,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://replicatestatus.com/history.rss",
     source_kind: "status",
     topic: "ai",
+    publisher_entity: { name: "Replicate", kind: "company" },
   },
   {
     connector: "rss",
@@ -1610,6 +1772,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.datadoghq.com/history.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "Datadog", kind: "company" },
   },
   {
     connector: "rss",
@@ -1617,6 +1780,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.digitalocean.com/history.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "DigitalOcean", kind: "company" },
   },
   {
     connector: "rss",
@@ -1624,6 +1788,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.dropbox.com/history.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "Dropbox", kind: "company" },
   },
   {
     connector: "rss",
@@ -1631,6 +1796,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.figma.com/history.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "Figma", kind: "company" },
   },
   {
     connector: "rss",
@@ -1638,6 +1804,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.flyio.net/history.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "Fly.io", kind: "company" },
   },
   {
     connector: "rss",
@@ -1645,6 +1812,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.heroku.com/feed",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "Heroku", kind: "product" },
   },
   {
     connector: "rss",
@@ -1652,6 +1820,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.mongodb.com/history.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "MongoDB", kind: "company" },
   },
   {
     connector: "rss",
@@ -1659,6 +1828,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.netlifystatus.com/history.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "Netlify", kind: "company" },
   },
   {
     connector: "rss",
@@ -1666,6 +1836,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://ocistatus.oraclecloud.com/history.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "Oracle Cloud", kind: "product" },
   },
   {
     connector: "rss",
@@ -1673,6 +1844,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://www.redditstatus.com/history.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "Reddit", kind: "company" },
   },
   {
     connector: "rss",
@@ -1680,6 +1852,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.render.com/history.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "Render", kind: "company" },
   },
   {
     connector: "rss",
@@ -1687,6 +1860,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.sentry.io/history.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "Sentry", kind: "company" },
   },
   {
     connector: "rss",
@@ -1694,6 +1868,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.supabase.com/history.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "Supabase", kind: "company" },
   },
   {
     connector: "rss",
@@ -1701,6 +1876,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.twilio.com/history.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "Twilio", kind: "company" },
   },
   {
     connector: "rss",
@@ -1708,6 +1884,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.zoom.us/history.rss",
     source_kind: "status",
     topic: "tech",
+    publisher_entity: { name: "Zoom", kind: "company" },
   },
   {
     connector: "rss",
@@ -1715,6 +1892,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.epicgames.com/history.rss",
     source_kind: "status",
     topic: "gaming",
+    publisher_entity: { name: "Epic Games", kind: "company" },
   },
   {
     connector: "rss",
@@ -1722,5 +1900,6 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     url: "https://status.twitch.tv/history.rss",
     source_kind: "status",
     topic: "gaming",
+    publisher_entity: { name: "Twitch", kind: "company" },
   },
 ];

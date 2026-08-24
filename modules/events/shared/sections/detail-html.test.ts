@@ -142,8 +142,22 @@ describe("renderEventsDetailHtml timeline", () => {
     };
   }
 
+  /** 两格起才画板块（见 showsTimelineBlock），行内 markup 的用例都配两格。 */
+  const pair = (
+    first: Partial<PublicEventDetailView["timeline"][number]> = {},
+  ): PublicEventDetailView["timeline"][number][] => [
+    entry(first),
+    entry({
+      occurred_at: "2026-08-17T12:30:00.000Z",
+      role_label: "进展",
+      role: "update",
+      label: "Regulators confirm the filing.",
+      source_name: "Reuters",
+    }),
+  ];
+
   it("shows the new detail as text and the outlet as the citation", () => {
-    const html = render(detail({ timeline: [entry()] }));
+    const html = render(detail({ timeline: pair() }));
     expect(html).toContain("events-timeline-role");
     expect(html).toContain(">新细节</span>");
     expect(html).toContain("Adds a $2B earnout in the deal.");
@@ -155,18 +169,54 @@ describe("renderEventsDetailHtml timeline", () => {
   it("marks differing accounts without wrapping the insight in the link", () => {
     const html = render(
       detail({
-        timeline: [
-          entry({
-            role_label: "说法不一",
-            role: "conflict",
-            label:
-              "Reuters reports the deal is off; The Verge says talks continue.",
-          }),
-        ],
+        timeline: pair({
+          role_label: "说法不一",
+          role: "conflict",
+          label:
+            "Reuters reports the deal is off; The Verge says talks continue.",
+        }),
       }),
     );
     expect(html).toContain("events-timeline-role-conflict");
     expect(html).toContain("Reuters reports the deal is off");
+  });
+
+  /*
+   * 一格不成线。本地库 99% 的事件时间线只有一格，而那一格的信息
+   * （时刻 + 来源）与下面的「来源」板块逐字重复。
+   */
+  it("只有一格时整块不渲染 —— 那条信息在「来源」里一模一样", () => {
+    const html = render(detail({ timeline: [entry()] }));
+    expect(html).not.toContain("events-timeline");
+    // 板块标题也不该留下
+    expect(html).not.toContain("时间线");
+  });
+
+  it("一格但带一手更新序列时照画 —— 那本来就是一条真时间线", () => {
+    const html = render(
+      detail({
+        timeline: [
+          entry({
+            incident_updates: [
+              {
+                occurred_at: "2026-08-17T10:02:00.000Z",
+                phase: "Investigating",
+                text: "We are investigating elevated error rates.",
+                time_label: "10:02",
+              },
+              {
+                occurred_at: "2026-08-17T10:49:00.000Z",
+                phase: "Resolved",
+                text: "This incident has been resolved.",
+                time_label: "10:49",
+              },
+            ],
+          }),
+        ],
+      }),
+    );
+    expect(html).toContain("events-timeline");
+    expect(html).toContain("This incident has been resolved.");
   });
 });
 

@@ -5688,6 +5688,8 @@ export const EventFeedScalarFieldEnum = {
   url: 'url',
   source_kind: 'source_kind',
   topic: 'topic',
+  publisher_entity_name: 'publisher_entity_name',
+  publisher_entity_kind: 'publisher_entity_kind',
   enabled: 'enabled',
   last_fetched_at: 'last_fetched_at',
   last_error: 'last_error',
@@ -5785,6 +5787,7 @@ export const EventEntityLinkScalarFieldEnum = {
   event_id: 'event_id',
   entity_id: 'entity_id',
   mention_count: 'mention_count',
+  is_publisher: 'is_publisher',
   created_at: 'created_at'
 } as const
 

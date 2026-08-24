@@ -28,14 +28,32 @@ export async function syncEventEntities(params: {
   tenant_id: string;
   event_id: string;
   entities: readonly ExtractedEntity[];
+  /**
+   * 出版方实体（采集源标注的，不是从文本里抽的）。
+   *
+   * **必须一起传进来**：这个函数是整体替换，不在 wanted 集合里的关联会被删掉。
+   * 只把它们交给下面的 `ensurePublisherEntityLinks` 补，会变成「这一轮加、
+   * 下一轮删」的抖动。
+   */
+  publishers?: readonly ExtractedEntity[];
 }): Promise<void> {
+  const publisherKeys = new Set(
+    (params.publishers ?? []).map((entity) => keyOf(entity)),
+  );
   const wanted = dedupe(
-    params.entities.filter((entity) => !isChangelogNoiseName(entity.name)),
+    [...(params.publishers ?? []), ...params.entities].filter(
+      (entity) => !isChangelogNoiseName(entity.name),
+    ),
   ).slice(0, MAX_LINKS_PER_EVENT);
 
   const entityIds = new Map<string, string>();
   for (const entity of wanted) {
-    entityIds.set(keyOf(entity), await upsertEntity(params.tenant_id, entity));
+    entityIds.set(
+      keyOf(entity),
+      await upsertEntity(params.tenant_id, entity, {
+        adopt_org_placeholder: publisherKeys.has(keyOf(entity)),
+      }),
+    );
   }
 
   await prisma.$transaction([
@@ -60,8 +78,12 @@ export async function syncEventEntities(params: {
           event_id: params.event_id,
           entity_id: entityId,
           mention_count: entity.mention_count,
+          is_publisher: publisherKeys.has(keyOf(entity)),
         },
-        update: { mention_count: entity.mention_count },
+        update: {
+          mention_count: entity.mention_count,
+          is_publisher: publisherKeys.has(keyOf(entity)),
+        },
       });
     }),
   ]);
@@ -76,6 +98,7 @@ export async function syncEventEntities(params: {
 async function upsertEntity(
   tenantId: string,
   entity: ExtractedEntity,
+  options: { adopt_org_placeholder?: boolean } = {},
 ): Promise<string> {
   const normalized = normalizeEntityName(entity.name);
   const where = {
@@ -92,6 +115,37 @@ async function upsertEntity(
   });
   if (existing) {
     return existing.id;
+  }
+
+  /*
+   * 出版方实体是**人工标注**的，比规则抽取的猜测更可信，所以它可以接管
+   * 同名的 `org` 占位——规则实现分不出类型时一律记 `org`（见 entity-extractor
+   * 的第 3 道闸），而 kind 是身份键的一部分：不接管的话，同一个 Cloudflare
+   * 会长出 `/entities/cloudflare`（org，抽取来的）与另一个 slug（company，
+   * 出版方标注的）两张页，读者看到两份割裂的档案。
+   *
+   * **只接管 `org` 这一格**。已经有明确类型的（LLM 判过 person / place…）
+   * 不动——那不再是占位，覆盖它就成了别名合并，而别名合并要人来定。
+   */
+  if (options.adopt_org_placeholder && entity.kind !== "org") {
+    const placeholder = await prisma.eventEntity.findUnique({
+      where: {
+        tenant_id_kind_normalized: {
+          tenant_id: tenantId,
+          kind: "org",
+          normalized,
+        },
+      },
+      select: { id: true },
+    });
+    if (placeholder) {
+      // slug 不动：它已经被收录、被分享过，改 slug 等于作废累计的实体页权重
+      await prisma.eventEntity.update({
+        where: { id: placeholder.id },
+        data: { kind: entity.kind, name: entity.name.trim() },
+      });
+      return placeholder.id;
+    }
   }
 
   // slug 的后缀取自 id 而不是随机数——重跑同一条数据得到同样的 slug，
@@ -155,7 +209,12 @@ export async function listEventEntities(params: {
 }) {
   const links = await prisma.eventEntityLink.findMany({
     where: withTenantScope(params.tenant_id, { event_id: params.event_id }),
-    orderBy: { mention_count: "desc" },
+    /*
+     * 出版方优先。归位取的是「主实体」（这条材料在谁的记录里排第几），
+     * 而一手来源的事件里出版方就是它在讲谁——单信号事件上它的
+     * `mention_count` 恒为 1，与抽取出来的实体打平，只按次数排是随机的。
+     */
+    orderBy: [{ is_publisher: "desc" }, { mention_count: "desc" }],
     take: 12,
     select: {
       mention_count: true,
@@ -186,4 +245,46 @@ export async function listEventEntities(params: {
 /** 实体页 URL 用的可读标识。与 `buildEventSlug` 同一套：可读部分 + id 短后缀。 */
 export function buildEntitySlug(name: string, id: string): string {
   return `${slugifyTitle(name)}-${id.replace(/-/gu, "").slice(0, 6)}`;
+}
+
+/**
+ * 只补出版方关联，**不删任何东西**。
+ *
+ * `refreshEvent` 只在真的重跑过分析时才整体替换实体（LLM 有 30 分钟冷却，
+ * 冷却期内回落到规则抽取会让类型从 `company` 掉回 `org`，而类型是身份键的
+ * 一部分——见那里的注释）。但出版方实体不是分析器产物，是采集源的属性，
+ * 没有理由跟着模型的冷却走，所以冷却期内走这条只增不删的路。
+ *
+ * 幂等：`upsert` + 固定的身份键，重跑得到同一批关联。
+ */
+export async function ensurePublisherEntityLinks(params: {
+  tenant_id: string;
+  event_id: string;
+  publishers: readonly ExtractedEntity[];
+}): Promise<void> {
+  const wanted = dedupe(
+    params.publishers.filter((entity) => !isChangelogNoiseName(entity.name)),
+  ).slice(0, MAX_LINKS_PER_EVENT);
+  if (wanted.length === 0) {
+    return;
+  }
+
+  for (const entity of wanted) {
+    const entityId = await upsertEntity(params.tenant_id, entity, {
+      adopt_org_placeholder: true,
+    });
+    await prisma.eventEntityLink.upsert({
+      where: {
+        event_id_entity_id: { event_id: params.event_id, entity_id: entityId },
+      },
+      create: {
+        tenant_id: params.tenant_id,
+        event_id: params.event_id,
+        entity_id: entityId,
+        mention_count: entity.mention_count,
+        is_publisher: true,
+      },
+      update: { mention_count: entity.mention_count, is_publisher: true },
+    });
+  }
 }

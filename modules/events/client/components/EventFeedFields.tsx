@@ -1,4 +1,4 @@
-import { Field, FieldLabel } from "@rewindom/ui/field";
+import { Field, FieldDescription, FieldLabel } from "@rewindom/ui/field";
 import { Input } from "@rewindom/ui/input";
 import {
   Select,
@@ -11,7 +11,11 @@ import { useTranslation } from "react-i18next";
 
 import { EVENT_TOPIC_ORDER } from "../lib/events.js";
 
-import { SOURCE_KIND_ORDER } from "../../shared/index.js";
+import {
+  EVENT_ENTITY_KINDS,
+  isFirstPartySource,
+  SOURCE_KIND_ORDER,
+} from "../../shared/index.js";
 
 import type { EventSourceKind } from "../../shared/index.js";
 
@@ -80,6 +84,48 @@ export function EventFeedFields({
           </SelectContent>
         </Select>
       </Field>
+      {/*
+        出版方实体只对一手来源画：一篇 TechCrunch 报道不是「关于 TechCrunch」的，
+        给 news / community 源标出版方会把每个媒体变成一个实体聚合面。
+      */}
+      {isFirstPartySource(form.source_kind) ? (
+        <>
+          <Field>
+            <FieldLabel htmlFor={`${idPrefix}-publisher`}>
+              {t("sources.fieldPublisherEntity")}
+            </FieldLabel>
+            <Input
+              id={`${idPrefix}-publisher`}
+              value={form.publisher_entity_name}
+              onChange={(event) =>
+                onChange({ ...form, publisher_entity_name: event.target.value })
+              }
+              placeholder={t("sources.publisherPlaceholder")}
+            />
+            <FieldDescription>{t("sources.publisherHint")}</FieldDescription>
+          </Field>
+          <Field>
+            <FieldLabel>{t("sources.fieldPublisherKind")}</FieldLabel>
+            <Select
+              value={form.publisher_entity_kind}
+              onValueChange={(value) =>
+                onChange({ ...form, publisher_entity_kind: value })
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {EVENT_ENTITY_KINDS.map((kind) => (
+                  <SelectItem key={kind} value={kind}>
+                    {t(`entityKind.${kind}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+        </>
+      ) : null}
       <Field>
         <FieldLabel>{t("sources.fieldTopic")}</FieldLabel>
         <Select
