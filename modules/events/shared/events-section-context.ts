@@ -7,6 +7,8 @@
  */
 
 import { SITE_INTERPOLATION_KEY } from "@rewindom/builtin/marketing/shared/site-interpolation.js";
+
+import type { PublicArticleImage } from "./article-image.js";
 import type { SectionRenderContext } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 
 import type {
@@ -139,6 +141,11 @@ export interface PublicRelatedEvent {
 }
 
 export interface PublicEventDetailView extends PublicEventCard {
+  /**
+   * 原文插图。`null` = 这条没有可署名的图（大多数如此），整块不画。
+   * 署名与回链是 markup 的一部分，不是可选装饰——见 `shared/article-image.ts`。
+   */
+  image: PublicArticleImage | null;
   summary: string;
   /** heuristic | llm */
   analyzer: string;

@@ -34,8 +34,14 @@ function row(overrides: Partial<Record<string, unknown>> = {}) {
     url: "https://example.com/a",
     title: "Ferrari's first electric car",
     event_id: "e1",
+    image_url: null,
     ...overrides,
   };
+}
+
+/** `fetchPageExcerpt` 现在一次返回摘录 + 配图（同一次抓取，不下载两遍）。 */
+function extract(excerpt = "", image_url: string | null = null) {
+  return { excerpt, image_url };
 }
 
 beforeEach(() => {
@@ -51,7 +57,7 @@ function whereArg(): { fetched_at: { lt: Date } } {
 
 describe("enrichStoredEmptyExcerpts", () => {
   it("只捞离上次尝试超过退避期的行", async () => {
-    vi.mocked(fetchPageExcerpt).mockResolvedValue("");
+    vi.mocked(fetchPageExcerpt).mockResolvedValue(extract());
     await enrichStoredEmptyExcerpts("t1", NOW);
 
     const cutoff = whereArg().fetched_at.lt;
@@ -60,7 +66,9 @@ describe("enrichStoredEmptyExcerpts", () => {
 
   it("抓到可用摘录时写回，并把事件的 analyzed_at 清掉", async () => {
     vi.mocked(fetchPageExcerpt).mockResolvedValue(
-      "The 1965 Ferrari 250 LM sold for a record sum at auction in Monterey.",
+      extract(
+        "The 1965 Ferrari 250 LM sold for a record sum at auction in Monterey.",
+      ),
     );
 
     const ids = await enrichStoredEmptyExcerpts("t1", NOW);
@@ -92,7 +100,7 @@ describe("enrichStoredEmptyExcerpts", () => {
   });
 
   it("抓回来的是站点口号这类没用的文本时不写 excerpt，只推进时间", async () => {
-    vi.mocked(fetchPageExcerpt).mockResolvedValue("");
+    vi.mocked(fetchPageExcerpt).mockResolvedValue(extract());
 
     await enrichStoredEmptyExcerpts("t1", NOW);
 
@@ -108,5 +116,55 @@ describe("enrichStoredEmptyExcerpts", () => {
 
     expect(fetchPageExcerpt).not.toHaveBeenCalled();
     expect(signalUpdate).not.toHaveBeenCalled();
+  });
+});
+
+/*
+ * 配图与摘录走同一次抓取。图这一列是后加的，存量信号全是 null——所以这道回填
+ * 上线后会把语料过一遍（每轮 40 条 + 6 小时退避，自然收敛）。
+ */
+describe("enrichStoredEmptyExcerpts · 配图", () => {
+  it("把目标页的图一起写回", async () => {
+    vi.mocked(fetchPageExcerpt).mockResolvedValue(
+      extract("", "https://cdn.example.com/hero.jpg"),
+    );
+
+    await enrichStoredEmptyExcerpts("t1", NOW);
+
+    expect(signalUpdate.mock.calls[0][0].data.image_url).toBe(
+      "https://cdn.example.com/hero.jpg",
+    );
+  });
+
+  /* feed 自带的图跟条目绑定，比页面级 og:image 更贴这一篇——不许覆盖。 */
+  it("已经有图的不覆盖", async () => {
+    signalFindMany.mockResolvedValue([
+      row({ image_url: "https://cdn.example.com/from-feed.jpg" }),
+    ]);
+    vi.mocked(fetchPageExcerpt).mockResolvedValue(
+      extract("", "https://cdn.example.com/from-page.jpg"),
+    );
+
+    await enrichStoredEmptyExcerpts("t1", NOW);
+
+    expect(signalUpdate.mock.calls[0][0].data.image_url).toBeUndefined();
+  });
+
+  /* 缺图也值得抓一次——同一个页面同一次请求就能补齐两样。 */
+  it("缺摘录或缺图都进候选", async () => {
+    await enrichStoredEmptyExcerpts("t1", NOW);
+
+    expect(signalFindMany.mock.calls[0][0].where.OR).toEqual([
+      { excerpt: "" },
+      { image_url: null },
+    ]);
+  });
+
+  it("抓失败时不写 image_url，只推进时间", async () => {
+    vi.mocked(fetchPageExcerpt).mockRejectedValue(new Error("HTTP 403"));
+
+    await enrichStoredEmptyExcerpts("t1", NOW);
+
+    expect(signalUpdate.mock.calls[0][0].data).toEqual({ fetched_at: NOW });
   });
 });

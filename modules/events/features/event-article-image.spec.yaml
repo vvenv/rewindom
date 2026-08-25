@@ -1,0 +1,155 @@
+# 增量功能契约 —— 事件详情页的文章插图（取自来源原文）
+#
+# 前情：`event-topic-accent.spec.yaml` 里否掉了「生成图」，也把「取来源配图」列进了
+# out_of_scope。**本 spec 推翻后半条**——站点所有者在看过版权顾虑后决定要真图。
+# 那条 out_of_scope 从此以本 spec 为准。
+#
+# 顾虑本身不变，所以它变成了三条硬约束，不是「注意一下」：
+#
+#   1. **必须署名 + 回链。** 每张图下面写「图：{来源名}」，点击去原文。
+#      带出处的链接预览是全网惯例（IM / 社交 / 阅读器都这么显示）；不带出处的大图
+#      铺在正文里就是转载。这两者的距离**全部**在这一行字上。
+#   2. **默认热链，不落盘。** `<img src>` 直接指向出版方自己的地址：文件仍由他们
+#      托管分发，他们随时换掉或删掉就等于撤回——这是最贴近「链接预览」的形态，
+#      也是版权上最稳的一种。服务端代理只在热链**裂图**时兜底（见设计要点 4）。
+#   3. **不存图，只存地址。** 库里那一列是 URL，不是二进制。
+#
+# 为什么范围是全部来源而不是只一手：`og:image` 是发布方专门标出来给人做链接预览的
+# meta，普遍惯例上就是拿来显示的。风险不在取，在呈现——约束 1 管的就是这个。
+# 这是站点所有者的判断，记在这里以免后来人以为是疏忽。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr, tenant]
+goal: 采集时记下每条信号原文的配图地址（RSS enclosure/media 或目标页 og:image），事件详情页在题头下面画一张，署名「图：{来源名}」并链回原文；热链失败时回落服务端代理，仍失败则整块不画。
+gold: modules/events/server/ssr/source-icon.ts # 代理取图 + SSRF 白名单照抄这份
+touch:
+  - modules/events/features/event-article-image.spec.yaml
+  - modules/events/features/event-topic-accent.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/models.prisma
+  - apps/server/prisma/migrations/20260825120000_events_signal_image/
+  - modules/events/server/ingest/connector.ts
+  - modules/events/server/ingest/feed-parser.ts
+  - modules/events/server/ingest/feed-parser.test.ts
+  - modules/events/server/ingest/rss.connector.ts
+  - modules/events/server/ingest/hacker-news.connector.ts
+  - modules/events/server/ingest/page-excerpt.ts
+  - modules/events/server/ingest/page-excerpt.test.ts
+  - modules/events/server/ingest/excerpt-enrichment.ts
+  - modules/events/server/ingest/excerpt-enrichment.test.ts
+  - modules/events/server/ingest/ingest.service.ts
+  - modules/events/server/event/article-image.ts
+  - modules/events/server/event/article-image.test.ts
+  - modules/events/server/event/event.mapper.ts
+  - modules/events/server/ssr/article-image.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/shared/article-image.ts
+  - modules/events/shared/article-image.test.ts
+  - modules/events/shared/events.ts
+  - modules/events/shared/events-sample.ts
+  - modules/events/shared/events-public-paths.ts
+  - modules/events/shared/events-public-paths.test.ts
+  - modules/events/shared/index.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/sections/detail-html.ts
+  - modules/events/shared/sections/detail-html.test.ts
+  - modules/events/shared/site-css/events.css
+  - modules/events/shared/site-css.generated.ts
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 列表卡片上的图（已经实测过一次并删掉：260px 的卡片放不下图而不毁掉扫读密度，
+    见 `event-topic-accent.spec.yaml`。详情页没有这个约束，一页只有一条事件）
+  - 实体页 / 专题页 / 枢纽页的文章插图（那两处已有各自的图源）
+  - 把图落进对象存储 / 生成缩略图 / responsive srcset（需要 sharp 那个原生依赖）
+  - 正文内嵌的多张图（只取一张「题图」，不解析文章正文里的 img）
+  - 让租户逐条事件替换或删除配图（工作台先只读；要屏蔽整源就停用那条源）
+  - 改 `/events/:slug/og.png`（分享卡片仍是自绘，不塞来源图进去——那是我们发出去的
+    图，性质与页面上的链接预览不同）
+i18n: code # 只有署名那一行「图：{source}」
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run
+  - pnpm check:i18n
+  - pnpm check:modules
+  - node scripts/verify-module.mjs events
+  - 本地 default 租户跑一轮采集刷新，抽查 10 条详情页：有图的署名正确、点击回到原文；
+    品牌图被去噪规则丢掉；无图的题头版式不变
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: [] # 公开面只读
+models:
+  - EventSignal.image_url（可空，存地址不存图）
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. **两个图源，优先级固定**：RSS 条目自带的 `<enclosure>` / `media:content` /
+#    `media:thumbnail` 先用（不用额外发请求），没有再用目标页的 `og:image`
+#    （`page-excerpt.ts` 已经在遍历 meta，多读一个 key 就是几行）。
+#    与摘录**同一次抓取**产出，不为图另开一轮网络请求。
+#
+# 2. **去噪：模板图必须筛掉。这是这套东西能不能看的关键。**
+#
+#    判据不猜尺寸（要下载才知道），两条独立规则，命中任一条就丢：
+#
+#    a. **同一来源反复用同一张** = 站点品牌卡片。
+#       `>= ARTICLE_IMAGE_REPEAT_MAX`（3）就丢。
+#    b. **同一张被 ≥2 个不同来源共用** = 一定不是某篇文章的照片。
+#
+#    b 不是 a 的特例：Statuspage 托管的那个 cloudfront favicon 被 Twilio /
+#    Atlassian / npm / Dropbox / Discord 五家状态页共用，只出过一两次故障的源
+#    会从 a 漏过去，正好被 b 接住。
+#
+#    **本地实测**（rewindom 库，6353 条信号 / 1070 条有图）：
+#      a 抓出 397 张（占有图的 37.1%）——Slack Status 的 logo 22 次、
+#        Twilio Status 的 favicon 26 次、CFPB 的 open-graph 图 16 次
+#      b 另外覆盖 156 条
+#      剩下的 `n = 1` 那批抽样全是真文章图：`supabase.com/images/blog/2026/
+#        security-retro/social`、`blog.cloudflare.com/_emdash/api/media/file/…`、
+#        `images.mktw.net/im-85750374`
+#
+#    两条都**自纠正**：源换了品牌图，旧的自然掉出窗口。
+#
+# 3. **一条事件只画一张**。事件是多来源聚合的，取哪张要有个稳定规则：
+#    `[一手来源优先, published_at 升序]` 的第一条有图的信号。一手来源的图最可能是
+#    它自己拍/画的；同分时取最早那条——后来跟进的报道更可能配通讯社图。
+#
+# 4. **热链优先，裂图回落代理，再失败整块摘掉。**
+#
+#    `<img src>` 是出版方自己的地址（约束 2）。对方防盗链时会裂图，这时 `onerror`
+#    换成 `/events/images/:token` 让服务端去拉。**必须一次性**：换过一次就打标，
+#    第二次 `onerror` 直接把整个 figure 摘掉，否则代理也失败时会无限重试同一个 src。
+#
+# 5. **代理是公开无鉴权的端点，所以两道闸门都要有：**
+#
+#    a. **「这个 URL 我们真的采到过」**——token 是 URL 的 base64url，路由先查
+#       `EventSignal.image_url` 在本站是否存在这一条，不存在直接 404，一次 fetch
+#       都不发。比维护 host 白名单严格得多，也不会漏掉新源。
+#    b. **私网 / 回环 / 云元数据字面地址一律不收**（`isUsableImageUrl`，写入与读取
+#       两端共用）。只有 a 是不够的：任何访客都能触发这个端点并拿到响应体，
+#       而采集那条出站链路是管理员触发的、也不回传内容。
+#
+#    b **不是完整防护**——主机名解析到私网（DNS rebinding）挡不住，那需要
+#    「解析→校验→钉住 IP 再连」。挡的是实际会从别人 `og:image` 里抄进来的那一类。
+#    真要收紧得改 `server/ingest/http.ts` 的出站层，那是独立一期。
+#
+#    响应只放行魔数认得出的 image/*（SVG 因此也被挡掉，字节从本站源发出即代码），
+#    3MB 上限，长缓存头。
+#
+# 6. **署名是 markup 的一部分，不是可选装饰**：`<figure>` + `<figcaption>`，
+#    caption 是「图：{来源名}」且整块是指向原文的链接。**没有来源名就不画图**
+#    ——不能署名的图不该出现（约束 1）。
+#
+# 7. **版式**：题头下面、摘要上面。通栏、`aspect-ratio` 不锁死（真图比例各异，
+#    锁死会裁掉人脸），给 `max-height` 兜底 + `object-fit: contain` 留白底。
+#    `loading="lazy"` + `decoding="async"`：它在首屏偏下，且失败是常态。
+#
+# 8. **`referrerpolicy="no-referrer"`**：热链时不把读者所在页告诉对方
+#    （与来源 favicon 同一条）。副作用是有些站的防盗链会因此拒绝——正好走回落。
+#
+# ---------- 下一步（不在本期）----------
+# - 工作台详情页也显示这张图（先看公开面效果）
+# - 图的缓存与预热（现在代理是按需拉，突发流量下会重复回源）

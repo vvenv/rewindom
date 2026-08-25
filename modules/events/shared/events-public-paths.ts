@@ -14,6 +14,7 @@
  *   /entities/:slug/feed.xml   实体 RSS
  *   /events/:slug/og.png       事件卡片图
  *   /events/icons/:host        来源 favicon（同源代理）
+ *   /events/images/:token      文章插图（热链裂图时的回落代理）
  *
  * 没有专题目录、没有 `/events` 枢纽。只认上表，旧地址不接、不转。
  */
@@ -40,6 +41,8 @@ export const EVENTS_ENTITY_SEGMENT = "entities";
 export const EVENTS_FEED_SEGMENT = "feed.xml";
 export const EVENTS_OG_IMAGE_SEGMENT = "og.png";
 export const EVENTS_ICONS_SEGMENT = "icons";
+/** 文章插图的同源代理段。**只在热链裂图时**被前端换上来，不是默认地址。 */
+export const EVENTS_IMAGES_SEGMENT = "images";
 
 /** 与 `registerHomeLayout` 的 key 一致。 */
 export const EVENTS_HOME_LAYOUT_KEY = "events.home";
@@ -192,7 +195,8 @@ export type EventsPublicRoute =
   | { type: "feed"; topic?: EventTopic }
   | { type: "entity_feed"; slug: string }
   | { type: "og_image"; slug: string }
-  | { type: "source_icon"; host: string };
+  | { type: "source_icon"; host: string }
+  | { type: "article_image"; token: string };
 
 function decodeSegment(value: string): string {
   try {
@@ -254,6 +258,15 @@ export function parseEventsPublicPath(
   ) {
     const host = decodeSegment(parts[2]!).toLowerCase();
     return isIconHost(host) ? { type: "source_icon", host } : null;
+  }
+  if (
+    parts.length === 3 &&
+    parts[0] === EVENTS_EVENTS_SEGMENT &&
+    parts[1] === EVENTS_IMAGES_SEGMENT
+  ) {
+    // token 的合法性（能不能解出一个 http(s) 图地址）由 renderArticleImage 判，
+    // 这里只认路由形状——闸门是「本站采到过这个地址」，不是路径长什么样
+    return { type: "article_image", token: parts[2]! };
   }
   if (parts.length === 2 && parts[0] === EVENTS_EVENTS_SEGMENT) {
     return { type: "event", slug: decodeSegment(parts[1]!) };

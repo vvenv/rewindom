@@ -1,10 +1,13 @@
 import { prisma, withTenantScope } from "@rewindom/module-sdk/server";
 
 import {
+  EMPTY_PAGE_EXTRACT,
   fetchPageExcerpt,
   isFetchableArticleUrl,
   isUsableExcerpt,
 } from "./page-excerpt.js";
+
+import { isUsableImageUrl } from "../../shared/article-image.js";
 
 /** 每轮最多补多少条已入库的空摘录，避免一次 ingest 去抓全库。 */
 const STORED_EXCERPT_BACKFILL_LIMIT = 40;
@@ -39,12 +42,23 @@ export async function enrichStoredEmptyExcerpts(
   );
   const rows = await prisma.eventSignal.findMany({
     where: withTenantScope(tenantId, {
-      excerpt: "",
+      /*
+       * 缺摘录**或**缺配图都值得抓一次——同一个页面同一次请求就能补齐两样。
+       * 图这一列是后加的，存量信号全都是 null，所以上线后这道回填会把语料
+       * 过一遍（每轮 40 条 + 6 小时退避，自然收敛），之后只剩零星新条目。
+       */
+      OR: [{ excerpt: "" }, { image_url: null }],
       fetched_at: { lt: retryBefore },
-      // 移除过的信号不值得再花一次抓取去补摘录
+      // 移除过的信号不值得再花一次抓取去补
       removed_at: null,
     }),
-    select: { id: true, url: true, title: true, event_id: true },
+    select: {
+      id: true,
+      url: true,
+      title: true,
+      event_id: true,
+      image_url: true,
+    },
     orderBy: { published_at: "desc" },
     take: STORED_EXCERPT_BACKFILL_LIMIT * 3,
   });
@@ -64,18 +78,27 @@ export async function enrichStoredEmptyExcerpts(
       const index = next;
       next += 1;
       const row = targets[index];
-      let excerpt = "";
+      let extract = EMPTY_PAGE_EXTRACT;
       try {
-        excerpt = await fetchPageExcerpt(row.url);
+        extract = await fetchPageExcerpt(row.url);
       } catch {
         // 抓取失败也要往下走：那一笔时间正是失败要留的退避标记
       }
-      const usable = isUsableExcerpt(excerpt, row.title);
+      const usable = isUsableExcerpt(extract.excerpt, row.title);
+      // 已经有图的不覆盖：feed 自带的图跟条目绑定，比页面级 og:image 更贴这一篇
+      const image =
+        !isUsableImageUrl(row.image_url) && extract.image_url
+          ? extract.image_url
+          : null;
       try {
         // 尝试过就记一笔时间：失败的那些靠它退避，不再每轮重抓
         await prisma.eventSignal.update({
           where: { id: row.id },
-          data: { fetched_at: now, ...(usable ? { excerpt } : {}) },
+          data: {
+            fetched_at: now,
+            ...(usable ? { excerpt: extract.excerpt } : {}),
+            ...(image ? { image_url: image } : {}),
+          },
         });
       } catch {
         // 行可能刚被保留期清理删掉。这一条跳过，不该让整轮补齐失败

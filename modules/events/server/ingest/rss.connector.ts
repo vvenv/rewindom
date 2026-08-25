@@ -5,6 +5,8 @@ import { fetchText } from "./http.js";
 import { parseIncidentUpdates } from "./incident-updates.js";
 import { truncateExcerpt } from "./page-excerpt.js";
 
+import { isUsableImageUrl } from "../../shared/article-image.js";
+
 import type { ConnectorFeed, EventConnector, RawSignal } from "./connector.js";
 
 /** 单个源一轮最多取多少条，防止某个源的全量归档把一轮采集撑爆。 */
@@ -62,6 +64,8 @@ export function toSignal(item: ParsedFeedItem, feed: ConnectorFeed): RawSignal {
     excerpt: truncateExcerpt(
       pickExcerptSource(item, feed, incidentUpdates.length > 0),
     ),
+    // feed 自带的图；没有时留 null，由 fillEmptyExcerpts 用目标页 og:image 补
+    image_url: isUsableImageUrl(item.image_url) ? item.image_url : null,
     author: item.author,
     topic: feed.topic,
     // RSS 不提供热度，热度只能来自「有多少源在说」与来源权重

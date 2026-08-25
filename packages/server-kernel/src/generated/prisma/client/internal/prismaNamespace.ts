@@ -5711,6 +5711,7 @@ export const EventSignalScalarFieldEnum = {
   url: 'url',
   canonical_url: 'canonical_url',
   excerpt: 'excerpt',
+  image_url: 'image_url',
   author: 'author',
   topic: 'topic',
   score: 'score',

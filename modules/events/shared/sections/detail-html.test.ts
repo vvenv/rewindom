@@ -447,3 +447,77 @@ describe("renderEventsDetailHtml · 题头", () => {
     expect(html).toContain('onerror="this.parentElement.remove()"');
   });
 });
+
+/*
+ * 原文插图。
+ *
+ * 署名与回链是 markup 的一部分，不是可选装饰——带出处的链接预览是全网惯例，
+ * 不带出处的大图铺在正文里就是转载。这两者的距离全部在那一行字上。
+ */
+describe("renderEventsDetailHtml · 原文插图", () => {
+  const image = {
+    url: "https://cdn.example.com/hero.jpg",
+    fallback_url: "/events/images/aGVyby5qcGc",
+    credit: "图：Reuters",
+    source_href: "https://reuters.example/a",
+  };
+
+  it("draws nothing when the event has no image", () => {
+    expect(render(detail({ image: null }))).not.toContain("events-figure");
+  });
+
+  it("hotlinks the publisher's own address", () => {
+    const html = render(detail({ image }));
+    expect(html).toContain('src="https://cdn.example.com/hero.jpg"');
+  });
+
+  it("always credits the source and links back to the original", () => {
+    const html = render(detail({ image }));
+    expect(html).toContain("图：Reuters");
+    expect(html).toContain('href="https://reuters.example/a"');
+    expect(html).toContain("<figcaption");
+  });
+
+  /* 换过一次就打标；否则代理也失败时同一个 src 会被无限重试。 */
+  it("falls back to the proxy exactly once, then removes the figure", () => {
+    const html = render(detail({ image }));
+    expect(html).toContain("data-fallback=");
+    expect(html).toContain("/events/images/aGVyby5qcGc");
+    expect(html).toContain("dataset.fellBack");
+    expect(html).toContain("closest(&#39;figure&#39;).remove()");
+  });
+
+  /* 不把读者所在页告诉对方（与来源 favicon 同一条）。 */
+  it("sends no referrer and loads lazily", () => {
+    const html = render(detail({ image }));
+    expect(html).toContain('referrerpolicy="no-referrer"');
+    expect(html).toContain('loading="lazy"');
+  });
+
+  /* 图在题头之后、摘要之前。 */
+  it("sits between the header and the summary", () => {
+    const html = render(detail({ image }));
+    expect(html.indexOf("events-detail-header")).toBeLessThan(
+      html.indexOf("events-figure"),
+    );
+    expect(html.indexOf("events-figure")).toBeLessThan(
+      html.indexOf("events-summary"),
+    );
+  });
+
+  it("escapes every part of it — all three fields are third-party data", () => {
+    const html = render(
+      detail({
+        image: {
+          url: '/a.jpg" onload="alert(1)',
+          fallback_url: '/b.jpg" onload="alert(2)',
+          credit: "<script>alert(3)</script>",
+          source_href: 'https://x.example" onclick="alert(4)',
+        },
+      }),
+    );
+    expect(html).not.toContain("<script>");
+    expect(html).not.toContain('onload="alert');
+    expect(html).not.toContain('onclick="alert');
+  });
+});

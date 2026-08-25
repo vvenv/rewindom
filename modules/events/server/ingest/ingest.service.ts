@@ -23,6 +23,8 @@ import {
 import { ensureDefaultFeeds } from "./feed-seed.js";
 import { hackerNewsConnector } from "./hacker-news.connector.js";
 import { fillEmptyExcerpts, isUsableExcerpt } from "./page-excerpt.js";
+
+import { isUsableImageUrl } from "../../shared/article-image.js";
 import { rssConnector } from "./rss.connector.js";
 
 import { enabledTopicWhere } from "../../shared/index.js";
@@ -456,6 +458,7 @@ async function persistSignals(
       score: true,
       comment_count: true,
       excerpt: true,
+      image_url: true,
       event_id: true,
     },
   });
@@ -509,6 +512,7 @@ async function persistSignals(
       url: signal.url,
       canonical_url,
       excerpt: signal.excerpt,
+      image_url: signal.image_url,
       author: signal.author,
       topic: signal.topic,
       score: signal.score,
@@ -559,10 +563,17 @@ async function persistSignals(
     const excerptImproved =
       isUsableExcerpt(excerpt, signal.title) &&
       !isUsableExcerpt(row.excerpt, signal.title);
+    /*
+     * 图**只补不换**：源改稿时换掉配图是常事，而详情页上那张已经跟着这条事件
+     * 被人看过了。反复替换会让同一个页面每刷新一次换一张图。
+     */
+    const imageAdded =
+      isUsableImageUrl(signal.image_url) && !isUsableImageUrl(row.image_url);
     if (
       signal.score === row.score &&
       signal.comment_count === row.comment_count &&
-      !excerptImproved
+      !excerptImproved &&
+      !imageAdded
     ) {
       continue;
     }
@@ -572,6 +583,7 @@ async function persistSignals(
         score: signal.score,
         comment_count: signal.comment_count,
         ...(excerptImproved ? { excerpt } : {}),
+        ...(imageAdded ? { image_url: signal.image_url } : {}),
       },
     });
     if (row.event_id) {

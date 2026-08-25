@@ -100,7 +100,8 @@
     "firstSeen": "首次出现",
     "score": "{{count}} 分",
     "comments": "{{count}} 条评论",
-    "related": "相关事件"
+    "related": "相关事件",
+    "imageCredit": "图：{{source}}"
   },
   "timeline": {
     "firstSeen": "{{source}} 最先出现",

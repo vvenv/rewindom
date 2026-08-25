@@ -47,6 +47,7 @@ export type EventSignalMinAggregateOutputType = {
   url: string | null
   canonical_url: string | null
   excerpt: string | null
+  image_url: string | null
   author: string | null
   topic: string | null
   score: number | null
@@ -70,6 +71,7 @@ export type EventSignalMaxAggregateOutputType = {
   url: string | null
   canonical_url: string | null
   excerpt: string | null
+  image_url: string | null
   author: string | null
   topic: string | null
   score: number | null
@@ -93,6 +95,7 @@ export type EventSignalCountAggregateOutputType = {
   url: number
   canonical_url: number
   excerpt: number
+  image_url: number
   author: number
   topic: number
   score: number
@@ -129,6 +132,7 @@ export type EventSignalMinAggregateInputType = {
   url?: true
   canonical_url?: true
   excerpt?: true
+  image_url?: true
   author?: true
   topic?: true
   score?: true
@@ -152,6 +156,7 @@ export type EventSignalMaxAggregateInputType = {
   url?: true
   canonical_url?: true
   excerpt?: true
+  image_url?: true
   author?: true
   topic?: true
   score?: true
@@ -175,6 +180,7 @@ export type EventSignalCountAggregateInputType = {
   url?: true
   canonical_url?: true
   excerpt?: true
+  image_url?: true
   author?: true
   topic?: true
   score?: true
@@ -286,6 +292,7 @@ export type EventSignalGroupByOutputType = {
   url: string
   canonical_url: string
   excerpt: string
+  image_url: string | null
   author: string | null
   topic: string
   score: number
@@ -333,6 +340,7 @@ export type EventSignalWhereInput = {
   url?: Prisma.StringFilter<"EventSignal"> | string
   canonical_url?: Prisma.StringFilter<"EventSignal"> | string
   excerpt?: Prisma.StringFilter<"EventSignal"> | string
+  image_url?: Prisma.StringNullableFilter<"EventSignal"> | string | null
   author?: Prisma.StringNullableFilter<"EventSignal"> | string | null
   topic?: Prisma.StringFilter<"EventSignal"> | string
   score?: Prisma.IntFilter<"EventSignal"> | number
@@ -358,6 +366,7 @@ export type EventSignalOrderByWithRelationInput = {
   url?: Prisma.SortOrder
   canonical_url?: Prisma.SortOrder
   excerpt?: Prisma.SortOrder
+  image_url?: Prisma.SortOrderInput | Prisma.SortOrder
   author?: Prisma.SortOrderInput | Prisma.SortOrder
   topic?: Prisma.SortOrder
   score?: Prisma.SortOrder
@@ -388,6 +397,7 @@ export type EventSignalWhereUniqueInput = Prisma.AtLeast<{
   url?: Prisma.StringFilter<"EventSignal"> | string
   canonical_url?: Prisma.StringFilter<"EventSignal"> | string
   excerpt?: Prisma.StringFilter<"EventSignal"> | string
+  image_url?: Prisma.StringNullableFilter<"EventSignal"> | string | null
   author?: Prisma.StringNullableFilter<"EventSignal"> | string | null
   topic?: Prisma.StringFilter<"EventSignal"> | string
   score?: Prisma.IntFilter<"EventSignal"> | number
@@ -413,6 +423,7 @@ export type EventSignalOrderByWithAggregationInput = {
   url?: Prisma.SortOrder
   canonical_url?: Prisma.SortOrder
   excerpt?: Prisma.SortOrder
+  image_url?: Prisma.SortOrderInput | Prisma.SortOrder
   author?: Prisma.SortOrderInput | Prisma.SortOrder
   topic?: Prisma.SortOrder
   score?: Prisma.SortOrder
@@ -445,6 +456,7 @@ export type EventSignalScalarWhereWithAggregatesInput = {
   url?: Prisma.StringWithAggregatesFilter<"EventSignal"> | string
   canonical_url?: Prisma.StringWithAggregatesFilter<"EventSignal"> | string
   excerpt?: Prisma.StringWithAggregatesFilter<"EventSignal"> | string
+  image_url?: Prisma.StringNullableWithAggregatesFilter<"EventSignal"> | string | null
   author?: Prisma.StringNullableWithAggregatesFilter<"EventSignal"> | string | null
   topic?: Prisma.StringWithAggregatesFilter<"EventSignal"> | string
   score?: Prisma.IntWithAggregatesFilter<"EventSignal"> | number
@@ -469,6 +481,7 @@ export type EventSignalCreateInput = {
   url: string
   canonical_url: string
   excerpt?: string
+  image_url?: string | null
   author?: string | null
   topic?: string
   score?: number
@@ -493,6 +506,7 @@ export type EventSignalUncheckedCreateInput = {
   url: string
   canonical_url: string
   excerpt?: string
+  image_url?: string | null
   author?: string | null
   topic?: string
   score?: number
@@ -517,6 +531,7 @@ export type EventSignalUpdateInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   canonical_url?: Prisma.StringFieldUpdateOperationsInput | string
   excerpt?: Prisma.StringFieldUpdateOperationsInput | string
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   topic?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
@@ -541,6 +556,7 @@ export type EventSignalUncheckedUpdateInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   canonical_url?: Prisma.StringFieldUpdateOperationsInput | string
   excerpt?: Prisma.StringFieldUpdateOperationsInput | string
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   topic?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
@@ -565,6 +581,7 @@ export type EventSignalCreateManyInput = {
   url: string
   canonical_url: string
   excerpt?: string
+  image_url?: string | null
   author?: string | null
   topic?: string
   score?: number
@@ -589,6 +606,7 @@ export type EventSignalUpdateManyMutationInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   canonical_url?: Prisma.StringFieldUpdateOperationsInput | string
   excerpt?: Prisma.StringFieldUpdateOperationsInput | string
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   topic?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
@@ -612,6 +630,7 @@ export type EventSignalUncheckedUpdateManyInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   canonical_url?: Prisma.StringFieldUpdateOperationsInput | string
   excerpt?: Prisma.StringFieldUpdateOperationsInput | string
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   topic?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
@@ -649,6 +668,7 @@ export type EventSignalCountOrderByAggregateInput = {
   url?: Prisma.SortOrder
   canonical_url?: Prisma.SortOrder
   excerpt?: Prisma.SortOrder
+  image_url?: Prisma.SortOrder
   author?: Prisma.SortOrder
   topic?: Prisma.SortOrder
   score?: Prisma.SortOrder
@@ -678,6 +698,7 @@ export type EventSignalMaxOrderByAggregateInput = {
   url?: Prisma.SortOrder
   canonical_url?: Prisma.SortOrder
   excerpt?: Prisma.SortOrder
+  image_url?: Prisma.SortOrder
   author?: Prisma.SortOrder
   topic?: Prisma.SortOrder
   score?: Prisma.SortOrder
@@ -701,6 +722,7 @@ export type EventSignalMinOrderByAggregateInput = {
   url?: Prisma.SortOrder
   canonical_url?: Prisma.SortOrder
   excerpt?: Prisma.SortOrder
+  image_url?: Prisma.SortOrder
   author?: Prisma.SortOrder
   topic?: Prisma.SortOrder
   score?: Prisma.SortOrder
@@ -781,6 +803,7 @@ export type EventSignalCreateWithoutEventInput = {
   url: string
   canonical_url: string
   excerpt?: string
+  image_url?: string | null
   author?: string | null
   topic?: string
   score?: number
@@ -804,6 +827,7 @@ export type EventSignalUncheckedCreateWithoutEventInput = {
   url: string
   canonical_url: string
   excerpt?: string
+  image_url?: string | null
   author?: string | null
   topic?: string
   score?: number
@@ -856,6 +880,7 @@ export type EventSignalScalarWhereInput = {
   url?: Prisma.StringFilter<"EventSignal"> | string
   canonical_url?: Prisma.StringFilter<"EventSignal"> | string
   excerpt?: Prisma.StringFilter<"EventSignal"> | string
+  image_url?: Prisma.StringNullableFilter<"EventSignal"> | string | null
   author?: Prisma.StringNullableFilter<"EventSignal"> | string | null
   topic?: Prisma.StringFilter<"EventSignal"> | string
   score?: Prisma.IntFilter<"EventSignal"> | number
@@ -880,6 +905,7 @@ export type EventSignalCreateManyEventInput = {
   url: string
   canonical_url: string
   excerpt?: string
+  image_url?: string | null
   author?: string | null
   topic?: string
   score?: number
@@ -903,6 +929,7 @@ export type EventSignalUpdateWithoutEventInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   canonical_url?: Prisma.StringFieldUpdateOperationsInput | string
   excerpt?: Prisma.StringFieldUpdateOperationsInput | string
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   topic?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
@@ -926,6 +953,7 @@ export type EventSignalUncheckedUpdateWithoutEventInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   canonical_url?: Prisma.StringFieldUpdateOperationsInput | string
   excerpt?: Prisma.StringFieldUpdateOperationsInput | string
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   topic?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
@@ -949,6 +977,7 @@ export type EventSignalUncheckedUpdateManyWithoutEventInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   canonical_url?: Prisma.StringFieldUpdateOperationsInput | string
   excerpt?: Prisma.StringFieldUpdateOperationsInput | string
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   topic?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
@@ -974,6 +1003,7 @@ export type EventSignalSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   url?: boolean
   canonical_url?: boolean
   excerpt?: boolean
+  image_url?: boolean
   author?: boolean
   topic?: boolean
   score?: boolean
@@ -999,6 +1029,7 @@ export type EventSignalSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   url?: boolean
   canonical_url?: boolean
   excerpt?: boolean
+  image_url?: boolean
   author?: boolean
   topic?: boolean
   score?: boolean
@@ -1024,6 +1055,7 @@ export type EventSignalSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   url?: boolean
   canonical_url?: boolean
   excerpt?: boolean
+  image_url?: boolean
   author?: boolean
   topic?: boolean
   score?: boolean
@@ -1049,6 +1081,7 @@ export type EventSignalSelectScalar = {
   url?: boolean
   canonical_url?: boolean
   excerpt?: boolean
+  image_url?: boolean
   author?: boolean
   topic?: boolean
   score?: boolean
@@ -1062,7 +1095,7 @@ export type EventSignalSelectScalar = {
   updated_at?: boolean
 }
 
-export type EventSignalOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "connector" | "external_id" | "source_name" | "source_kind" | "title" | "url" | "canonical_url" | "excerpt" | "author" | "topic" | "score" | "comment_count" | "published_at" | "fetched_at" | "event_id" | "incident_updates" | "removed_at" | "created_at" | "updated_at", ExtArgs["result"]["eventSignal"]>
+export type EventSignalOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "connector" | "external_id" | "source_name" | "source_kind" | "title" | "url" | "canonical_url" | "excerpt" | "image_url" | "author" | "topic" | "score" | "comment_count" | "published_at" | "fetched_at" | "event_id" | "incident_updates" | "removed_at" | "created_at" | "updated_at", ExtArgs["result"]["eventSignal"]>
 export type EventSignalInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   event?: boolean | Prisma.EventSignal$eventArgs<ExtArgs>
 }
@@ -1095,6 +1128,17 @@ export type $EventSignalPayload<ExtArgs extends runtime.Types.Extensions.Interna
      */
     canonical_url: string
     excerpt: string
+    /**
+     * 原文配图地址（RSS enclosure / media:content，或目标页 og:image）。
+     * 
+     * **存地址不存图**：详情页热链出版方自己的文件，他们换掉或删掉就等于撤回——
+     * 这是最贴近「链接预览」的形态，也是版权上最稳的一种。落盘的副本会让我们
+     * 变成分发方，那是另一回事（见 features/event-article-image.spec.yaml）。
+     * 
+     * 一大半来源给的是站点品牌图而不是文章配图，靠读路径上数「同一来源下这个 URL
+     * 出现了几次」筛掉，不在这里判——源换了品牌图，旧的自然掉出窗口。
+     */
+    image_url: string | null
     author: string | null
     topic: string
     /**
@@ -1556,6 +1600,7 @@ export interface EventSignalFieldRefs {
   readonly url: Prisma.FieldRef<"EventSignal", 'String'>
   readonly canonical_url: Prisma.FieldRef<"EventSignal", 'String'>
   readonly excerpt: Prisma.FieldRef<"EventSignal", 'String'>
+  readonly image_url: Prisma.FieldRef<"EventSignal", 'String'>
   readonly author: Prisma.FieldRef<"EventSignal", 'String'>
   readonly topic: Prisma.FieldRef<"EventSignal", 'String'>
   readonly score: Prisma.FieldRef<"EventSignal", 'Int'>

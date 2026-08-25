@@ -205,3 +205,73 @@ describe("stripHtml", () => {
     expect(stripHtml("&#65;&#x42;")).toBe("AB");
   });
 });
+
+/*
+ * 条目自带的配图。三种写法都收，但必须验类型——播客源的 enclosure 是 mp3，
+ * 不验就会给详情页塞一个取回来是坏图的地址。
+ */
+describe("parseFeed · 配图", () => {
+  function itemXml(inner: string) {
+    return `<rss><channel><item><title>T</title><link>https://e.example/a</link>${inner}</item></channel></rss>`;
+  }
+
+  it("reads media:content", () => {
+    const [item] = parseFeed(
+      itemXml('<media:content url="https://cdn.example/a.jpg" medium="image"/>'),
+    );
+    expect(item.image_url).toBe("https://cdn.example/a.jpg");
+  });
+
+  it("reads media:thumbnail", () => {
+    const [item] = parseFeed(
+      itemXml('<media:thumbnail url="https://cdn.example/t.jpg"/>'),
+    );
+    expect(item.image_url).toBe("https://cdn.example/t.jpg");
+  });
+
+  it("reads an image enclosure", () => {
+    const [item] = parseFeed(
+      itemXml('<enclosure url="https://cdn.example/e.png" type="image/png"/>'),
+    );
+    expect(item.image_url).toBe("https://cdn.example/e.png");
+  });
+
+  /* 播客源每一条都有 enclosure，取回来是坏图。 */
+  it("ignores a non-image enclosure", () => {
+    const [item] = parseFeed(
+      itemXml('<enclosure url="https://cdn.example/ep.mp3" type="audio/mpeg"/>'),
+    );
+    expect(item.image_url).toBeNull();
+  });
+
+  it("ignores media:content that declares a non-image medium", () => {
+    const [item] = parseFeed(
+      itemXml('<media:content url="https://cdn.example/v.mp4" medium="video"/>'),
+    );
+    expect(item.image_url).toBeNull();
+  });
+
+  it("prefers media over enclosure when both are present", () => {
+    const [item] = parseFeed(
+      itemXml(
+        '<enclosure url="https://cdn.example/e.png" type="image/png"/>' +
+          '<media:content url="https://cdn.example/m.jpg" medium="image"/>',
+      ),
+    );
+    expect(item.image_url).toBe("https://cdn.example/m.jpg");
+  });
+
+  it("is null when the item carries no image", () => {
+    const [item] = parseFeed(itemXml("<description>hi</description>"));
+    expect(item.image_url).toBeNull();
+  });
+
+  it("decodes entities in the url", () => {
+    const [item] = parseFeed(
+      itemXml(
+        '<media:content url="https://cdn.example/a.jpg?w=1&amp;h=2" medium="image"/>',
+      ),
+    );
+    expect(item.image_url).toBe("https://cdn.example/a.jpg?w=1&h=2");
+  });
+});

@@ -12,6 +12,7 @@ import { normalizeLocale } from "@rewindom/module-sdk";
 import { renderEventsTemplatePage } from "./events-page.js";
 import { isEventOgImageAvailable } from "./og-image.js";
 import { renderEventOgImage } from "./og.render.js";
+import { renderArticleImage } from "./article-image.js";
 import { renderSourceIcon } from "./source-icon.js";
 import { renderEntityFeed, renderEventsFeed } from "./rss.render.js";
 import {
@@ -121,6 +122,12 @@ export async function renderEventsPath(
     return renderSourceIcon({
       tenantId: input.tenantId,
       host: route.host,
+    });
+  }
+  if (route.type === "article_image") {
+    return renderArticleImage({
+      tenantId: input.tenantId,
+      token: route.token,
     });
   }
 

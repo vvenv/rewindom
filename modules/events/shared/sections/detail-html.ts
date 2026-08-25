@@ -48,6 +48,7 @@ export const renderEventsDetailHtml: SectionHtmlRenderer = (section, ctx) => {
     jsonLdHtml(event, ctx),
     back,
     headerHtml(event),
+    articleImageHtml(event),
     placementHtml(event, ctx),
     entitiesHtml(event, ctx),
     summaryHtml(event, settingText(s, "summary_label")),
@@ -66,6 +67,46 @@ export const renderEventsDetailHtml: SectionHtmlRenderer = (section, ctx) => {
     `</article>`,
   ].join("");
 };
+
+/**
+ * 原文插图。
+ *
+ * 三条约束（见 `features/event-article-image.spec.yaml`）：
+ *
+ * 1. **署名与回链是 markup 的一部分，不是可选装饰。** 整块是 `<figure>` +
+ *    `<figcaption>`，caption 写「图：{来源名}」且外面套着指向原文的链接。
+ *    带出处的链接预览是全网惯例；不带出处的大图铺在正文里就是转载。
+ *    **没有来源名就不画图**——那一步在服务端就挡掉了（`article-image.ts`）。
+ *
+ * 2. **默认热链**出版方自己的地址：文件仍由他们托管分发，换掉或删掉就等于撤回。
+ *
+ * 3. **裂图回落一次，再失败整块摘掉。** 对方防盗链时 `onerror` 把 src 换成本站
+ *    代理。必须**一次性**——换过就打 `data-fell-back`，第二次 `onerror` 直接
+ *    移除整个 figure，否则代理也失败时同一个 src 会被无限重试。
+ *
+ * `referrerpolicy="no-referrer"`：不把读者所在页告诉对方（与来源 favicon 同一条）。
+ * 副作用是有些站的防盗链会因此拒绝——正好走回落。
+ */
+function articleImageHtml(event: PublicEventDetailView): string {
+  const image = event.image;
+  if (!image) {
+    return "";
+  }
+  const onError =
+    "if(this.dataset.fellBack){this.closest('figure').remove()}" +
+    "else{this.dataset.fellBack='1';this.src=this.dataset.fallback}";
+  return `<figure class="events-figure"><img class="events-figure-img" src="${escapeHtml(
+    image.url,
+  )}" data-fallback="${escapeHtml(
+    image.fallback_url,
+  )}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="${escapeHtml(
+    onError,
+  )}"><figcaption class="events-figure-caption"><a href="${escapeHtml(
+    image.source_href,
+  )}" rel="nofollow noopener" target="_blank">${escapeHtml(
+    image.credit,
+  )}</a></figcaption></figure>`;
+}
 
 /**
  * 详情页题头。

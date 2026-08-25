@@ -618,6 +618,19 @@ export interface EventDetail extends EventListItem {
   related: EventRelatedItem[];
   /** 「为什么在扩散」。说不清楚时是空数组，界面整块不渲染 */
   why_trending: EventTrendingFactor[];
+  /**
+   * 原文插图。`null` = 没有可署名的图，或那张被判成了站点模板图（见
+   * `server/event/article-image.ts` 的去噪规则）。工作台详情暂不画它。
+   */
+  article_image: EventArticleImage | null;
+}
+
+/** 一张原文插图。地址是出版方的，我们只存指针（见 shared/article-image.ts）。 */
+export interface EventArticleImage {
+  url: string;
+  fallback_url: string;
+  source_name: string;
+  source_href: string;
 }
 
 /**

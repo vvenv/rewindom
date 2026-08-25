@@ -164,6 +164,17 @@ export function toPublicDetail(
 ): PublicEventDetailView {
   return {
     ...toPublicCard(detail, t, now),
+    // 服务端已经去过噪、拼过回落地址；这里只补一件事：把署名落成当前语言
+    image: detail.article_image
+      ? {
+          url: detail.article_image.url,
+          fallback_url: detail.article_image.fallback_url,
+          credit: t("detail.imageCredit", {
+            source: detail.article_image.source_name,
+          }),
+          source_href: detail.article_image.source_href,
+        }
+      : null,
     summary: detail.summary,
     analyzer: detail.analyzer,
     provenance_note: buildProvenanceNote(detail, t),

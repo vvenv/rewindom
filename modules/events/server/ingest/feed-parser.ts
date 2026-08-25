@@ -18,6 +18,11 @@ export interface ParsedFeedItem {
   /** 源给的短描述（RSS `description` / Atom `summary`）——通常是 teaser。 */
   summary: string;
   /**
+   * 条目自带的配图地址。没有就是 null——目标页的 `og:image` 是另一条路
+   *（`page-excerpt.ts`），这里只读 feed 里现成的，不额外发请求。
+   */
+  image_url: string | null;
+  /**
    * 正文（RSS `content:encoded` / Atom `content`）。没有就是空串。
    *
    * 与 `summary` **分开返回**而不是就地择优：只有 connector 知道这条源是不是
@@ -71,9 +76,47 @@ function parseFeedItem(block: string): ParsedFeedItem | null {
     link,
     summary: stripHtml(summary),
     content: stripHtml(content),
+    image_url: readImage(block),
     author: readAuthor(block),
     published_at: readDate(block),
   };
+}
+
+/**
+ * 条目自带的配图。
+ *
+ * 三种写法都收，按「越专门越靠前」排：
+ *   `<media:content medium="image">` — Media RSS，最明确
+ *   `<media:thumbnail url="…">`      — 同一套，通常是缩略图
+ *   `<enclosure type="image/…">`     — RSS 2.0 的通用附件，必须验 type：
+ *                                      播客源的 enclosure 是 mp3，取回来是坏图
+ *
+ * `<img>` 藏在 `content:encoded` 里的那种**不取**：正文里第一张图常常是
+ * 追踪像素、分享按钮或作者头像，而我们已经 `stripHtml` 掉了正文标签，
+ * 再为找图把 HTML 留一份是给一个低质量图源加成本。
+ */
+function readImage(block: string): string | null {
+  for (const tag of ["media:content", "media:thumbnail"]) {
+    const re = new RegExp(`<${tag}\\b([^>]*)/?>`, "giu");
+    for (const match of block.matchAll(re)) {
+      const attrs = match[1] ?? "";
+      const medium = /\bmedium\s*=\s*["']([^"']*)["']/iu.exec(attrs)?.[1];
+      const type = /\btype\s*=\s*["']([^"']*)["']/iu.exec(attrs)?.[1];
+      // medium/type 都缺时按图放行：media:thumbnail 定义上就是图
+      if (medium && medium.toLowerCase() !== "image") continue;
+      if (type && !type.toLowerCase().startsWith("image/")) continue;
+      const url = /\burl\s*=\s*["']([^"']*)["']/iu.exec(attrs)?.[1];
+      if (url) return decodeEntities(url);
+    }
+  }
+  for (const match of block.matchAll(/<enclosure\b([^>]*)\/?>/giu)) {
+    const attrs = match[1] ?? "";
+    const type = /\btype\s*=\s*["']([^"']*)["']/iu.exec(attrs)?.[1];
+    if (!type?.toLowerCase().startsWith("image/")) continue;
+    const url = /\burl\s*=\s*["']([^"']*)["']/iu.exec(attrs)?.[1];
+    if (url) return decodeEntities(url);
+  }
+  return null;
 }
 
 /**

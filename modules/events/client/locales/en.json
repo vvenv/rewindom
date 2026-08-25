@@ -100,7 +100,8 @@
     "firstSeen": "First seen",
     "score": "{{count}} points",
     "comments": "{{count}} comments",
-    "related": "Related events"
+    "related": "Related events",
+    "imageCredit": "Photo: {{source}}"
   },
   "timeline": {
     "firstSeen": "First appeared on {{source}}",

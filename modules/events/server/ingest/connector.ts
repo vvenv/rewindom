@@ -16,6 +16,11 @@ export interface RawSignal {
   title: string;
   url: string;
   excerpt: string;
+  /**
+   * 原文配图地址。connector 只填 feed 里现成的（`media:content` / `enclosure`）；
+   * 目标页的 `og:image` 由 `fillEmptyExcerpts` 在同一次抓取里补。
+   */
+  image_url: string | null;
   author: string | null;
   topic: EventTopic;
   score: number;

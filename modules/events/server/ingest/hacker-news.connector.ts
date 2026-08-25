@@ -86,6 +86,8 @@ export function toSignal(
     title: item.title.trim(),
     url: item.url ?? discussionUrl,
     excerpt: truncateExcerpt(stripHtml(item.text ?? "")),
+    // HN 的 API 不给图；外链目标页的 og:image 由 fillEmptyExcerpts 补
+    image_url: null,
     author: item.by ?? null,
     topic: feed.topic,
     score: item.score ?? 0,

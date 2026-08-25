@@ -49,8 +49,10 @@ touch:
   - modules/events/shared/site-css/events.css
   - modules/events/shared/site-css.generated.ts
 out_of_scope:
-  - 抓取 / 存储 / 代理来源的 og:image（见开头三条理由；要翻这个结论先改本 spec）
   - 任何形式的生成图片（渐变 / 底纹 / 首字母方块）——已经做过一版并删掉，理由在开头
+  # 「不取来源 og:image」那一条已被 `event-article-image.spec.yaml` 推翻：
+  # 站点所有者看过版权顾虑后决定在详情页用真图，代价换成三条硬约束
+  #（必须署名回链 / 默认热链不落盘 / 只存地址）。列表卡片仍然不放图。
   - 改 `/events/:slug/og.png`（分享面维持现状，本期只借它的配色 token）
   - 让租户逐条事件上传或覆盖配图（`event-og-image.spec.yaml` 已记为 out_of_scope，
     理由不变：每天几十条自动采集的事件，没人会去传图）
@@ -114,6 +116,10 @@ models: [] # 纯推导物，不入库
 #    等于「这条是谁发的」，而这批恰好就是 release / status / official 那些一手来源。
 #    多来源事件取第一张图是在编一个它没有的主角。取不到时 `onerror` 摘掉整个盒子，
 #    不留空方框——一张画不出来的标志比没有标志更像故障。
+#
+# ---------- 后续 ----------
+# - 详情页在题头下面加了真实的原文插图（`event-article-image.spec.yaml`）。
+#   本 spec 的主题色与那张图共存：色是「这条属于哪一类」，图是「这条讲了什么」。
 #
 # ---------- 下一步（不在本期）----------
 # - 工作台卡片是否也要主题色线（shadcn 那套视觉系统，独立一期）

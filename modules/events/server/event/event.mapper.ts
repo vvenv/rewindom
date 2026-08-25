@@ -16,6 +16,7 @@ import type {
 import { computeWhyTrending } from "./why-trending.js";
 
 import type {
+  EventArticleImage,
   EventDetail,
   EventEntityKind,
   EventListItem,
@@ -145,6 +146,11 @@ export function toEventDetail(params: {
   follow?: FollowMarker | null;
   /** 只有测试会显式传；生产恒为当下 */
   now?: Date;
+  /**
+   * 原文插图。**由调用方给成品**：选哪张与「这张是不是站点模板图」都要查库
+   *（`server/event/article-image.ts`），而 mapper 是纯函数。
+   */
+  articleImage?: EventArticleImage | null;
   /** 本站采集源 name → 本站 icon 路径 */
   sourceIcons?: ReadonlyMap<string, string>;
   /** 索引未命中时的取图地址。工作台绑 API 路径。 */
@@ -185,6 +191,7 @@ export function toEventDetail(params: {
       ),
     ),
     sources: groupSources(params.signals, params.sourceIcons, params.iconToUrl),
+    article_image: params.articleImage ?? null,
     revisions: (params.revisions ?? []).flatMap(toRevisionItem),
     why_trending: computeWhyTrending({
       signals: params.signals.map((signal) => ({

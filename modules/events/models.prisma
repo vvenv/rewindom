@@ -57,6 +57,15 @@ model EventSignal {
   /// 去掉 utm / 锚点等噪声后的规范化 URL，跨源合并同一篇原文靠它
   canonical_url String
   excerpt       String    @default("")
+  /// 原文配图地址（RSS enclosure / media:content，或目标页 og:image）。
+  ///
+  /// **存地址不存图**：详情页热链出版方自己的文件，他们换掉或删掉就等于撤回——
+  /// 这是最贴近「链接预览」的形态，也是版权上最稳的一种。落盘的副本会让我们
+  /// 变成分发方，那是另一回事（见 features/event-article-image.spec.yaml）。
+  ///
+  /// 一大半来源给的是站点品牌图而不是文章配图，靠读路径上数「同一来源下这个 URL
+  /// 出现了几次」筛掉，不在这里判——源换了品牌图，旧的自然掉出窗口。
+  image_url     String?
   author        String?
   topic         String    @default("tech")
   /// 源上的热度指标（HN points / RSS 恒为 0）
@@ -93,6 +102,8 @@ model EventSignal {
   @@index([event_id, published_at])
   @@index([tenant_id, published_at(sort: Desc)])
   @@index([tenant_id, canonical_url])
+  /// 模板图去噪要按 (来源, 图) 分组计数；代理路由要按图反查「这条我们采过没有」
+  @@index([tenant_id, source_name, image_url])
 }
 
 /// 由多条信号聚成的一个事件。按站点隔离。

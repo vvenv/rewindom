@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   excerptFromHtml,
+  imageFromHtml,
   isFetchableArticleUrl,
   isUsableExcerpt,
   looksLikeBotWall,
@@ -101,5 +102,48 @@ describe("truncateExcerpt", () => {
     const excerpt = truncateExcerpt("x".repeat(700));
     expect(excerpt.length).toBeLessThanOrEqual(600);
     expect(excerpt.endsWith("…")).toBe(true);
+  });
+});
+
+/* 目标页的 og:image。与摘录同一次抓取、同一次遍历 meta，不下载两遍。 */
+describe("imageFromHtml", () => {
+  const PAGE = "https://blog.example.com/posts/a";
+
+  it("reads og:image", () => {
+    expect(
+      imageFromHtml(
+        '<meta property="og:image" content="https://cdn.example.com/hero.jpg">',
+        PAGE,
+      ),
+    ).toBe("https://cdn.example.com/hero.jpg");
+  });
+
+  it("falls back to twitter:image", () => {
+    expect(
+      imageFromHtml(
+        '<meta name="twitter:image" content="https://cdn.example.com/t.jpg">',
+        PAGE,
+      ),
+    ).toBe("https://cdn.example.com/t.jpg");
+  });
+
+  /* 有些源的 og:image 写的是相对路径，半个地址就是一张裂图。 */
+  it("resolves a relative address against the page", () => {
+    expect(
+      imageFromHtml('<meta property="og:image" content="/img/hero.png">', PAGE),
+    ).toBe("https://blog.example.com/img/hero.png");
+  });
+
+  it("is null when the page declares none", () => {
+    expect(imageFromHtml("<html><body>hi</body></html>", PAGE)).toBeNull();
+  });
+
+  it("drops a declared address that is not a usable image", () => {
+    expect(
+      imageFromHtml(
+        '<meta property="og:image" content="http://127.0.0.1/a.png">',
+        PAGE,
+      ),
+    ).toBeNull();
   });
 });

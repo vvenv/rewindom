@@ -185,6 +185,12 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
         url: null,
       },
     ],
+    /*
+     * 样张**不带图**。这一格没有任何段设置可配（有图就画、没有就不画），
+     * 所以样张里放一张的唯一作用是让编辑器预览去拉一个第三方地址——
+     * 预览不该依赖网络，而放个假地址只会在编辑器里裂一张图。
+     */
+    article_image: null,
     sources: {
       official: [
         {

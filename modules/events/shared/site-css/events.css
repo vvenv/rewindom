@@ -573,6 +573,54 @@
  * 24ch 只放得下 12 个字——实测把「Cloudflare 全球边缘网络中断 47 分钟」
  * 折成了两行，右边空掉大半块。em 跟字号走，中西文都是一个字≈1em / 0.5em。
  */
+/*
+ * 原文插图。
+ *
+ * **不锁死比例**：真图比例各异，`aspect-ratio` 一钉就会裁掉人脸或图表边缘。
+ * 只给一个 `max-height` 兜底防止竖图把页面顶开，`object-fit: contain` 留白底。
+ *
+ * 署名不是可选装饰：`figcaption` 恒在，整块是指向原文的链接。
+ * 不能署名的图在服务端就没被选出来（`server/event/article-image.ts`）。
+ */
+.events-figure {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.events-figure-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--muted-bg);
+}
+
+.events-figure-caption {
+  color: var(--muted-fg);
+  font-size: 0.8125rem;
+}
+
+.events-figure-caption a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+  text-underline-offset: 2px;
+}
+
+.events-figure-caption a:hover {
+  color: var(--accent-text);
+}
+
+.events-figure-caption a:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
 .events-detail-title {
   margin: 0;
   max-width: 20em;

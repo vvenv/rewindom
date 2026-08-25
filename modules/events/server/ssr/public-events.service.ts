@@ -17,6 +17,7 @@ import {
 } from "../feed/source-icon-index.js";
 import { listEventEntities } from "../event/entity.service.js";
 import { listRelatedEvents } from "../event/related.service.js";
+import { getEventArticleImage } from "../event/article-image.js";
 import { getEventPlacementForDetail } from "../event/placement.service.js";
 import { getEntityProfile } from "../event/entity-profile.service.js";
 import {
@@ -374,7 +375,11 @@ export async function getPublicEventBySlug(
     entities,
   });
 
-  const sourceIcons = await loadSourceIconIndex(tenantId);
+  const [sourceIcons, articleImage] = await Promise.all([
+    loadSourceIconIndex(tenantId),
+    // 选图 + 模板图去噪都要查库，mapper 是纯函数，所以在这里给成品
+    getEventArticleImage(tenantId, record.id),
+  ]);
 
   return toEventDetail({
     record,
@@ -383,6 +388,7 @@ export async function getPublicEventBySlug(
     revisions,
     entities,
     placement,
+    articleImage,
     related: related.filter((row) =>
       isTopicEnabled(enabled, row.topic as EventTopic),
     ),

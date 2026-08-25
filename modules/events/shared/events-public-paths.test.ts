@@ -157,3 +157,27 @@ describe("isEventsRootQueryTakeover", () => {
     );
   });
 });
+
+/* 文章插图的回落代理路由。token 的合法性由渲染器判，这里只认路由形状。 */
+describe("parseEventsPublicPath · 文章插图", () => {
+  it("routes /events/images/:token", () => {
+    expect(parseEventsPublicPath("/events/images/aGVsbG8")).toEqual({
+      type: "article_image",
+      token: "aGVsbG8",
+    });
+  });
+
+  it("does not collide with the event detail route", () => {
+    expect(parseEventsPublicPath("/events/some-slug")).toEqual({
+      type: "event",
+      slug: "some-slug",
+    });
+  });
+
+  it("does not collide with the source icon route", () => {
+    expect(parseEventsPublicPath("/events/icons/example.com")).toEqual({
+      type: "source_icon",
+      host: "example.com",
+    });
+  });
+});
