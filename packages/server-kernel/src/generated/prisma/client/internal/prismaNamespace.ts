@@ -402,6 +402,8 @@ export const ModelName = {
   Subscription: 'Subscription',
   Payment: 'Payment',
   Bookmark: 'Bookmark',
+  Content: 'Content',
+  ContentAsset: 'ContentAsset',
   DashboardPreference: 'DashboardPreference',
   ErrorLog: 'ErrorLog',
   EventFeed: 'EventFeed',
@@ -480,7 +482,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "dashboardPreference" | "errorLog" | "eventFeed" | "eventSignal" | "newsEvent" | "eventEntity" | "eventEntityLink" | "eventEntityFollow" | "eventRevision" | "eventTimelineEntry" | "eventFollow" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "mailDelivery" | "marketingSite" | "marketingPage" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "newsletterSubscriber" | "newsletterSubscription" | "newsletterDigestRun" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "shopSetting" | "shopProduct" | "shopCollection" | "shopCollectionProduct" | "shopDiscount" | "shopVariant" | "shopCart" | "shopCartItem" | "shopShippingZone" | "shopShippingRate" | "shopOrder" | "shopOrderLine" | "shopShipment" | "shopPayment" | "memberPlan" | "memberSubscription" | "memberPayment" | "siteDocCategory" | "siteDoc" | "siteFormSubmission" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "slowRequestLog" | "todo"
+    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "content" | "contentAsset" | "dashboardPreference" | "errorLog" | "eventFeed" | "eventSignal" | "newsEvent" | "eventEntity" | "eventEntityLink" | "eventEntityFollow" | "eventRevision" | "eventTimelineEntry" | "eventFollow" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "mailDelivery" | "marketingSite" | "marketingPage" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "newsletterSubscriber" | "newsletterSubscription" | "newsletterDigestRun" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "shopSetting" | "shopProduct" | "shopCollection" | "shopCollectionProduct" | "shopDiscount" | "shopVariant" | "shopCart" | "shopCartItem" | "shopShippingZone" | "shopShippingRate" | "shopOrder" | "shopOrderLine" | "shopShipment" | "shopPayment" | "memberPlan" | "memberSubscription" | "memberPayment" | "siteDocCategory" | "siteDoc" | "siteFormSubmission" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "slowRequestLog" | "todo"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -851,6 +853,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.BookmarkCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.BookmarkCountAggregateOutputType> | number
+        }
+      }
+    }
+    Content: {
+      payload: Prisma.$ContentPayload<ExtArgs>
+      fields: Prisma.ContentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ContentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ContentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPayload>
+        }
+        findFirst: {
+          args: Prisma.ContentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ContentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPayload>
+        }
+        findMany: {
+          args: Prisma.ContentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPayload>[]
+        }
+        create: {
+          args: Prisma.ContentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPayload>
+        }
+        createMany: {
+          args: Prisma.ContentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ContentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPayload>[]
+        }
+        delete: {
+          args: Prisma.ContentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPayload>
+        }
+        update: {
+          args: Prisma.ContentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPayload>
+        }
+        deleteMany: {
+          args: Prisma.ContentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ContentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ContentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPayload>[]
+        }
+        upsert: {
+          args: Prisma.ContentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPayload>
+        }
+        aggregate: {
+          args: Prisma.ContentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateContent>
+        }
+        groupBy: {
+          args: Prisma.ContentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ContentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ContentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ContentCountAggregateOutputType> | number
+        }
+      }
+    }
+    ContentAsset: {
+      payload: Prisma.$ContentAssetPayload<ExtArgs>
+      fields: Prisma.ContentAssetFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ContentAssetFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentAssetPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ContentAssetFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentAssetPayload>
+        }
+        findFirst: {
+          args: Prisma.ContentAssetFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentAssetPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ContentAssetFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentAssetPayload>
+        }
+        findMany: {
+          args: Prisma.ContentAssetFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentAssetPayload>[]
+        }
+        create: {
+          args: Prisma.ContentAssetCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentAssetPayload>
+        }
+        createMany: {
+          args: Prisma.ContentAssetCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ContentAssetCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentAssetPayload>[]
+        }
+        delete: {
+          args: Prisma.ContentAssetDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentAssetPayload>
+        }
+        update: {
+          args: Prisma.ContentAssetUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentAssetPayload>
+        }
+        deleteMany: {
+          args: Prisma.ContentAssetDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ContentAssetUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ContentAssetUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentAssetPayload>[]
+        }
+        upsert: {
+          args: Prisma.ContentAssetUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentAssetPayload>
+        }
+        aggregate: {
+          args: Prisma.ContentAssetAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateContentAsset>
+        }
+        groupBy: {
+          args: Prisma.ContentAssetGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ContentAssetGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ContentAssetCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ContentAssetCountAggregateOutputType> | number
         }
       }
     }
@@ -5646,6 +5796,42 @@ export const BookmarkScalarFieldEnum = {
 export type BookmarkScalarFieldEnum = (typeof BookmarkScalarFieldEnum)[keyof typeof BookmarkScalarFieldEnum]
 
 
+export const ContentScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  title: 'title',
+  body: 'body',
+  brief: 'brief',
+  format: 'format',
+  status: 'status',
+  tags: 'tags',
+  error_message: 'error_message',
+  created_by: 'created_by',
+  updated_by: 'updated_by',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ContentScalarFieldEnum = (typeof ContentScalarFieldEnum)[keyof typeof ContentScalarFieldEnum]
+
+
+export const ContentAssetScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  content_id: 'content_id',
+  kind: 'kind',
+  mime_type: 'mime_type',
+  filename: 'filename',
+  size_bytes: 'size_bytes',
+  storage_key: 'storage_key',
+  text_body: 'text_body',
+  sort_order: 'sort_order',
+  created_at: 'created_at'
+} as const
+
+export type ContentAssetScalarFieldEnum = (typeof ContentAssetScalarFieldEnum)[keyof typeof ContentAssetScalarFieldEnum]
+
+
 export const DashboardPreferenceScalarFieldEnum = {
   tenant_id: 'tenant_id',
   user_id: 'user_id',
@@ -7005,6 +7191,8 @@ export type GlobalOmitConfig = {
   subscription?: Prisma.SubscriptionOmit
   payment?: Prisma.PaymentOmit
   bookmark?: Prisma.BookmarkOmit
+  content?: Prisma.ContentOmit
+  contentAsset?: Prisma.ContentAssetOmit
   dashboardPreference?: Prisma.DashboardPreferenceOmit
   errorLog?: Prisma.ErrorLogOmit
   eventFeed?: Prisma.EventFeedOmit

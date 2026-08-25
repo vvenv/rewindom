@@ -4,7 +4,6 @@ import {
 } from "../_common/chrome-blocks.js";
 import { chromeShellSettings } from "../_common/chrome-shell.js";
 import { styleSettings } from "../_common/settings.js";
-
 import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
 
 /**

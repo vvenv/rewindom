@@ -10,13 +10,13 @@
  */
 
 import { headingSettings } from "../../marketing/shared/sections/_common/settings.js";
+import { SITE_MEMBER_SECTION_GROUP } from "../../site-member/shared/entitlements.js";
 import {
   memberCardSettings,
   memberPageLayoutSettings,
 } from "../../site-member/shared/member-page-settings.js";
 
 import { SITE_BILLING_ENTITLEMENT } from "./entitlements.js";
-import { SITE_MEMBER_SECTION_GROUP } from "../../site-member/shared/entitlements.js";
 
 import type { SectionDefinition } from "../../marketing/shared/section-schema.js";
 

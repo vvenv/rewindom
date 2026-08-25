@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { linkTargetVisibleOnPage } from "./site-link-target.js";
+import { linkTargetVisibleOnPage, type SiteLinkTarget  } from "./site-link-target.js";
 
-import type { SiteLinkTarget } from "./site-link-target.js";
 
 const base = { value: "/x", label: "X", group: "page" } as const;
 const global: SiteLinkTarget = { ...base };

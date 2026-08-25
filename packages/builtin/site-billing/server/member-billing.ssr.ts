@@ -18,10 +18,10 @@
 import { AppError } from "@rewindom/server-kernel/lib/app-errors.js";
 import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
-import { resolveSiteAccountEntry } from "../../marketing/server/site-account-entry.js";
-import { resolveSectionEntitlements } from "../../marketing/server/site-entitlements.js";
 import { resolvePageContributed } from "../../marketing/server/page-contributed.js";
 import { cookiesFromHeader } from "../../marketing/server/section-context-providers.js";
+import { resolveSiteAccountEntry } from "../../marketing/server/site-account-entry.js";
+import { resolveSectionEntitlements } from "../../marketing/server/site-entitlements.js";
 import {
   getPublishedTemplatePage,
   getSiteChromeOrFallback,

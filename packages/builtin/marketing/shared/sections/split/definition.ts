@@ -4,7 +4,6 @@ import {
   linkSettings,
   MEDIA_SIDE_OPTIONS,
 } from "../_common/settings.js";
-
 import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
 
 /**

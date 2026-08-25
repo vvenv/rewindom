@@ -14,10 +14,11 @@
  * handler 的那一刻还没有 sections。
  */
 
+import { collectSectionTypes } from "../shared/sections/collect-types.js";
+import { mergeContributedRecords } from "../shared/site-interpolation.js";
+
 import { resolveSectionContexts } from "./section-context-providers.js";
 
-import { mergeContributedRecords } from "../shared/site-interpolation.js";
-import { collectSectionTypes } from "../shared/sections/collect-types.js";
 
 import type { SiteSection } from "../shared/sections/types.js";
 import type { AppLocale } from "@rewindom/shared";

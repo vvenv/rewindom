@@ -1,5 +1,4 @@
 import { ALIGN_OPTIONS, layoutSettings } from "../_common/settings.js";
-
 import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
 
 /**

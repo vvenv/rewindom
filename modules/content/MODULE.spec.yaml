@@ -1,0 +1,115 @@
+# 模块生成契约 —— create-module skill 的输入
+#
+# 用法：复制本文件填写后 `node scripts/gen-module.mjs <本文件>` 生成模块，
+#       生成器会把它拷进 modules/<id>/MODULE.spec.yaml 作为该模块的契约。
+# 规则：必填项留空 = 阻塞，agent 必须追问，不得猜；可选项留空 = 采用 SKILL.md 的默认值表。
+# 下面的示例值取自金标准模块 notes，可直接对照改写。
+
+# ---------- 必填 · 骨架 ----------
+id: content
+label: Content
+description: 用图片、视频和文字生成笔记与文章
+kind: business
+placement: modules/content
+resource:
+  singular: content
+  plural: contents
+surfaces: [tenant]
+requires: [rbac, audit]
+
+# ---------- 必填 · 租户开关 ----------
+entitlement:
+  key: contents
+  label: 内容生成
+  description: 用图片、视频和文字生成笔记与文章
+  disabled_hint: 该组织未开通内容生成
+  default_enabled: true
+
+# ---------- 必填 · 权限 ----------
+permissions:
+  - {
+      key: contents.read,
+      label: 查看内容,
+      group: 内容生成,
+      description: 查看内容列表与详情,
+    }
+  - {
+      key: contents.write,
+      label: 创建/编辑内容,
+      group: 内容生成,
+      description: 创建、编辑、生成与删除内容,
+    }
+
+# ---------- 必填 · 数据模型 ----------
+# ContentAsset 由生成后手工补（脚手架只支持 1 个主模型）
+models:
+  - name: Content
+    fields:
+      - { name: title, type: String, required: false, default: "" }
+      - {
+          name: body,
+          type: String,
+          required: false,
+          default: "",
+          multiline: true,
+        }
+      - {
+          name: brief,
+          type: String,
+          required: false,
+          default: "",
+          multiline: true,
+        }
+      - { name: format, type: String, required: true, default: "note" }
+      - { name: status, type: String, required: true, default: "draft" }
+      - { name: error_message, type: String, required: false }
+      - { name: created_by, type: String, required: true }
+      - { name: updated_by, type: String, required: false }
+    indexes:
+      - [tenant_id]
+      - [tenant_id, updated_at]
+  - name: ContentAsset
+    fields:
+      - { name: content_id, type: String, required: true }
+      - { name: kind, type: String, required: true }
+      - { name: mime_type, type: String, required: false, default: "" }
+      - { name: filename, type: String, required: false, default: "" }
+      - { name: size_bytes, type: Int, required: true, default: 0 }
+      - { name: storage_key, type: String, required: false }
+      - { name: text_body, type: String, required: false }
+      - { name: sort_order, type: Int, required: true, default: 0 }
+
+# ---------- 必填 · API ----------
+api:
+  prefix: /api/contents
+  operations: [list, detail, create, update, delete, generate, assets]
+
+  list:
+    search_fields: [title, brief, body]
+    sort_whitelist: [title, updated_at, created_at, status, format]
+    default_sort: { by: updated_at, dir: desc }
+
+# ---------- 必填 · 前端 ----------
+client:
+  mount: renderRoutes
+  route_path: /app/contents
+  nav:
+    section: content:nav.section
+    label: content:nav.contents
+    title: content:title
+    icon: PenLine
+  page:
+    layout: list-filter-table
+    form_fields: [title, brief, body]
+
+# ---------- 可选 ----------
+audit:
+  actions:
+    - { action: CONTENT_CREATE, label: 创建内容 }
+    - { action: CONTENT_UPDATE, label: 更新内容 }
+    - { action: CONTENT_DELETE, label: 删除内容 }
+    - { action: CONTENT_GENERATE, label: 生成内容 }
+options:
+  soft_delete: false
+  page_size: 20
+  mobile_tab: false

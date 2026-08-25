@@ -73,7 +73,7 @@ function runSiblingScript(name: string, args: string[]): void {
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
 
-  let tenant = await prisma.tenant.findUnique({
+  const tenant = await prisma.tenant.findUnique({
     where: { slug: YESTINO_SLUG },
     select: { id: true, slug: true, name: true, status: true },
   });

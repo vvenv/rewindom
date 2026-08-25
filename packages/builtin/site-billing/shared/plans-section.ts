@@ -13,9 +13,9 @@ import {
   headingSettings,
   layoutSettings,
 } from "../../marketing/shared/sections/_common/settings.js";
+import { SITE_MEMBER_SECTION_GROUP } from "../../site-member/shared/entitlements.js";
 
 import { SITE_BILLING_ENTITLEMENT } from "./entitlements.js";
-import { SITE_MEMBER_SECTION_GROUP } from "../../site-member/shared/entitlements.js";
 
 import type {
   MemberPlanInterval,

@@ -51,3 +51,14 @@ export {
   registerServerI18nBundles,
 } from "@rewindom/server-kernel/lib/i18n/registry.js";
 export { resolveRequestLocale } from "@rewindom/server-kernel/lib/i18n/translate.js";
+export { getFileStorageProvider } from "@rewindom/server-kernel/infra/file-storage/index.js";
+export type {
+  FileStorageObject,
+  FileStorageProvider,
+  FileStoragePutOptions,
+} from "@rewindom/server-kernel/infra/file-storage/index.js";
+export { validateImageUpload } from "@rewindom/server-kernel/lib/image-upload.js";
+export {
+  extensionToMimeType,
+  mimeTypeToExtension,
+} from "@rewindom/server-kernel/lib/mime.js";

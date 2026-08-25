@@ -1,6 +1,5 @@
 import { NOT_FOUND_PAGE_KIND } from "../../page-templates.js";
 import { layoutSettings, linkSettings } from "../_common/settings.js";
-
 import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
 
 export const PAGE_MISSING_SECTION_TYPE = "page-missing";
