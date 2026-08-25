@@ -1,0 +1,82 @@
+# 增量功能契约 —— 实体页题图 = 这个实体的标志
+#
+# `publisher-entity.spec.yaml` 的「下一步（不在本期）」原话：
+#   「出版方实体的 logo/域名（source-icon 已经有 host，可以复用）」
+# 本期就是那一条。
+#
+# 为什么实体页的题图是 logo 而不是配图：`events.entity-hero` 被定义成**一张实体名片**
+#（eyebrow 是类型、h1 是实体名、下面紧跟累计档案）。名片该配的是这个实体的标志，
+# 不是它最近某条事件的新闻图——后者每天换一张，还带着别人的版权。
+#
+# 覆盖率是**刻意有限**的：只有「是某个一手来源出版方」的实体拿得到 logo
+#（`EventFeed.publisher_entity_name` 指过来的那些）。抽取出来的实体不去猜域名——
+# 「Kubernetes → kubernetes.io」在目录里是人工填的策展知识，在代码里就是猜，
+# 与 MODULE.md「不做别名合并，猜错比不合并更糟」同一条原则。没有就不画。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr, tenant] # 实体样张要跟着改，否则模板编辑器里预览不出这一格
+goal: 实体首屏在 h1 左侧画这个实体的标志（来自它作为出版方的那条采集源的 favicon，走已有的 /events/icons/:host），推不出来时整块不画、版式回到现在的样子。
+gold: modules/events/server/feed/source-icon-index.ts
+touch:
+  - modules/events/features/entity-hero-logo.spec.yaml
+  - modules/events/features/publisher-entity.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/server/feed/source-icon-index.ts
+  - modules/events/server/feed/source-icon-index.test.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/events-sample.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/public-view.test.ts
+  - modules/events/shared/sections/hero-html.ts
+  - modules/events/shared/sections/hero-html.test.ts
+  - modules/events/shared/site-css/events.css
+  - modules/events/shared/site-css.generated.ts
+out_of_scope:
+  - 给抽取出来的实体猜域名 / 查外部知识库（只认 publisher_entity_name 指过来的那条源）
+  - 让租户逐个实体上传 logo（要覆盖就用 entity-hero 的 `image` setting，见 topic-hero-image）
+  - 实体枢纽 `/entities` 与实体胶囊条上画 logo（那两处是密排链接，图会盖过文字）
+  - 给实体页做专属 og.png（`event-og-image.spec.yaml` 已把它记为 out_of_scope）
+  - 别名合并（Meta ⟷ Facebook）
+i18n: none # 只是一张图，无新文案
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/feed/source-icon-index.test.ts shared/sections/hero-html.test.ts shared/public-view.test.ts
+  - node scripts/verify-module.mjs events
+  - 本地 default 租户：打开一个一手来源出版方的实体页（如 Cloudflare / Kubernetes），确认标志出现；再打开一个抽取实体页，确认版式与现在一致
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: [] # 不加列，靠 publisher_entity_name 现查
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. **解析链路**：`EventEntity.normalized` ⟵ `EventFeed.publisher_entity_name`
+#    归一后相等 → 取该 feed 的 `url` → 走 `bindSourceIconUrl` 推出 `/events/icons/:host`。
+#    与 `loadSourceIconIndex` 同一个文件、同一次查询扩出来（那边已经把全站 feed 的
+#    name/url/connector 都捞了，多 select 一列 `publisher_entity_name` 即可），
+#    **不要**为实体页再开一次 EventFeed 全表扫描。
+#
+# 2. **同名多源取哪条**：一个实体可能是多条源的出版方（`status.openai.com` 与
+#    `openai.com/blog` 都标 OpenAI）。按 host 别名表归一后**大概率本来就是同一个
+#    host**，真不同时按 feed.name 字典序取第一条——要的是稳定，不是最优；
+#    每次刷新换一张图比一直用次优的那张糟得多。单测钉住「换输入顺序结果不变」。
+#
+# 3. **推不出来就不画**，不做 globe fallback。来源行上的 globe 占位是为了让那一排
+#    图标对齐；实体名片上只有一张图，画个地球等于告诉读者「这个实体长这样」。
+#    没有时那一格整块不输出，h1 回到现在的左对齐——不留空盒子。
+#    取图失败（源站 404）时 `onerror` 摘掉整个盒子，同一条口径。
+#
+# 4. **尺寸与形状**：favicon 通常是 32–64px 的位图，放大到名片尺寸会糊。上限
+#    48×48、`object-fit:contain`、外面套一个 `--surface` 底 + `--border` 描边的圆角盒子
+#    ——盒子撑起视觉重量，图本身不放大。深色站点上白色 logo 会消失，底色因此不能透明。
+#
+# 5. **租户手填的 `image` 优先**。`entity-hero` 的 `image` setting（topic-hero-image）
+#    非空时用租户那张，不画 favicon；两者不叠加。
+#
+# 6. **编辑器预览**：`editor-context.ts` 的实体样张要带一个能推出 logo 的实体，
+#    否则租户在模板编辑器里永远看不到这块存在。
+#
+# 7. **SSRF 面不变**：`/events/icons/:host` 仍只放行本站 EventFeed 推出来的 host
+#    （`isIconHost`），本期没有引入任何新的取图入口。

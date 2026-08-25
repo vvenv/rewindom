@@ -11,7 +11,10 @@ import { withSiteLocale } from "@rewindom/builtin/marketing/shared/site-locale.j
 
 import { toEventDetail } from "../event/event.mapper.js";
 import { mapEventRecordsToListItems } from "../event/list-items.js";
-import { loadSourceIconIndex } from "../feed/source-icon-index.js";
+import {
+  loadEventsIconIndex,
+  loadSourceIconIndex,
+} from "../feed/source-icon-index.js";
 import { listEventEntities } from "../event/entity.service.js";
 import { listRelatedEvents } from "../event/related.service.js";
 import { getEventPlacementForDetail } from "../event/placement.service.js";
@@ -395,6 +398,11 @@ export interface PublicEntityData {
   slug: string;
   name: string;
   kind: string;
+  /**
+   * 这个实体的标志，来自它作为出版方的那条采集源的 favicon。
+   * `null` = 推不出来（绝大多数抽取实体都是），名片上整块不画。
+   */
+  icon_url: string | null;
   event_count: number;
   /** 累计档案，仍是 i18n code + 参数——落成文案在 path handler 那一步 */
   profile: EventPlacementFact[];
@@ -412,7 +420,8 @@ export async function getPublicEntityBySlug(
 ): Promise<PublicEntityData | null> {
   const entity = await prisma.eventEntity.findFirst({
     where: withTenantScope(tenantId, { slug }),
-    select: { slug: true, name: true, kind: true },
+    // normalized 已经在库里，取它就不用在这里再归一一次名字
+    select: { slug: true, name: true, kind: true, normalized: true },
   });
   if (!entity) {
     return null;
@@ -444,15 +453,19 @@ export async function getPublicEntityBySlug(
     }),
   ]);
 
-  const sourceIcons = await loadSourceIconIndex(tenantId);
+  // 名片上的标志与卡片上的来源标出自同一张 EventFeed 快照，一次查询取回
+  const icons = await loadEventsIconIndex(tenantId);
 
   return {
-    ...entity,
+    slug: entity.slug,
+    name: entity.name,
+    kind: entity.kind,
+    icon_url: icons.entities.get(entity.normalized) ?? null,
     event_count: eventCount,
     events: await mapEventRecordsToListItems({
       tenant_id: tenantId,
       records: links.map((link) => link.event),
-      sourceIcons,
+      sourceIcons: icons.sources,
     }),
     profile,
   };

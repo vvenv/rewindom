@@ -5,6 +5,7 @@
  * 而不是把几个平台的榜单并排画出来。
  */
 
+import { eventPublisherIconUrl, topicAccentStyle } from "../event-accent.js";
 import { showsTimelineBlock, sortRelatedForReading } from "../events.js";
 import { readEventsContext } from "../events-section-context.js";
 
@@ -66,6 +67,16 @@ export const renderEventsDetailHtml: SectionHtmlRenderer = (section, ctx) => {
   ].join("");
 };
 
+/**
+ * 详情页题头。
+ *
+ * 这里曾经在上面另放一张按 slug 生成的渐变图。删掉了——那是「生成的图」，
+ * 不是版面：读者从一块随机色渐变里读不出任何东西，而它占掉了首屏最贵的一块。
+ *
+ * 取代它的是**把题头本身做成设计对象**：主题色只作为极低饱和的底与左边一条竖线，
+ * 主角是标题排版。有一手出版方时把它的标志放进来（那是真标志，不是生成物）。
+ * 与卡片顶那条线同一个色相，从列表点进来时颜色是连续的。
+ */
 function headerHtml(event: PublicEventDetailView): string {
   const meta = [
     `<span class="events-status events-status-${escapeHtml(event.status)}">${escapeHtml(
@@ -76,7 +87,16 @@ function headerHtml(event: PublicEventDetailView): string {
       (label) => `<span class="events-fact">${escapeHtml(label)}</span>`,
     ),
   ].join("");
-  return `<header class="events-detail-header"><span class="events-meta" translate="no">${meta}</span><h1 class="events-detail-title">${escapeHtml(
+  const icon = eventPublisherIconUrl(event);
+  const logo = icon
+    ? `<span class="events-detail-logo" aria-hidden="true"><img src="${escapeHtml(
+        icon,
+      )}" alt="" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.remove()"></span>`
+    : "";
+  // 标志与角标同一行：各占一行会把题头拉成三段，中间全是空
+  return `<header class="events-detail-header" style="${escapeHtml(
+    topicAccentStyle(event.topic),
+  )}"><span class="events-detail-eyebrow" translate="no">${logo}<span class="events-meta">${meta}</span></span><h1 class="events-detail-title">${escapeHtml(
     event.title,
   )}</h1></header>`;
 }

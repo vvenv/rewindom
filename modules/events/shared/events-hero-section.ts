@@ -16,6 +16,7 @@ import { EVENTS_FEED_HREF_TEMPLATE } from "./events-section-context.js";
 import {
   layoutSettings,
   linkSettings,
+  MEDIA_SIDE_OPTIONS,
 } from "@rewindom/builtin/marketing/shared/sections/_common/settings.js";
 import { NEWSLETTER_SUBSCRIBE_PATH } from "@rewindom/newsletter/shared/newsletter-page-templates.js";
 
@@ -83,6 +84,42 @@ export function eventsHeroSettings(defaults: {
       id: "show_glow",
       label: "editor.setting.show_glow",
       default: true,
+    },
+    /*
+     * 题图。**默认空**，空时这一段的 markup 与没有这几个设置时逐字节相同——
+     * 存量已发布的首页 / 专题页不会因为这几行的上线发生任何视觉变化。
+     *
+     * id 与取值照抄 marketing `hero`（`image` / `image_alt` / `media_side`）：
+     * 租户在两个段之间切换时，同一个概念该叫同一个名字。多出来的只有
+     * `image_layout`——通用 hero 的图恒在媒体位，而专题页最想要的是通栏封面。
+     *
+     * alt 留空是**正常情况**：无障碍文案存在媒体库的 asset 上，同一张图在十个地方
+     * 用不该抄十遍。这里只是给「同一张图在这一页有别的意思」留一个覆盖口。
+     */
+    { type: "image", id: "image", label: "editor.setting.image" },
+    { type: "text", id: "image_alt", label: "editor.setting.image_alt" },
+    {
+      type: "select",
+      id: "image_layout",
+      label: "events:section.hero.imageLayout",
+      default: "split",
+      // 不写成 `imageLayout.split`——`imageLayout` 自己已经是叶子，
+      // i18next 按 `.` 分层时同一个键不能既是字符串又是对象
+      options: [
+        { value: "split", label: "events:section.hero.imageLayoutSplit" },
+        {
+          value: "background",
+          label: "events:section.hero.imageLayoutBackground",
+        },
+      ],
+      info: "events:section.hero.imageLayoutInfo",
+    },
+    {
+      type: "select",
+      id: "media_side",
+      label: "editor.setting.media_side",
+      default: "right",
+      options: MEDIA_SIDE_OPTIONS,
     },
     { type: "header", content: "editor.group.buttons" },
     /*

@@ -89,6 +89,7 @@ describe("toPublicEntity", () => {
         slug: "openai",
         name: "OpenAI",
         kind: "company",
+        icon_url: "/events/icons/openai.com",
         event_count: 1,
         profile: [
           { code: "profile.window", params: { days: 90, count: 12 } },
@@ -133,6 +134,7 @@ describe("toPublicEntity", () => {
     expect(view.profile).toEqual(["12 events in 90 days", "Outage ×3"]);
     expect(view.events[0]?.href).toBe("/events/outage-1");
     expect(view.events[0]?.title).toBe("API outage");
+    expect(view.icon_url).toBe("/events/icons/openai.com");
   });
 
   it("sample entity has profile and events so editor preview is not blank", () => {
@@ -140,6 +142,8 @@ describe("toPublicEntity", () => {
     expect(view.name).toBe("OpenAI");
     expect(view.profile.length).toBeGreaterThan(0);
     expect(view.events.length).toBeGreaterThan(0);
+    // 样张必须带标志，否则编辑器里看不到名片上那一格存在
+    expect(view.icon_url).toBeTruthy();
   });
 });
 

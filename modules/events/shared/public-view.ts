@@ -289,6 +289,7 @@ export interface PublicEntityRecord {
   slug: string;
   name: string;
   kind: string;
+  icon_url: string | null;
   event_count: number;
   profile: readonly EventPlacementFact[];
   events: readonly EventListItem[];
@@ -327,6 +328,7 @@ export function toPublicEntity(
     feed_href: entityFeedPath(entity.slug),
     name: entity.name,
     kind_label: t(`entityKind.${entity.kind}`),
+    icon_url: entity.icon_url,
     event_count: entity.event_count,
     profile: entity.profile.map((fact) =>
       t(fact.code, resolvePlacementParams(fact.params, t)),

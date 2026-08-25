@@ -182,6 +182,12 @@ export interface PublicEntityView {
   name: string;
   /** 已落成当前语言的类型名（公司 / 产品 / 人物…） */
   kind_label: string;
+  /**
+   * 这个实体的标志（它作为出版方的那条采集源的 favicon）。
+   * `null` = 推不出来，名片上整块不画——**不退回地球图标**：来源行上那个占位是
+   * 为了让一排图标对齐，名片上只有一张图，画个地球等于说「这个实体长这样」。
+   */
+  icon_url: string | null;
   /** 该实体关联了多少个事件 */
   event_count: number;
   /**

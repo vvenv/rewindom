@@ -33,6 +33,7 @@
   flex-direction: column;
   gap: 0.5rem;
   padding: 1.25rem;
+  /* 上边框在下面「主题强调色」一节被改成 3px 主题色 */
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
@@ -56,6 +57,8 @@
   }
   .events-card:hover {
     border-color: color-mix(in srgb, var(--accent-text) 45%, var(--border));
+    /* `border-color` 是四条边的简写，会把主题色一起冲掉——上边框单独按回来 */
+    border-top-color: var(--topic-color);
     box-shadow: 0 6px 20px color-mix(in srgb, var(--fg) 7%, transparent);
   }
 }
@@ -316,6 +319,57 @@
   font-weight: 500;
 }
 
+/* ==========================================================================
+ * 主题强调色
+ *
+ * 卡顶一条 3px 的线，色相由事件主题给（`shared/event-accent.ts` 发 `--topic-hue`）。
+ *
+ * 这里曾经是一枚 56px 的渐变方块（「程序化题图」）。删了：卡片最窄 260px，
+ * 方块吃掉五分之一宽，标题从两行挤成三行、事实 chips 折成两排，而这个产品
+ * 列表页的价值正是「一屏能比对多少条」。一条线是零宽度成本的同一个线索。
+ *
+ * 用 `::before` + 自身圆角，**不加 `overflow:hidden`**——卡片上还压着
+ * `.events-card-link::after` 那层撑满的点击覆盖层，改溢出行为风险不值当。
+ * ========================================================================== */
+
+/*
+ * 色相由 markup 给（`--topic-hue`），明度 / 饱和度在这里跟色彩模式走。
+ *
+ * 深浅两套的钩子照抄 marketing `badges`：**浅色是基准**，深色由
+ * `prefers-color-scheme` + `:root:not([data-site-color-mode="light"])` 与
+ * `:root[data-site-color-mode="dark"]` 两条一起接管。用 `prefers-color-scheme`
+ * 单独判会漏掉租户在站点设置里钉死深色的那种情况。
+ */
+.events-card,
+.events-detail-header {
+  --topic-color: hsl(var(--topic-hue, 244) 58% 48%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-site-color-mode="light"]) .events-card,
+  :root:not([data-site-color-mode="light"]) .events-detail-header {
+    --topic-color: hsl(var(--topic-hue, 244) 55% 62%);
+  }
+}
+
+:root[data-site-color-mode="dark"] .events-card,
+:root[data-site-color-mode="dark"] .events-detail-header {
+  --topic-color: hsl(var(--topic-hue, 244) 55% 62%);
+}
+
+/*
+ * 那条线就是卡片自己的上边框，不是叠上去的伪元素。
+ *
+ * 上一版写成 `::before` + `inset:0 0 auto`，两个上角的色块会顶到卡片边框外面：
+ * 绝对定位的包含块是 **padding box**，而伪元素上又写了和卡片同一个 `--radius`
+ * ——卡片在 padding box 处的内圆角其实是 `radius - 1px`，伪元素的角比它大一圈，
+ * 于是沿着圆角露出来。真 border 由 `border-radius` 统一裁四条边，构造上就不可能溢出，
+ * 也不用为它补 `padding-top`。
+ */
+.events-card {
+  border-top: 3px solid var(--topic-color);
+}
+
 .events-headline {
   color: var(--muted-fg);
   font-size: 0.875rem;
@@ -459,14 +513,70 @@
   border-radius: 0.25rem;
 }
 
+/*
+ * 详情页题头 = 一块版面，不是一张图。
+ *
+ * 上一版在这上面另放一张按 slug 生成的渐变图，占掉首屏最贵的一块却什么都不说。
+ * 现在主题色只作为极低饱和的底（14% 混进 --surface）与左边一条竖线，
+ * 主角是标题排版。与卡顶那条线同一个色相，从列表点进来颜色是连续的。
+ */
 .events-detail-header {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: clamp(1.5rem, 3.5vw, 2rem);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--topic-color);
+  border-radius: var(--radius);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--topic-color) 14%, var(--surface)),
+    var(--surface) 70%
+  );
+}
+
+/*
+ * 出版方标志（只有单来源事件才有）。图不放大——favicon 通常只有 32–64px，
+ * 撑到题头尺寸会糊；视觉重量由外面这个描边盒子撑。取不到时整块摘掉，
+ * 不留空方框：一张画不出来的标志比没有标志更像故障。
+ */
+.events-detail-eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 0.75rem;
 }
 
+.events-detail-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  padding: 0.3125rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 0.125rem);
+  background: var(--surface);
+}
+
+.events-detail-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/*
+ * `max-width` 用 em 不用 ch：`ch` 是「0」这个字形的宽度，一个汉字约合 2ch，
+ * 24ch 只放得下 12 个字——实测把「Cloudflare 全球边缘网络中断 47 分钟」
+ * 折成了两行，右边空掉大半块。em 跟字号走，中西文都是一个字≈1em / 0.5em。
+ */
 .events-detail-title {
   margin: 0;
+  max-width: 20em;
+  text-wrap: balance;
   font-size: 2rem;
   line-height: 1.25;
   overflow-wrap: anywhere;
@@ -971,6 +1081,148 @@
 
 .events-hero .btn-row {
   margin-top: 1.75rem;
+}
+
+/*
+ * 实体名片上的标志。
+ *
+ * 图**不放大**（favicon 通常只有 32–64px，撑到 48 就糊了）：视觉重量由外面这个
+ * 描边盒子撑，图在里面 contain。底色不能透明——深色站点上白色 logo 会消失。
+ */
+.events-hero-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  flex: none;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 0.15rem);
+  background: var(--surface);
+}
+
+.events-hero-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* 有标志时抬头紧跟在它下面，不要再叠一层 margin。 */
+.events-hero-logo + .events-hero-eyebrow {
+  margin-top: 0;
+}
+
+/* --------------------------------------------------------------------------
+ * 首屏题图（`image` 非空时才出现）
+ *
+ * 无图时上面那套一个字节都不变——`.events-hero-copy` 这层包裹只在有图时存在，
+ * 所以这一整块规则对存量页面完全不生效。
+ * -------------------------------------------------------------------------- */
+
+.events-hero-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+/* 媒体位：窄屏永远是单列（图在文案下面），768 以上才分两列。 */
+.events-hero-split {
+  display: grid;
+  gap: 2rem;
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .events-hero-split {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: 3.5rem;
+  }
+  .events-hero-media-left {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  }
+  /*
+   * 只在两列时才换序。窄屏下 order 会把图顶到标题上面，
+   * 而首屏的第一眼应当是那句主张。
+   */
+  .events-hero-media-left .events-hero-media {
+    order: -1;
+  }
+}
+
+.events-hero-media {
+  min-width: 0;
+}
+
+.events-hero-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 0.35rem);
+  background: var(--muted-bg);
+}
+
+/*
+ * 通栏背景版。
+ *
+ * 遮罩**不可配**：首屏是这个产品唯一一次自我介绍，给一个「遮罩透明度」滑块
+ * 等于允许租户配出一张读不出字的首屏。深浅色各一套，由 `data-site-color-mode` 切。
+ * 用 `::after` 而不是把 `url()` 拼进 CSS——地址是租户填的，走 `<img src>` 的转义面更窄。
+ */
+.events-hero-bg {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  padding: clamp(2rem, 5vw, 4rem);
+  border-radius: calc(var(--radius) + 0.35rem);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.events-hero-bg .events-hero-media {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+
+.events-hero-bg .events-hero-media img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 0;
+}
+
+.events-hero-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--bg) 92%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 78%, transparent) 45%,
+    color-mix(in srgb, var(--bg) 35%, transparent) 100%
+  );
+}
+
+/* 窄屏上两列塌成一列，横向渐变挡不住任何东西——改成从下往上压。 */
+@media (max-width: 767px) {
+  .events-hero-bg::after {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg) 55%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 88%, transparent) 100%
+    );
+  }
 }
 
 /* ==========================================================================

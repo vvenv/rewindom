@@ -445,3 +445,50 @@ function renderCards(cards: PublicEventCard[]): string {
     contributed: eventsContextEntry(context),
   });
 }
+
+/*
+ * 主题强调色。
+ *
+ * 上一版这里测的是一枚 56px 渐变方块（「程序化题图」），实测把卡片挤变形了，
+ * 已经删掉——它抢宽度、又不携带信息。留下的是那套色里唯一有用的部分：
+ * 主题 → 色相，画成卡顶一条线，零宽度成本。
+ */
+describe("renderEventsFeedHtml · 主题强调色", () => {
+  it("puts the topic hue on every card", () => {
+    const html = renderCards([card("a", { topic: "ai" })]);
+    expect(html).toContain("--topic-hue:244");
+  });
+
+  /* 主题是事件的属性，不是「这条够不够厚」的属性——厚薄卡都上色。 */
+  it("colours thin cards too", () => {
+    const html = renderCards([
+      card("a", { topic: "gaming", evidence_text: "" }),
+    ]);
+    expect(html).toContain("events-card-thin");
+    expect(html).toContain("--topic-hue:292");
+  });
+
+  it("gives different topics different hues", () => {
+    const ai = renderCards([card("a", { topic: "ai" })]);
+    const world = renderCards([card("a", { topic: "world" })]);
+    expect(ai).not.toBe(world);
+    expect(world).toContain("--topic-hue:34");
+  });
+
+  /* 同一主题的事件就是同一条色：抖动只会让一排细线看起来像没对齐。 */
+  it("gives one topic exactly one hue", () => {
+    const first = renderCards([card("slug-one", { topic: "tech" })]);
+    const second = renderCards([card("slug-two", { topic: "tech" })]);
+    expect(first.match(/--topic-hue:\d+/u)?.[0]).toBe(
+      second.match(/--topic-hue:\d+/u)?.[0],
+    );
+  });
+
+  /* 没有第二层包裹、没有图：卡片 markup 回到加题图之前那一份。 */
+  it("adds no wrapper and no image to the card", () => {
+    const html = renderCards([card("a", { evidence_text: "已证实 · 3 家来源" })]);
+    expect(html).not.toContain("events-card-body");
+    expect(html).not.toContain("events-cover");
+    expect(html).not.toContain("<img");
+  });
+});

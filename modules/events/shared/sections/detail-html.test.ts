@@ -390,3 +390,60 @@ describe("renderEventsDetailHtml block titles", () => {
     expect(html).toContain('<h2 class="events-block-title">相关事件</h2>');
   });
 });
+
+/*
+ * 详情页题头 = 一块版面，不是一张图。
+ *
+ * 上一版在标题上面另放一张按 slug 生成的渐变图，占掉首屏最贵的一块却什么都不说，
+ * 已经删掉。主题色现在只作为题头的底与左边那条竖线。
+ */
+describe("renderEventsDetailHtml · 题头", () => {
+  it("tints the header with the event's topic hue", () => {
+    const html = render(detail());
+    expect(html).toContain("events-detail-header");
+    expect(html).toMatch(/--topic-hue:\d+/u);
+  });
+
+  it("no longer paints a generated cover above the title", () => {
+    const html = render(detail());
+    expect(html).not.toContain("events-detail-cover");
+    expect(html).not.toContain("events-cover");
+  });
+
+  /* 单来源事件的那张标毫无歧义地等于「这条是谁发的」。 */
+  it("shows the publisher logo on a single-source event", () => {
+    const html = render(
+      detail({
+        source_names: ["Cloudflare Status"],
+        source_icon_urls: ["/events/icons/cloudflare.com"],
+      }),
+    );
+    expect(html).toContain("events-detail-logo");
+    expect(html).toContain("/events/icons/cloudflare.com");
+  });
+
+  /* 多来源事件取第一张图是在编一个它没有的主角。 */
+  it("shows none on a multi-source event", () => {
+    const html = render(
+      detail({
+        source_names: ["Reuters", "The Verge"],
+        source_icon_urls: [
+          "/events/icons/reuters.com",
+          "/events/icons/theverge.com",
+        ],
+      }),
+    );
+    expect(html).not.toContain("events-detail-logo");
+  });
+
+  /* 一张画不出来的标志比没有标志更像故障。 */
+  it("removes the whole box when the logo fails to load", () => {
+    const html = render(
+      detail({
+        source_names: ["Cloudflare Status"],
+        source_icon_urls: ["/events/icons/cloudflare.com"],
+      }),
+    );
+    expect(html).toContain('onerror="this.parentElement.remove()"');
+  });
+});

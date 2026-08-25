@@ -256,6 +256,7 @@ export function sampleEntityData(t: EventsTranslate): {
   slug: string;
   name: string;
   kind: "company";
+  icon_url: string;
   event_count: number;
   profile: { code: string; params?: Record<string, string | number> }[];
   events: EventListItem[];
@@ -265,6 +266,11 @@ export function sampleEntityData(t: EventsTranslate): {
     slug: "openai-sample",
     name: "OpenAI",
     kind: "company",
+    /*
+     * 样张实体必须**能推出标志**，否则租户在模板编辑器里永远看不到名片上那一格
+     * 存在，也就不会知道它可以被 `image` 覆盖掉。
+     */
+    icon_url: sourceIconUrlFromHost("openai.com"),
     event_count: events.length,
     // 样张要能看见档案块：空数组时渲染器整块不画，改版式会以为它不存在
     profile: [

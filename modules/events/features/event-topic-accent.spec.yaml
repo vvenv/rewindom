@@ -1,0 +1,120 @@
+# 增量功能契约 —— 事件的主题强调色 + 详情页排版题头
+#
+# 起因是「每条事件配一张题图」。做完之后两条都不成立，本 spec 记下**为什么**，
+# 免得下一个人再走一遍。
+#
+# ---------- 第一步：不取来源配图 ----------
+# 唯一现成的图源是来源原文的 `og:image`（`page-excerpt.ts` 已经在遍历 meta，
+# 多读一个 key 就是三行）。不走那条路：
+#   1. 版权。摘录是源自己发出来给人转的 meta description；配图是受版权保护的作品，
+#      通讯社图（Reuters / AP / Getty）尤其。「只存来源原文」那条纪律是为可核对性，
+#      而图片没有「可核对」这个属性，只剩权属问题。
+#   2. 质量。实测一大半是站点默认品牌图，同一个源的十条事件长得一模一样。
+#   3. 归属无解。事件是多来源聚合的，取哪条信号的图没有客观答案。
+#
+# ---------- 第二步：程序化题图也不成立（做出来、看过、删掉）----------
+# 于是做了一套「程序化题图」：按 slug + topic 推出色相，画成卡片上一枚 56px 的
+# 渐变方块 + 详情页一张 16:9 渐变通栏。实际渲出来两个问题，都不是调参能救的：
+#
+#   1. **它抢宽度。** 卡片最窄 260px，方块加间距吃掉五分之一。实测「OpenAI 发布
+#      GPT-6，上下文窗口扩到 200 万 token」从两行挤成三行，「故障 / 47 分钟 /
+#      已解决」折成两排，「Cloudflare 近 90 天第 4 次故障」也折了。同一行里有图的
+#      厚卡与无图的薄卡结构还不一致，整行看起来是坏的。而这个产品列表页的价值
+#      正是「一屏能比对多少条」——那张图把它砍掉了三分之一。
+#   2. **它不携带信息。** 一排随机色块加斜纹，读者从里面读不出任何东西。
+#      「100% 覆盖率」被当成了目标，但覆盖率不是价值：八张图加起来的信息量是零。
+#
+# 留下的是那套色里唯一有用的部分：**主题 → 色相**。画成卡顶一条 3px 的线，
+# 零宽度成本，一屏扫过去仍能分辨类别，而且它不假装自己是一张图。
+# 详情页那张渐变通栏换成**排版题头**：把题头本身做成设计对象，主角是标题排版。
+#
+# 真图仍然有两处，都不是生成的：专题页首屏是租户自己传的（`topic-hero-image`），
+# 实体名片上那枚是出版方源的 favicon（`entity-hero-logo`）。粗制滥造的只有生成的那类。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: 事件卡片顶一条 3px 主题色（厚薄卡都有，零宽度成本）；事件详情页题头做成排版块——主题色只作为极低饱和的底与左边竖线，单来源事件叠一枚出版方标志。不生成任何图片。
+gold: packages/builtin/marketing/shared/sections/badges/styles.css # 深浅色钩子照抄这份
+touch:
+  - modules/events/features/event-topic-accent.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/event-accent.ts
+  - modules/events/shared/event-accent.test.ts
+  - modules/events/shared/index.ts
+  - modules/events/shared/sections/event-card-html.ts
+  - modules/events/shared/sections/feed-html.test.ts
+  - modules/events/shared/sections/detail-html.ts
+  - modules/events/shared/sections/detail-html.test.ts
+  - modules/events/shared/site-css/events.css
+  - modules/events/shared/site-css.generated.ts
+out_of_scope:
+  - 抓取 / 存储 / 代理来源的 og:image（见开头三条理由；要翻这个结论先改本 spec）
+  - 任何形式的生成图片（渐变 / 底纹 / 首字母方块）——已经做过一版并删掉，理由在开头
+  - 改 `/events/:slug/og.png`（分享面维持现状，本期只借它的配色 token）
+  - 让租户逐条事件上传或覆盖配图（`event-og-image.spec.yaml` 已记为 out_of_scope，
+    理由不变：每天几十条自动采集的事件，没人会去传图）
+  - 工作台卡片（`client/components/EventCard.tsx` 保持原样，那是另一套视觉系统）
+  - 实体枢纽 / 胶囊条 / 时间线上色
+  - 用主题色当排序或推荐信号
+i18n: none # 不新增任何文案；上一版那个 `cover` 段设置连同它的 key 一起删了
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/event-accent.test.ts shared/sections/feed-html.test.ts shared/sections/detail-html.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - pnpm check:i18n
+  - pnpm check:section-css
+  - node scripts/verify-module.mjs events
+  - 深浅两色各渲一次列表 + 详情，确认细线与题头底都读得出、且不糊进背景
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: [] # 纯推导物，不入库
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. **`shared/event-accent.ts` 是唯一真源**。`topicAccentHue(topic)` 纯函数，
+#    七个主题各一个色相，起点绕着 `ACCENT_RGB`（#4F46E5）排开——与 og.png
+#    同一套色感，分享卡片与落地页要像同一个产品。
+#
+# 2. **同一主题恒为同一条色**。上一版按 slug 在区间内抖动，一排细线看起来像没对齐。
+#    抖动是「程序化题图」留下的习惯，不是需求。单测钉住「一个主题一个色」。
+#
+# 3. **厚薄卡都上色**。主题是事件的属性，不是「这条够不够厚」的属性。
+#    （与题图那版正相反——那版只给厚卡，于是同一行里两种结构。）
+#
+# 4. **没有开关**。上一版有个 `cover` select，因为「关不掉的装饰」在密集列表上
+#    是灾难。一条 3px 的线不是装饰负担，多一个永远没人点的设置才是。
+#
+# 5. **markup 只发色相**（`style="--topic-hue:206"`），明度 / 饱和度在 CSS 里
+#    跟色彩模式走。
+#
+#    那条线就是 `.events-card` 自己的 `border-top: 3px`，**不是伪元素**。
+#    第一版写成 `::before` + `inset:0 0 auto` + 同一个 `--radius`，两个上角的色块
+#    会顶到卡片边框外面：绝对定位的包含块是 **padding box**，卡片在那儿的内圆角
+#    其实是 `radius - 1px`，伪元素的角比它大一圈，于是沿着圆角露出来。
+#    真 border 由 `border-radius` 统一裁四条边，构造上不可能溢出，也不用补
+#    `padding-top` 给它让位。
+#
+#    唯一要记的是 hover：`.events-card:hover` 那条 `border-color` 是四条边的简写，
+#    会把主题色一起冲掉，必须在后面单独按回 `border-top-color`。
+#
+# 6. **深浅色钩子照抄 marketing `badges`**：浅色是基准，深色由
+#    `@media (prefers-color-scheme: dark)` + `:root:not([data-site-color-mode="light"])`
+#    与 `:root[data-site-color-mode="dark"]` 两条一起接管。
+#    只写 `prefers-color-scheme` 会漏掉租户在站点设置里钉死深色的那种情况。
+#
+# 7. **详情题头**：`padding` + 描边 + 左边 3px 竖线 + 主题色 14% 混进 `--surface`
+#    的渐变底。标志与角标**同一行**（各占一行会把题头拉成三段，中间全是空）。
+#    标题 `max-width` 用 **em 不用 ch**：`ch` 是「0」字形的宽度，一个汉字约合 2ch，
+#    24ch 只放得下 12 个字——实测把「Cloudflare 全球边缘网络中断 47 分钟」折成了
+#    两行，右边空掉大半块。
+#
+# 8. **出版方标志只在单来源事件上画**（`eventPublisherIconUrl`）。那张标毫无歧义地
+#    等于「这条是谁发的」，而这批恰好就是 release / status / official 那些一手来源。
+#    多来源事件取第一张图是在编一个它没有的主角。取不到时 `onerror` 摘掉整个盒子，
+#    不留空方框——一张画不出来的标志比没有标志更像故障。
+#
+# ---------- 下一步（不在本期）----------
+# - 工作台卡片是否也要主题色线（shadcn 那套视觉系统，独立一期）
+# - `/events/:slug/og.png` 的配色与这套主题色对齐（现在只是同源，不是同一张表）

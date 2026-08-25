@@ -9,6 +9,7 @@
 import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
 import { siteHref } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
+import { topicAccentStyle } from "../event-accent.js";
 import { sourcesLineHtml } from "../source-icon-html.js";
 
 import type { PublicEventCard } from "../events-section-context.js";
@@ -44,9 +45,15 @@ export function eventCardHtml(
         .join("")
     : "";
 
+  /*
+   * 主题色画成卡顶一条 3px 的线（CSS 里的 `::before`），markup 只多一个色相。
+   * **厚薄卡都有**：主题是事件的属性，不是「这条够不够厚」的属性。
+   */
   return `<li class="events-card${
     thick ? " events-card-thick" : " events-card-thin"
-  }"><a class="events-card-link" href="${escapeHtml(
+  }" style="${escapeHtml(
+    topicAccentStyle(card.topic),
+  )}"><a class="events-card-link" href="${escapeHtml(
     siteHref(card.href, ctx),
   )}">${
     meta ? `<span class="events-meta" translate="no">${meta}</span>` : ""

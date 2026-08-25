@@ -292,7 +292,11 @@
       "label": "Hero",
       "interpolationInfo": "Use {topic} / {topic_slug} on topic pages, {entity} / {entity_kind} on entity pages, and {feed} for this page's RSS. Tokens for the other identity are empty.",
       "subscribeHrefInfo": "Default {feed} — this page's RSS (topic, entity, or site). Pin a slot with /topics/ai/feed.xml.",
-      "subscribeEmailHrefInfo": "Points at the site's signup page by default. On topic/entity pages pick \"Newsletter: current topic/entity\" so readers subscribe to what that page is about."
+      "subscribeEmailHrefInfo": "Points at the site's signup page by default. On topic/entity pages pick \"Newsletter: current topic/entity\" so readers subscribe to what that page is about.",
+      "imageLayout": "Cover layout",
+      "imageLayoutSplit": "Beside the copy",
+      "imageLayoutBackground": "Full-bleed background",
+      "imageLayoutInfo": "The full-bleed layout always applies a scrim so the text stays readable; the scrim is not adjustable. Neither layout shows up until you pick an image."
     },
     "live": {
       "label": "Live counts",

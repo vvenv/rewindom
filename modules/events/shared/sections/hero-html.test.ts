@@ -184,6 +184,7 @@ describe("renderEventsHeroHtml · 实体页", () => {
       feed_href: "/entities/openai-abc123/feed.xml",
       name: "OpenAI",
       kind_label: "公司",
+      icon_url: null,
       event_count: 2,
       profile: [],
       events: [],
@@ -254,5 +255,167 @@ describe("renderEventsHeroHtml · 实体页", () => {
     expect(
       renderEntity({}, { ...openai.entity, profile: ["近 90 天 12 件事"] }),
     ).not.toContain("events-hero-profile");
+  });
+});
+
+/*
+ * 题图。
+ *
+ * 第一条是这一期最重要的一条：`image` 为空时 markup 必须与加这几个设置之前
+ * **逐字节相同**——存量已发布的首页 / 专题页因此不需要任何回填或兜底。
+ */
+describe("renderEventsHeroHtml · 题图", () => {
+  it("renders byte-identical markup when no image is picked", () => {
+    const html = render(hero());
+    expect(html).toContain('<div class="events-hero">');
+    expect(html).not.toContain("events-hero-copy");
+    expect(html).not.toContain("events-hero-media");
+    expect(html).not.toContain("<img");
+  });
+
+  it("leaves the wrapper alone for a section that never had the settings", () => {
+    // `settingText` 缺键即空串——旧草稿里根本没有 image 这个 key
+    const html = renderHero(section());
+    expect(html).toContain('<div class="events-hero">');
+    expect(html).not.toContain("events-hero-split");
+  });
+
+  it("paints the media slot beside the copy by default", () => {
+    const html = render(hero(), { image: "/site-assets/ai.png" });
+    expect(html).toContain('class="events-hero events-hero-split"');
+    expect(html).toContain('<div class="events-hero-copy">');
+    expect(html).toContain('src="/site-assets/ai.png"');
+    // 媒体位在文案之后：窄屏塌成单列时第一眼仍是那句主张
+    expect(html.indexOf("events-hero-copy")).toBeLessThan(
+      html.indexOf("events-hero-media"),
+    );
+  });
+
+  it("moves the media to the left when asked", () => {
+    const html = render(hero(), {
+      image: "/site-assets/ai.png",
+      media_side: "left",
+    });
+    expect(html).toContain("events-hero-media-left");
+  });
+
+  it("puts the image behind the copy in the full-bleed layout", () => {
+    const html = render(hero(), {
+      image: "/site-assets/ai.png",
+      image_layout: "background",
+    });
+    expect(html).toContain('class="events-hero events-hero-bg"');
+    expect(html).not.toContain("events-hero-split");
+    // 背景是底，读顺序上先于文案
+    expect(html.indexOf("events-hero-media")).toBeLessThan(
+      html.indexOf("events-hero-copy"),
+    );
+  });
+
+  it("never puts a media-side class on the full-bleed layout", () => {
+    const html = render(hero(), {
+      image: "/site-assets/ai.png",
+      image_layout: "background",
+      media_side: "left",
+    });
+    expect(html).not.toContain("events-hero-media-left");
+  });
+
+  it("escapes the image address and alt — both are tenant input", () => {
+    const html = render(hero(), {
+      image: '/a.png" onerror="alert(1)',
+      image_alt: '<img src=x onerror="alert(1)">',
+    });
+    expect(html).not.toContain("onerror=\"alert(1)\"");
+    expect(html).toContain("&quot;");
+  });
+
+  /* alt 留空是正常情况：无障碍文案的真源是媒体库 asset 上那一份。 */
+  it("emits an empty alt rather than inventing one", () => {
+    const html = render(hero(), { image: "/site-assets/ai.png" });
+    expect(html).toContain('alt=""');
+  });
+
+  /* 首屏那张是 LCP 候选——与列表里的事件题图正相反，不能 lazy。 */
+  it("marks the hero image high priority and never lazy", () => {
+    const html = render(hero(), { image: "/site-assets/ai.png" });
+    expect(html).toContain('fetchpriority="high"');
+    expect(html).not.toContain('loading="lazy"');
+  });
+});
+
+/*
+ * 实体名片上的标志。
+ *
+ * 覆盖率刻意有限（只有一手来源的出版方实体拿得到），所以「没有时长什么样」
+ * 与「有时长什么样」同样重要——绝大多数实体页走的是前者。
+ */
+describe("renderEventsHeroHtml · 实体标志", () => {
+  const openai = {
+    slug: "openai-abc123",
+    href: "/entities/openai-abc123",
+    feed_href: "/entities/openai-abc123/feed.xml",
+    name: "OpenAI",
+    kind_label: "公司",
+    icon_url: null as string | null,
+    event_count: 2,
+    profile: [] as string[],
+    events: [],
+  };
+
+  function renderWithEntity(
+    entity: Partial<typeof openai>,
+    extra: Record<string, unknown> = {},
+  ): string {
+    return renderHero(
+      section(extra),
+      eventsContextEntry(
+        emptyEventsContext({
+          entity: { ...openai, ...entity } as never,
+        }),
+      ),
+    );
+  }
+
+  it("paints the logo ahead of the eyebrow", () => {
+    const html = renderWithEntity({ icon_url: "/events/icons/openai.com" });
+    expect(html).toContain('class="events-hero-logo"');
+    expect(html).toContain('src="/events/icons/openai.com"');
+    expect(html.indexOf("events-hero-logo")).toBeLessThan(
+      html.indexOf("events-hero-eyebrow"),
+    );
+  });
+
+  /* 名片上只有一张图，画个地球等于告诉读者「这个实体长这样」。 */
+  it("draws nothing — not a globe — when the host can't be derived", () => {
+    const html = renderWithEntity({ icon_url: null });
+    expect(html).not.toContain("events-hero-logo");
+    expect(html).not.toContain("events-source-icon-fallback");
+  });
+
+  /* 一张画不出来的标志比没有标志更像故障。 */
+  it("removes the whole box when the icon fails to load", () => {
+    const html = renderWithEntity({ icon_url: "/events/icons/openai.com" });
+    expect(html).toContain('onerror="this.parentElement.remove()"');
+  });
+
+  /* 租户手填的题图是显式覆盖，两者不叠加。 */
+  it("stands down when the tenant picked an image for this hero", () => {
+    const html = renderWithEntity(
+      { icon_url: "/events/icons/openai.com" },
+      { image: "/site-assets/openai.png" },
+    );
+    expect(html).not.toContain("events-hero-logo");
+    expect(html).toContain("/site-assets/openai.png");
+  });
+
+  /* 首页 / 专题没有当前实体——那两页永远不该出现这一格。 */
+  it("never appears on a hero without a current entity", () => {
+    expect(render(hero())).not.toContain("events-hero-logo");
+  });
+
+  it("escapes the icon address", () => {
+    const html = renderWithEntity({ icon_url: '/x.png" onload="alert(1)' });
+    expect(html).not.toContain('onload="alert(1)"');
   });
 });

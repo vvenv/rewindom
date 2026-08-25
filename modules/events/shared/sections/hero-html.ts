@@ -80,6 +80,43 @@ function renderProfile(profile: readonly string[]): string {
   return `<ul class="events-profile events-hero-profile">${items}</ul>`;
 }
 
+/**
+ * 题图。
+ *
+ * 首屏那张是 LCP 候选，所以 `fetchpriority="high"` 且**不加** `loading="lazy"`
+ * ——与列表里的事件题图正相反（那边是滚动才看得到的装饰）。
+ *
+ * 通栏背景那一版用 `<img>` 而不是 `background-image:url(...)`：地址是租户填的，
+ * 拼进 CSS 就多一个转义面（`url()` 里的引号与右括号），而 `<img src>` 走的是
+ * 已经证明过的 `escapeHtml`。遮罩由 CSS 的 `::after` 画，不需要知道地址。
+ */
+function renderHeroMedia(s: SettingValues, image: string): string {
+  const alt = settingText(s, "image_alt");
+  return `<div class="events-hero-media"><img src="${escapeHtml(
+    image,
+  )}" alt="${escapeHtml(alt)}" fetchpriority="high" decoding="async" /></div>`;
+}
+
+/**
+ * 实体名片上的标志。
+ *
+ * 名片该配的是这个实体的**标志**，不是它最近某条事件的新闻图——后者每天换一张，
+ * 还带着别人的版权。来源是它作为出版方的那条采集源的 favicon（服务端代理，
+ * 访客不打第三方）。
+ *
+ * favicon 通常只有 32–64px，放大到名片尺寸会糊，所以**图不放大**：外面那个
+ * `--surface` 底 + 描边的盒子撑起视觉重量。底色不能透明——深色站点上白色 logo
+ * 会直接消失。
+ *
+ * 取不到图时 `onerror` 把整个盒子摘掉，而不是留一个空方框：一张画不出来的
+ * 标志比没有标志更像故障。
+ */
+function renderEntityLogo(iconUrl: string): string {
+  return `<span class="events-hero-logo" aria-hidden="true"><img src="${escapeHtml(
+    iconUrl,
+  )}" alt="" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.remove()"></span>`;
+}
+
 export const renderEventsHeroHtml: SectionHtmlRenderer = (section, ctx) => {
   const s = section.settings;
   const context = readEventsContext(ctx);
@@ -97,11 +134,50 @@ export const renderEventsHeroHtml: SectionHtmlRenderer = (section, ctx) => {
       ? renderProfile(entityProfile)
       : "";
 
-  return `<div class="events-hero">
-  ${eyebrow ? `<p class="events-hero-eyebrow">${escapeHtml(eyebrow)}</p>` : ""}
+  /*
+   * 标志只长在实体名片上（首页 / 专题没有当前实体，`entity` 恒为空）。
+   * 租户手填的 `image` 优先：那是显式覆盖，两者**不叠加**——一张名片上两个图位
+   * 谁也说不清哪个才是这个实体。
+   */
+  const entityIcon = context?.entity?.icon_url ?? "";
+  const logo =
+    entityIcon && !settingText(s, "image") ? renderEntityLogo(entityIcon) : "";
+
+  const copy = `${logo}${
+    eyebrow ? `<p class="events-hero-eyebrow">${escapeHtml(eyebrow)}</p>` : ""
+  }
   <h1 class="events-hero-headline">${escapeHtml(headline)}</h1>
   ${profile}
   ${subhead ? `<p class="events-hero-lead">${escapeHtml(subhead)}</p>` : ""}
-  ${buttonRow(withResolvedCtaHrefs(s, ctx, values), "left")}
+  ${buttonRow(withResolvedCtaHrefs(s, ctx, values), "left")}`;
+
+  /*
+   * 没有题图时**一个字节都不变**：不留空媒体格、不多套一层 `events-hero-copy`。
+   * 存量首页 / 专题页因此不需要任何回落或回填。
+   */
+  const image = settingText(s, "image");
+  if (!image) {
+    return `<div class="events-hero">
+  ${copy}
 </div>`;
+  }
+
+  const background = settingText(s, "image_layout") === "background";
+  const classes = [
+    "events-hero",
+    background ? "events-hero-bg" : "events-hero-split",
+    !background && settingText(s, "media_side") === "left"
+      ? "events-hero-media-left"
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const media = renderHeroMedia(s, image);
+  const body = `<div class="events-hero-copy">
+  ${copy}
+</div>`;
+
+  // 背景版把图放在正文之前：它是底，读顺序上也该先于文案被跳过（图已 alt 可空）
+  return `<div class="${classes}">${background ? media + body : body + media}</div>`;
 };

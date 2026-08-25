@@ -1,0 +1,81 @@
+# 增量功能契约 —— 专题页题图（租户在中台配）
+#
+# 起因：七个专题格共用一张模板（`events_topic`），首屏只有文字。`/topics/ai` 与
+# `/topics/gaming` 在视觉上完全一样，只有 h1 那行字不同——专题页是站点最像
+# 「栏目」的一层，而栏目的身份一半在图上。
+#
+# 这一条是三个题图面里唯一**权属干净**的：图是租户自己传的，不是采集来的。
+# 所以它先做，也不需要任何新数据模型。
+#
+# 基础设施已经齐了，只是从没有段声明过 `image`：
+#   - `MarketingAsset` 媒体库 + `SiteImageField`（文本框 + 选图 + 预览）
+#   - setting 类型 `image`（`section-settings.ts`）
+#   - 公开页 CDN 改写（`S3_PUBLIC_BASE_URL` 时 renderMarketingHtml 出站前换域）
+# marketing MODULE.md 原话：「加一个带图的段（媒体位 / hero 背景）时不用再碰这一层」。
+# 本期就是那第一个带图的段——**先验证这条路是通的**，再谈事件面那两条难的。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr, tenant]
+goal: `events.hero` / `events.entity-hero` 增加 `image` 设置（媒体库选图或外链）与版式选择（媒体位 split / 通栏背景 / 无图），首页与七个专题格各存各的值，无图时渲染与现在逐字节相同。
+gold: packages/builtin/marketing/shared/sections/hero/html.ts
+touch:
+  - modules/events/features/topic-hero-image.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/events-hero-section.ts
+  - modules/events/shared/sections/hero-html.ts
+  - modules/events/shared/sections/hero-html.test.ts
+  - modules/events/shared/site-css/events.css
+  - modules/events/shared/site-css.generated.ts
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 为专题另建数据模型存题图（值就落在段 settings 里，与其它 setting 同一条口径）
+  - 逐事件 / 逐实体的题图（是另外两份 spec：event-cover-mark、entity-hero-logo）
+  - responsive srcset 与图像处理（marketing 已记为「未做」，需要 sharp 那个原生依赖）
+  - 给 `events.rising` / `events.now` / `events.live` 加图（列表段不是栏目封面）
+  - 改媒体库本身（上传 / 替换 / alt 都已经有）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/sections/hero-html.test.ts shared/events-entity-hero-section.test.ts
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: [] # 沿用官网编辑权限，段设置不新增
+models: [] # 值落在 section settings 的 JSON 里，无新字段
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. **设置长在 `eventsHeroSettings()` 上**，首页 / 专题 / 实体三张模板共用一份形状
+#    ——与 `entity-page-hero.spec.yaml` 定下的「markup 共用 `renderEventsHeroHtml`、
+#    默认值各写各的」同一条。新增四个 setting：
+#      `image`        type: image，默认空
+#      `image_alt`    留空则回落到 asset 上的 alt——**不要**在这里存第二份无障碍文案，
+#                     媒体库那条「同一张图在十个地方用，alt 不该抄十遍」仍然成立
+#      `media_side`   left | right（默认 right）。**照抄 marketing hero 的 id 与取值**，
+#                     不要自创 `image_side` 这类同义词——租户在两个段之间切换时，
+#                     同一个概念该叫同一个名字
+#      `image_layout` split（媒体位，默认）| background（通栏背景）
+#
+# 2. **无图必须是零 diff**。`image` 为空时 markup 与现在逐字节相同，不要留一个空的
+#    媒体格子或占位盒子。存量已发布的专题页不会因为本期上线而发生任何视觉变化，
+#    也就不需要任何回填脚本。`hero-html.test.ts` 钉住这条。
+#
+# 3. **`split` 版式复用 marketing `hero` 的媒体位口径**（`media_side`），不要自创一套
+#    栅格。首屏现在是 `content_width` 居中限宽 + 通栏光晕，加媒体位只在限宽那一层里
+#    分两列，光晕与顶部细线仍贴视口。
+#
+# 4. **`background` 版式要保证文字对比度**：图上压一层由 `--surface` 推出来的渐变遮罩，
+#    不是给租户一个「遮罩透明度」滑块——首屏是这个产品唯一一次自我介绍，让它可调
+#    等于允许配出一张读不出字的首屏。深浅色模式各一套遮罩，跟 `data-site-color-mode`。
+#
+# 5. **地址放行口径抄 `og_image`**：站内相对路径与 http(s)，同一个值也会进编辑器预览的
+#    `<img src>`。CDN 改写在 `renderMarketingHtml` 出站时统一做，段里继续存应用路径。
+#
+# 6. **`loading` / `decoding`**：首屏那张是 LCP 候选，`fetchpriority="high"` 且**不要**
+#    `loading="lazy"`。这与列表里的题图正相反（见 event-cover-mark 设计要点）。
+#
+# 7. 实体首屏也拿到这三个 setting，但**默认不填**：实体页的图应该是这个实体的标志，
+#    由 `entity-hero-logo.spec.yaml` 自动给；租户手填的这一张是覆盖，优先级更高。
