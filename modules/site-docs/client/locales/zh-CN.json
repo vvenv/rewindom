@@ -57,6 +57,7 @@
     "import": "导入",
     "importResult": "导入完成：新建 {{created}} 篇，更新 {{updated}} 篇",
     "importFailed": "导入失败",
+    "dropToImport": "松开即可导入 Markdown",
     "saved": "已保存",
     "created": "已创建",
     "saveFailed": "保存失败",

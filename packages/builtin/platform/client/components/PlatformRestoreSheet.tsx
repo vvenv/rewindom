@@ -1,11 +1,16 @@
-import { useRef, useState, type ReactNode, type SubmitEvent } from "react";
+import { useState, type ReactNode, type SubmitEvent } from "react";
 
-import { ApiError, useConfirm } from "@rewindom/client-kit";
+import {
+  ApiError,
+  FileDropZone,
+  FileList,
+  formatFileSize,
+  useConfirm,
+} from "@rewindom/client-kit";
 import { formatBusinessDate } from "@rewindom/shared";
 import { Alert, AlertDescription, AlertTitle } from "@rewindom/ui/alert";
 import { Button } from "@rewindom/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@rewindom/ui/field";
-import { Input } from "@rewindom/ui/input";
 import { RadioGroup, RadioGroupItem } from "@rewindom/ui/radio-group";
 import {
   Sheet,
@@ -28,10 +33,7 @@ import {
   usePlatformBackupActions,
   usePlatformLocalRestoreCandidates,
 } from "../hooks/usePlatformBackup.js";
-import {
-  formatBackupSize,
-  isDatabaseDumpFilename,
-} from "../lib/backup-restore.js";
+import { isDatabaseDumpFilename } from "../lib/backup-restore.js";
 
 type RestoreSource = "local" | "upload";
 
@@ -50,7 +52,6 @@ export function PlatformRestoreSheet({ children }: PlatformRestoreSheetProps) {
   const [selectedPath, setSelectedPath] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 只在抽屉打开时扫盘：白名单目录可能挂在网络存储上，平时列它没有意义
   const {
@@ -65,9 +66,6 @@ export function PlatformRestoreSheet({ children }: PlatformRestoreSheetProps) {
       setSource("local");
       setSelectedPath("");
       setFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
       // 每次打开都重扫：期间可能刚跑完一次备份，或运维手动放了新文件进去
       void refetchCandidates();
     }
@@ -227,7 +225,7 @@ export function PlatformRestoreSheet({ children }: PlatformRestoreSheetProps) {
                               {item.filename}
                             </span>
                             <span className="block text-xs text-muted-foreground">
-                              {formatBackupSize(item.size_bytes)} ·{" "}
+                              {formatFileSize(item.size_bytes)} ·{" "}
                               {formatBusinessDate(item.modified_at)}
                             </span>
                           </span>
@@ -241,20 +239,18 @@ export function PlatformRestoreSheet({ children }: PlatformRestoreSheetProps) {
                   <FieldLabel htmlFor="restore-upload-file">
                     {t("platform:backup.restore.uploadLabel")}
                   </FieldLabel>
-                  <Input
-                    ref={fileInputRef}
+                  <FileDropZone
                     id="restore-upload-file"
-                    type="file"
                     accept={DATABASE_DUMP_FILE_EXTENSION}
-                    onChange={(event) =>
-                      setFile(event.target.files?.[0] ?? null)
-                    }
+                    disabled={submitting}
+                    onFiles={(files) => setFile(files[0] ?? null)}
                   />
-                  {file && (
-                    <p className="text-xs text-muted-foreground">
-                      {formatBackupSize(file.size)}
-                    </p>
-                  )}
+                  {/* 只还原一份：再选一次直接顶掉上一份，`onRemove` 用清空表达 */}
+                  <FileList
+                    files={file ? [file] : []}
+                    disabled={submitting}
+                    onRemove={() => setFile(null)}
+                  />
                 </Field>
               )}
             </FieldGroup>

@@ -57,6 +57,7 @@
     "import": "Import",
     "importResult": "Imported: {{created}} new, {{updated}} updated",
     "importFailed": "Import failed",
+    "dropToImport": "Drop Markdown files to import",
     "saved": "Saved",
     "created": "Created",
     "saveFailed": "Couldn't save",

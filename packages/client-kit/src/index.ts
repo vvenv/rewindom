@@ -219,6 +219,29 @@ export {
   isTextAttachmentFile,
   snapshotInputFiles,
 } from "./lib/text-attachment-upload";
+export { FileDropZone, type FileDropZoneProps } from "./components/FileDropZone";
+export { FileDropArea, type FileDropAreaProps } from "./components/FileDropArea";
+export {
+  FilePickerTrigger,
+  type FilePickerTriggerProps,
+} from "./components/FilePickerTrigger";
+export { FileList, type FileListProps } from "./components/FileList";
+export {
+  useFileDrop,
+  type FileDropBinding,
+  type FilePasteScope,
+  type UseFileDropOptions,
+} from "./hooks/useFileDrop";
+export {
+  clipboardHasText,
+  filesFromClipboard,
+  filesFromDataTransfer,
+  formatFileSize,
+  isFileDrag,
+  matchesAccept,
+  partitionByAccept,
+  summarizeAccept,
+} from "./lib/file-drop";
 export { optionsFromLabels } from "./lib/filter-chip-options";
 export {
   registerDashboardWidgetsProvider,

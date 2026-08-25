@@ -1232,7 +1232,7 @@ logo 抹掉（`applySiteTheme` 显式把它们保留下来）。
   构建时间都拖上一截。认不出来（SVG / AVIF / ICO）存 0。
 - **格式**：JPEG / PNG / GIF / WebP / AVIF / SVG / ICO。浏览器拖放经常给不出 MIME
   （SVG 尤其），服务端按魔数 → 声明的类型 → 文件名扩展名回落；SVG 无论标成什么都会走消毒。
-- **上传入口只新建**。工作台 `/app/site/media` 的按钮和拖放始终 `POST /assets`；
+- **上传入口只新建**。工作台 `/app/site/media` 的按钮、拖放与粘贴始终 `POST /assets`；
   要换一张已经在用的图，在卡片上点替换（`POST /assets/:id/replace`）。替换**不改
   filename / 公开 URL**，区块里存的地址继续有效；工作台预览用 `?v=updated_at` bust 缓存。
 - **删除不检查引用**。引用散在 section settings 的 JSON 里、还分草稿与线上两份，富文本里
@@ -1242,7 +1242,10 @@ logo 抹掉（`applySiteTheme` 显式把它们保留下来）。
   自己去别处复制 URL 再粘回来，媒体库就白建了。仍然保留手填——CDN 上的外链图不该被强制
   先传进媒体库。
 - 选图而不是直接上传：同一张图在多处用是常态，每次都重新传只会堆出一堆一模一样的文件。
-  弹层里照样能就地批量上传（含拖放），只传一张时传完直接选中。
+  弹层里照样能就地批量上传（点按钮 / 拖放 / 粘贴），只传一张时传完直接选中。
+- **交互外壳一律来自 client-kit**：`FileDropArea`（媒体墙与选图弹层的拖放 + 粘贴）、
+  `FilePickerTrigger`（上传按钮、卡片上的替换钮）。这里的组件只接上传 mutation 与 toast，
+  `accept` 判定 / 隐藏 input / 拖放深度计数都不再各写一份。
 - **公开页 CDN 改写**：区块里继续存应用路径；有 `S3_PUBLIC_BASE_URL`（且
   `ATTACHMENT_STORAGE` 为 s3/r2）时，`renderMarketingHtml` / webmanifest / 会员
   `page-html` 在出站前换成 `{S3_PUBLIC_BASE_URL}/{tenant_id}/site-assets/{filename}`，

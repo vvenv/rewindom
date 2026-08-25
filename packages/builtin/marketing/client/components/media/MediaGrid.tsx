@@ -1,6 +1,11 @@
-import { useCallback, useRef, useState, type ReactElement } from "react";
+import { useCallback, useState, type ReactElement } from "react";
 
-import { EmptyState, useConfirm } from "@rewindom/client-kit";
+import {
+  EmptyState,
+  FilePickerTrigger,
+  formatFileSize,
+  useConfirm,
+} from "@rewindom/client-kit";
 import { Button } from "@rewindom/ui/button";
 import { Input } from "@rewindom/ui/input";
 import { Skeleton } from "@rewindom/ui/skeleton";
@@ -19,13 +24,6 @@ import {
   type SiteAsset,
 } from "../../hooks/useSiteAssets.js";
 
-/** 字节 → 人读得懂的大小；媒体库里只需要一位小数。 */
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-}
-
 function MediaCard({
   asset,
   canWrite,
@@ -36,7 +34,6 @@ function MediaCard({
   const { t } = useTranslation("marketing");
   const { confirm } = useConfirm();
   const [alt, setAlt] = useState(asset.alt);
-  const replaceInputRef = useRef<HTMLInputElement>(null);
   const updateAlt = useUpdateSiteAssetAlt();
   const replace = useReplaceSiteAsset();
   const remove = useDeleteSiteAsset();
@@ -91,7 +88,7 @@ function MediaCard({
         />
         <p className="pointer-events-none absolute bottom-1.5 left-1.5 max-w-[calc(100%-0.75rem)] truncate rounded-md bg-background/85 px-1.5 py-0.5 text-[11px] text-muted-foreground tabular-nums shadow-sm backdrop-blur-sm">
           {asset.width > 0 ? `${asset.width} × ${asset.height} · ` : ""}
-          {formatSize(asset.size_bytes)}
+          {formatFileSize(asset.size_bytes)}
         </p>
         <div className="absolute top-1.5 right-1.5 flex gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
           <Button
@@ -108,27 +105,20 @@ function MediaCard({
           </Button>
           {canWrite ? (
             <>
-              <Button
-                variant="secondary"
-                size="icon-sm"
-                className="bg-background/90 shadow-sm backdrop-blur-sm"
-                aria-label={t("media.replace")}
-                disabled={replace.isPending}
-                onClick={() => replaceInputRef.current?.click()}
-              >
-                <Replace />
-              </Button>
-              <input
-                ref={replaceInputRef}
-                type="file"
+              <FilePickerTrigger
                 accept={SITE_ASSET_ACCEPT}
-                className="hidden"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  event.target.value = "";
-                  void handleReplace(file);
-                }}
-              />
+                disabled={replace.isPending}
+                onFiles={(files) => void handleReplace(files[0])}
+              >
+                <Button
+                  variant="secondary"
+                  size="icon-sm"
+                  className="bg-background/90 shadow-sm backdrop-blur-sm"
+                  aria-label={t("media.replace")}
+                >
+                  <Replace />
+                </Button>
+              </FilePickerTrigger>
               <Button
                 variant="secondary"
                 size="icon-sm"

@@ -1,0 +1,24 @@
+# 增量功能契约 —— 还原上传改用统一的 FileDropZone
+
+# ---------- 必填 ----------
+module: platform
+surfaces: [platform]
+goal: 数据库还原抽屉的「上传备份文件」从裸 <input type=file> 换成 FileDropZone（拖放 / 粘贴 / 点选 + 选中态预览），体积格式化复用 client-kit。
+gold: packages/client-kit/src/components/FileDropZone.tsx
+touch:
+  - packages/builtin/platform/features/unified-file-drop.spec.yaml
+  - packages/builtin/platform/client/components/PlatformRestoreSheet.tsx
+  - packages/builtin/platform/client/lib/backup-restore.ts
+  - packages/builtin/platform/client/lib/backup-restore.test.ts
+out_of_scope:
+  - 还原任务本身（后台任务、确认弹窗、服务端校验）
+  - 本地候选文件列表
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/builtin test
+  - pnpm check:i18n
+
+# ---------- 可选 ----------
+entitlement:
+permissions: []
+models: []

@@ -1,0 +1,30 @@
+# 增量功能契约 —— 媒体库上传口径统一到 client-kit 的 FileDrop 原语
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [tenant]
+goal: 媒体库 / 选图弹层 / 替换按钮改用 client-kit 的 FileDropArea·FilePickerTrigger，全部支持拖放与粘贴；删除 marketing 自己的拖放与体积格式化实现。
+gold: packages/client-kit/src/components/FileDropArea.tsx
+touch:
+  - packages/builtin/marketing/features/unified-file-drop.spec.yaml
+  - packages/builtin/marketing/client/components/media/MediaFileDrop.tsx
+  - packages/builtin/marketing/client/components/media/MediaUploadTrigger.tsx
+  - packages/builtin/marketing/client/components/media/MediaPickerDialog.tsx
+  - packages/builtin/marketing/client/components/media/MediaGrid.tsx
+  - packages/builtin/marketing/client/lib/site-asset-files.ts
+  - packages/builtin/marketing/MODULE.md
+  - AGENTS.md
+out_of_scope:
+  - 服务端 /site/assets 上传校验与存储
+  - 媒体库的 alt / 删除 / 替换业务语义
+  - 富文本编辑器内的图片插入
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/client-kit test
+  - pnpm check:i18n
+  - pnpm --filter @rewindom/builtin exec eslint marketing
+
+# ---------- 可选 ----------
+entitlement:
+permissions: []
+models: []

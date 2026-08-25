@@ -1,0 +1,29 @@
+# 增量功能契约 —— 文档批量导入支持拖放与粘贴
+
+# ---------- 必填 ----------
+module: site-docs
+surfaces: [tenant]
+goal: 导入按钮改用 FilePickerTrigger；文档列表整块套 FileDropArea，拖 .md 进页面即导入，粘贴同理。
+gold: packages/client-kit/src/components/FileDropArea.tsx
+touch:
+  - modules/site-docs/features/unified-file-drop.spec.yaml
+  - modules/site-docs/client/components/SiteDocTransferActions.tsx
+  - modules/site-docs/client/components/SiteDocImportDrop.tsx
+  - modules/site-docs/client/hooks/use-site-doc-import.ts
+  - modules/site-docs/client/pages/docs.tsx
+  - modules/site-docs/client/pages/docs.test.tsx
+  - modules/site-docs/client/locales/en.json
+  - modules/site-docs/client/locales/zh-CN.json
+out_of_scope:
+  - 导出（单篇 / 全量）
+  - 服务端导入解析与 frontmatter 语义
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/site-docs test
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs site-docs
+
+# ---------- 可选 ----------
+entitlement: site-docs
+permissions: []
+models: []

@@ -1,0 +1,24 @@
+# 增量功能契约 —— 内容素材上传改用统一的 FileDropZone
+
+# ---------- 必填 ----------
+module: content
+surfaces: [tenant]
+goal: 新建抽屉与素材编辑器的裸 <input type=file> 换成 FileDropZone + FileList，支持拖放 / 粘贴 / 点选，并显示已选文件体积与移除。
+gold: packages/client-kit/src/components/FileDropZone.tsx
+touch:
+  - modules/content/features/unified-file-drop.spec.yaml
+  - modules/content/client/components/ContentCreateSheet.tsx
+  - modules/content/client/components/ContentAssetsEditor.tsx
+out_of_scope:
+  - 素材服务端上传接口与体裁校验
+  - 生成流程（generate）与模板表单
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/content test
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs content
+
+# ---------- 可选 ----------
+entitlement: content
+permissions: []
+models: []

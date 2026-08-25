@@ -59,5 +59,15 @@
   "dateTimePicker": {
     "placeholder": "选择日期时间",
     "placeholderDate": "选择日期"
+  },
+  "fileDrop": {
+    "choose": "点击选择文件",
+    "chooseOne": "点击选择文件",
+    "hint": "也可拖放或粘贴到此处",
+    "accepts": "支持 {{list}}",
+    "dropHere": "松开即可上传",
+    "uploading": "上传中…",
+    "unsupported": "已忽略 {{count}} 个格式不支持的文件",
+    "remove": "移除 {{name}}"
   }
 }

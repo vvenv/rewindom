@@ -1,6 +1,10 @@
-import { useRef, useState, type ReactElement, type ReactNode } from "react";
+import { useState, type ReactElement, type ReactNode } from "react";
 
-import { EmptyState } from "@rewindom/client-kit";
+import {
+  EmptyState,
+  FileDropArea,
+  FilePickerTrigger,
+} from "@rewindom/client-kit";
 import { Button } from "@rewindom/ui/button";
 import {
   Dialog,
@@ -23,15 +27,11 @@ import {
   useUploadSiteAssets,
   type SiteAsset,
 } from "../../hooks/useSiteAssets.js";
-import {
-  filesFromDataTransfer,
-  isFileDrag,
-} from "../../lib/site-asset-files.js";
 
 import { toastSiteAssetUpload } from "./toast-site-asset-upload.js";
 
 /**
- * 从媒体库选一张图（也能就地上传新的）。
+ * 从媒体库选一张图（也能就地上传新的：点按钮、拖进来、或者直接粘贴）。
  *
  * 存在的理由是**复用**：以前每个 `image` 字段都只有「上传」一条路，同一张图在五个段里
  * 用就上传五份，谁也说不清哪个 URL 还有人在用。
@@ -48,8 +48,6 @@ export function MediaPickerDialog({
 }): ReactElement {
   const { t } = useTranslation("marketing");
   const [open, setOpen] = useState(false);
-  const [dropDepth, setDropDepth] = useState(0);
-  const inputRef = useRef<HTMLInputElement>(null);
   const { data, isLoading } = useSiteAssets(open);
   const upload = useUploadSiteAssets();
 
@@ -58,13 +56,16 @@ export function MediaPickerDialog({
     setOpen(false);
   };
 
-  const onFiles = async (files: File[]): Promise<void> => {
-    if (files.length === 0) return;
-    const result = await upload.mutateAsync(files);
-    toastSiteAssetUpload(result, t);
-    if (result.uploaded.length === 1 && result.failed.length === 0) {
-      pick(result.uploaded[0]!);
-    }
+  /** 拖放、粘贴、点按钮三条路共用：只传了一张且没出错时直接选中它，别再让人点第二下。 */
+  const uploadFiles = (files: File[]): void => {
+    upload.mutate(files, {
+      onSuccess: (result) => {
+        toastSiteAssetUpload(result, t);
+        if (result.uploaded.length === 1 && result.failed.length === 0) {
+          pick(result.uploaded[0]!);
+        }
+      },
+    });
   };
 
   return (
@@ -76,26 +77,12 @@ export function MediaPickerDialog({
           <DialogDescription>{t("media.pickHint")}</DialogDescription>
         </DialogHeader>
 
-        <div
-          className="relative min-h-0 flex-1 overflow-y-auto px-4"
-          onDragEnter={(event) => {
-            if (!isFileDrag(event.dataTransfer)) return;
-            event.preventDefault();
-            setDropDepth((current) => current + 1);
-          }}
-          onDragOver={(event) => {
-            if (!isFileDrag(event.dataTransfer)) return;
-            event.preventDefault();
-            event.dataTransfer.dropEffect = "copy";
-          }}
-          onDragLeave={() =>
-            setDropDepth((current) => Math.max(0, current - 1))
-          }
-          onDrop={(event) => {
-            event.preventDefault();
-            setDropDepth(0);
-            void onFiles(filesFromDataTransfer(event.dataTransfer));
-          }}
+        <FileDropArea
+          className="min-h-0 flex-1 overflow-y-auto px-4"
+          accept={SITE_ASSET_ACCEPT}
+          multiple
+          pending={upload.isPending}
+          onFiles={uploadFiles}
         >
           {isLoading ? (
             <div className="flex justify-center py-8">
@@ -132,39 +119,24 @@ export function MediaPickerDialog({
               ))}
             </ul>
           )}
-          {dropDepth > 0 ? (
-            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-md border-2 border-dashed border-primary bg-background/80 text-sm font-medium">
-              {t("media.dropToUpload")}
-            </div>
-          ) : null}
-        </div>
+        </FileDropArea>
 
         <div className="flex justify-end gap-2 p-4">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={upload.isPending}
-            onClick={() => inputRef.current?.click()}
-          >
-            {upload.isPending ? (
-              <Spinner className="size-4" />
-            ) : (
-              <Upload className="size-4" />
-            )}
-            {t("editor.uploadImage")}
-          </Button>
-          <input
-            ref={inputRef}
-            type="file"
+          <FilePickerTrigger
             accept={SITE_ASSET_ACCEPT}
             multiple
-            className="hidden"
-            onChange={(event) => {
-              const files = Array.from(event.target.files ?? []);
-              event.target.value = "";
-              void onFiles(files);
-            }}
-          />
+            disabled={upload.isPending}
+            onFiles={uploadFiles}
+          >
+            <Button type="button" variant="outline" disabled={upload.isPending}>
+              {upload.isPending ? (
+                <Spinner className="size-4" />
+              ) : (
+                <Upload className="size-4" />
+              )}
+              {t("editor.uploadImage")}
+            </Button>
+          </FilePickerTrigger>
         </div>
       </DialogContent>
     </Dialog>

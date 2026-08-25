@@ -3,7 +3,7 @@ import { useState } from "react";
 import {
   ApiError,
   FieldInfoTip,
-  snapshotInputFiles,
+  FileDropZone,
 } from "@rewindom/module-sdk/client";
 import { Button } from "@rewindom/ui/button";
 import { Field, FieldError, FieldLabel } from "@rewindom/ui/field";
@@ -47,8 +47,7 @@ export function ContentAssetsEditor({
     textMutation.isPending ||
     deleteMutation.isPending;
 
-  const handleFiles = async (input: HTMLInputElement): Promise<void> => {
-    const files = snapshotInputFiles(input);
+  const handleFiles = async (files: File[]): Promise<void> => {
     setError("");
     try {
       for (const file of files) {
@@ -110,13 +109,12 @@ export function ContentAssetsEditor({
       )}
       {canWrite ? (
         <>
-          <input
-            type="file"
+          <FileDropZone
             accept={CONTENT_UPLOAD_ACCEPT}
             multiple
-            disabled={busy}
-            className="text-sm"
-            onChange={(event) => void handleFiles(event.currentTarget)}
+            disabled={disabled}
+            pending={uploadMutation.isPending}
+            onFiles={(files) => void handleFiles(files)}
           />
           <Field>
             <FieldLabel htmlFor={`content-text-${contentId}`}>

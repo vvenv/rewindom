@@ -12,6 +12,7 @@ import {
   SiteDocEditorSheet,
 } from "../components/SiteDocEditorSheet.js";
 import { SiteDocFilters } from "../components/SiteDocFilters.js";
+import { SiteDocImportDrop } from "../components/SiteDocImportDrop.js";
 import { SiteDocsTable } from "../components/SiteDocsTable.js";
 import { SiteDocTransferActions } from "../components/SiteDocTransferActions.js";
 import { useSiteDocActions } from "../hooks/use-site-doc-actions.js";
@@ -135,23 +136,26 @@ export function SiteDocs(): ReactElement {
           />
         ) : null}
 
-        <SiteDocsTable
-          docs={items}
-          filteredCount={filteredCount}
-          totalCount={totalAll}
-          page={data?.page ?? page}
-          pageSize={pageSize}
-          pageCount={data?.page_count ?? 1}
-          showLocale={locales.length > 1}
-          isLoading={isLoading || (isFetching && items.length === 0)}
-          isError={isError}
-          error={error}
-          canWrite={canWrite}
-          actions={actions}
-          sorting={sorting}
-          onSortingChange={handleSortingChange}
-          onEdit={openEdit}
-        />
+        {/* 拖 .md 进列表 = 批量导入；工具栏那颗「导入」按钮走的是同一条路 */}
+        <SiteDocImportDrop canWrite={canWrite}>
+          <SiteDocsTable
+            docs={items}
+            filteredCount={filteredCount}
+            totalCount={totalAll}
+            page={data?.page ?? page}
+            pageSize={pageSize}
+            pageCount={data?.page_count ?? 1}
+            showLocale={locales.length > 1}
+            isLoading={isLoading || (isFetching && items.length === 0)}
+            isError={isError}
+            error={error}
+            canWrite={canWrite}
+            actions={actions}
+            sorting={sorting}
+            onSortingChange={handleSortingChange}
+            onEdit={openEdit}
+          />
+        </SiteDocImportDrop>
       </div>
 
       {canWrite ? (

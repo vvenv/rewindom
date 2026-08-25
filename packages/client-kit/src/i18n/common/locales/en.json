@@ -59,5 +59,15 @@
   "dateTimePicker": {
     "placeholder": "Pick date and time",
     "placeholderDate": "Pick a date"
+  },
+  "fileDrop": {
+    "choose": "Click to choose files",
+    "chooseOne": "Click to choose a file",
+    "hint": "or drag and drop / paste here",
+    "accepts": "Supports {{list}}",
+    "dropHere": "Drop to upload",
+    "uploading": "Uploading…",
+    "unsupported": "Ignored {{count}} unsupported file(s)",
+    "remove": "Remove {{name}}"
   }
 }

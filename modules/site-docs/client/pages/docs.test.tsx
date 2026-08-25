@@ -115,6 +115,11 @@ vi.mock("../components/SiteDocTransferActions.js", () => ({
   SiteDocTransferActions: () => null,
 }));
 
+// 投放区只是包一层 wrapper，这里只关心筛选；真上传交互由 client-kit 的 FileDrop 覆盖
+vi.mock("../components/SiteDocImportDrop.js", () => ({
+  SiteDocImportDrop: ({ children }: { children: ReactNode }) => children,
+}));
+
 registerI18nBundles([SITE_DOCS_I18N]);
 setupI18n("zh-CN");
 

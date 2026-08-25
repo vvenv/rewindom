@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  formatBackupSize,
   isDatabaseDumpFilename,
   sortLocalRestoreCandidates,
 } from "./backup-restore.js";
@@ -19,28 +18,6 @@ function candidate(
     modified_at,
   };
 }
-
-describe("formatBackupSize", () => {
-  it("字节数不带小数", () => {
-    expect(formatBackupSize(0)).toBe("0 B");
-    expect(formatBackupSize(512)).toBe("512 B");
-  });
-
-  it("按 1024 进制升档", () => {
-    expect(formatBackupSize(1024)).toBe("1.0 KB");
-    expect(formatBackupSize(1024 * 1024)).toBe("1.0 MB");
-    expect(formatBackupSize(3.5 * 1024 * 1024 * 1024)).toBe("3.5 GB");
-  });
-
-  it("三位数以上省掉小数，避免列表里宽度乱跳", () => {
-    expect(formatBackupSize(700 * 1024)).toBe("700 KB");
-  });
-
-  it("非法输入给占位符而不是 NaN", () => {
-    expect(formatBackupSize(Number.NaN)).toBe("—");
-    expect(formatBackupSize(-1)).toBe("—");
-  });
-});
 
 describe("isDatabaseDumpFilename", () => {
   it("只认 .dump", () => {

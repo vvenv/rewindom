@@ -3,7 +3,8 @@ import { useEffect, useState, type ReactNode, type SubmitEvent } from "react";
 import {
   ApiError,
   FieldInfoTip,
-  snapshotInputFiles,
+  FileDropZone,
+  FileList,
 } from "@rewindom/module-sdk/client";
 import { Button } from "@rewindom/ui/button";
 import { Checkbox } from "@rewindom/ui/checkbox";
@@ -21,7 +22,7 @@ import {
 import { Spinner } from "@rewindom/ui/spinner";
 import { Textarea } from "@rewindom/ui/textarea";
 import { toast } from "@rewindom/ui/toast";
-import { Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
@@ -217,42 +218,21 @@ export function ContentCreateSheet({ children }: ContentCreateSheetProps) {
                 {t("fieldAssets")}
                 <FieldInfoTip text={t("fieldAssetsTip")} />
               </FieldLabel>
-              <input
-                type="file"
+              <FileDropZone
                 accept={CONTENT_UPLOAD_ACCEPT}
                 multiple
                 disabled={pending}
-                className="text-sm"
-                onChange={(event) => {
-                  const next = snapshotInputFiles(event.currentTarget);
-                  setFiles((prev) => [...prev, ...next]);
-                }}
+                onFiles={(next) => setFiles((prev) => [...prev, ...next])}
               />
-              {files.length > 0 ? (
-                <ul className="flex flex-col gap-1">
-                  {files.map((file, index) => (
-                    <li
-                      key={`${file.name}-${index}`}
-                      className="flex items-center justify-between gap-2 text-sm"
-                    >
-                      <span className="truncate">{file.name}</span>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        disabled={pending}
-                        onClick={() =>
-                          setFiles((prev) =>
-                            prev.filter((_, itemIndex) => itemIndex !== index),
-                          )
-                        }
-                      >
-                        <X className="size-4" />
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
+              <FileList
+                files={files}
+                disabled={pending}
+                onRemove={(index) =>
+                  setFiles((prev) =>
+                    prev.filter((_, itemIndex) => itemIndex !== index),
+                  )
+                }
+              />
             </Field>
             <Field>
               <FieldLabel htmlFor="content-extra-text">
