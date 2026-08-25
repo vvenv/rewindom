@@ -227,6 +227,9 @@ export function toEventDetail(params: {
       // 未登录（公开面）时恒为 false：关注是登录态
       is_following: record.is_following ?? false,
     })),
+    sourced_entity_count: (params.entities ?? []).filter(
+      (record) => !record.is_publisher,
+    ).length,
   };
 }
 
@@ -248,6 +251,11 @@ export interface RelatedRecord {
 export interface EntityRecord {
   mention_count: number;
   entity: { id: string; name: string; kind: string; slug: string };
+  /**
+   * 这条关联是采集源的出版方标注，不是从材料里抽出来的。
+   * 只喂给 `sourced_entity_count`——展示上两者一视同仁，不出现在公开 DTO 里。
+   */
+  is_publisher?: boolean;
   /** 公开面没有 viewer，这一项缺省即可 */
   is_following?: boolean;
 }

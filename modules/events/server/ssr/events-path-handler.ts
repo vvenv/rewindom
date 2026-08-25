@@ -335,7 +335,7 @@ async function renderDetail(
   const thin = !hasReaderValue({
     signal_count: detail.signal_count,
     kind: detail.kind,
-    entity_count: detail.entities.length,
+    sourced_entity_count: detail.sourced_entity_count,
     analyzer: detail.analyzer,
     summary: detail.summary,
   });

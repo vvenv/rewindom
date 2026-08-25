@@ -377,12 +377,30 @@ path handler，由 `renderEventsTemplatePage` 补上，否则页头会退回七�
 
 `hasReaderValue`（`shared/events.ts`）把这件事变成一个可测的谓词，四条任意一条成立即可：
 
-| 条件         | 增量是什么                                    |
-| ------------ | --------------------------------------------- |
-| ≥2 条信号    | 跨源印证与时间线——主承诺本身                |
-| 有实体       | 归位与累计档案能长出来                        |
-| 有类型       | 埋在正文里的版本号 / 金额 / 时长被拎了出来    |
-| 摘要不是复制 | `analyzer ∈ {llm, manual}` 且非空             |
+| 条件               | 增量是什么                                    |
+| ------------------ | --------------------------------------------- |
+| ≥2 条信号          | 跨源印证与时间线——主承诺本身                |
+| 有**非出版方**实体 | 归位与累计档案能长出来                        |
+| 有类型             | 埋在正文里的版本号 / 金额 / 时长被拎了出来    |
+| 摘要不是复制       | `analyzer ∈ {llm, manual}` 且非空             |
+
+#### 实体那一条必须排除出版方，否则指标会给自己发分
+
+182 个源里 145 个标了 `publisher_entity_name`，于是**每一个一手来源的事件生来就带
+一个实体链接**。本地库 4078 个事件里 **1454 个（35.7%）只有出版方实体**——
+Cloudflare 博客发的事件挂一个 Cloudflare 实体，对读者的增量约等于零：
+那是这条源的常量，不是这件事的信息。
+
+出版方实体本身没有错（归位与累计档案要靠它，见「出版方实体」），错的是让它去满足
+一条**为「这一页比原链接多了什么」而设**的判据。这里曾经写着「出版方实体那一期之前
+51.1%，之后 67.2%」——那 16 个点不是内容变多了，是判据被自己满足了。收窄后 **48.8%**。
+
+别的口径可以宽，唯独看板指标不能：一个自己给自己发分的指标比没有指标更糟，
+因为它会让下一期继续往「加一手来源」的方向走，而那正是让合并率下降的方向。
+
+入参因此叫 `sourced_entity_count`（从材料里抽出来的有几个）而不是 `entity_count`——
+改名是刻意的，旧名字下每一处调用点都会顺手传全量计数。判据落在
+`EventEntityLink.is_publisher` 上，那一列上一期就有了，不加列。
 
 最后一条**判 analyzer 而不是逐字比对**：规则分析器的摘要按定义就是「最可信来源的原文
 摘录」（`buildSummary` 原样返回那段 excerpt，只做截断），所以 heuristic 等价于
@@ -392,13 +410,15 @@ path handler，由 `renderEventsTemplatePage` 补上，否则页头会退回七�
 用途两处，**必须同一个口径**：
 
 - **sitemap**：`getPublicEventSitemapEntries` 的 where 里带上它（SQL 镜像
-  `readerValueWhere()`，与谓词逐条对应，两处一起改）。**不能在应用层过滤**——
+  `readerValueWhere()`，与谓词逐条对应，两处一起改；实体那一条是
+  `{ entities: { some: { is_publisher: false } } }`）。**不能在应用层过滤**——
   `take: 500` 发生在过滤之前，事后再筛会让 sitemap 只剩一两百条而后面还排着真有内容的事件。
 - **详情页**：薄页发 `noindex`（**不带 `nofollow`**）。它们仍然渲染、仍然可访问——
   有人分享的链接要能打开——只是不主动占索引配额；页上指向实体页的链接照常传权重，
   而实体页才是这个站最该被反复索引的一面。
 
-它同时是这个模块的**看板指标**。本地库：出版方实体那一期之前 51.1%，之后 **67.2%**。
+它同时是这个模块的**看板指标**。本地库当前 **48.8%**（收窄前的 68.2% 里有 35.7%
+是出版方实体自己满足的，见上）。
 
 ### 板块标题只有一套规格
 
@@ -443,6 +463,8 @@ fillEmptyExcerpts()        摘录为空时抓目标页 og/meta description
       ↓
 persistSignals()           canonical_url 规范化 + (connector, external_id) 幂等落库
       ↓
+loadPendingSignals()       库里所有 event_id IS NULL 的信号（不只是本轮新增的）
+      ↓
 clusterSignals()           同 URL → 直接归属；否则近 72h 内按词面 / 语义取最像的事件
                            （非新闻源到「同 URL」为止，见「非新闻源」）
       ↓
@@ -450,6 +472,53 @@ refreshEvents()            热度 / 增速 / 阶段 / 计数 + 分析器产出�
 ```
 
 每一步都是幂等的：信号有唯一键，事件有指纹唯一键，时间线整体重建。出问题可以直接重跑。
+
+### 聚类的待办队列在库里，不在进程里（线上丢过三分之一语料）
+
+`loadPendingSignals` 查的是 **`event_id IS NULL`**，不是「本轮 persist 出来的 id」。
+
+以前是后者：一个进程内的 `newSignalIds` 数组。它有两个缺陷，合在一起就是永久丢数据——
+
+1. **抛异常就丢**，而 persist 与 cluster 之间隔着两次网络往返
+   （模板文案清理、摘录补齐都在抓目标页），且那一整段**没有 try/catch**：
+   「单个源失败不影响其它源」这条口径当初只铺到了抓取循环里，循环外面是裸的；
+2. **persist 是幂等的**，下一轮不会把同一条重新 create，于是没有第二次机会。
+
+本地库量到的后果：6633 条信号里 **2478 条（37.4%）`event_id IS NULL`**，
+按天爆发式分布（08-18 629/1116、08-23 569/1358、08-24 647/973，而 08-21 只有 11/519）——
+那是「整轮丢掉」的形状，不是「某个源坏了」的形状（35 个源各自丢掉四成上下）。
+
+排除掉三种本来就该这样的解释：保留期是 90/180 天而语料只有 8 天（retention 一行没删过）、
+`removed_at` 非空的有 0 行、`clusterSignals` **在代码上没有任何一条会把信号留在
+`event_id = null` 的路径**（要么 `resolveCheapEvent` 命中，要么 `resolveEventForSignal`
+立一个新事件，之后一律 `attachSignal`）。最后这条是判定性的：
+**如果它们被送进过聚类，就不可能还是 null。**
+
+实测验证：换成库内队列之后，2478 条一条不剩地归了位（2074 条各自立了补记事件——
+它们早已滑出 72h 候选窗；45 条并进了已有事件，多信号事件 67 → 112）。
+
+三条口径：
+
+1. **升序取**。`clusterSignals` 自己也排序，但那发生在 `take` 之后。积压时必须
+   最早的先补，否则被截掉的就是错的那一批，先立事件的会是后续报道而不是原始公告。
+2. **按轮限额** `EVENTS_PENDING_CLUSTER_LIMIT`（默认 500）。理由是语义不是性能：
+   窗口外的孤儿会各自立一个事件，一次放两千多条进来等于一轮往库里灌两千多个
+   补记事件，每个还要跑一次刷新与分析。积压清完后这个数恒大于单轮新增量。
+3. **窗口外的不放宽**。补跑一条五天前的信号，它找不到候选就自己立事件——
+   那条信号确实是一件当时发生过的事，只是我们晚了五天才给它建档。
+   为它放宽 72h 会把「同一家公司上个月的另一次故障」错并进来。
+
+**不用为这条查询加索引**：`@@index([event_id, removed_at])` 已经是它要的形状。
+`event_id IS NULL` 在那个索引里是一个**窄区间**——里面只有还没归属的信号，
+所以它不随语料增长而变慢（实测 3.2ms，Bitmap Index Scan 命中 1681 行、
+按 tenant 过滤掉 915 行）。换成 `[tenant_id, published_at]` 反而更差：
+`event_id` 不在索引里，得为全部候选做堆查找再过滤。
+
+轮内各阶段现在**各自包一层**（`runStage`），一处失败记进 `summary.failures` 并继续
+往下走。但**不能 catch 之后当没事**——失败必须出现在 failures 里，
+否则这次的静默失效只会换个地方重演。summary 里 `created`（本轮真正入库的新信号）
+与 `pending_clustered`（本轮送去聚类的）**刻意分开**：积压期两者差很多，
+混成一个数会让「源给了多少新东西」再也答不出来。
 
 ### 一手来源的摘录取自正文，不是 teaser
 
@@ -1265,6 +1334,72 @@ Cloudflare
 三道闸门都能关：`EVENTS_LLM_MIN_SIGNALS=1` + `EVENTS_LLM_TOP_EVENTS=0` + `EVENTS_LLM_COOLDOWN_MINUTES=0`
 就是加闸门之前的行为。
 
+### 被闸门拦下的事件仍然要一次窄分类
+
+闸门是对的，但它拦下的是 98.4% 的语料，而那批事件**唯一可能的增量恰恰是分类**：
+跨源印证与时间线对单信号按定义不存在，剩下的只有「埋在正文里的版本号 / 金额 /
+当事方被拎出来」。「单信号时 LLM 退化成给一篇文章换个说法」这句话**对摘要成立，
+对分类不成立**——读者点原链接得自己读完全文才能拿到那几个字段。
+
+所以另有一条路：`shouldClassify` + `analyzer.classify()`，只出 `kind` + `entities`，
+不碰标题 / 摘要 / 时间线（那是完整分析贵的原因）。四条全中才跑——
+
+| 条件                        | 为什么                                       |
+| --------------------------- | -------------------------------------------- |
+| 分析器是 llm                | 规则实现的「分类」就是关键词表本身，已经在跑 |
+| `classified_at IS NULL`     | 每个事件终生只付一次分类费                   |
+| `analyzer != "llm"`         | 跑过完整分析的那次已经顺带给过 kind 与实体   |
+| 本轮 plan 不是 `model`      | 本轮的完整分析会在同一个调用里给出这两样     |
+| 落在本轮限额窗口内          | `EVENTS_LLM_CLASSIFY_PER_ROUND`，默认 40     |
+
+第四条不是第三条的重复：一个刚立的双信号热门事件 `analyzed_at` 为空（→ plan = model）
+而 `analyzer` 还是列默认值 `heuristic`（→ 第三条拦不住），于是一轮里发两次模型调用，
+其中一次的产出会被另一次整个覆盖。
+
+**不塞进 `planAnalysis`**：那个函数问的是「这一轮内容要不要重算」（判据是信号集合
+变没变），分类问的是「这个事件付过分类费没有」（判据在库里，与信号变化无关）。
+合并会让那句「信号没变 → skip」的早退把整个存量语料挡在门外——而存量语料正是目标。
+
+**失败不写 `classified_at`**：一次供应商抖动不该让这个事件终生没有类型。
+这一轮的名额浪费掉，下一轮重来。
+
+#### 候选必须并进刷新队列，否则积压排不动
+
+分类挂在 `refreshEvent` 里，所以只有进了 `touched` 的事件才轮得到。而 `touched`
+的三个来源（本轮聚类动过的、信号指标变过的、降温扫描捞的）**都偏向新事件与还在动的
+事件**——`cooling` / `resolved` 的老事件再也不会被刷新一次，而存量语料按定义正是这批。
+
+实测：不把候选并进 `touched` 时，一轮只补上 4 个，六千个存量事件要排半个月。
+所以采集轮里 `listClassifyCandidates` 与 `findStaleEventIds` 并列，各自往 `touched`
+里塞一批。这一步**不额外花钱**：闸门在 `refreshEvent` 里，没排进限额的照样 skip。
+
+#### 窗口必须排除先验已经能回答的事件（上线后实测到的浪费）
+
+`classifyWindowWhere()` 里那条 `NOT source_kinds hasSome [status, release]` 是
+`eventKindPrior` 判据的逐字库内镜像。先验**压过模型**，所以问一个先验已经能回答的
+事件是纯浪费——而窗口按 `last_activity_at` 降序，状态页恰恰是全语料里最活跃的一类，
+会把预算整轮吃光。
+
+第一版漏了这条，上线后捞回来的头 36 个全是状态页维护通告：模型答 `maintenance`、
+先验答 `outage`、最终落 `outage`——**36 次调用一次都没改变结果**。
+而缺 kind 覆盖的从来不是这两格（status 449/449、release 310/310 全满），
+是 news 2.3% / official 3.3% / community 1.4% 那三格。
+
+### 模型给的 kind 以前存不住（`model_kind`）
+
+`kind` 每轮重算：`eventKindPrior ?? analysis?.kind ?? model_kind ?? classifyEventKind`。
+而降温扫描下 `analysis` 恒为 null——加 `model_kind` 之前，上一轮模型判出的
+`acquisition` 会被关键词的 null 覆盖掉。证据：news 那一格 1447 个事件只有 34 个有
+kind，**正好等于关键词命中率**，模型的答案一轮都没活下来。
+
+**只有真的调过模型的那一轮才写 `model_kind`**，以拿到 `usage` 为准——`analyzeEvent`
+退回规则实现时 `usage` 是 undefined，那一轮不算问过模型。没调模型就不写，与
+「没有重算就不覆盖」（标题 / 摘要 / 实体那三条）是同一条原则。真的问过而模型说
+「不是任何一类」时**要写 null**——那是一个答案，不是「没问过」。
+
+窄提示词是**单独一份常量**，不与 `SYSTEM_PROMPT` 拼接：前缀缓存按前缀相同命中，
+两种调用各自稳定的系统消息各自命中，拼在一起反而两边都不稳。
+
 Compose 里 `EVENTS_LLM_*: ${VAR:-}` 在宿主机没配时会把**空字符串**打进容器。
 `Number("") === 0`，而 0 对后两道闸门的语义是「不限 / 不冷却」——等于整组关掉。
 没配就不要写进 env：空串按默认 2 / 30 / 30，只有显式 `0` / `1` 才是关闸门。
@@ -1287,15 +1422,60 @@ OpenAI 报 `prompt_tokens_details.cached_tokens`）。系统提示词与响应�
 
 ## 采集源
 
-内置目录在 `server/ingest/feed-catalog.ts`，**229 个源**，每个 topic 至少 3 个，
+内置目录在 `server/ingest/feed-catalog.ts`，**236 个源**，每个 topic 至少 3 个，
 且**每个 topic 都有一手来源**（`feed-catalog.test.ts` 钉住）。159 个一手来源目录项
 各带一个人工填的 `publisher_entity`（见「出版方实体」），测试同样钉住——
 新增一手来源时忘了填会红，而它不填不会报错，只会让那批事件继续没有实体。清一色报道的格子里，
 事件永远判不到 confirmed，只能等第二家媒体跟进。
 
-分布：tech 112 / ai 31 / business 24 / world 18 / gaming 17 / entertainment 17 / sports 10；
-按类型 official 74 / news 68 / release 45 / status 32 / filing 8 / community 2。
+分布：tech 119 / ai 34 / business 24 / world 18 / gaming 17 / entertainment 17 / sports 10；
+按类型 official 74 / news 71 / release 45 / status 32 / filing 8 / community 4。
 tech 那格看着大，是因为 release 与 status 天然都落在它下面。
+
+### 只有 news / community 参与文本聚类，所以密度要按这两格算
+
+按 topic × source_kind 摊开（左半边参与文本聚类，右半边按 `clustersByUrlOnly`
+只按 URL 归属，结构上恒为单信号）：
+
+| topic         | news | community | official | release | status | filing |
+| ------------- | ---- | --------- | -------- | ------- | ------ | ------ |
+| tech          | 11   | 4         | 37       | 39      | 24     | 1      |
+| ai            | 6    | 0         | 16       | 6       | 6      | 0      |
+| business      | 12   | 0         | 6        | 0       | 0      | 6      |
+| world         | 13   | 0         | 4        | 0       | 0      | 1      |
+| gaming        | 10   | 0         | 5        | 0       | 2      | 0      |
+| entertainment | 13   | 0         | 4        | 0       | 0      | 0      |
+| sports        | 8    | 0         | 2        | 0       | 0      | 0      |
+
+事件侧的证据一致：4073 个事件里 **4063 个只有一个 source_kind**，跨类型的只有 10 个；
+结构性单信号（非新闻源）1998 个，占 49%。
+
+**继续往目录里加一手来源会让三个指标同时朝错的方向走**：事件总数涨、合并率跌、
+`hasReaderValue` 靠出版方实体虚涨。所以 `feed-catalog.test.ts` 的下限钉在
+news / community 那两格上（ai 报道 ≥5、tech 报道 ≥10、tech 社区 ≥3），
+不只钉每个 topic 的总数——总数已经被一手来源撑着，钉总数等于在奖励
+「继续加 official」这个动作。
+
+补过的一批（每个 URL 都用 `INGEST_USER_AGENT` 实际请求验证过）：
+ai 报道 3 → 6（The Decoder、AI Business、Wired AI），tech 报道 9 → 11
+（SiliconANGLE、Rest of World），tech 社区 2 → 4（Slashdot、Lemmy Technology）。
+
+三条挑源口径：
+
+1. **不加已有源的子 feed**。`blog.google/rss/` 那条被拒的理由在这里同样成立：
+   子 feed 与父 feed 产出同一批文章 URL，会让一家算成两个来源、虚增 `source_count`,
+   而那正是 Rising 的排序键。因此排除 TechCrunch AI、The Verge AI、Ars Technica AI。
+   **Wired AI 是例外**：Wired 主 feed 至今是优惠码、从来没进过目录，不构成父子重复。
+2. **社区那一格最该补**。社区源与报道源指向同一篇原文时走的是 `canonical_url`
+   精确合并——零误判的那条路径，而它「在这轮采样里一次都没触发」的原因正是
+   聚合器只有两个。Lemmy 的标题是被链文章的原标题（`… | TechCrunch`），正是要的形状。
+3. **403 的源一律不进目录**（unite.ai、marktechpost、axios.com/technology）。
+   不为单个源加浏览器 UA 白名单——`isBrowserUserAgentHost` 现在只有 ftc.gov 一条，
+   那是为 Akamai 开的口子，不该变成「谁拒就把谁加进去」。
+
+新拒掉的三条已钉进 `feed-catalog.test.ts` 的 `REJECTED`：
+`zdnet.com/topic/artificial-intelligence/rss.xml`（302 到通用新闻 feed，根本不是
+AI feed）、`dev.to/feed`（个人博客不是事件）、`producthunt.com/feed`（产品目录不是事件）。
 
 sports 与 entertainment 曾经清一色是 news，这里也曾写着「没有当事方公告的等价物」——
 **那句话是错的**：联盟（MLB / Formula 1）、片方与流媒体（Disney / Paramount /
@@ -1571,12 +1751,19 @@ chrome 块这条路是走了两版才到的，两次都是被真实版式打回�
 单源失败必须仍然只影响它自己（现在靠 try/catch 逐源兜住），
 以及 `EventFeed.last_fetched_at` / `last_error` 的写入不能因为并发而互相覆盖。
 
+（上表是 229 个源那次的读数，目录现在是 236 个，线性外推约 258s。
+量的方法没变，重量之前不要拿这张表当当前值用。）
+
 **多实例部署**：每个实例都会跑。写入路径幂等，重复抓取只浪费带宽，不会产生重复事件；
 真要收敛成单实例，用 `EVENTS_INGEST_ENABLED=false` 关掉其余实例即可。
 
 ### 到没到点由库说了算，不由进程说了算
 
 「该不该抓」的判据是 `EventFeed.last_fetched_at`（`isFeedDue`），**不是进程里的定时器**。
+
+这条原则在模块里应用了两次，第二次是聚类的待办队列（见「聚类的待办队列在库里」）——
+那次是被一条真实的数据丢失逼出来的：进程内的数组抛一次异常就丢掉一整轮的信号，
+而 persist 幂等意味着没有第二次机会。**凡是「下一轮还得接着做」的东西都该落库。**
 
 定时器是进程状态：每次 `pnpm release` 都会重启服务，boot 后 20 秒那一轮此前无条件跑满
 ——一天发六次版就凭空多出六轮完整采集。多出来的不只是带宽：这一轮会连带跑空摘录补齐，
@@ -1617,6 +1804,8 @@ chrome 块这条路是走了两版才到的，两次都是被真实版式打回�
 | `EVENTS_LLM_MIN_SIGNALS`         | `2`    | 值得一次模型调用的最低信号数；1 = 不设门槛                                                                                             |
 | `EVENTS_LLM_TOP_EVENTS`          | `30`   | 每站每轮最多给热度前几名调模型；0 = 不限                                                                                               |
 | `EVENTS_LLM_COOLDOWN_MINUTES`    | `30`   | LLM 重分析基础冷却；事件跑过 6h ×4、24h ×12                                                                                            |
+| `EVENTS_LLM_CLASSIFY_PER_ROUND`  | `40`   | 每站每轮最多几次窄分类调用；**0 = 关掉**（与上面两个 0 的语义相反，见下）                                                              |
+| `EVENTS_PENDING_CLUSTER_LIMIT`   | `500`  | 每站每轮最多送几条未归属信号去聚类；只决定积压多久摊平，不是持续成本                                                                   |
 | `EVENTS_SIGNAL_RETENTION_DAYS`   | `90`   | 信号保留期（7 ~ 3650）                                                                                                                 |
 | `EVENTS_EVENT_RETENTION_DAYS`    | `180`  | 事件保留期（7 ~ 3650）                                                                                                                 |
 | `OPENAI_API_KEY`                 | 空     | 内核已有；平台 fallback。`auto` 模式下与本站 BYOK 一起决定走不走 LLM。站点自己的 key 在工作台 `/app/settings` 配                       |
@@ -1624,6 +1813,19 @@ chrome 块这条路是走了两版才到的，两次都是被真实版式打回�
 | `OPENAI_EMBEDDING_API_KEY`       | 空     | 不配 = 聚类退回纯词面判据，功能不缺失，只是合并率低                                                                                    |
 | `OPENAI_EMBEDDING_MODEL`         | 空     | 如 `embedding-3`                                                                                                                       |
 | `OPENAI_EMBEDDING_DIMENSIONS`    | `0`    | 0 = 用模型默认维度；供应商支持降维时传给接口                                                                                           |
+
+### `EVENTS_LLM_CLASSIFY_PER_ROUND` 的 0 与别的 0 不是一个意思
+
+`EVENTS_LLM_TOP_EVENTS=0` 是「不限」，`EVENTS_LLM_COOLDOWN_MINUTES=0` 是「不冷却」——
+两个 0 都是**放开**。`EVENTS_LLM_CLASSIFY_PER_ROUND=0` 是**关掉**。
+
+刻意反过来。上面那条「compose 透传空串时 `Number("") === 0`」的事故（见「值不值得
+一次模型调用」）在前两个键上等于整组闸门失效——**花钱**；同样的事故落在这个键上
+只会让分类不跑——**不花钱**。
+
+compose 现在给这几个键都写了显式数字默认值（`${EVENTS_LLM_CLASSIFY_PER_ROUND:-40}`），
+空串那条路已经堵上了；0 的语义方向是第二道防线。原则是一句话：
+**会花钱的键，默认失效方向必须落在省钱那一侧。**
 
 ## 权限
 
@@ -1656,7 +1858,12 @@ chrome 块这条路是走了两版才到的，两次都是被真实版式打回�
 - **带条件的对外 RSS**：`/events/feed.xml?kind=release`，要动 `rss.render` 与
   `parseEventsPublicPath`。公开列表页的 `?kind=` 已经有了，订阅侧还没有
 - **按类型订阅通知**（「只有 release 才推我」）：留存的下一步，要接 notification
-- **内容价值看板**：`hasReaderValue` 已经是库内谓词（本地库 67.2%），还没有一张卡把它
-  画给运营看。做的时候连带把「无实体的一手来源源清单」列出来——那是下一批该标出版方的源
+- **内容价值看板**：`hasReaderValue` 已经是库内谓词（本地库 48.8%，收窄口径后），
+  还没有一张卡把它画给运营看。做的时候连带把「无**非出版方**实体的源清单」列出来
+- **合并率要在孤儿补跑之后重量**：当前可聚类语料 1.03 条信号/事件，但这个读数被
+  补记事件污染了（2074 条窗口外的孤儿各自立了事件，按设计就该如此）。
+  要的是往后几轮干净语料上的读数；仍然 < 1.2 再谈第二批采集源
+- **分类调用单独打点**：`llm_calls` 现在把完整分析与窄分类混在一起报，
+  看不出各自的账单。acquisition / funding / legal 三类的绝对数是分类那一期的验收信号
 - **薄事件的合并展示**：同一天同一来源的一串薄事件收成一条「今日来自 X 的 N 条」，
   比十张各自没有增量的卡片有用

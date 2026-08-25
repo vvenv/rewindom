@@ -1,0 +1,85 @@
+# 内容价值看板指标正在给自己发分。
+#
+# `hasReaderValue` 的四条判据里有一条是「有实体」。出版方实体那一期之后，
+# 这一条被**采集源自己的标注**无条件满足了：182 个源里 145 个填了
+# `publisher_entity_name`，于是每一个一手来源的事件生来就带一个实体链接。
+#
+# 本地库量的（tenant f098…，4078 个事件）：
+#
+#   有任意实体                      2431
+#   有非出版方实体                    977
+#   **只有出版方实体**               1454   35.7%
+#
+#   hasReaderValue（现口径）        2782   68.2%
+#   hasReaderValue（去掉出版方）    1989   48.8%
+#
+# MODULE.md 记着「出版方实体那一期之前 51.1%，之后 67.2%」。那 16 个点不是内容
+# 变多了，是判据被自己满足了——Cloudflare 博客发的事件挂一个 Cloudflare 实体，
+# 对读者的增量约等于零：那是这条源的常量，不是这件事的信息。
+#
+# 出版方实体本身没有错，它要解决的问题（归位、累计档案需要主实体）是真的，
+# 那一期该做。错的是让它去满足一条**为「这一页比原链接多了什么」而设**的判据。
+# 别的口径可以宽，唯独看板指标不能——一个自己给自己发分的指标比没有指标更糟，
+# 因为它会让下一期继续往「加一手来源」的方向走，而那正是让合并率下降的方向。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: `hasReaderValue` 的实体一条收窄为「存在非出版方实体」，SQL 镜像与详情页 noindex / sitemap 两处口径同步；指标回落到真实水位（本地库 68.2% → 48.8%）。
+gold: modules/events/shared/events.ts
+touch:
+  - modules/events/features/reader-value-publisher-entity.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/events.ts
+  - modules/events/shared/events.test.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/ssr/public-events.service.test.ts
+  - modules/events/server/ssr/events-path-handler.ts
+out_of_scope:
+  - 停止标注出版方实体，或把它从 EventEntityLink 里摘掉（归位与累计档案要靠它）
+  - 把出版方实体从详情页 / 实体页 / 实体枢纽上隐藏（它在那些面上是对的）
+  - 改 `EventEntityLink.is_publisher` 的写入口径
+  - 给租户一个「薄页要不要收录」的开关（口径应当只有一套）
+  - 改 sitemap 的 500 条上限
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/events.test.ts server/ssr/
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:modules
+  - 本地核对新旧口径两个计数（SQL 镜像与 TS 谓词必须给出同一个数）
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: [] # is_publisher 已经在库里，不加列
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. **不加列**。`EventEntityLink.is_publisher` 是上一期就落好的，
+#    它存在的理由（主实体排序键 `[is_publisher desc, mention_count desc]`）
+#    与这里要问的问题是同一个事实的两种读法。
+#
+# 2. **入参改名**，从 `entity_count` 改成 `sourced_entity_count`——
+#    「从材料里抽出来的实体有几个」。改名是刻意的：调用方必须被迫重新想一遍
+#    自己传的是哪一个数，留着旧名字会让下一处调用点默默传回全量计数，
+#    而那正是这一期要修的东西。
+#
+# 3. **SQL 镜像逐条对应**：`{ entities: { some: { is_publisher: false } } }`。
+#    与谓词一起改，MODULE.md 里那句「两处必须一起改」照旧成立。
+#    过滤仍然留在 where 里，不能挪到应用层——`take: 500` 发生在过滤之前。
+#
+# 4. **只动这一条判据**。「≥2 条信号」「有类型」「摘要不是复制」三条一个字不改，
+#    它们的语义没有被出版方实体污染。
+#
+# 5. **薄页的处置不变**：`noindex, follow`，仍然渲染、仍然可访问、仍进列表与 RSS。
+#    这一期只是让「哪些页算薄」变准，不改薄页的待遇。
+#    预期结果是 sitemap 里少掉约 800 条自称有内容的页，配额让给真有内容的。
+#
+# 6. **MODULE.md 的数字要跟着改**，包括那句「之前 51.1%，之后 67.2%」——
+#    把它改写成「67.2% 里有 35.7% 是出版方实体自己满足的，收窄后 48.8%」。
+#    留着旧数字比没有数字更误导。
+#
+# ---------- 下一步（不在本期）----------
+# - 工作台的内容价值卡：按新口径画，并列出「无非出版方实体的一手来源源清单」
+# - 单信号 + 只有出版方实体的事件，正是 llm-classify-pass 那一期的目标人群

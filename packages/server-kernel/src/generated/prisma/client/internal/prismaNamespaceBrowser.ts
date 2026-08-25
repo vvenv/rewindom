@@ -378,6 +378,8 @@ export const NewsEventScalarFieldEnum = {
   first_seen_at: 'first_seen_at',
   last_activity_at: 'last_activity_at',
   analyzed_at: 'analyzed_at',
+  model_kind: 'model_kind',
+  classified_at: 'classified_at',
   analyzer: 'analyzer',
   manual_content: 'manual_content',
   manual_topic: 'manual_topic',

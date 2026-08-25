@@ -26,6 +26,7 @@ import type {
   AnalyzerSignal,
   AnalyzerUsage,
   EventAnalyzer,
+  EventClassification,
 } from "./analyzer.js";
 
 /** 一次分析最多喂多少条信号——超过这个量，摘要质量的提升赶不上 token 成本。 */
@@ -95,6 +96,35 @@ const SYSTEM_PROMPT = [
 ].join("\n");
 
 /**
+ * 窄分类的系统消息。**单独一份，不与 SYSTEM_PROMPT 拼接。**
+ *
+ * 前缀缓存按前缀相同命中，两种调用各自稳定的系统消息各自命中；把两者
+ * 拼在一起反而两边都不稳。MVP §11 的边界照抄不误——只用材料里出现的名字、
+ * 不确定就返回 null。
+ *
+ * 刻意**不要**标题 / 摘要 / 时间线：那是完整分析的活，也正是它贵的原因。
+ * 输出短意味着 completion token 少，而这条路要跑在几千个事件上。
+ */
+const CLASSIFY_SYSTEM_PROMPT = [
+  "You label ONE event, given the signals collected about it.",
+  "Rules you must not break:",
+  "- Only use facts that appear in the provided sources. Never add outside knowledge.",
+  "- Never guess. When it is not clearly one of the listed kinds, answer null.",
+  "- Only list names that literally appear in the sources.",
+  "",
+  "Respond with JSON only:",
+  '{"kind": string | null, "entities": [{"name": string, "kind": string}]}',
+  `- kind: one of ${EVENT_KINDS.join(" | ")}, or null. A plain news report is`,
+  "  null, not a guess. A planned maintenance window is maintenance, never",
+  "  outage — even when the service was unavailable during it.",
+  "- entities: the named companies, products, people, places or organisations",
+  `  this event is about. kind must be one of ${ENTITY_KINDS.join(" | ")}.`,
+  "  Max 10. Skip GitHub @handles, commit SHAs, PR numbers, and changelog",
+  "  bylines (who tagged a release or authored a commit). Those are metadata,",
+  "  not what the event is about.",
+].join("\n");
+
+/**
  * LLM 分析器。任何一步出问题（无 key、超时、返回不是 JSON、字段缺失）
  * 都退回规则分析器——事件页宁可平淡也不该开天窗。
  *
@@ -123,6 +153,61 @@ export function createLlmAnalyzer(llm: ResolvedLlmConfig): EventAnalyzer {
         usage: parseUsage(completion.usage),
       };
     },
+
+    classify: async (input: AnalyzerInput): Promise<EventClassification> => {
+      const signals = selectSignals(input.signals);
+      if (signals.length === 0) {
+        return {};
+      }
+
+      const client = getLlmClient(llm, { maxRetries: 0 });
+      const completion = await client.chat.completions.create({
+        model: llm.model,
+        temperature: llm.temperature,
+        response_format: { type: "json_object" },
+        messages: buildClassifyMessages(signals),
+      });
+
+      const raw = completion.choices[0]?.message?.content ?? "";
+      return {
+        ...parseClassifyResponse(raw),
+        usage: parseUsage(completion.usage),
+      };
+    },
+  };
+}
+
+/**
+ * 窄调用的 user 消息。
+ *
+ * **不带 topic hint**：主题不由这条路判（`classifyEventTopic` 每轮重算），
+ * 多给一行只会稀释提示词，还让前缀之后的可变部分更长。
+ */
+export function buildClassifyMessages(
+  signals: readonly AnalyzerSignal[],
+): { role: "system" | "user"; content: string }[] {
+  return [
+    { role: "system", content: CLASSIFY_SYSTEM_PROMPT },
+    {
+      role: "user",
+      content: JSON.stringify(selectSignals(signals).map(toPromptSignal)),
+    },
+  ];
+}
+
+/**
+ * 解析窄调用返回。与 `parseAnalyzerResponse` 共用同一套校验：
+ * `isEventKind` 判枚举、`parseEntities` 宽进严出。
+ *
+ * **不抛空结果**。完整分析里 timeline 为空要抛（详情页会开天窗），
+ * 而分类返回 `{kind: null, entities: []}` 是一个**合法答案**——
+ * 「这条就是普通报道，不属于任何一类」。把它当失败会让调用方永远重试。
+ */
+export function parseClassifyResponse(raw: string): EventClassification {
+  const parsed = JSON.parse(raw) as { kind?: unknown; entities?: unknown };
+  return {
+    kind: isEventKind(parsed.kind) ? parsed.kind : undefined,
+    entities: parseEntities(parsed.entities),
   };
 }
 

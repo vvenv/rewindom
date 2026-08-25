@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  classifyWindowWhere,
+  pickAnalyzedEntities,
   planAnalysis,
   resolveRefreshedContent,
+  shouldClassify,
 } from "./event-refresh.service.js";
 
 const NOW = new Date("2025-08-12T12:00:00Z");
@@ -249,5 +252,128 @@ describe("resolveRefreshedContent", () => {
       summary: "New summary",
       analyzer: "llm",
     });
+  });
+});
+
+/*
+ * 窄分类与 planAnalysis 刻意分开：那个函数问「这一轮内容要不要重算」（信号变没变），
+ * 这个问「这个事件付过分类费没有」（库里的 classified_at）。合在一起会让
+ * 「信号没变 → skip」的早退把整个存量语料挡在门外——而存量语料正是目标：
+ * 本地库 4078 个事件里 98.4% 是单信号，终生够不到完整分析。
+ */
+describe("shouldClassify", () => {
+  const base = {
+    analyzer_id: "llm",
+    existing_analyzer: "heuristic",
+    content_plan: "local" as const,
+    classified_at: null as Date | null,
+    in_classify_window: true,
+  };
+
+  it("没跑过分类、在本轮限额里 = 跑", () => {
+    expect(shouldClassify(base)).toBe(true);
+  });
+
+  it("终生一次：跑过就不再跑", () => {
+    expect(shouldClassify({ ...base, classified_at: NOW })).toBe(false);
+  });
+
+  /*
+   * 规则实现的「分类」就是 kind-classifier 那张关键词表本身，refreshEvent
+   * 已经无条件在跑。没有 key 的环境（本地开发、CI）不该凭空多一条路径。
+   */
+  it("没有模型就没有这条路", () => {
+    expect(shouldClassify({ ...base, analyzer_id: "heuristic" })).toBe(false);
+  });
+
+  /* 完整分析在同一次调用里已经给过 kind 与 entities，再补一次窄的是白花钱。 */
+  it("跑过完整 LLM 分析的不必再补窄的", () => {
+    expect(shouldClassify({ ...base, existing_analyzer: "llm" })).toBe(false);
+  });
+
+  it("不在本轮限额里就等下一轮", () => {
+    expect(shouldClassify({ ...base, in_classify_window: false })).toBe(false);
+  });
+
+  /*
+   * 一个刚立的双信号热门事件：analyzed_at 为空 → plan = model，而 analyzer
+   * 还是列默认值 heuristic → 上面那条「跑过完整分析的不补」拦不住。
+   * 不加这条就会在一轮里发两次模型调用，其中一次的产出被另一次整个覆盖。
+   */
+  it("本轮就要跑完整分析时不补窄的——那一次同一个调用就给了 kind 与 entities", () => {
+    expect(shouldClassify({ ...base, content_plan: "model" })).toBe(false);
+  });
+
+  it("本轮跑规则实现（local）或不跑（skip）时照补", () => {
+    expect(shouldClassify({ ...base, content_plan: "local" })).toBe(true);
+    expect(shouldClassify({ ...base, content_plan: "skip" })).toBe(true);
+  });
+});
+
+describe("classifyWindowWhere", () => {
+  it("只捞没付过分类费的", () => {
+    expect(classifyWindowWhere().classified_at).toBeNull();
+  });
+
+  /*
+   * 实测教训：这一条不加时，窗口按 last_activity_at 降序捞回来的头 36 个
+   * 全是状态页维护通告——模型答 maintenance、先验答 outage（先验压过模型）、
+   * 最终落 outage，36 次调用一次都没改变结果。
+   *
+   * 判据是 `eventKindPrior` 的逐字库内镜像：它只看有没有 status / release
+   * 信号。缺 kind 覆盖的从来不是这两格（各自 100% 满），是 news / official /
+   * community 那三格（2.3% / 3.3% / 1.4%）。
+   */
+  it("先验已经能回答的事件不进窗口——问了也用不上", () => {
+    expect(classifyWindowWhere().NOT).toEqual({
+      source_kinds: { hasSome: ["status", "release"] },
+    });
+  });
+});
+
+describe("pickAnalyzedEntities", () => {
+  const modelEntity = [{ name: "Stripe", kind: "company" }];
+  const classifyEntity = [{ name: "OpenRouter", kind: "company" }];
+
+  /*
+   * 「这一轮谁都没重算过」——LLM 冷却期内就是这个状态。此时回落到规则抽取
+   * 会让实体类型从 company 掉回 org，而类型是身份键的一部分，于是每轮
+   * 新建一份重复实体、关联反复重连。
+   */
+  it("两边都没跑 = 不要动实体", () => {
+    expect(pickAnalyzedEntities(null, null)).toBeNull();
+  });
+
+  it("完整 LLM 分析优先——它读过全文与时间线", () => {
+    expect(
+      pickAnalyzedEntities(
+        { analyzer: "llm", entities: modelEntity },
+        { entities: classifyEntity },
+      ),
+    ).toEqual({ model: modelEntity });
+  });
+
+  /*
+   * 最常见的那条路，也是第一版写错的地方：新事件第一轮 plan 是 `local`
+   * （规则实现），同一轮又恰好排进分类窗口。此时 analysis 非空但它是规则
+   * 实现的产出，而规则实现**不产实体**（entities 恒为 undefined）——
+   * 按「有分析就听分析的」写，分类刚问回来的实体会被整个丢掉，
+   * 正好丢在最该用它的场景上。
+   */
+  it("规则实现跑过也不算数：实体听分类的", () => {
+    expect(
+      pickAnalyzedEntities(
+        { analyzer: "heuristic", entities: undefined },
+        { entities: classifyEntity },
+      ),
+    ).toEqual({ model: classifyEntity });
+  });
+
+  /*
+   * 「模型跑过但一个实体都没给」与「没跑模型」是两件事：前者返回空数组，
+   * 调用方据此回落到规则抽取兜一份，而不是让这一页一个实体都没有。
+   */
+  it("模型给了空数组 = 让调用方回落到规则抽取", () => {
+    expect(pickAnalyzedEntities(null, { entities: [] })).toEqual({ model: [] });
   });
 });

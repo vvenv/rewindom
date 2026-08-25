@@ -180,6 +180,26 @@ model NewsEvent {
   last_activity_at DateTime
   /// 最近一次跑分析器的时间；null 表示还没生成过摘要
   analyzed_at      DateTime?
+  /// **模型**判出的事件类型；null = 模型说「不是任何一类」，或还没问过模型。
+  ///
+  /// 存在的理由是 kind 每轮都重算：
+  ///   kind = eventKindPrior(...) ?? analysis?.kind ?? model_kind ?? classifyEventKind(...)
+  /// 而降温扫描下 `analysis` 是 null，于是上一轮模型判出的 acquisition 会被
+  /// 关键词的 null 覆盖掉——本地库 news 那一格 1447 个事件只有 34 个有 kind，
+  /// 正好等于关键词命中率，模型的答案一轮都没活下来。
+  ///
+  /// **只有真的调过模型的那一轮才写它**（以拿到 usage 为准，退回规则实现时
+  /// usage 是 undefined）。没调模型就不写，与「没有重算就不覆盖」同一条原则；
+  /// 真的问过而模型说「不是任何一类」时要写 null——那是一个答案，不是没问过。
+  model_kind       String?
+  /// 跑过**窄分类调用**的时刻；null = 还没跑过。
+  ///
+  /// 每个事件终生只付一次分类费。省钱闸门按定义会把 98.4% 的单信号事件
+  /// 挡在完整分析之外，而分类恰恰是它们唯一能拿到的增量（跨源印证与时间线
+  /// 对单信号按定义不存在），所以这条路绕过那道闸门、另设一个按轮限额。
+  ///
+  /// 失败**不写**：一次供应商抖动不该让这个事件终生没有类型。
+  classified_at    DateTime?
   /// heuristic | llm | manual —— 当前摘要/时间线由哪种分析器产出；manual 表示人工改过
   analyzer         String    @default("heuristic")
   /// 工作台改过标题或摘要后为 true：采集刷新仍更新热度与时间线，但不再覆盖文案

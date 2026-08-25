@@ -351,6 +351,20 @@ function buildEventsConfig() {
     /** auto = 有 OPENAI_API_KEY 就走 LLM，否则走规则实现。 */
     analyzer: resolveEventsAnalyzer(),
     /**
+     * 每站点每轮最多把几条**还没归属事件的信号**送去聚类。
+     *
+     * 聚类的待办队列在库里（`event_id IS NULL`）而不是进程内，所以一轮抛异常
+     * 丢掉的信号下一轮会被重新捡起来。限额是为了让积压摊平：窗口外的孤儿会
+     * 各自立一个事件，一次放两千多条进来等于一轮往库里灌两千多个补记事件，
+     * 每个还要跑一次刷新与分析。积压清完后这个数恒大于单轮新增量。
+     */
+    pendingClusterLimit: clampIntEnv(
+      "EVENTS_PENDING_CLUSTER_LIMIT",
+      500,
+      1,
+      100_000,
+    ),
+    /**
      * 值得一次模型调用的最低信号数。
      *
      * 只有一条信号时 LLM 干的活退化成「给一篇文章换个说法」——而规则实现
@@ -374,6 +388,26 @@ function buildEventsConfig() {
       30,
       0,
       24 * 60,
+    ),
+    /**
+     * 每个站点每轮最多做几次**窄分类调用**（只出 kind + entities）。
+     *
+     * 它服务的是被上面三道闸门拦下的那批单信号事件——闸门的理由
+     *（「单信号时 LLM 退化成给一篇文章换个说法」）对摘要成立，对分类不成立：
+     * 版本号 / 金额 / 当事方埋在正文里，拎出来是单信号事件唯一可能的增量。
+     * 每个事件终生只跑一次（`NewsEvent.classified_at`），所以这个数只决定
+     * 存量语料多久补完，不是持续成本。
+     *
+     * **0 = 关掉**——与 `llmTopEvents` / `llmCooldownMinutes` 的 0 语义相反
+     *（那两个 0 是「不限 / 不冷却」）。刻意的：compose 里 `${VAR:-}` 打进来的
+     * 空串按 `Number("") === 0` 会**关掉分类**，而在这个键上
+     * 「不小心不花钱」远好过「不小心花钱」。
+     */
+    llmClassifyPerRound: clampIntEnv(
+      "EVENTS_LLM_CLASSIFY_PER_ROUND",
+      40,
+      0,
+      1000,
     ),
     /**
      * 语料保留期（天）。信号无上限增长是这个模块最早会撞上的墙——

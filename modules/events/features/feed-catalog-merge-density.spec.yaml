@@ -1,0 +1,94 @@
+# 目录的形状决定了合并率的上限，而现在这个形状里 80% 的源合并不了。
+#
+# 本地库（tenant f098…，启用主题 ai / tech / business）按 topic × source_kind：
+#
+#            news  community │ official  release  status  filing
+#   tech        9      2     │    37       39       24       1
+#   ai          3      0     │    16        6        6       0
+#   business   12      0     │     7        0        0       5
+#
+# 右半边（一手来源）按设计**只按 canonical_url 归属，不参与文本聚类**
+#（`clustersByUrlOnly`），所以结构上恒为单信号。ai 那一行尤其失衡：
+# 28 个一手来源对 3 个报道源——最容易出事的一格，最没人跟进。
+#
+# 事件侧的证据一致：4073 个事件里 4063 个只有**一个** source_kind，
+# 跨类型的只有 10 个；结构性单信号（非新闻源）1998 个，占 49%。
+#
+# 这不是说非新闻源没价值——它们是 kind facts 与实体档案的来源，那个定位是对的。
+# 是说**继续往目录里加一手来源会让三个指标同时朝错的方向走**：
+# 事件总数涨、合并率跌、hasReaderValue 靠出版方实体虚涨。要抬合并率，
+# 该扩的是 news 密度与 community，而它们恰恰是目录里最薄的两格。
+#
+# ⚠️ 本期的**验收前提**是 orphan-signal-recovery 先落地。当前可聚类语料
+# 2145 条信号 → 2075 个事件（1.03 条/事件），但 news/community 有 1547 条信号
+# 从没进过聚类（`event_id IS NULL`）。合并率要在孤儿补跑完之后重量，
+# 不然分不清「源不够」和「信号丢了」。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant]
+goal: 目录补 7 个源——ai 报道 3→6、tech 报道 9→11、tech 社区 2→4；每个 URL 用采集器同一条 UA 实际请求验证过，且不与已有目录项产出同一批文章 URL。
+gold: modules/events/server/ingest/feed-catalog.ts
+touch:
+  - modules/events/features/feed-catalog-merge-density.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/server/ingest/feed-catalog.ts
+  - modules/events/server/ingest/feed-catalog.test.ts
+out_of_scope:
+  - 加一手来源（official / release / status / filing）——本期方向相反
+  - 加中文源（跨语言合并要单独校准阈值，是独立决策）
+  - 改聚类阈值或 `clustersByUrlOnly` 的名单
+  - 改 `feed-seed.ts` 的种植口径（按目录项 key 只种没种过的，这条不动）
+  - 给存量站点强制开启新主题（enabled_topics 是站点自己的选择）
+  - 招聘源（Greenhouse / Lever 要写第三个 connector，且标题模板化更严重）
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/ingest/feed-catalog.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:modules
+  - 每个新 URL 用 INGEST_USER_AGENT 实际请求过：200 + 条目数 + pubDate 齐全
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. **不加已有源的子 feed**。`blog.google/rss/` 那条被拒的理由在这里同样成立：
+#    子 feed 与父 feed 产出同一批文章 URL，会让一家算成两个来源、虚增
+#    `source_count`——而 `source_count` 正是 Rising 的排序键。
+#    因此排除 TechCrunch AI、The Verge AI、Ars Technica AI、VentureBeat 主 feed。
+#    **Wired AI 是例外且必须说清楚**：目录注释里写着「Wired 主 feed 目前是优惠码」，
+#    主 feed 从来没进过目录，所以 AI tag feed 不构成父子重复（实测是真内容）。
+#
+# 2. **社区那一格是最该补的**。整个目录只有 2 个 community 源（HN + Lobsters），
+#    而社区源与报道源指向同一篇原文时走的是 `canonical_url` 精确合并——
+#    零误判的那条路径。MODULE.md 记着它「在这轮采样里一次都没触发」，
+#    原因正是聚合器只有两个。
+#    Lemmy 的标题是**被链文章的原标题**（`… | TechCrunch`），这正是要的形状。
+#
+# 3. **SiliconANGLE 是冲着类型覆盖去的**。实测头条清一色是
+#    `raises $200M` / `bags $40M` / `eyes another investment` ——
+#    而全库 funding 只有 6 个、acquisition 15 个。它与 llm-classify-pass
+#    是同一个缺口的两条腿：一条补召回（模型），一条补语料（源）。
+#
+# 4. **验证过但判定不该进的要写进 `REJECTED`**，与 `blog.google` 同一条口径。
+#    本期三条：`zdnet.com/topic/artificial-intelligence/rss.xml` 302 到通用
+#    新闻 feed（根本不是 AI feed）；`dev.to/feed` 是个人博客不是事件；
+#    `producthunt.com/feed` 是产品目录不是事件。
+#
+# 5. **测试的下限跟着抬**，但抬的是 news / community 那两格，不是总数——
+#    总数下限已经被一手来源撑着，再抬只会奖励「继续加 official」这个动作。
+#    新增：ai 的 news ≥ 5、tech 的 community ≥ 3。
+#
+# 6. **403 的源一律不进目录**：unite.ai、marktechpost、axios.com/technology
+#    对这条 UA 403。不为单个源加浏览器 UA 白名单——那张名单
+#    （`isBrowserUserAgentHost`）现在只有 ftc.gov 一条，是为 Akamai 开的口子，
+#    不该变成「谁拒就把谁加进去」。
+#
+# ---------- 下一步（不在本期）----------
+# - 孤儿补跑完之后重量合并率；仍然 < 1.2 条/事件再谈第二批源
+# - 按 beat 而不是按 topic 组织报道源（同一条 beat 上 3~5 家才谈得上跨源印证）
+# - 中文源：语义层已就位，但阈值要在中英混合语料上单独校准

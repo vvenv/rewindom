@@ -218,6 +218,8 @@ export async function listEventEntities(params: {
     take: 12,
     select: {
       mention_count: true,
+      // 内容价值谓词要能区分「抽出来的」与「源标注的」，见 hasReaderValue
+      is_publisher: true,
       entity: { select: { id: true, name: true, kind: true, slug: true } },
     },
   });

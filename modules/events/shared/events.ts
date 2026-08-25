@@ -612,6 +612,15 @@ export interface EventDetail extends EventListItem {
   /** 事件涉及的实体，按提及次数降序 */
   entities: EventEntityItem[];
   /**
+   * 其中**从材料里抽出来的**有几个——不含采集源标注的出版方。
+   *
+   * 落在 DTO 上而不是让调用方数 `entities`：`is_publisher` 是链接的属性，
+   * 公开面的实体条目上没有它，也不该为了这一次判断把它带出去（读者看到的
+   * 实体列表里，出版方与抽出来的实体本来就该一视同仁）。
+   * 唯一的消费者是 `hasReaderValue`。
+   */
+  sourced_entity_count: number;
+  /**
    * 相关事件（不是同一件事，但有关系），按相似度降序，最多 5 条。
    * 没配 embedding key 时恒为空——界面整块不渲染。
    */
@@ -784,12 +793,22 @@ export function hasOriginalSummary(input: {
  *
  * 四条任意一条成立就算有增量，全部取自详情已经载入的字段，**不额外发查询**：
  *
- * | 条件            | 增量是什么                                     |
- * | --------------- | ---------------------------------------------- |
- * | ≥2 条信号       | 跨源印证与时间线——主承诺本身                 |
- * | 有实体          | 归位与累计档案能长出来（「近 90 天第 4 次」）  |
- * | 有类型事实      | 埋在正文里的版本号 / 金额 / 时长被拎了出来     |
- * | 摘要不是复制    | LLM 整理或本站编辑写过                         |
+ * | 条件               | 增量是什么                                     |
+ * | ------------------ | ---------------------------------------------- |
+ * | ≥2 条信号          | 跨源印证与时间线——主承诺本身                 |
+ * | 有**非出版方**实体 | 归位与累计档案能长出来（「近 90 天第 4 次」）  |
+ * | 有类型事实         | 埋在正文里的版本号 / 金额 / 时长被拎了出来     |
+ * | 摘要不是复制       | LLM 整理或本站编辑写过                         |
+ *
+ * 实体那一条**必须排除出版方**（`EventEntityLink.is_publisher`），否则这个指标
+ * 会给自己发分：182 个源里 145 个标了 `publisher_entity_name`，于是每一个一手
+ * 来源的事件生来就带一个实体链接。本地库 4078 个事件里，**1454 个（35.7%）
+ * 只有出版方实体**——Cloudflare 博客发的事件挂一个 Cloudflare 实体，对读者的
+ * 增量约等于零：那是这条源的常量，不是这件事的信息。
+ *
+ * 出版方实体本身没有错（归位与累计档案要靠它，见 `publisher-entity.ts`），
+ * 错的是让它去满足一条为「这一页比原链接多了什么」而设的判据。
+ * 收窄前 68.2%，收窄后 **48.8%**。
  *
  * 它同时是这个模块的**看板指标**：把「内容价值」从主观判断变成一个能盯的数字。
  * 用途见 `getPublicEventSitemapEntries` 与详情页的 noindex——两处必须同一个口径，
@@ -798,13 +817,19 @@ export function hasOriginalSummary(input: {
 export function hasReaderValue(input: {
   signal_count: number;
   kind: EventKind | null;
-  entity_count: number;
+  /**
+   * **从材料里抽出来的**实体有几个——不含采集源标注的出版方。
+   *
+   * 刻意不叫 `entity_count`：旧名字下每一处调用点都会顺手传全量计数，
+   * 而那正是这个指标被自己满足的原因。改名逼调用方重新想一遍传的是哪个数。
+   */
+  sourced_entity_count: number;
   analyzer: string;
   summary: string;
 }): boolean {
   return (
     input.signal_count >= 2 ||
-    input.entity_count > 0 ||
+    input.sourced_entity_count > 0 ||
     input.kind !== null ||
     hasOriginalSummary(input)
   );

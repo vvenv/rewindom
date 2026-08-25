@@ -110,8 +110,33 @@ export interface AnalyzedEntity {
   mention_count?: number;
 }
 
+/**
+ * 一次**窄分类调用**的产出：只有类型与实体，没有标题 / 摘要 / 时间线。
+ *
+ * 它服务的是被省钱闸门拦下的那 98.4% 单信号事件。那道闸门的理由——
+ * 「单信号时 LLM 的活退化成给一篇文章换个说法」——对**摘要**成立，
+ * 对**分类**不成立：版本号、金额、当事方埋在正文里，读者点原链接得自己
+ * 读完全文才能拿到，把它拎出来是真增量，而且是单信号事件唯一可能的增量
+ *（跨源印证与时间线对它们按定义不存在）。
+ *
+ * 字段与 `AnalyzedEvent` 的同名字段同构，走同一套宽进严出的校验——
+ * 口径只有一份，不为窄调用另起一套。
+ */
+export interface EventClassification {
+  /** 与 `AnalyzedEvent.kind` 同义。undefined = 模型说「不是任何一类」 */
+  kind?: EventKind;
+  entities?: AnalyzedEntity[];
+  usage?: AnalyzerUsage;
+}
+
 export interface EventAnalyzer {
   /** 落进 NewsEvent.analyzer，界面上要能看出这段摘要是谁写的 */
   id: "heuristic" | "llm";
   analyze: (input: AnalyzerInput) => Promise<AnalyzedEvent>;
+  /**
+   * 窄分类。**可选**——规则实现不提供：它没有模型，「分类」对它而言就是
+   * `kind-classifier` 那张关键词表本身，`refreshEvent` 已经无条件在跑。
+   * 于是「有没有分类能力」与「有没有 key」是同一个判断，不另起一套解析。
+   */
+  classify?: (input: AnalyzerInput) => Promise<EventClassification>;
 }

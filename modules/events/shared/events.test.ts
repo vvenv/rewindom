@@ -427,7 +427,7 @@ describe("hasReaderValue", () => {
   const bare = {
     signal_count: 1,
     kind: null,
-    entity_count: 0,
+    sourced_entity_count: 0,
     analyzer: "heuristic",
     summary: "OpenRouter's CEO described the startup as Stripe for AI.",
   };
@@ -440,8 +440,18 @@ describe("hasReaderValue", () => {
     expect(hasReaderValue({ ...bare, signal_count: 2 })).toBe(true);
   });
 
-  it("有实体 = 有增量（归位与累计档案能长出来）", () => {
-    expect(hasReaderValue({ ...bare, entity_count: 1 })).toBe(true);
+  it("有抽出来的实体 = 有增量（归位与累计档案能长出来）", () => {
+    expect(hasReaderValue({ ...bare, sourced_entity_count: 1 })).toBe(true);
+  });
+
+  /*
+   * 出版方实体不算——它是采集源自己的标注，一手来源的事件生来就有一个。
+   * 本地库 4078 个事件里 1454 个（35.7%）**只有**它，正是这个指标
+   * 从 51.1% 跳到 67.2% 的全部来源：内容没变多，判据被自己满足了。
+   * 调用方传的是 sourced_entity_count（已剔除出版方），所以这里等价于 0。
+   */
+  it("只有出版方实体 = 没有增量", () => {
+    expect(hasReaderValue({ ...bare, sourced_entity_count: 0 })).toBe(false);
   });
 
   it("有类型 = 有增量（版本号 / 金额 / 时长被拎了出来）", () => {

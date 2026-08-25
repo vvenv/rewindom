@@ -235,6 +235,32 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     source_kind: "news",
     topic: "ai",
   },
+  {
+    connector: "rss",
+    name: "The Decoder",
+    url: "https://the-decoder.com/feed/",
+    source_kind: "news",
+    topic: "ai",
+  },
+  {
+    connector: "rss",
+    name: "AI Business",
+    url: "https://aibusiness.com/rss.xml",
+    source_kind: "news",
+    topic: "ai",
+  },
+  /*
+   * Wired **主** feed 至今是优惠码（见文件头注释），从来没进过目录——
+   * 所以这条 AI tag feed 不构成「子 feed 与父 feed 重复」，
+   * 与被拒的 `blog.google/rss/` 不是一回事。实测是真内容。
+   */
+  {
+    connector: "rss",
+    name: "Wired AI",
+    url: "https://www.wired.com/feed/tag/ai/latest/rss",
+    source_kind: "news",
+    topic: "ai",
+  },
 
   // ---- tech · 一手来源
   {
@@ -596,6 +622,46 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     name: "InfoQ",
     url: "https://feed.infoq.com",
     source_kind: "news",
+    topic: "tech",
+  },
+  /*
+   * 头条清一色是 `raises $200M` / `bags $40M` / `eyes another investment`。
+   * 冲着类型覆盖来的：全库 funding 只有 6 个、acquisition 15 个，而语料里
+   * 本来就有一排财经源——缺的是**说这类事**的源，不是判这类事的关键词。
+   */
+  {
+    connector: "rss",
+    name: "SiliconANGLE",
+    url: "https://siliconangle.com/feed/",
+    source_kind: "news",
+    topic: "tech",
+  },
+  {
+    connector: "rss",
+    name: "Rest of World",
+    url: "https://restofworld.org/feed/latest/",
+    source_kind: "news",
+    topic: "tech",
+  },
+  /*
+   * 社区那一格整个目录只有 HN + Lobsters 两个。补它的理由不是「多两个源」，
+   * 而是**聚合器与报道源指向同一篇原文时走的是 `canonical_url` 精确合并**
+   * ——零误判的那条路径。MODULE.md 记着它「在这轮采样里一次都没触发」，
+   * 原因正是聚合器太少。Lemmy 的标题是被链文章的原标题
+   * （`… | TechCrunch`），正是要的形状。
+   */
+  {
+    connector: "rss",
+    name: "Slashdot",
+    url: "https://rss.slashdot.org/Slashdot/slashdotMain",
+    source_kind: "community",
+    topic: "tech",
+  },
+  {
+    connector: "rss",
+    name: "Lemmy Technology",
+    url: "https://lemmy.world/feeds/c/technology.xml?sort=Active",
+    source_kind: "community",
     topic: "tech",
   },
   {

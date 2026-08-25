@@ -1,0 +1,172 @@
+# 模型预算全花在摘要上，而单信号事件唯一可能的增量是**事实**。
+#
+# 本地库量的（tenant f098…，4078 个事件）：
+#
+#   analyzer = llm          353    8.7%
+#   kind 非空               856   21.0%
+#
+# 那 21% 是假的。按来源类型拆开：
+#
+#   source_kind   事件    有 kind
+#   status         449      449    100%   ← `source_kind` 先验，不是判出来的
+#   release        310      310    100%   ← 同上
+#   news          1447       34    2.3%
+#   official      1166       39    3.3%
+#   community      631        9    1.4%
+#
+# 全库 acquisition 15 个、funding 6 个、legal 34 个——而语料里有 Bloomberg /
+# FT / Forbes / Yahoo Finance / Business Insider / Axios。MODULE.md 自己拿来当
+# 语义聚类旗舰案例的那条「Stripe 收购 OpenRouter $7B」，在类型面上判不出来。
+#
+# `kind-classifier` 的关键词表是刻意精度换召回的（`raises` 被一场慈善赛打回来的
+# 那条注释是对的），但结论不该是「召回就这样了」，而该是**把召回交给模型**。
+# 现在交不了：`EVENTS_LLM_MIN_SIGNALS=2` 把单信号事件整个挡在模型之外，而 98.4%
+# 的事件是单信号，于是两边锁死。
+#
+# 那道闸门的理由是「单信号时 LLM 退化成给一篇文章换个说法」。**这句话对摘要成立，
+# 对分类不成立**：版本号、金额、当事方埋在正文里，读者点原链接得自己读完全文才能
+# 拿到；把它拎出来是真增量，而且是单信号事件唯一可能的增量（另两条——跨源印证与
+# 时间线——按定义就不存在）。
+#
+# 顺带修一个存量 bug：**模型给的 kind 今天根本存不住**。`refreshEvent` 每轮重算
+#   kind = eventKindPrior(...) ?? analysis?.kind ?? classifyEventKind(...)
+# 而降温扫描下 `analysis` 是 null，于是上一轮模型判出的 acquisition 会被关键词的
+# null 覆盖掉。news 那 2.3% 正好就是关键词命中率——模型的答案一轮都没活下来。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 给被省钱闸门拦下的事件加一次**窄分类调用**（只出 kind + entities，不碰标题/摘要/时间线），按轮限额、每个事件终生一次；模型给出的 kind 落库，不再被下一轮关键词重算覆盖。
+gold: modules/events/server/event/analyzer/llm-analyzer.ts
+touch:
+  - modules/events/features/llm-classify-pass.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/models.prisma
+  - modules/events/server/event/analyzer/analyzer.ts
+  - modules/events/server/event/analyzer/index.ts
+  - modules/events/server/event/analyzer/llm-analyzer.ts
+  - modules/events/server/event/analyzer/llm-analyzer.test.ts
+  - modules/events/server/event/analyzer/heuristic-analyzer.ts
+  - modules/events/server/event/event-refresh.service.ts
+  - modules/events/server/event/event-refresh.service.test.ts
+  - modules/events/server/ingest/ingest.service.ts
+  - modules/events/server/ingest/ingest.pending.test.ts
+  - packages/server-kernel/src/lib/config.ts
+  - apps/server/prisma/migrations/
+  - docker-compose.prod.yml
+  - scripts/env.production.example
+out_of_scope:
+  - 放宽 `EVENTS_LLM_MIN_SIGNALS`（摘要那道闸门是对的，一个字不改）
+  - 让分类调用产出标题 / 摘要 / 时间线（那是完整分析的活，也是它贵的原因）
+  - 让模型判 topic（topic 每轮由 `classifyEventTopic` 重算，另一条路径）
+  - 改 `eventKindPrior` 的 source_kind 先验（它压过模型，这条不变）
+  - 改 `kind-classifier` 的关键词表（精度换召回是刻意的，模型补的是召回）
+  - 给 heuristic 分析器加分类能力（它没有模型，分类就是关键词表本身）
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/event/
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:modules
+  - pnpm check:prod-app-env
+  - pnpm --filter server exec prisma migrate deploy
+  - prisma migrate diff --from-migrations ./prisma/migrations --to-schema ./prisma（必须是空迁移）
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models:
+  - NewsEvent.model_kind：模型判出的事件类型，null = 模型没给或没跑过
+  - NewsEvent.classified_at：跑过窄分类调用的时刻，保证每个事件只付一次分类费
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. **分类是分析器的第二个可选方法，不是第二个分析器**。
+#    `EventAnalyzer.classify?`——heuristic 不实现（undefined），
+#    「有没有分类能力」于是与「有没有 key」是同一个判断，不另起一套解析。
+#    返回 `{ kind?, entities?, usage? }`，与 `AnalyzedEvent` 的同名字段同构、
+#    同一套 `isEventKind` / `parseEntities` 校验——宽进严出的口径只有一份。
+#
+# 2. **不改 `planAnalysis`**，另加一个纯谓词 `shouldClassify`。
+#    理由是两者问的不是同一个问题：`planAnalysis` 问「这一轮内容要不要重算」
+#    （由信号集合变没变驱动），分类问「这个事件付过分类费没有」（由库里的
+#    `classified_at` 驱动，与信号变化无关）。塞进同一个返回值会让那个
+#    「信号没变 → skip」的早退把整个存量语料挡在门外。
+#
+#    `shouldClassify` 五条全中才为真：
+#      analyzer.id === "llm"          —— 没有模型就没有这条路
+#      classified_at === null         —— 终生一次
+#      existing_analyzer !== "llm"    —— 跑过完整分析的不必再补窄的
+#      content_plan !== "model"       —— 本轮就要跑完整分析时也不补
+#      in_classify_window             —— 落在本轮限额里
+#
+#    第四条不是第三条的重复：一个刚立的双信号热门事件 `analyzed_at` 为空
+#    （→ plan = model）而 `analyzer` 还是列默认值 heuristic（→ 第三条拦不住），
+#    于是一轮里发两次模型调用，其中一次的产出被另一次整个覆盖。
+#
+# 3. **限额是一个按站点的窗口集合，与热度窗同一个形状**：
+#    每站点查一次 `classified_at IS NULL` 的前 N 个（按 last_activity_at 降序），
+#    传给按事件的循环。放进循环里逐个查等于每轮多几百次往返，
+#    与 `loadHeatWindow` / `loadPublisherFeedIndex` 是同一条口径。
+#
+#    **窗口必须排除 `source_kind` 先验已经能回答的事件**——先验压过模型，
+#    问了也用不上。判据是 `NOT source_kinds && {status, release}`，
+#    是 `eventKindPrior` 逐字的库内镜像。
+#    实测教训（第一版漏了这条）：窗口按 last_activity_at 降序捞回来的头 36 个
+#    全是状态页维护通告，模型答 maintenance、先验答 outage、最终落 outage——
+#    36 次调用一次都没改变结果。而这两格本来就有 100% 的 kind 覆盖，
+#    缺覆盖的是 news 2.3% / official 3.3% / community 1.4% 那三格。
+#
+#    `EVENTS_LLM_CLASSIFY_PER_ROUND` 默认 **40**。存量 4078 个事件、每轮 40、
+#    每小时 4 轮 → 一天多清完，之后恒大于单轮新增量。
+#    **0 = 关掉**——注意这与 `EVENTS_LLM_TOP_EVENTS` / `EVENTS_LLM_COOLDOWN_MINUTES`
+#    的 0 语义相反（那两个 0 是「不限 / 不冷却」）。刻意的：历史上那次
+#    「compose 透传空串 → `Number("") === 0`」的事故在那两个键上等于闸门失效
+#    （花钱），落在这个键上只会让分类不跑（不花钱）。
+#    compose 照既有做法写显式数字默认值（`${EVENTS_LLM_CLASSIFY_PER_ROUND:-40}`），
+#    0 的方向是第二道防线。MODULE.md 要写明这两个 0 不是一个意思。
+#
+# 3b. **候选要并进采集轮的 `touched`**。分类挂在 `refreshEvent` 里，只有进了
+#    刷新队列的事件才轮得到，而 `touched` 的三个来源都偏向新事件与还在动的事件——
+#    `cooling` / `resolved` 的老事件再也不会被刷新，而存量语料正是这批。
+#    实测：不并进来时一轮只补 4 个，六千个事件要排半个月。
+#    `listClassifyCandidates` 与 `findStaleEventIds` 并列，各自往 `touched` 塞一批；
+#    不额外花钱，闸门仍在 `refreshEvent` 里。
+#
+# 4. **失败不写 `classified_at`**。供应商超时、限流、返回不是 JSON 都算失败：
+#    记一条 fallback 日志，这一轮的名额浪费掉，下一轮重来。
+#    写上时刻等于「一次抖动就让这个事件终生没有类型」。
+#    已知边界：一个总是失败的事件会长期占着一个名额——只占一个，且窗口按
+#    `last_activity_at` 降序，它会随着新事件进来而自然沉底。
+#
+# 5. **`model_kind` 修的是存量 bug，不只服务这一期**。判定链变成
+#      eventKindPrior(...) ?? analysis?.kind ?? event.model_kind ?? classifyEventKind(...)
+#    先验仍然最硬（Statuspage 的一条 incident 就是一次故障），本轮模型的答案
+#    次之，历史模型答案再次之，关键词兜底。
+#
+#    **只有真的调过模型的那一轮才写 `model_kind`**（完整分析或窄分类，
+#    且以拿到 `usage` 为准——退回规则实现时 `usage` 是 undefined）。
+#    没调模型就不写：否则降温扫描会拿 undefined 把上一次的答案抹掉，
+#    与「没有重算就不覆盖」（标题/摘要/实体那三条）是同一条原则。
+#    真的调过而模型这次说「不是任何一类」时**要写 null**——那是一个答案，
+#    不是「没问过」。
+#
+# 6. **facts 跟着 kind 自动补齐**，不额外做事：`extractEventFacts(kind, signals)`
+#    是确定性函数，kind 一有值它就能从正文里抽版本号 / 金额 / 时长。
+#    这一期不碰 `fact-extractor` 一个字。
+#
+# 7. **实体也一并接住**。窄调用同时返回 entities，走 `analysis.entities` 那条
+#    既有分支的同一套落库逻辑。这正好对上 reader-value-publisher-entity 那一期
+#    量出来的缺口：1454 个事件只有出版方实体。
+#    但**分类返回的实体不进聚类**——MODULE.md「实体不能用来兜底聚类」那条禁令
+#    在这之后更重要，不是更松。
+#
+# 8. **窄提示词单独一份常量**，不复用 `SYSTEM_PROMPT`。
+#    前缀缓存按前缀相同命中，两种调用各自稳定的系统消息各自命中；
+#    把两者拼在一起反而两边都不稳。窄提示词里 MVP §11 的边界照抄不误——
+#    「只用材料里出现的名字」「不确定就返回 null，不要猜一个最像的」。
+#
+# ---------- 下一步（不在本期）----------
+# - 分类调用单独打点（calls / tokens 与完整分析分开报，否则看不出各自的账单）
+# - 分类命中率看板：acquisition / funding / legal 三类的绝对数是这一期的验收信号
+# - 按类型订阅通知（「只有 release 才推我」）——类型覆盖率够了才谈得上

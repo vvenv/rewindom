@@ -32,6 +32,18 @@ const REJECTED: ReadonlyArray<{ url: string; why: string }> = [
     url: "https://www.cloudflarestatus.com/history.atom",
     why: "与目录里的 Cloudflare Status 是同一个状态页，只是 atom 变体",
   },
+  {
+    url: "https://www.zdnet.com/topic/artificial-intelligence/rss.xml",
+    why: "302 到 zdnet.com/news/rss.xml，根本不是 AI feed——按地址判会以为补了一个 ai 报道源",
+  },
+  {
+    url: "https://dev.to/feed",
+    why: "个人博客文章，不是事件；20 万字节 12 条，全文正文喂进聚类只会稀释判据",
+  },
+  {
+    url: "https://www.producthunt.com/feed",
+    why: "产品目录不是事件，条目终生单信号且标题模板化（与状态页同一类失效）",
+  },
 ];
 
 describe("DEFAULT_FEEDS", () => {
@@ -51,8 +63,8 @@ describe("DEFAULT_FEEDS", () => {
     for (const topic of EVENT_TOPICS) {
       expect(counts[topic], topic).toBeGreaterThanOrEqual(3);
     }
-    expect(counts.ai).toBeGreaterThanOrEqual(25);
-    expect(counts.tech).toBeGreaterThanOrEqual(90);
+    expect(counts.ai).toBeGreaterThanOrEqual(28);
+    expect(counts.tech).toBeGreaterThanOrEqual(95);
     expect(counts.business).toBeGreaterThanOrEqual(20);
     expect(counts.world).toBeGreaterThanOrEqual(15);
     expect(counts.gaming).toBeGreaterThanOrEqual(14);
@@ -107,6 +119,28 @@ describe("DEFAULT_FEEDS", () => {
       }
       expect(feed.publisher_entity, feed.name).toBeUndefined();
     }
+  });
+
+  /**
+   * 合并率的上限由目录形状决定，而**只有 news / community 参与文本聚类**
+   *（一手来源按 `clustersByUrlOnly` 只按 URL 归属，结构上恒为单信号）。
+   *
+   * 所以下限要钉在这两格上，不能只钉每个 topic 的总数——总数已经被一手来源
+   * 撑着，钉总数等于在奖励「继续加 official」这个动作，而那正是让合并率
+   * 下降的方向：本地库 4073 个事件里 4063 个只有一个 source_kind。
+   *
+   * ai 那一格曾经是 28 个一手来源对 3 个报道源——最容易出事的一格，
+   * 最没人跟进。
+   */
+  it("参与文本聚类的那两格有密度：ai 报道 ≥5、tech 社区 ≥3", () => {
+    const mergeable = (topic: string, kind: string) =>
+      DEFAULT_FEEDS.filter(
+        (feed) => feed.topic === topic && feed.source_kind === kind,
+      ).length;
+
+    expect(mergeable("ai", "news")).toBeGreaterThanOrEqual(5);
+    expect(mergeable("tech", "news")).toBeGreaterThanOrEqual(10);
+    expect(mergeable("tech", "community")).toBeGreaterThanOrEqual(3);
   });
 
   it("每个目录源都能推出公网 icon host", () => {

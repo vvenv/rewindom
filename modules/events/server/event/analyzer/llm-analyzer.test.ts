@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildClassifyMessages,
   buildLlmMessages,
   parseAnalyzerResponse,
+  parseClassifyResponse,
   parseUsage,
 } from "./llm-analyzer.js";
 
@@ -280,5 +282,74 @@ describe("buildLlmMessages", () => {
     const user = buildLlmMessages("ai", SIGNALS)[1];
     expect(user.content).not.toContain("\n  ");
     expect(user.content).toContain('"signal_index":0');
+  });
+});
+
+/*
+ * 窄分类调用：只出 kind + entities，服务的是被省钱闸门拦下的那 98.4%
+ * 单信号事件。它们够不到完整分析，而分类是它们唯一能拿到的增量。
+ */
+describe("parseClassifyResponse", () => {
+  it("枚举内的 kind 采信", () => {
+    expect(
+      parseClassifyResponse('{"kind":"acquisition","entities":[]}').kind,
+    ).toBe("acquisition");
+  });
+
+  /* 与完整分析同一套宽进严出：null / "none" / 枚举外的字符串都当没给。 */
+  it("枚举外的 kind 一律当没给，交回关键词兜底", () => {
+    expect(parseClassifyResponse('{"kind":null}').kind).toBeUndefined();
+    expect(parseClassifyResponse('{"kind":"merger"}').kind).toBeUndefined();
+    expect(parseClassifyResponse('{"kind":"none"}').kind).toBeUndefined();
+  });
+
+  it("实体走同一套校验：类型不在枚举里的丢掉", () => {
+    const parsed = parseClassifyResponse(
+      '{"kind":null,"entities":[{"name":"Stripe","kind":"company"},{"name":"X","kind":"organization"}]}',
+    );
+    expect(parsed.entities).toEqual([{ name: "Stripe", kind: "company" }]);
+  });
+
+  /*
+   * 与 parseAnalyzerResponse 刻意不同：那边 timeline 为空要抛（详情页会开天窗），
+   * 而 `{kind:null, entities:[]}` 在这里是**合法答案**——「就是普通报道，
+   * 不属于任何一类」。把它当失败会让调用方每轮重试，还永远写不上 classified_at。
+   */
+  it("空结果是答案，不是失败", () => {
+    expect(() =>
+      parseClassifyResponse('{"kind":null,"entities":[]}'),
+    ).not.toThrow();
+    expect(parseClassifyResponse('{"kind":null,"entities":[]}')).toEqual({
+      kind: undefined,
+      entities: [],
+    });
+  });
+});
+
+describe("buildClassifyMessages", () => {
+  /*
+   * 前缀缓存按前缀相同命中，两种调用各自稳定的系统消息各自命中。
+   * 窄调用的系统消息里不该出现完整分析那套（title / summary / timeline），
+   * 拼在一起会让两边都不稳，输出也会变长——而这条路要跑在几千个事件上。
+   */
+  it("系统消息不含标题 / 摘要 / 时间线的要求", () => {
+    const system = buildClassifyMessages(SIGNALS)[0].content;
+    expect(system).not.toContain("timeline");
+    expect(system).not.toContain("summary");
+    expect(system).toContain('"kind"');
+    expect(system).toContain('"entities"');
+  });
+
+  it("MVP §11 的边界照抄：不引入来源外的事实、不确定就 null", () => {
+    const system = buildClassifyMessages(SIGNALS)[0].content;
+    expect(system).toContain("Never add outside knowledge");
+    expect(system).toContain("Never guess");
+  });
+
+  /* 主题不由这条路判（classifyEventTopic 每轮重算），多给一行只是稀释提示词。 */
+  it("user 消息只有信号，不带 topic hint", () => {
+    const user = buildClassifyMessages(SIGNALS)[1].content;
+    expect(user.startsWith("[")).toBe(true);
+    expect(user).not.toContain("topic hint");
   });
 });

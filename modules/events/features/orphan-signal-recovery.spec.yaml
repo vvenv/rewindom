@@ -1,0 +1,117 @@
+# 采集到的信号有三分之一从来没进过任何事件。
+#
+# 本地库量的（tenant f098…）：
+#
+#   总信号                            6633
+#   event_id IS NULL                  2478   37.4%
+#
+# 排除掉三种「本来就该这样」的解释：
+#
+#   - 不是保留期清理。默认 90/180 天，而这份语料只有 8 天，retention 一行没删过；
+#     何况 `runRetention` 删的是**信号本身**，删事件前先要求它没有信号。
+#   - 不是工作台移除。`removed_at IS NOT NULL` 的有 0 行。
+#   - 不是某个源坏了。35 个源均匀分布，各占自己总量的四成上下
+#     （Hacker News 330/907、Yahoo Finance 114/219、TechCrunch 54/159…）。
+#
+# 真正的分布是**按天爆发**的：
+#
+#   08-18  629/1116     08-23  569/1358     08-24  647/973
+#   08-21   11/519      08-20   20/274
+#
+# 那是「整轮丢掉」的形状。机制在 `ingest.service.ts`：聚类的待办清单是进程内的
+# `newSignalIds` 数组，而 persist 到 cluster 之间那一段——`pruneBoilerplateExcerpts`
+# → `enrichStoredEmptyExcerpts` → `clusterSignals` → `refreshEvents`——**整段没有
+# try/catch**（per-feed 那个 catch 在上面的循环里，管不到这里），而前两步都在发
+# 网络请求。任何一处抛，本轮已经落库的信号就全部丢了聚类；而 persist 是幂等的，
+# 下一轮不会把它们重新 create，于是**永久孤儿**。
+#
+# 它直接压着内容价值：漏掉的 1547 条是 news / community 信号，正是唯一参与文本
+# 聚类的那一部分。补回来等于可聚类语料 +72%，是唯一一条不改任何算法就能抬合并率
+# 的路（当前可聚类语料 2145 条信号 → 2075 个事件 = 1.03 条/事件）。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 聚类的待办由库说了算（`event_id IS NULL` 的信号），不由进程内数组说了算；采集轮的 persist→cluster 各阶段互不牵连，一处失败不再吞掉整轮的聚类；存量孤儿按轮限额补跑。
+gold: modules/events/server/ingest/ingest.service.ts
+touch:
+  - modules/events/features/orphan-signal-recovery.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/server/ingest/ingest.service.ts
+  - modules/events/server/ingest/ingest.pending.test.ts
+  - packages/server-kernel/src/lib/config.ts
+  - docker-compose.prod.yml
+  - scripts/env.production.example
+out_of_scope:
+  - 改聚类判据本身（词面 / 语义 / 阈值一个字不动）
+  - 给孤儿信号补抓目标页摘录（那是 enrichStoredEmptyExcerpts 的活，已有退避）
+  - 删除孤儿信号（它们是语料，不是垃圾）
+  - 把 `removed_at` 非空的信号拉回聚类（软删的语义就是不参与任何聚合）
+  - 改 refreshEvents / syncRelatedEvents 的并发与批量
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/ingest/
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:modules
+  - pnpm check:prod-app-env
+  - 本地补跑后核对 `event_id IS NULL` 归零（窗口外的会各自立事件，不再是孤儿）
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. **待办队列落库**。`clusterSignals` 的入参改成一次查询的结果：
+#      { tenant_id, event_id: null, removed_at: null }，按 published_at 升序，
+#      take = EVENTS_PENDING_CLUSTER_LIMIT。
+#    这与模块已有的「到没到点由库说了算，不由进程说了算」（`isFeedDue` 那条）
+#    是同一条原则的第二次应用：进程内的数组重启会忘、抛异常会丢，库里的
+#    `event_id IS NULL` 不会。顺带让「重跑一轮就能自愈」这句话真正成立。
+#
+# 2. **升序不能反**。`clusterSignals` 自己也排序，但 take 之前的顺序决定了
+#    积压时先补哪一批：必须是**最早的先补**，否则先立事件的会是后续报道，
+#    原始公告反过来变成它的附属（`clusterSignals` 头注释里的同一条理由）。
+#
+# 3. **按轮限额**，默认 500。理由不是性能而是**语义**：窗口外的孤儿会各自
+#    立一个事件，一次把 2478 条全放进来，等于一轮往库里灌两千多个补记事件，
+#    还都要跑一次 refreshEvents + 分析器。限额让积压在几轮内摊平。
+#    积压清完后这个数恒大于单轮新增量（实测单轮几百条），不影响正常轮。
+#
+# 4. **`created` 的口径不变**：summary 里的 `created` 仍是「本轮真正入库的新信号」，
+#    不是「本轮聚类了几条」。两者在积压期会差很多，混成一个数会让
+#    「源给了多少新东西」这个问题再也答不出来。补跑量单列 `pending_clustered`。
+#
+# 5. **各阶段互不牵连**。`pruneBoilerplateExcerpts` / `enrichStoredEmptyExcerpts` /
+#    `clusterSignals` / `refreshEvents` / `syncRelatedEvents` 各自包一层，
+#    失败记进 `failures` 并继续往下走。理由与「单个源失败不影响其它源」逐字相同，
+#    只是那条口径当初没铺到循环外面。
+#    **但不要 catch 之后当没事**——失败必须出现在 summary.failures 里，
+#    否则这次的静默失效会换个地方重演。
+#
+# 6. **窗口外的孤儿不试图硬合并**。`CANDIDATE_WINDOW_HOURS = 72` 一个字不改：
+#    补跑一条五天前的信号，它找不到候选就自己立事件，这是对的——
+#    那条信号确实是一件当时发生过的事，只是我们晚了五天才给它建档。
+#    为它放宽窗口会把「同一家公司上个月的另一次故障」错并进来。
+#
+# ---------- 归因的实测验证 ----------
+#
+# 「是丢了触发，不是聚类拒收」这一点有一条判定性证据：`clusterSignals` 在代码上
+# **没有任何一条会把信号留在 `event_id = null` 的路径**——要么 `resolveCheapEvent`
+# 命中，要么 `resolveEventForSignal` 立一个新事件，之后一律 `attachSignal`。
+# 所以如果它们被送进过聚类，就不可能还是 null。
+#
+# 本地端到端也验了：`pnpm dev` 的 tsx watch 在改完文件后自动重启，新代码
+# 连跑了几轮，2478 条孤儿**一条不剩**地归了位——
+#   2074 条各自立了补记事件（它们早已滑出 72h 候选窗，按设计就该如此）
+#   其余并进已有事件，多信号事件 67 → 112
+# 补跑后 `event_id IS NULL` 归零。
+#
+# ⚠️ 因此**合并率不能拿补跑后的快照读**：3679 个可聚类事件 / 3794 条信号
+# （1.03 条/事件）里混着 2074 个补记单件。要的是往后几轮干净语料上的读数。
+#
+# ---------- 下一步（不在本期）----------
+# - 采集轮的阶段化失败率打点（哪一步在真实环境里最常抛）
+# - 孤儿存量清零后，把 `event_id IS NULL` 做成一条巡检告警

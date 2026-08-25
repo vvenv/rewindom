@@ -492,7 +492,11 @@ function readerValueWhere(): Prisma.NewsEventWhereInput {
     OR: [
       { signal_count: { gte: 2 } },
       { kind: { not: null } },
-      { entities: { some: {} } },
+      /*
+       * 出版方实体不算增量：它是采集源自己的标注，一手来源的事件生来就有一个。
+       * 本地库 4078 个事件里 1454 个只有它——那是这条源的常量，不是这件事的信息。
+       */
+      { entities: { some: { is_publisher: false } } },
       {
         AND: [
           { analyzer: { in: ["llm", "manual"] } },

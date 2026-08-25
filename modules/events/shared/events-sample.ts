@@ -150,6 +150,8 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
         is_following: false,
       },
     ],
+    // 两个都是从材料里抽出来的（样张没有出版方标注），样张要落在「有增量」一侧
+    sourced_entity_count: 2,
     timeline: [
       {
         id: "sample-t1",

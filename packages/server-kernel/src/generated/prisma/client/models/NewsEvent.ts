@@ -75,6 +75,8 @@ export type NewsEventMinAggregateOutputType = {
   first_seen_at: Date | null
   last_activity_at: Date | null
   analyzed_at: Date | null
+  model_kind: string | null
+  classified_at: Date | null
   analyzer: string | null
   manual_content: boolean | null
   manual_topic: boolean | null
@@ -107,6 +109,8 @@ export type NewsEventMaxAggregateOutputType = {
   first_seen_at: Date | null
   last_activity_at: Date | null
   analyzed_at: Date | null
+  model_kind: string | null
+  classified_at: Date | null
   analyzer: string | null
   manual_content: boolean | null
   manual_topic: boolean | null
@@ -144,6 +148,8 @@ export type NewsEventCountAggregateOutputType = {
   first_seen_at: number
   last_activity_at: number
   analyzed_at: number
+  model_kind: number
+  classified_at: number
   analyzer: number
   manual_content: number
   manual_topic: number
@@ -202,6 +208,8 @@ export type NewsEventMinAggregateInputType = {
   first_seen_at?: true
   last_activity_at?: true
   analyzed_at?: true
+  model_kind?: true
+  classified_at?: true
   analyzer?: true
   manual_content?: true
   manual_topic?: true
@@ -234,6 +242,8 @@ export type NewsEventMaxAggregateInputType = {
   first_seen_at?: true
   last_activity_at?: true
   analyzed_at?: true
+  model_kind?: true
+  classified_at?: true
   analyzer?: true
   manual_content?: true
   manual_topic?: true
@@ -271,6 +281,8 @@ export type NewsEventCountAggregateInputType = {
   first_seen_at?: true
   last_activity_at?: true
   analyzed_at?: true
+  model_kind?: true
+  classified_at?: true
   analyzer?: true
   manual_content?: true
   manual_topic?: true
@@ -395,6 +407,8 @@ export type NewsEventGroupByOutputType = {
   first_seen_at: Date
   last_activity_at: Date
   analyzed_at: Date | null
+  model_kind: string | null
+  classified_at: Date | null
   analyzer: string
   manual_content: boolean
   manual_topic: boolean
@@ -455,6 +469,8 @@ export type NewsEventWhereInput = {
   first_seen_at?: Prisma.DateTimeFilter<"NewsEvent"> | Date | string
   last_activity_at?: Prisma.DateTimeFilter<"NewsEvent"> | Date | string
   analyzed_at?: Prisma.DateTimeNullableFilter<"NewsEvent"> | Date | string | null
+  model_kind?: Prisma.StringNullableFilter<"NewsEvent"> | string | null
+  classified_at?: Prisma.DateTimeNullableFilter<"NewsEvent"> | Date | string | null
   analyzer?: Prisma.StringFilter<"NewsEvent"> | string
   manual_content?: Prisma.BoolFilter<"NewsEvent"> | boolean
   manual_topic?: Prisma.BoolFilter<"NewsEvent"> | boolean
@@ -497,6 +513,8 @@ export type NewsEventOrderByWithRelationInput = {
   first_seen_at?: Prisma.SortOrder
   last_activity_at?: Prisma.SortOrder
   analyzed_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  model_kind?: Prisma.SortOrderInput | Prisma.SortOrder
+  classified_at?: Prisma.SortOrderInput | Prisma.SortOrder
   analyzer?: Prisma.SortOrder
   manual_content?: Prisma.SortOrder
   manual_topic?: Prisma.SortOrder
@@ -544,6 +562,8 @@ export type NewsEventWhereUniqueInput = Prisma.AtLeast<{
   first_seen_at?: Prisma.DateTimeFilter<"NewsEvent"> | Date | string
   last_activity_at?: Prisma.DateTimeFilter<"NewsEvent"> | Date | string
   analyzed_at?: Prisma.DateTimeNullableFilter<"NewsEvent"> | Date | string | null
+  model_kind?: Prisma.StringNullableFilter<"NewsEvent"> | string | null
+  classified_at?: Prisma.DateTimeNullableFilter<"NewsEvent"> | Date | string | null
   analyzer?: Prisma.StringFilter<"NewsEvent"> | string
   manual_content?: Prisma.BoolFilter<"NewsEvent"> | boolean
   manual_topic?: Prisma.BoolFilter<"NewsEvent"> | boolean
@@ -586,6 +606,8 @@ export type NewsEventOrderByWithAggregationInput = {
   first_seen_at?: Prisma.SortOrder
   last_activity_at?: Prisma.SortOrder
   analyzed_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  model_kind?: Prisma.SortOrderInput | Prisma.SortOrder
+  classified_at?: Prisma.SortOrderInput | Prisma.SortOrder
   analyzer?: Prisma.SortOrder
   manual_content?: Prisma.SortOrder
   manual_topic?: Prisma.SortOrder
@@ -631,6 +653,8 @@ export type NewsEventScalarWhereWithAggregatesInput = {
   first_seen_at?: Prisma.DateTimeWithAggregatesFilter<"NewsEvent"> | Date | string
   last_activity_at?: Prisma.DateTimeWithAggregatesFilter<"NewsEvent"> | Date | string
   analyzed_at?: Prisma.DateTimeNullableWithAggregatesFilter<"NewsEvent"> | Date | string | null
+  model_kind?: Prisma.StringNullableWithAggregatesFilter<"NewsEvent"> | string | null
+  classified_at?: Prisma.DateTimeNullableWithAggregatesFilter<"NewsEvent"> | Date | string | null
   analyzer?: Prisma.StringWithAggregatesFilter<"NewsEvent"> | string
   manual_content?: Prisma.BoolWithAggregatesFilter<"NewsEvent"> | boolean
   manual_topic?: Prisma.BoolWithAggregatesFilter<"NewsEvent"> | boolean
@@ -668,6 +692,8 @@ export type NewsEventCreateInput = {
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
+  model_kind?: string | null
+  classified_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
   manual_topic?: boolean
@@ -710,6 +736,8 @@ export type NewsEventUncheckedCreateInput = {
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
+  model_kind?: string | null
+  classified_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
   manual_topic?: boolean
@@ -752,6 +780,8 @@ export type NewsEventUpdateInput = {
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  model_kind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -794,6 +824,8 @@ export type NewsEventUncheckedUpdateInput = {
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  model_kind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -836,6 +868,8 @@ export type NewsEventCreateManyInput = {
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
+  model_kind?: string | null
+  classified_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
   manual_topic?: boolean
@@ -873,6 +907,8 @@ export type NewsEventUpdateManyMutationInput = {
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  model_kind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -910,6 +946,8 @@ export type NewsEventUncheckedUpdateManyInput = {
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  model_kind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -970,6 +1008,8 @@ export type NewsEventCountOrderByAggregateInput = {
   first_seen_at?: Prisma.SortOrder
   last_activity_at?: Prisma.SortOrder
   analyzed_at?: Prisma.SortOrder
+  model_kind?: Prisma.SortOrder
+  classified_at?: Prisma.SortOrder
   analyzer?: Prisma.SortOrder
   manual_content?: Prisma.SortOrder
   manual_topic?: Prisma.SortOrder
@@ -1014,6 +1054,8 @@ export type NewsEventMaxOrderByAggregateInput = {
   first_seen_at?: Prisma.SortOrder
   last_activity_at?: Prisma.SortOrder
   analyzed_at?: Prisma.SortOrder
+  model_kind?: Prisma.SortOrder
+  classified_at?: Prisma.SortOrder
   analyzer?: Prisma.SortOrder
   manual_content?: Prisma.SortOrder
   manual_topic?: Prisma.SortOrder
@@ -1046,6 +1088,8 @@ export type NewsEventMinOrderByAggregateInput = {
   first_seen_at?: Prisma.SortOrder
   last_activity_at?: Prisma.SortOrder
   analyzed_at?: Prisma.SortOrder
+  model_kind?: Prisma.SortOrder
+  classified_at?: Prisma.SortOrder
   analyzer?: Prisma.SortOrder
   manual_content?: Prisma.SortOrder
   manual_topic?: Prisma.SortOrder
@@ -1245,6 +1289,8 @@ export type NewsEventCreateWithoutSignalsInput = {
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
+  model_kind?: string | null
+  classified_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
   manual_topic?: boolean
@@ -1286,6 +1332,8 @@ export type NewsEventUncheckedCreateWithoutSignalsInput = {
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
+  model_kind?: string | null
+  classified_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
   manual_topic?: boolean
@@ -1343,6 +1391,8 @@ export type NewsEventUpdateWithoutSignalsInput = {
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  model_kind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1384,6 +1434,8 @@ export type NewsEventUncheckedUpdateWithoutSignalsInput = {
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  model_kind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1425,6 +1477,8 @@ export type NewsEventCreateWithoutEntitiesInput = {
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
+  model_kind?: string | null
+  classified_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
   manual_topic?: boolean
@@ -1466,6 +1520,8 @@ export type NewsEventUncheckedCreateWithoutEntitiesInput = {
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
+  model_kind?: string | null
+  classified_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
   manual_topic?: boolean
@@ -1523,6 +1579,8 @@ export type NewsEventUpdateWithoutEntitiesInput = {
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  model_kind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1564,6 +1622,8 @@ export type NewsEventUncheckedUpdateWithoutEntitiesInput = {
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  model_kind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1605,6 +1665,8 @@ export type NewsEventCreateWithoutRevisionsInput = {
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
+  model_kind?: string | null
+  classified_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
   manual_topic?: boolean
@@ -1646,6 +1708,8 @@ export type NewsEventUncheckedCreateWithoutRevisionsInput = {
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
+  model_kind?: string | null
+  classified_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
   manual_topic?: boolean
@@ -1703,6 +1767,8 @@ export type NewsEventUpdateWithoutRevisionsInput = {
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  model_kind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1744,6 +1810,8 @@ export type NewsEventUncheckedUpdateWithoutRevisionsInput = {
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  model_kind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1785,6 +1853,8 @@ export type NewsEventCreateWithoutTimelineInput = {
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
+  model_kind?: string | null
+  classified_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
   manual_topic?: boolean
@@ -1826,6 +1896,8 @@ export type NewsEventUncheckedCreateWithoutTimelineInput = {
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
+  model_kind?: string | null
+  classified_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
   manual_topic?: boolean
@@ -1883,6 +1955,8 @@ export type NewsEventUpdateWithoutTimelineInput = {
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  model_kind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1924,6 +1998,8 @@ export type NewsEventUncheckedUpdateWithoutTimelineInput = {
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  model_kind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1965,6 +2041,8 @@ export type NewsEventCreateWithoutFollowsInput = {
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
+  model_kind?: string | null
+  classified_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
   manual_topic?: boolean
@@ -2006,6 +2084,8 @@ export type NewsEventUncheckedCreateWithoutFollowsInput = {
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
+  model_kind?: string | null
+  classified_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
   manual_topic?: boolean
@@ -2063,6 +2143,8 @@ export type NewsEventUpdateWithoutFollowsInput = {
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  model_kind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2104,6 +2186,8 @@ export type NewsEventUncheckedUpdateWithoutFollowsInput = {
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  model_kind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2212,6 +2296,8 @@ export type NewsEventSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   first_seen_at?: boolean
   last_activity_at?: boolean
   analyzed_at?: boolean
+  model_kind?: boolean
+  classified_at?: boolean
   analyzer?: boolean
   manual_content?: boolean
   manual_topic?: boolean
@@ -2255,6 +2341,8 @@ export type NewsEventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   first_seen_at?: boolean
   last_activity_at?: boolean
   analyzed_at?: boolean
+  model_kind?: boolean
+  classified_at?: boolean
   analyzer?: boolean
   manual_content?: boolean
   manual_topic?: boolean
@@ -2292,6 +2380,8 @@ export type NewsEventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   first_seen_at?: boolean
   last_activity_at?: boolean
   analyzed_at?: boolean
+  model_kind?: boolean
+  classified_at?: boolean
   analyzer?: boolean
   manual_content?: boolean
   manual_topic?: boolean
@@ -2329,6 +2419,8 @@ export type NewsEventSelectScalar = {
   first_seen_at?: boolean
   last_activity_at?: boolean
   analyzed_at?: boolean
+  model_kind?: boolean
+  classified_at?: boolean
   analyzer?: boolean
   manual_content?: boolean
   manual_topic?: boolean
@@ -2336,7 +2428,7 @@ export type NewsEventSelectScalar = {
   updated_at?: boolean
 }
 
-export type NewsEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "slug" | "title" | "summary" | "topic" | "status" | "fingerprint" | "tokens" | "centroid" | "source_names" | "kind" | "fact_version" | "fact_amount_text" | "fact_amount_usd" | "fact_duration_minutes" | "fact_resolved" | "source_kinds" | "related_event_ids" | "signal_count" | "source_count" | "heat_score" | "velocity_pct" | "has_velocity_baseline" | "recent_signal_count" | "recent_source_count" | "first_seen_at" | "last_activity_at" | "analyzed_at" | "analyzer" | "manual_content" | "manual_topic" | "created_at" | "updated_at", ExtArgs["result"]["newsEvent"]>
+export type NewsEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "slug" | "title" | "summary" | "topic" | "status" | "fingerprint" | "tokens" | "centroid" | "source_names" | "kind" | "fact_version" | "fact_amount_text" | "fact_amount_usd" | "fact_duration_minutes" | "fact_resolved" | "source_kinds" | "related_event_ids" | "signal_count" | "source_count" | "heat_score" | "velocity_pct" | "has_velocity_baseline" | "recent_signal_count" | "recent_source_count" | "first_seen_at" | "last_activity_at" | "analyzed_at" | "model_kind" | "classified_at" | "analyzer" | "manual_content" | "manual_topic" | "created_at" | "updated_at", ExtArgs["result"]["newsEvent"]>
 export type NewsEventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   signals?: boolean | Prisma.NewsEvent$signalsArgs<ExtArgs>
   timeline?: boolean | Prisma.NewsEvent$timelineArgs<ExtArgs>
@@ -2474,6 +2566,30 @@ export type $NewsEventPayload<ExtArgs extends runtime.Types.Extensions.InternalA
      * 最近一次跑分析器的时间；null 表示还没生成过摘要
      */
     analyzed_at: Date | null
+    /**
+     * **模型**判出的事件类型；null = 模型说「不是任何一类」，或还没问过模型。
+     * 
+     * 存在的理由是 kind 每轮都重算：
+     * kind = eventKindPrior(...) ?? analysis?.kind ?? model_kind ?? classifyEventKind(...)
+     * 而降温扫描下 `analysis` 是 null，于是上一轮模型判出的 acquisition 会被
+     * 关键词的 null 覆盖掉——本地库 news 那一格 1447 个事件只有 34 个有 kind，
+     * 正好等于关键词命中率，模型的答案一轮都没活下来。
+     * 
+     * **只有真的调过模型的那一轮才写它**（以拿到 usage 为准，退回规则实现时
+     * usage 是 undefined）。没调模型就不写，与「没有重算就不覆盖」同一条原则；
+     * 真的问过而模型说「不是任何一类」时要写 null——那是一个答案，不是没问过。
+     */
+    model_kind: string | null
+    /**
+     * 跑过**窄分类调用**的时刻；null = 还没跑过。
+     * 
+     * 每个事件终生只付一次分类费。省钱闸门按定义会把 98.4% 的单信号事件
+     * 挡在完整分析之外，而分类恰恰是它们唯一能拿到的增量（跨源印证与时间线
+     * 对单信号按定义不存在），所以这条路绕过那道闸门、另设一个按轮限额。
+     * 
+     * 失败**不写**：一次供应商抖动不该让这个事件终生没有类型。
+     */
+    classified_at: Date | null
     /**
      * heuristic | llm | manual —— 当前摘要/时间线由哪种分析器产出；manual 表示人工改过
      */
@@ -2946,6 +3062,8 @@ export interface NewsEventFieldRefs {
   readonly first_seen_at: Prisma.FieldRef<"NewsEvent", 'DateTime'>
   readonly last_activity_at: Prisma.FieldRef<"NewsEvent", 'DateTime'>
   readonly analyzed_at: Prisma.FieldRef<"NewsEvent", 'DateTime'>
+  readonly model_kind: Prisma.FieldRef<"NewsEvent", 'String'>
+  readonly classified_at: Prisma.FieldRef<"NewsEvent", 'DateTime'>
   readonly analyzer: Prisma.FieldRef<"NewsEvent", 'String'>
   readonly manual_content: Prisma.FieldRef<"NewsEvent", 'Boolean'>
   readonly manual_topic: Prisma.FieldRef<"NewsEvent", 'Boolean'>

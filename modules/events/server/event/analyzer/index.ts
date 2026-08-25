@@ -7,15 +7,18 @@ import type {
   AnalyzedEvent,
   AnalyzerInput,
   EventAnalyzer,
+  EventClassification,
 } from "./analyzer.js";
 
 export type {
+  AnalyzedEntity,
   AnalyzedEvent,
   AnalyzedTimelineEntry,
   AnalyzerInput,
   AnalyzerSignal,
   AnalyzerUsage,
   EventAnalyzer,
+  EventClassification,
 } from "./analyzer.js";
 export { heuristicAnalyzer } from "./heuristic-analyzer.js";
 export { createLlmAnalyzer } from "./llm-analyzer.js";
@@ -66,5 +69,31 @@ export async function analyzeEvent(
     onFallback?.(err);
     const fallback = await heuristicAnalyzer.analyze(input);
     return { ...fallback, analyzer: heuristicAnalyzer.id };
+  }
+}
+
+/**
+ * 跑一次窄分类。**失败返回 null，不兜底到规则实现。**
+ *
+ * 与 `analyzeEvent` 的兜底逻辑刻意不同：那里兜底是因为详情页不能开天窗，
+ * 而这里没有天窗可开——`refreshEvent` 本来就在无条件跑 `classifyEventKind`
+ * 与 `extractEntities`，分类只是想在它们之上再问一次模型。问不到就照旧。
+ *
+ * 返回 null 的语义是「这次没问成」，调用方**不该**写 `classified_at`：
+ * 一次供应商抖动不该让这个事件终生没有类型。
+ */
+export async function classifyEvent(
+  input: AnalyzerInput,
+  analyzer: EventAnalyzer,
+  onFailure?: (err: unknown) => void,
+): Promise<EventClassification | null> {
+  if (!analyzer.classify) {
+    return null;
+  }
+  try {
+    return await analyzer.classify(input);
+  } catch (err) {
+    onFailure?.(err);
+    return null;
   }
 }

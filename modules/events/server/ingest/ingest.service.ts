@@ -9,9 +9,15 @@ import { TENANT_MODULES_STORAGE_KEY } from "@rewindom/builtin/platform/shared/te
 
 import { canonicalizeUrl } from "../event/canonical-url.js";
 import { isEventsModuleEnabled } from "../lib/entitlement.js";
-import { clusterSignals } from "../event/cluster.service.js";
+import {
+  clusterSignals,
+  type ClusterableSignal,
+} from "../event/cluster.service.js";
 import { buildFingerprint, tokenizeTitle } from "../event/title-tokens.js";
-import { refreshEvents } from "../event/event-refresh.service.js";
+import {
+  listClassifyCandidates,
+  refreshEvents,
+} from "../event/event-refresh.service.js";
 import { syncRelatedEvents } from "../event/related.service.js";
 import { getEnabledTopics } from "../event/topic-settings.service.js";
 
@@ -75,7 +81,10 @@ export function isFeedDue(
 }
 
 export interface IngestFailure {
+  /** 抓取失败的源名。轮内阶段失败时为空串——那不属于任何一个源 */
   feed: string;
+  /** 轮内阶段名（聚类 / 摘录补齐 / 事件刷新…）。源抓取失败时不填 */
+  stage?: string;
   error: string;
 }
 
@@ -85,6 +94,11 @@ export interface IngestSummary {
   fetched: number;
   /** 其中此前没见过、真正入库的 */
   created: number;
+  /**
+   * 本轮**送去聚类**的信号数。与 `created` 刻意分开：积压期这个数会远大于
+   * 本轮新增（在补跑历史孤儿），混成一个数会让「源给了多少新东西」再也答不出来。
+   */
+  pending_clustered: number;
   events_touched: number;
   failures: IngestFailure[];
   tenants: number;
@@ -109,6 +123,7 @@ export async function runIngest(options?: {
     feeds: 0,
     fetched: 0,
     created: 0,
+    pending_clustered: 0,
     events_touched: 0,
     failures: [],
     tenants: tenantIds.length,
@@ -124,6 +139,7 @@ export async function runIngest(options?: {
     summary.feeds += part.feeds;
     summary.fetched += part.fetched;
     summary.created += part.created;
+    summary.pending_clustered += part.pending_clustered;
     summary.events_touched += part.events_touched;
     summary.failures.push(...part.failures);
   }
@@ -168,9 +184,36 @@ async function runIngestForTenant(
   }
 
   const failures: IngestFailure[] = [];
-  const newSignalIds: string[] = [];
   const changedSignalEventIds = new Set<string>();
   let fetched = 0;
+  let created = 0;
+
+  /**
+   * 轮内阶段的护栏。
+   *
+   * 「单个源失败不影响其它源」这条口径当初只铺到了抓取循环里，循环**外面**
+   * 的几个阶段（模板文案清理、摘录补齐、聚类、刷新、相关事件）是裸的，
+   * 而前两个都在发网络请求。一处抛就整轮中断——而信号已经落库了，
+   * persist 又是幂等的，下一轮不会重新 create 它们。本地库 6633 条信号里
+   * 2478 条（37.4%）`event_id IS NULL` 就是这么来的，按天爆发式分布。
+   *
+   * 失败必须进 `failures`，不能 catch 之后当没事发生——
+   * 否则这次的静默失效只会换个地方重演。
+   */
+  const runStage = async <T>(
+    stage: string,
+    fallback: T,
+    fn: () => Promise<T>,
+  ): Promise<T> => {
+    try {
+      return await fn();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      failures.push({ feed: "", stage, error: message });
+      log?.warn({ err, tenantId, stage }, "[events] 采集轮阶段失败");
+      return fallback;
+    }
+  };
 
   for (const feed of feeds) {
     const connector = CONNECTORS[feed.connector];
@@ -187,7 +230,7 @@ async function runIngestForTenant(
       fetched += raw.length;
 
       const result = await persistSignals(tenantId, feed.connector, raw);
-      newSignalIds.push(...result.created_ids);
+      created += result.created_ids.length;
       for (const eventId of result.touched_event_ids) {
         changedSignalEventIds.add(eventId);
       }
@@ -211,35 +254,42 @@ async function runIngestForTenant(
    * 先清模板文案，再补空摘录：清空的那些如果已经过了退避期，同一轮就能被补上。
    * 反过来的话它们要等下一轮才进候选。
    */
-  for (const eventId of await pruneBoilerplateExcerpts(tenantId)) {
+  for (const eventId of await runStage("摘录模板清理", [], () =>
+    pruneBoilerplateExcerpts(tenantId),
+  )) {
     changedSignalEventIds.add(eventId);
   }
 
-  for (const eventId of await enrichStoredEmptyExcerpts(tenantId, now)) {
+  for (const eventId of await runStage("摘录补齐", [], () =>
+    enrichStoredEmptyExcerpts(tenantId, now),
+  )) {
     changedSignalEventIds.add(eventId);
   }
 
-  const created = await prisma.eventSignal.findMany({
-    where: withTenantScope(tenantId, { id: { in: newSignalIds } }),
-    select: {
-      id: true,
-      tenant_id: true,
-      title: true,
-      // 摘录参与 embedding：标题措辞相近但说的是两件事时，它是主要消歧线索
-      excerpt: true,
-      topic: true,
-      // 决定这条信号走不走文本聚类（非新闻源只按 canonical_url 归属）
-      source_kind: true,
-      canonical_url: true,
-      published_at: true,
-    },
-  });
+  const pending = await runStage("聚类待办查询", [], () =>
+    loadPendingSignals(tenantId),
+  );
 
-  const touched = await clusterSignals(created);
+  const touched = await runStage("聚类", new Set<string>(), () =>
+    clusterSignals(pending),
+  );
   for (const eventId of changedSignalEventIds) {
     touched.add(eventId);
   }
-  for (const eventId of await findStaleEventIds(tenantId, now)) {
+  for (const eventId of await runStage("降温扫描", [], () =>
+    findStaleEventIds(tenantId, now),
+  )) {
+    touched.add(eventId);
+  }
+  /*
+   * 窄分类挂在 `refreshEvent` 里，所以候选也得进刷新队列——否则只有本轮
+   * 恰好被动过的事件才轮得到，而存量语料按定义早就不动了（实测一轮只补 4 个，
+   * 六千个事件要排半个月）。这一步不额外花钱：闸门在 refreshEvent 里，
+   * 没排进限额的照样 skip。
+   */
+  for (const eventId of await runStage("分类待办", [], () =>
+    listClassifyCandidates(tenantId),
+  )) {
     touched.add(eventId);
   }
 
@@ -250,21 +300,23 @@ async function runIngestForTenant(
    */
   const usage = { calls: 0, prompt: 0, completion: 0, cached: 0 };
 
-  await refreshEvents(touched, {
-    now,
-    onAnalyzerFallback: (eventId, err) => {
-      log?.warn(
-        { err, eventId, tenantId },
-        "[events] LLM 分析失败，已退回规则分析器",
-      );
-    },
-    onAnalyzerUsage: (_eventId, row) => {
-      usage.calls += 1;
-      usage.prompt += row.prompt_tokens;
-      usage.completion += row.completion_tokens;
-      usage.cached += row.cached_prompt_tokens ?? 0;
-    },
-  });
+  await runStage("事件刷新", 0, () =>
+    refreshEvents(touched, {
+      now,
+      onAnalyzerFallback: (eventId, err) => {
+        log?.warn(
+          { err, eventId, tenantId },
+          "[events] LLM 分析失败，已退回规则分析器",
+        );
+      },
+      onAnalyzerUsage: (_eventId, row) => {
+        usage.calls += 1;
+        usage.prompt += row.prompt_tokens;
+        usage.completion += row.completion_tokens;
+        usage.cached += row.cached_prompt_tokens ?? 0;
+      },
+    }),
+  );
 
   if (usage.calls > 0) {
     log?.info(
@@ -284,15 +336,58 @@ async function runIngestForTenant(
    * 相关事件单独一趟，不并进 refreshEvents：候选向量要整批载入一次，
    * 塞进按事件的循环会把同一份几 MB 的数据重复读几十遍。
    */
-  await syncRelatedEvents({ tenant_id: tenantId, event_ids: [...touched] });
+  await runStage("相关事件", undefined, () =>
+    syncRelatedEvents({ tenant_id: tenantId, event_ids: [...touched] }),
+  );
 
   return {
     feeds: feeds.length,
     fetched,
-    created: newSignalIds.length,
+    created,
+    pending_clustered: pending.length,
     events_touched: touched.size,
     failures,
   };
+}
+
+/**
+ * 这一轮该聚类哪些信号——**由库说了算，不由进程说了算**。
+ *
+ * 与 `isFeedDue` 是同一条原则的第二次应用。以前的判据是一个进程内数组
+ * （本轮 persist 出来的 id），它有两个缺陷合在一起就是永久丢数据：
+ *
+ *   1. 抛异常就丢——而 persist 与 cluster 之间隔着两次网络往返；
+ *   2. persist 是幂等的——下一轮不会把同一条重新 create，于是没有第二次机会。
+ *
+ * 换成 `event_id IS NULL` 之后，「重跑一轮就能自愈」这句话才真正成立：
+ * 上一轮丢掉的、进程崩掉时在途的、迁移期间漏掉的，下一轮一起捡回来。
+ *
+ * **升序不能反**。`clusterSignals` 自己也会排序，但那是在 `take` 之后——
+ * 积压时必须让最早的先补，否则先立事件的会是后续报道，原始公告反而
+ * 变成它的附属（`clusterSignals` 头注释里的同一条理由）。
+ *
+ * 软删的信号不在待办里：`removed_at` 非空的语义就是不参与任何聚合。
+ */
+async function loadPendingSignals(
+  tenantId: string,
+): Promise<ClusterableSignal[]> {
+  return prisma.eventSignal.findMany({
+    where: withTenantScope(tenantId, { event_id: null, removed_at: null }),
+    select: {
+      id: true,
+      tenant_id: true,
+      title: true,
+      // 摘录参与 embedding：标题措辞相近但说的是两件事时，它是主要消歧线索
+      excerpt: true,
+      topic: true,
+      // 决定这条信号走不走文本聚类（非新闻源只按 canonical_url 归属）
+      source_kind: true,
+      canonical_url: true,
+      published_at: true,
+    },
+    orderBy: { published_at: "asc" },
+    take: config.events.pendingClusterLimit,
+  });
 }
 
 export async function listEventIngestTenantIds(): Promise<string[]> {

@@ -1,7 +1,13 @@
-import { config, prisma, withTenantScope } from "@rewindom/module-sdk/server";
+import {
+  config,
+  prisma,
+  withTenantScope,
+  type Prisma,
+} from "@rewindom/module-sdk/server";
 
 import {
   analyzeEvent,
+  classifyEvent,
   heuristicAnalyzer,
   resolveEventAnalyzer,
 } from "./analyzer/index.js";
@@ -19,6 +25,7 @@ import { diffEventRevisions } from "./event-revision.service.js";
 import { computeHeat, resolveStatus, type HeatSignal } from "./heat.js";
 import { pickEventTitle } from "./title-tokens.js";
 import { classifyEventTopic } from "./topic-classifier.js";
+import { isEventKind } from "../../shared/index.js";
 import { classifyEventKind, eventKindPrior } from "./kind-classifier.js";
 import { extractEventFacts } from "./fact-extractor.js";
 import {
@@ -28,9 +35,11 @@ import {
 } from "../ingest/incident-updates.js";
 
 import type {
+  AnalyzedEntity,
   AnalyzerSignal,
   AnalyzerUsage,
   EventAnalyzer,
+  EventClassification,
 } from "./analyzer/index.js";
 import type { EventSourceKind, EventTopic } from "../../shared/index.js";
 
@@ -92,6 +101,119 @@ async function loadHeatWindow(
 }
 
 /**
+ * 分类窗口的库内谓词。
+ *
+ * 两条：**没付过分类费**，且 **`source_kind` 先验答不上来**。
+ *
+ * 第二条是实测教训。先验压过模型（见 `eventKindPrior`），所以问一个先验
+ * 已经能回答的事件是纯浪费——而窗口按 `last_activity_at` 降序，状态页恰恰是
+ * 全语料里最活跃的一类，会把预算整轮吃光：第一版上线后捞回来的头 36 个
+ * 全是状态页维护通告，模型答 maintenance、先验答 outage、最终落 outage，
+ * 36 次调用一次都没改变结果。
+ *
+ * `source_kinds` 是 `eventKindPrior` 判据的**逐字库内镜像**——它只看
+ * 「有没有 status / release 信号」，两处一起改。缺 kind 覆盖的从来不是这两格
+ *（status 449/449、release 310/310 全满），是 news 2.3% / official 3.3% /
+ * community 1.4% 那三格。
+ */
+export function classifyWindowWhere(): Prisma.NewsEventWhereInput {
+  return {
+    classified_at: null,
+    NOT: { source_kinds: { hasSome: ["status", "release"] } },
+  };
+}
+
+/**
+ * 取本轮允许做窄分类的事件 id。
+ *
+ * 与 `loadHeatWindow` 同一个形状：每站点查一次，传给按事件的循环——
+ * 放进循环里逐个查等于每轮多几百次往返，只为一份完全相同的表。
+ *
+ * 排序按 `last_activity_at` 降序：积压清完之前，先补最近还在动的事件。
+ * 顺带让「一个总是调用失败的事件长期占着一个名额」这件事自愈——
+ * 它会随着新事件进来而自然沉底。
+ *
+ * `limit <= 0` 返回空集合（**关掉**），不是 null。这与热度窗的 `null = 不限`
+ * 刻意相反，见 `EVENTS_LLM_CLASSIFY_PER_ROUND` 的注释。
+ */
+async function loadClassifyWindow(
+  tenantId: string,
+  limit: number,
+): Promise<Set<string>> {
+  return new Set(await listClassifyCandidates(tenantId, limit));
+}
+
+/**
+ * 本轮该分类哪些事件——**给采集轮用，好把它们塞进刷新队列**。
+ *
+ * 分类挂在 `refreshEvent` 里，所以只有进了 `touched` 的事件才轮得到。
+ * 而 `touched` 的三个来源（本轮聚类动过的、信号指标变过的、降温扫描捞的）
+ * 都偏向**新事件与还在动的事件**——`cooling` / `resolved` 的老事件再也不会
+ * 被刷新一次。实测：不把窗口并进 `touched` 时，一轮只classify 得到 4 个，
+ * 六千个存量事件要排半个月。
+ *
+ * 多跑一次查询（`refreshEvents` 内部还会按站点再取一次做闸门）是刻意的：
+ * 闸门那次才是权威。两次之间数据变了最多让某个事件这一轮白刷一次，
+ * 不会重复付费——`classified_at` 是在库里记的。
+ */
+export async function listClassifyCandidates(
+  tenantId: string,
+  limit = config.events.llmClassifyPerRound,
+): Promise<string[]> {
+  if (limit <= 0) {
+    return [];
+  }
+  const rows = await prisma.newsEvent.findMany({
+    where: withTenantScope(tenantId, classifyWindowWhere()),
+    select: { id: true },
+    orderBy: { last_activity_at: "desc" },
+    take: limit,
+  });
+  return rows.map((row) => row.id);
+}
+
+/**
+ * 这个事件这一轮该不该做一次窄分类调用。
+ *
+ * 与 `planAnalysis` 刻意分开：那个函数问的是「这一轮内容要不要重算」，
+ * 判据是信号集合变没变；分类问的是「这个事件付过分类费没有」，判据在库里
+ * （`classified_at`），与信号变化无关。塞进同一个返回值会让那句
+ * 「信号没变 → skip」的早退把整个存量语料挡在门外——而存量语料正是目标。
+ */
+export function shouldClassify(params: {
+  analyzer_id: string;
+  /** 库里这份内容是谁写的（`NewsEvent.analyzer`） */
+  existing_analyzer: string;
+  /** 本轮内容分析的结论（`planAnalysis`） */
+  content_plan: AnalysisPlan;
+  classified_at: Date | null;
+  in_classify_window: boolean;
+}): boolean {
+  // 没有模型就没有这条路——规则实现的「分类」就是关键词表本身，已经在跑
+  if (params.analyzer_id !== "llm") {
+    return false;
+  }
+  // 终生一次
+  if (params.classified_at !== null) {
+    return false;
+  }
+  // 跑过完整分析的不必再补一次窄的：那一次已经顺带给了 kind 与 entities
+  if (params.existing_analyzer === "llm") {
+    return false;
+  }
+  /*
+   * 本轮就要跑完整分析时也不补——那一次在**同一个调用**里给出 kind 与 entities。
+   * 命中的是一个真实存在的组合：一个刚立的双信号热门事件，`analyzed_at` 为空
+   * （→ plan = model）而 `analyzer` 还是默认的 heuristic（→ 上面那条拦不住），
+   * 于是一轮里发两次模型调用，其中一次的产出会被另一次整个覆盖。
+   */
+  if (params.content_plan === "model") {
+    return false;
+  }
+  return params.in_classify_window;
+}
+
+/**
  * 重算事件的派生状态：热度、增速、阶段、计数、摘要与时间线。
  *
  * 采集之后、以及定时降温扫描都会调它。刻意做成幂等——同样的信号集合重跑
@@ -135,6 +257,17 @@ export async function refreshEvents(
     return pending;
   };
 
+  // 分类的按轮限额，同样每站点一份
+  const classifyWindows = new Map<string, Promise<Set<string>>>();
+  const classifyWindowFor = (tenantId: string): Promise<Set<string>> => {
+    let pending = classifyWindows.get(tenantId);
+    if (!pending) {
+      pending = loadClassifyWindow(tenantId, config.events.llmClassifyPerRound);
+      classifyWindows.set(tenantId, pending);
+    }
+    return pending;
+  };
+
   const queue = [...new Set(eventIds)];
   let cursor = 0;
 
@@ -150,6 +283,7 @@ export async function refreshEvents(
         options,
         analyzerFor,
         heatWindowFor,
+        classifyWindowFor,
         publisherFeedsFor,
       });
       if (changed) {
@@ -174,6 +308,7 @@ interface RefreshContext {
   options: RefreshEventsOptions;
   analyzerFor: (tenantId: string) => Promise<EventAnalyzer>;
   heatWindowFor: (tenantId: string) => Promise<Set<string> | null>;
+  classifyWindowFor: (tenantId: string) => Promise<Set<string>>;
   publisherFeedsFor: (tenantId: string) => Promise<PublisherFeedIndex>;
 }
 
@@ -181,7 +316,7 @@ async function refreshEvent(
   eventId: string,
   ctx: RefreshContext,
 ): Promise<boolean> {
-  const { now, options, analyzerFor, heatWindowFor } = ctx;
+  const { now, options, analyzerFor, heatWindowFor, classifyWindowFor } = ctx;
   const event = await prisma.newsEvent.findUnique({
     where: { id: eventId },
     select: {
@@ -192,6 +327,8 @@ async function refreshEvent(
       summary: true,
       analyzer: true,
       analyzed_at: true,
+      model_kind: true,
+      classified_at: true,
       manual_content: true,
       manual_topic: true,
       status: true,
@@ -292,6 +429,38 @@ async function refreshEvent(
   }
 
   /*
+   * 窄分类。绕开上面三道省钱闸门，另走一条按轮限额、终生一次的路——
+   * 它服务的是被闸门拦下的那 98.4% 单信号事件，而分类恰恰是它们唯一
+   * 能拿到的增量（跨源印证与时间线对单信号按定义不存在）。
+   *
+   * 已经跑过完整 LLM 分析的不走这条路（那一次顺带给过 kind 与 entities）。
+   */
+  const classification =
+    analyzer.id === "llm" &&
+    shouldClassify({
+      analyzer_id: analyzer.id,
+      existing_analyzer: event.analyzer,
+      content_plan: plan,
+      classified_at: event.classified_at,
+      in_classify_window: (await classifyWindowFor(event.tenant_id)).has(
+        eventId,
+      ),
+    })
+      ? await classifyEvent(
+          {
+            topic: event.topic as EventTopic,
+            signals: signals.map(toAnalyzerSignal),
+          },
+          analyzer,
+          (err) => options.onAnalyzerFallback?.(eventId, err),
+        )
+      : null;
+
+  if (classification?.usage) {
+    options.onAnalyzerUsage?.(eventId, classification.usage);
+  }
+
+  /*
    * 主题每轮重算。它以前是采集源的属性（HN=tech、OpenAI=ai），跟着第一条信号
    * 一路写死；现在由整簇信号的文本判定，LLM 读得懂内容时以它为准。
    * 工作台指定过的主题不覆盖——与 manual_content 对文案同理。
@@ -325,9 +494,20 @@ async function refreshEvent(
     // 状态页的阶段词决定这次是事故还是计划维护，先验要看得到它
     incident_updates: toIncidentUpdates(signal.incident_updates),
   }));
+  /*
+   * 判定链上多了一环 `event.model_kind`——**模型的答案要存得住**。
+   *
+   * 以前只有 `analysis?.kind`，而降温扫描下 analysis 恒为 null，于是上一轮
+   * 模型判出的 acquisition 会被关键词的 null 覆盖掉。本地库 news 那一格
+   * 1447 个事件只有 34 个有 kind，正好等于关键词命中率——模型的答案一轮
+   * 都没活下来。先验仍然最硬（Statuspage 的一条 incident 就是一次故障），
+   * 本轮模型次之，历史模型答案再次之，关键词兜底。
+   */
+  const modelKind = analysis?.kind ?? classification?.kind ?? null;
   const kind =
     eventKindPrior(classifiableSignals) ??
-    analysis?.kind ??
+    modelKind ??
+    (isEventKind(event.model_kind) ? event.model_kind : null) ??
     classifyEventKind(classifiableSignals);
 
   const facts = extractEventFacts(kind, signals);
@@ -365,10 +545,11 @@ async function refreshEvent(
    * 掉回 `org`，而类型是身份键的一部分，于是每轮都新建一份重复实体、关联反复重连。
    * 与标题/摘要同理：没有重算就不覆盖。
    */
-  const entities = !analysis
+  const analyzedEntities = pickAnalyzedEntities(analysis, classification);
+  const entities = !analyzedEntities
     ? null
-    : analysis.entities && analysis.entities.length > 0
-      ? analysis.entities.flatMap((entity) =>
+    : analyzedEntities.model && analyzedEntities.model.length > 0
+      ? analyzedEntities.model.flatMap((entity) =>
           isEntityKind(entity.kind)
             ? [
                 {
@@ -444,6 +625,21 @@ async function refreshEvent(
         fact_resolved: facts.resolved,
         first_seen_at: firstSeenAt,
         last_activity_at: lastActivityAt,
+        /*
+         * **只有真的调过模型的那一轮才写 model_kind**，以拿到 usage 为准——
+         * `analyzeEvent` 退回规则实现时 usage 是 undefined，那一轮不算问过模型。
+         * 没调模型就不写：否则降温扫描会拿 null 把上一次的答案抹掉，
+         * 与「没有重算就不覆盖」（标题 / 摘要 / 实体那三条）是同一条原则。
+         * 真的问过而模型说「不是任何一类」时**要写 null**——那是一个答案。
+         */
+        ...(analysis?.usage || classification?.usage
+          ? { model_kind: modelKind }
+          : {}),
+        /*
+         * 分类**成功**才记时刻：一次供应商抖动不该让这个事件终生没有类型。
+         * `classifyEvent` 失败返回 null，这一轮的名额浪费掉，下一轮重来。
+         */
+        ...(classification ? { classified_at: now } : {}),
         ...(content
           ? {
               title: content.title,
@@ -719,4 +915,39 @@ function toIncidentUpdates(value: unknown): IncidentUpdate[] {
       typeof (item as IncidentUpdate).phase === "string" &&
       typeof (item as IncidentUpdate).text === "string",
   );
+}
+
+/**
+ * 这一轮的实体该听谁的。
+ *
+ * `null` = **这一轮谁都没重算过，不要动实体**。这条是既有约束：LLM 有 30 分钟
+ * 冷却，冷却期内回落到规则抽取会让实体类型从 `company` 掉回 `org`，而类型是
+ * 身份键的一部分，于是每轮新建一份重复实体、关联反复重连。
+ *
+ * **判据是「这份产出是不是模型给的」，不是「有没有跑过分析」。**
+ * 差别在最常见的那条路上：一个新事件第一轮的 plan 是 `local`（规则实现），
+ * 同一轮又恰好排进分类窗口——此时 `analysis` 非空但它是规则实现的产出，
+ * 而规则实现**不产实体**（`entities` 恒为 undefined）。按「有分析就听分析的」
+ * 写，分类刚问回来的实体会被整个丢掉，正好丢在最该用它的场景上。
+ *
+ * 排序：完整 LLM 分析 > 窄分类 > 规则抽取。前两者同时发生时听完整分析的，
+ * 它读过全文与时间线，实体更有上下文。
+ *
+ * 回落到规则抽取**不会**降级已有实体：`shouldClassify` 排除了
+ * `existing_analyzer === "llm"` 的事件，所以走到这条路上的事件，
+ * 库里那份本来就是规则抽取的产物。
+ *
+ * `model` 为空数组时调用方回落到规则抽取——「模型跑过但一个实体都没给」
+ * 与「没跑模型」是两件事，前者仍然该让规则实现兜一份。
+ */
+export function pickAnalyzedEntities(
+  analysis: { analyzer: string; entities?: AnalyzedEntity[] } | null,
+  classification: EventClassification | null,
+): { model: AnalyzedEntity[] | undefined } | null {
+  if (!analysis && !classification) {
+    return null;
+  }
+  const fromFullAnalysis =
+    analysis?.analyzer === "llm" ? analysis.entities : undefined;
+  return { model: fromFullAnalysis ?? classification?.entities };
 }
