@@ -40,7 +40,23 @@ export function registerEventIngestJobs(ctx: JobRegistryContext): void {
     running = true;
     try {
       const summary = await runIngest({ log: ctx.app.log });
-      ctx.app.log.info({ ...summary }, "[events] 采集完成");
+      /*
+       * **阶段失败要按 error 报，按源失败不要。**
+       *
+       * 一个挂掉的 RSS 是日常（目录里两百多个源，天天有超时的），报 error
+       * 只会让这条日志失去意义。而轮内阶段（聚类、刷新、摘录补齐）失败影响的是
+       * 整个站点这一轮——那本来会一路抛到下面这个 catch 里按 error 报，
+       * `runStage` 把它接住之后，如果不在这里分级，严重性信号就悄悄没了。
+       */
+      const stageFailures = summary.failures.filter((row) => row.stage);
+      if (stageFailures.length > 0) {
+        ctx.app.log.error(
+          { ...summary, stage_failures: stageFailures.length },
+          "[events] 采集完成，但有轮内阶段失败",
+        );
+      } else {
+        ctx.app.log.info({ ...summary }, "[events] 采集完成");
+      }
     } catch (err) {
       ctx.app.log.error({ err }, "[events] 采集失败");
     } finally {

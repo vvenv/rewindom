@@ -39,6 +39,7 @@ touch:
   - modules/events/MODULE.md
   - modules/events/server/ingest/ingest.service.ts
   - modules/events/server/ingest/ingest.pending.test.ts
+  - modules/events/server/ingest/scheduler-jobs.ts
   - packages/server-kernel/src/lib/config.ts
   - docker-compose.prod.yml
   - scripts/env.production.example
@@ -89,7 +90,10 @@ models: []
 #    失败记进 `failures` 并继续往下走。理由与「单个源失败不影响其它源」逐字相同，
 #    只是那条口径当初没铺到循环外面。
 #    **但不要 catch 之后当没事**——失败必须出现在 summary.failures 里，
-#    否则这次的静默失效会换个地方重演。
+#    而且要**分级**：阶段失败按 error 报（它影响整个站点这一轮，本来就会一路抛到
+#    调度器的 catch 里按 error 报），按源失败仍按 info 走 summary
+#    （两百多个源天天有超时的，报 error 只会让这条日志失去意义）。
+#    不分级的话，`runStage` 接住异常的同时也把严重性信号悄悄吞了。
 #
 # 6. **窗口外的孤儿不试图硬合并**。`CANDIDATE_WINDOW_HOURS = 72` 一个字不改：
 #    补跑一条五天前的信号，它找不到候选就自己立事件，这是对的——

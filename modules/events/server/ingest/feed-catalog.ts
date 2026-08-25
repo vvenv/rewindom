@@ -657,10 +657,15 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
     source_kind: "community",
     topic: "tech",
   },
+  /*
+   * `sort=New`，**不是 `sort=Active`**。Active 不按时间倒序（实测头五条是
+   * 23 日、24 日、23 日、24 日、25 日），而 `ITEM_LIMIT` 从头切——这正是
+   * `elastic.co/blog/feed` 被拒的那条失效，刚发的帖会一直进不来。
+   */
   {
     connector: "rss",
     name: "Lemmy Technology",
-    url: "https://lemmy.world/feeds/c/technology.xml?sort=Active",
+    url: "https://lemmy.world/feeds/c/technology.xml?sort=New",
     source_kind: "community",
     topic: "tech",
   },

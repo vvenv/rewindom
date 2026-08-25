@@ -303,6 +303,8 @@ async function runIngestForTenant(
   await runStage("事件刷新", 0, () =>
     refreshEvents(touched, {
       now,
+      // 只有采集轮开窄分类：保留期清理与工作台移除信号都不该花这笔钱
+      classify: true,
       onAnalyzerFallback: (eventId, err) => {
         log?.warn(
           { err, eventId, tenantId },

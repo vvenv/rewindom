@@ -44,6 +44,10 @@ const REJECTED: ReadonlyArray<{ url: string; why: string }> = [
     url: "https://www.producthunt.com/feed",
     why: "产品目录不是事件，条目终生单信号且标题模板化（与状态页同一类失效）",
   },
+  {
+    url: "https://lemmy.world/feeds/c/technology.xml?sort=Active",
+    why: "Active 不按时间倒序（实测头五条 23/24/23/24/25 日），ITEM_LIMIT 从头切会让刚发的帖一直进不来——与 elastic.co/blog/feed 同一条失效。目录里用的是 ?sort=New",
+  },
 ];
 
 describe("DEFAULT_FEEDS", () => {

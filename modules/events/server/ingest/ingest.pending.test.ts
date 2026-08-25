@@ -182,6 +182,18 @@ describe("分类待办进刷新队列", () => {
     expect(queue).toEqual(expect.arrayContaining(["e1", "e2"]));
   });
 
+  /*
+   * 窄分类默认关着（`RefreshEventsOptions.classify`），三个 refreshEvents 调用方
+   * 里只有采集轮该开：保留期清理 refresh 的是「信号刚被删掉」的事件、其中一批
+   * 紧接着连事件一起删；工作台移除信号跑在请求路径上，开着会让管理员点一下
+   * 「移除」就同步等一次模型往返。
+   */
+  it("只有采集轮把 classify 打开", async () => {
+    await runIngest({ now: NOW });
+
+    expect(refreshEvents.mock.calls[0][1].classify).toBe(true);
+  });
+
   it("查候选失败不影响这一轮的其余部分", async () => {
     listClassifyCandidates.mockRejectedValue(new Error("库抖了一下"));
 

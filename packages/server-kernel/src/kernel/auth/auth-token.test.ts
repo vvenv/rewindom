@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/order
 import { mockTenant } from "./auth.service.test-mocks.js";
-import { DEFAULT_TENANT_ID } from "@rewindom/shared";
+import { DEFAULT_TENANT_ID, DEFAULT_TENANT_SLUG } from "@rewindom/shared";
 import { describe, it, expect, vi } from "vitest";
 
 import { prisma } from "../../lib/prisma.js";
@@ -8,6 +8,21 @@ import { prisma } from "../../lib/prisma.js";
 import { AuthService } from "./auth.service.js";
 
 const TENANT_ID = DEFAULT_TENANT_ID;
+/*
+ * 走常量，不写字面量。默认租户 slug 从 `default` 改成 `rewindom` 那次，
+ * 断言改到了、传参漏了（`generateTokens` 只是把 slug 原样透传，于是
+ * 传 "default" 断言 "rewindom"，这条测试从那时起一直红着）。
+ */
+const TENANT_SLUG = DEFAULT_TENANT_SLUG;
+
+const tenantRefreshPayload = {
+  userId: "user-123",
+  actor_type: "tenant_user" as const,
+  is_system_admin: false,
+  type: "refresh",
+  tenant_id: TENANT_ID,
+  tenant_slug: TENANT_SLUG,
+};
 
 describe("AuthService tokens", () => {
   describe("generateTokens", () => {
@@ -21,7 +36,7 @@ describe("AuthService tokens", () => {
         "tenant_user",
         false,
         TENANT_ID,
-        "default",
+        TENANT_SLUG,
         jwtSign,
       );
 
@@ -30,7 +45,7 @@ describe("AuthService tokens", () => {
         actor_type: "tenant_user",
         is_system_admin: false,
         tenant_id: TENANT_ID,
-        tenant_slug: "rewindom",
+        tenant_slug: TENANT_SLUG,
         type: "access",
       });
       expect(jwtSign).toHaveBeenCalledWith(
@@ -39,7 +54,7 @@ describe("AuthService tokens", () => {
           actor_type: "tenant_user",
           is_system_admin: false,
           tenant_id: TENANT_ID,
-          tenant_slug: "rewindom",
+          tenant_slug: TENANT_SLUG,
           type: "refresh",
           jti: expect.any(String),
         }),
@@ -79,14 +94,7 @@ describe("AuthService tokens", () => {
       const jwtSign = vi.fn(
         (payload) => `token_${payload.type}_${payload.userId}`,
       );
-      const jwtVerify = vi.fn(() => ({
-        userId: "user-123",
-        actor_type: "tenant_user",
-        is_system_admin: false,
-        type: "refresh",
-        tenant_id: TENANT_ID,
-        tenant_slug: "rewindom",
-      }));
+      const jwtVerify = vi.fn(() => tenantRefreshPayload);
 
       const result = await AuthService.refresh(
         "valid_refresh_token",
@@ -125,14 +133,7 @@ describe("AuthService tokens", () => {
       vi.mocked(prisma.refreshToken.findUnique).mockResolvedValue(
         mockStoredToken as never,
       );
-      const jwtVerify = vi.fn(() => ({
-        userId: "user-123",
-        actor_type: "tenant_user",
-        is_system_admin: false,
-        type: "refresh",
-        tenant_id: TENANT_ID,
-        tenant_slug: "rewindom",
-      }));
+      const jwtVerify = vi.fn(() => tenantRefreshPayload);
 
       await expect(
         AuthService.refresh("revoked_token", vi.fn(), jwtVerify),
@@ -153,14 +154,7 @@ describe("AuthService tokens", () => {
         mockStoredToken as never,
       );
       vi.mocked(prisma.refreshToken.update).mockResolvedValue({} as never);
-      const jwtVerify = vi.fn(() => ({
-        userId: "user-123",
-        actor_type: "tenant_user",
-        is_system_admin: false,
-        type: "refresh",
-        tenant_id: TENANT_ID,
-        tenant_slug: "rewindom",
-      }));
+      const jwtVerify = vi.fn(() => tenantRefreshPayload);
 
       await expect(
         AuthService.refresh("expired_token", vi.fn(), jwtVerify),
@@ -180,14 +174,7 @@ describe("AuthService tokens", () => {
       vi.mocked(prisma.refreshToken.findUnique).mockResolvedValue(
         mockStoredToken as never,
       );
-      const jwtVerify = vi.fn(() => ({
-        userId: "user-123",
-        actor_type: "tenant_user",
-        is_system_admin: false,
-        type: "refresh",
-        tenant_id: TENANT_ID,
-        tenant_slug: "rewindom",
-      }));
+      const jwtVerify = vi.fn(() => tenantRefreshPayload);
 
       await expect(
         AuthService.refresh("valid_token", vi.fn(), jwtVerify),

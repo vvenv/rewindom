@@ -25,7 +25,8 @@ import { diffEventRevisions } from "./event-revision.service.js";
 import { computeHeat, resolveStatus, type HeatSignal } from "./heat.js";
 import { pickEventTitle } from "./title-tokens.js";
 import { classifyEventTopic } from "./topic-classifier.js";
-import { isEventKind } from "../../shared/index.js";
+import { getEnabledTopics } from "./topic-settings.service.js";
+import { enabledTopicWhere, isEventKind } from "../../shared/index.js";
 import { classifyEventKind, eventKindPrior } from "./kind-classifier.js";
 import { extractEventFacts } from "./fact-extractor.js";
 import {
@@ -75,6 +76,20 @@ export interface RefreshEventsOptions {
   onAnalyzerFallback?: (eventId: string, err: unknown) => void;
   /** 模型用量回调：调用方（采集任务）负责打日志，本模块不假设日志实现。 */
   onAnalyzerUsage?: (eventId: string, usage: AnalyzerUsage) => void;
+  /**
+   * 这一趟允不允许做窄分类调用。**默认不允许**——只有采集轮开。
+   *
+   * 三个调用方里只有采集轮该开：
+   *
+   * - **保留期清理**refresh 的是「信号刚被删掉」的事件，其中一批紧接着就会被
+   *   连事件一起删。给一个马上要消失的事件付一次分类费是纯浪费。
+   * - **工作台移除信号**跑在**请求路径上**。默认开的话，管理员点一下「移除」
+   *   要同步等一次模型往返——一个本地写操作凭空多出几秒延迟，还是在
+   *   供应商超时的时候变成十几秒。
+   *
+   * 失效方向也对：忘了开只是分类不跑（下一轮采集补上），忘了关是花钱 + 卡请求。
+   */
+  classify?: boolean;
 }
 
 /**
@@ -115,12 +130,38 @@ async function loadHeatWindow(
  * 「有没有 status / release 信号」，两处一起改。缺 kind 覆盖的从来不是这两格
  *（status 449/449、release 310/310 全满），是 news 2.3% / official 3.3% /
  * community 1.4% 那三格。
+ *
+ * 第三条是**马上要被清理掉的事件不花钱**。`last_activity_at` 是最新一条信号的
+ * 发布时刻，它早于信号保留期截止 = 这个事件的信号**全部**已经过期，
+ * 下一次保留期清理会把它们删光、事件跟着变成空壳被删。与「保留期清理那一趟
+ * 不开 classify」是同一条理由，只是这里挡的是另一条路径。
+ *
+ * 实测代价：孤儿补跑把一批贴着 90 天线的信号聚成了事件，其中约 29 个刚分类完
+ * 就被当轮清理删掉了（本地库 classified 从 74 掉回 45）——那几十次调用是白付的。
+ *
+ * 第四条是**关掉的主题不花钱**，与热度窗同一条理由（「排在后面的事件付了模型费
+ * 也没人看」）。这批事件不是假想的：聚类按语料办事、不按显示口径办事，
+ * 所以一个站点把主题关掉之后，库里既有的信号照样会聚成那个主题的事件——
+ * 本地库 5967 个事件里有 671 个（11%）落在已关掉的四个主题上。
+ * 它们该留着（主题重新打开时就在），但不该占分类预算。
  */
-export function classifyWindowWhere(): Prisma.NewsEventWhereInput {
+export function classifyWindowWhere(
+  enabledTopics: readonly EventTopic[],
+  signalCutoff: Date,
+): Prisma.NewsEventWhereInput {
   return {
     classified_at: null,
     NOT: { source_kinds: { hasSome: ["status", "release"] } },
+    last_activity_at: { gte: signalCutoff },
+    ...enabledTopicWhere(enabledTopics),
   };
+}
+
+/** 信号保留期的截止时刻——比这更早发布的信号下一轮清理就没了。 */
+function signalRetentionCutoff(now: Date): Date {
+  return new Date(
+    now.getTime() - config.events.signalRetentionDays * 24 * 60 * 60 * 1000,
+  );
 }
 
 /**
@@ -139,8 +180,9 @@ export function classifyWindowWhere(): Prisma.NewsEventWhereInput {
 async function loadClassifyWindow(
   tenantId: string,
   limit: number,
+  now: Date,
 ): Promise<Set<string>> {
-  return new Set(await listClassifyCandidates(tenantId, limit));
+  return new Set(await listClassifyCandidates(tenantId, limit, now));
 }
 
 /**
@@ -159,12 +201,19 @@ async function loadClassifyWindow(
 export async function listClassifyCandidates(
   tenantId: string,
   limit = config.events.llmClassifyPerRound,
+  now = new Date(),
 ): Promise<string[]> {
   if (limit <= 0) {
     return [];
   }
   const rows = await prisma.newsEvent.findMany({
-    where: withTenantScope(tenantId, classifyWindowWhere()),
+    where: withTenantScope(
+      tenantId,
+      classifyWindowWhere(
+        await getEnabledTopics(tenantId),
+        signalRetentionCutoff(now),
+      ),
+    ),
     select: { id: true },
     orderBy: { last_activity_at: "desc" },
     take: limit,
@@ -186,6 +235,8 @@ export function shouldClassify(params: {
   existing_analyzer: string;
   /** 本轮内容分析的结论（`planAnalysis`） */
   content_plan: AnalysisPlan;
+  /** 本轮实时算出的 `source_kind` 先验有没有给出答案 */
+  has_kind_prior: boolean;
   classified_at: Date | null;
   in_classify_window: boolean;
 }): boolean {
@@ -208,6 +259,20 @@ export function shouldClassify(params: {
    * 于是一轮里发两次模型调用，其中一次的产出会被另一次整个覆盖。
    */
   if (params.content_plan === "model") {
+    return false;
+  }
+  /*
+   * `source_kind` 先验能回答就不问模型——先验压过模型，问了也用不上。
+   *
+   * `classifyWindowWhere` 里有同一条判据，但那份读的是**库里存的**
+   * `source_kinds`，而刚建的事件那一列还是空的（要等这一轮 refresh 才写进去）。
+   * 于是补跑期间有 8 个状态页事件溜过了库侧过滤。**库内谓词只能当预筛，
+   * 权威判断必须用本轮实时算出来的先验。**
+   *
+   * 漏进来的会白占一个窗口名额，但只占一轮：下一轮 `source_kinds` 已经落库，
+   * 库侧那条就拦得住了，而 `classified_at` 仍是空——不会被误记成付过费。
+   */
+  if (params.has_kind_prior) {
     return false;
   }
   return params.in_classify_window;
@@ -257,12 +322,19 @@ export async function refreshEvents(
     return pending;
   };
 
-  // 分类的按轮限额，同样每站点一份
+  // 分类的按轮限额，同样每站点一份。没开这一趟就连查都不查。
   const classifyWindows = new Map<string, Promise<Set<string>>>();
   const classifyWindowFor = (tenantId: string): Promise<Set<string>> => {
+    if (!options.classify) {
+      return Promise.resolve(new Set());
+    }
     let pending = classifyWindows.get(tenantId);
     if (!pending) {
-      pending = loadClassifyWindow(tenantId, config.events.llmClassifyPerRound);
+      pending = loadClassifyWindow(
+        tenantId,
+        config.events.llmClassifyPerRound,
+        now,
+      );
       classifyWindows.set(tenantId, pending);
     }
     return pending;
@@ -429,6 +501,28 @@ async function refreshEvent(
   }
 
   /*
+   * 事件类型与关键事实，每轮重算。
+   *
+   * 判定优先级：`source_kind` 先验 > LLM > 关键词。先验最硬——Statuspage 的
+   * 一条 incident 就是一次故障，模型看着一段「已恢复」的正文很可能判成别的，
+   * 所以 classifyEventKind 内部先看先验，模型的答案只在没有先验时才用得上。
+   *
+   * **不受 manual_content 冻结**：那把锁锁的是标题与摘要（人写的文案），
+   * 而 kind 与 facts 是派生事实——人工改过摘要不该让故障时长停在旧值。
+   *
+   * 先验要在**分类调用之前**算出来：它是「这次问不问模型」的判据之一
+   * （问了也用不上），而库里那份 `source_kinds` 对刚建的事件还是空的。
+   */
+  const classifiableSignals = signals.map((signal) => ({
+    title: signal.title,
+    excerpt: signal.excerpt,
+    source_kind: signal.source_kind as EventSourceKind,
+    // 状态页的阶段词决定这次是事故还是计划维护，先验要看得到它
+    incident_updates: toIncidentUpdates(signal.incident_updates),
+  }));
+  const kindPrior = eventKindPrior(classifiableSignals);
+
+  /*
    * 窄分类。绕开上面三道省钱闸门，另走一条按轮限额、终生一次的路——
    * 它服务的是被闸门拦下的那 98.4% 单信号事件，而分类恰恰是它们唯一
    * 能拿到的增量（跨源印证与时间线对单信号按定义不存在）。
@@ -441,6 +535,7 @@ async function refreshEvent(
       analyzer_id: analyzer.id,
       existing_analyzer: event.analyzer,
       content_plan: plan,
+      has_kind_prior: kindPrior !== null,
       classified_at: event.classified_at,
       in_classify_window: (await classifyWindowFor(event.tenant_id)).has(
         eventId,
@@ -478,23 +573,6 @@ async function refreshEvent(
       ));
 
   /*
-   * 事件类型与关键事实，每轮重算。
-   *
-   * 判定优先级：`source_kind` 先验 > LLM > 关键词。先验最硬——Statuspage 的
-   * 一条 incident 就是一次故障，模型看着一段「已恢复」的正文很可能判成别的，
-   * 所以 classifyEventKind 内部先看先验，模型的答案只在没有先验时才用得上。
-   *
-   * **不受 manual_content 冻结**：那把锁锁的是标题与摘要（人写的文案），
-   * 而 kind 与 facts 是派生事实——人工改过摘要不该让故障时长停在旧值。
-   */
-  const classifiableSignals = signals.map((signal) => ({
-    title: signal.title,
-    excerpt: signal.excerpt,
-    source_kind: signal.source_kind as EventSourceKind,
-    // 状态页的阶段词决定这次是事故还是计划维护，先验要看得到它
-    incident_updates: toIncidentUpdates(signal.incident_updates),
-  }));
-  /*
    * 判定链上多了一环 `event.model_kind`——**模型的答案要存得住**。
    *
    * 以前只有 `analysis?.kind`，而降温扫描下 analysis 恒为 null，于是上一轮
@@ -505,7 +583,7 @@ async function refreshEvent(
    */
   const modelKind = analysis?.kind ?? classification?.kind ?? null;
   const kind =
-    eventKindPrior(classifiableSignals) ??
+    kindPrior ??
     modelKind ??
     (isEventKind(event.model_kind) ? event.model_kind : null) ??
     classifyEventKind(classifiableSignals);
@@ -626,13 +704,19 @@ async function refreshEvent(
         first_seen_at: firstSeenAt,
         last_activity_at: lastActivityAt,
         /*
-         * **只有真的调过模型的那一轮才写 model_kind**，以拿到 usage 为准——
-         * `analyzeEvent` 退回规则实现时 usage 是 undefined，那一轮不算问过模型。
-         * 没调模型就不写：否则降温扫描会拿 null 把上一次的答案抹掉，
-         * 与「没有重算就不覆盖」（标题 / 摘要 / 实体那三条）是同一条原则。
+         * **只有真的问过模型的那一轮才写 model_kind**。判据是「模型这条路跑通了」：
+         * `analyzeEvent` 退回规则实现时会把 `analyzer` 标成 heuristic，
+         * `classifyEvent` 失败时返回 null——两者都是可靠信号。
+         *
+         * 刻意**不看 `usage`**：那是供应商可选字段，有的供应商压根不报，
+         * 而「没报用量」与「没问过模型」是两件完全不同的事。按 usage 判会让
+         * 那些供应商上的模型答案继续存不住——正是这一列要修的那个 bug。
+         *
+         * 没问过就不写：否则降温扫描会拿 null 把上一次的答案抹掉，与
+         * 「没有重算就不覆盖」（标题 / 摘要 / 实体那三条）是同一条原则。
          * 真的问过而模型说「不是任何一类」时**要写 null**——那是一个答案。
          */
-        ...(analysis?.usage || classification?.usage
+        ...(analysis?.analyzer === "llm" || classification
           ? { model_kind: modelKind }
           : {}),
         /*

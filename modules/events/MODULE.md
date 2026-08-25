@@ -515,10 +515,17 @@ refreshEvents()            热度 / 增速 / 阶段 / 计数 + 分析器产出�
 `event_id` 不在索引里，得为全部候选做堆查找再过滤。
 
 轮内各阶段现在**各自包一层**（`runStage`），一处失败记进 `summary.failures` 并继续
-往下走。但**不能 catch 之后当没事**——失败必须出现在 failures 里，
-否则这次的静默失效只会换个地方重演。summary 里 `created`（本轮真正入库的新信号）
-与 `pending_clustered`（本轮送去聚类的）**刻意分开**：积压期两者差很多，
-混成一个数会让「源给了多少新东西」再也答不出来。
+往下走。但**不能 catch 之后当没事**：
+
+- 失败必须出现在 `failures` 里，否则这次的静默失效只会换个地方重演；
+- 而且要**分级**。阶段失败按 `error` 报（调度器看 `failures` 里有没有带 `stage` 的），
+  按源失败仍走 `info` 的 summary。理由是两边的常态不同：目录里两百多个源天天有超时的，
+  报 error 只会让这条日志失去意义；而一个阶段挂了影响的是整个站点这一轮——
+  那本来会一路抛到调度器的 catch 里按 error 报，`runStage` 接住它的同时
+  也会把严重性信号一起吞掉。
+
+summary 里 `created`（本轮真正入库的新信号）与 `pending_clustered`（本轮送去聚类的）
+**刻意分开**：积压期两者差很多，混成一个数会让「源给了多少新东西」再也答不出来。
 
 ### 一手来源的摘录取自正文，不是 teaser
 
@@ -1351,6 +1358,10 @@ Cloudflare
 | `analyzer != "llm"`         | 跑过完整分析的那次已经顺带给过 kind 与实体   |
 | 本轮 plan 不是 `model`      | 本轮的完整分析会在同一个调用里给出这两样     |
 | 落在本轮限额窗口内          | `EVENTS_LLM_CLASSIFY_PER_ROUND`，默认 40     |
+| 这一趟开了 `classify`       | 只有采集轮开，见下                           |
+
+窗口本身（`classifyWindowWhere`）再排掉三类：先验已经能回答的、信号已全部过期的、
+主题被关掉的——理由各自见下。
 
 第四条不是第三条的重复：一个刚立的双信号热门事件 `analyzed_at` 为空（→ plan = model）
 而 `analyzer` 还是列默认值 `heuristic`（→ 第三条拦不住），于是一轮里发两次模型调用，
@@ -1363,6 +1374,36 @@ Cloudflare
 **失败不写 `classified_at`**：一次供应商抖动不该让这个事件终生没有类型。
 这一轮的名额浪费掉，下一轮重来。
 
+#### 窄分类默认关着，只有采集轮开
+
+`RefreshEventsOptions.classify` 默认 false。三个 `refreshEvents` 调用方里只有采集轮该开：
+
+- **保留期清理**refresh 的是「信号刚被删掉」的事件，其中一批紧接着就会被连事件一起删。
+  给一个马上要消失的事件付一次分类费是纯浪费。
+- **工作台移除信号**跑在**请求路径上**。默认开的话，管理员点一下「移除」要同步等一次
+  模型往返——一个本地写操作凭空多出几秒延迟，供应商超时时是十几秒。
+
+失效方向也对：忘了开只是分类不跑（下一轮采集补上），忘了关是花钱 + 卡请求。
+
+#### 马上要被清理掉的事件不占分类预算
+
+`last_activity_at` 是最新一条信号的发布时刻。它早于**信号保留期截止**
+= 这个事件的信号全部已经过期，下一次保留期清理会把它们删光、事件跟着变成空壳被删。
+给它付一次分类费是纯浪费——与「保留期清理那一趟不开 classify」是同一条理由，
+只是这里挡的是另一条路径（清理还没跑，但事件已经注定活不过下一轮）。
+
+实测代价：孤儿补跑把一批贴着 90 天线的信号聚成了事件，其中约 29 个**刚分类完
+就被当轮清理删掉了**（本地库 classified 从 74 掉回 45）。那几十次调用是白付的。
+
+#### 关掉的主题不占分类预算
+
+`classifyWindowWhere` 的第三条是 `enabledTopicWhere`，与热度窗同一条理由。
+
+这批事件不是假想的：**聚类按语料办事，不按显示口径办事**——站点把主题关掉之后，
+库里既有的信号照样会聚成那个主题的事件（本地库 5967 个事件里 671 个，11%，
+落在已关掉的四个主题上）。它们**该留着**（主题重新打开时就在，不必回头补聚类），
+但不该占模型预算。
+
 #### 候选必须并进刷新队列，否则积压排不动
 
 分类挂在 `refreshEvent` 里，所以只有进了 `touched` 的事件才轮得到。而 `touched`
@@ -1373,17 +1414,29 @@ Cloudflare
 所以采集轮里 `listClassifyCandidates` 与 `findStaleEventIds` 并列，各自往 `touched`
 里塞一批。这一步**不额外花钱**：闸门在 `refreshEvent` 里，没排进限额的照样 skip。
 
-#### 窗口必须排除先验已经能回答的事件（上线后实测到的浪费）
+#### 先验已经能回答的事件不问模型（两层，缺一不可）
 
-`classifyWindowWhere()` 里那条 `NOT source_kinds hasSome [status, release]` 是
-`eventKindPrior` 判据的逐字库内镜像。先验**压过模型**，所以问一个先验已经能回答的
-事件是纯浪费——而窗口按 `last_activity_at` 降序，状态页恰恰是全语料里最活跃的一类，
-会把预算整轮吃光。
-
-第一版漏了这条，上线后捞回来的头 36 个全是状态页维护通告：模型答 `maintenance`、
+先验**压过模型**，所以问一个先验已经能回答的事件是纯浪费——而窗口按
+`last_activity_at` 降序，状态页恰恰是全语料里最活跃的一类，会把预算整轮吃光。
+第一版漏了这条，捞回来的头 36 个全是状态页维护通告：模型答 `maintenance`、
 先验答 `outage`、最终落 `outage`——**36 次调用一次都没改变结果**。
 而缺 kind 覆盖的从来不是这两格（status 449/449、release 310/310 全满），
 是 news 2.3% / official 3.3% / community 1.4% 那三格。
+
+补上之后还漏了 8 个。原因是**只补了库侧那一层**：`classifyWindowWhere()` 里那条
+`NOT source_kinds hasSome [status, release]` 读的是**库里存的** `source_kinds`，
+而刚聚出来的事件那一列还是空的——要等这一轮 `refreshEvent` 才写进去。
+孤儿补跑期间成千上万个事件都是「刚建的」，于是状态页事件照样溜过去。
+
+所以是两层，**库内谓词只能当预筛，权威判断必须用本轮实时算出来的先验**
+（`shouldClassify` 的 `has_kind_prior`，取自 `eventKindPrior(classifiableSignals)`）。
+为此 `classifiableSignals` 与先验被提到了分类调用之前。
+漏进来的会白占一个窗口名额，但只占一轮：下一轮 `source_kinds` 已经落库，库侧那条
+就拦得住了，而 `classified_at` 仍是空——不会被误记成付过费。
+
+这个形状在这个模块里出现过不止一次（`hasReaderValue` / `readerValueWhere` 也是
+一份谓词两处实现）。区别是那一对必须**逐条等价**，而这一对是**预筛 + 权威**：
+库侧允许放宽，不允许收严。
 
 ### 模型给的 kind 以前存不住（`model_kind`）
 
@@ -1392,10 +1445,14 @@ Cloudflare
 `acquisition` 会被关键词的 null 覆盖掉。证据：news 那一格 1447 个事件只有 34 个有
 kind，**正好等于关键词命中率**，模型的答案一轮都没活下来。
 
-**只有真的调过模型的那一轮才写 `model_kind`**，以拿到 `usage` 为准——`analyzeEvent`
-退回规则实现时 `usage` 是 undefined，那一轮不算问过模型。没调模型就不写，与
-「没有重算就不覆盖」（标题 / 摘要 / 实体那三条）是同一条原则。真的问过而模型说
-「不是任何一类」时**要写 null**——那是一个答案，不是「没问过」。
+**只有真的问过模型的那一轮才写 `model_kind`**。判据是「模型这条路跑通了」——
+`analyzeEvent` 退回规则实现时会把 `analyzer` 标成 heuristic，`classifyEvent` 失败时
+返回 null，两者都是可靠信号。**刻意不看 `usage`**：那是供应商可选字段，有的压根不报，
+而「没报用量」与「没问过模型」是两件完全不同的事；按 usage 判会让那些供应商上的
+模型答案继续存不住——正是这一列要修的那个 bug。
+
+没问过就不写，与「没有重算就不覆盖」（标题 / 摘要 / 实体那三条）是同一条原则。
+真的问过而模型说「不是任何一类」时**要写 null**——那是一个答案，不是「没问过」。
 
 窄提示词是**单独一份常量**，不与 `SYSTEM_PROMPT` 拼接：前缀缓存按前缀相同命中，
 两种调用各自稳定的系统消息各自命中，拼在一起反而两边都不稳。
@@ -1472,10 +1529,31 @@ ai 报道 3 → 6（The Decoder、AI Business、Wired AI），tech 报道 9 → 
 3. **403 的源一律不进目录**（unite.ai、marktechpost、axios.com/technology）。
    不为单个源加浏览器 UA 白名单——`isBrowserUserAgentHost` 现在只有 ftc.gov 一条，
    那是为 Akamai 开的口子，不该变成「谁拒就把谁加进去」。
+4. **收进来之前先核时间序**。`ITEM_LIMIT` 从头切 40 条，源不按时间倒序时切到的
+   就是陈旧条目——`elastic.co/blog/feed` 当初就是这么被拒的。Lemmy 踩到了同一条：
+   `?sort=Active` 实测头五条是 23/24/23/24/25 日，目录里用的是 **`?sort=New`**
+   （严格倒序）。七个新源逐个验过倒序。
 
-新拒掉的三条已钉进 `feed-catalog.test.ts` 的 `REJECTED`：
+#### 改目录项的 URL = 新增一个目录项，旧的不会消失
+
+`feedCatalogKey` 是 `connector:url`，而种植记账按 key 走（`SEEDED_FEED_KEYS_SETTING`）。
+所以**改 URL 不是「更正」，是「退役一个 + 新增一个」**：已经种过旧地址的站点两条都留着，
+往后每轮多抓一次。改 `name` / `source_kind` / `publisher_entity` 都没有这个问题——
+身份键里只有 URL。
+
+Lemmy 那条从 `?sort=Active` 改到 `?sort=New` 时在本地库真的种出了两条
+（那个地址没进过发布，所以生产没有存量；本地手工删掉了旧行与它的 key）。
+**要改一个已发布的目录 URL 时**：先想清楚存量站点上的旧行怎么办——
+它不会自己走，而目录侧没有「退役」这个动作。
+
+危害有限但要知道边界：两条的 `name` 相同，所以 `source_count`（按 `source_name` 去重）
+不会被虚增，信号身份键 `(tenant_id, connector, source_name, canonical_url)` 也会把
+同一篇文章去掉重——代价只是每轮多一次 HTTP 请求。
+
+新拒掉的四条已钉进 `feed-catalog.test.ts` 的 `REJECTED`：
 `zdnet.com/topic/artificial-intelligence/rss.xml`（302 到通用新闻 feed，根本不是
-AI feed）、`dev.to/feed`（个人博客不是事件）、`producthunt.com/feed`（产品目录不是事件）。
+AI feed）、`dev.to/feed`（个人博客不是事件）、`producthunt.com/feed`（产品目录不是事件）、
+`lemmy.world/…?sort=Active`（不按时间倒序，用 `?sort=New` 那条）。
 
 sports 与 entertainment 曾经清一色是 news，这里也曾写着「没有当事方公告的等价物」——
 **那句话是错的**：联盟（MLB / Formula 1）、片方与流媒体（Disney / Paramount /

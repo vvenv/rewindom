@@ -75,9 +75,23 @@ models: []
 #    是同一个缺口的两条腿：一条补召回（模型），一条补语料（源）。
 #
 # 4. **验证过但判定不该进的要写进 `REJECTED`**，与 `blog.google` 同一条口径。
-#    本期三条：`zdnet.com/topic/artificial-intelligence/rss.xml` 302 到通用
+#    本期四条：`zdnet.com/topic/artificial-intelligence/rss.xml` 302 到通用
 #    新闻 feed（根本不是 AI feed）；`dev.to/feed` 是个人博客不是事件；
-#    `producthunt.com/feed` 是产品目录不是事件。
+#    `producthunt.com/feed` 是产品目录不是事件；
+#    `lemmy.world/…?sort=Active` 不按时间倒序。
+#
+# 4b. **收进来之前逐个核时间序**。`ITEM_LIMIT` 从头切 40 条，源不按时间倒序时
+#    切到的就是陈旧条目——`elastic.co/blog/feed` 当初就是这么被拒的。
+#    Lemmy 踩到了同一条（`?sort=Active` 实测头五条 23/24/23/24/25 日），
+#    改用 `?sort=New`。七个新源逐个验过严格倒序。
+#
+# 4c. **改目录项 URL = 退役一个 + 新增一个**，不是「更正」。`feedCatalogKey` 是
+#    `connector:url`，种植记账按 key 走，所以已经种过旧地址的站点两条都留着。
+#    Lemmy 从 `?sort=Active` 改到 `?sort=New` 时本地库真的种出了两条
+#    （那个地址没进过发布，生产无存量；本地手工删了旧行与它的 key）。
+#    危害有限——两条 `name` 相同，`source_count` 按 `source_name` 去重不会虚增，
+#    信号身份键也会去重，代价只是每轮多一次 HTTP。但改**已发布**的目录 URL 之前
+#    必须先想清楚存量站点上的旧行怎么办：目录侧没有「退役」这个动作。
 #
 # 5. **测试的下限跟着抬**，但抬的是 news / community 那两格，不是总数——
 #    总数下限已经被一手来源撑着，再抬只会奖励「继续加 official」这个动作。

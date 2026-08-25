@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { EVENT_TOPICS } from "../../shared/index.js";
+
 import {
   classifyWindowWhere,
   pickAnalyzedEntities,
@@ -266,6 +268,7 @@ describe("shouldClassify", () => {
     analyzer_id: "llm",
     existing_analyzer: "heuristic",
     content_plan: "local" as const,
+    has_kind_prior: false,
     classified_at: null as Date | null,
     in_classify_window: true,
   };
@@ -304,6 +307,16 @@ describe("shouldClassify", () => {
     expect(shouldClassify({ ...base, content_plan: "model" })).toBe(false);
   });
 
+  /*
+   * 库侧 `classifyWindowWhere` 有同一条判据，但那份读的是**存的** `source_kinds`，
+   * 而刚建的事件那一列还是空的（要等这一轮 refresh 才写进去）——补跑期间
+   * 有 8 个状态页事件就是这么溜过库侧过滤的。库内谓词只能当预筛，
+   * 权威判断必须用本轮实时算出来的先验。
+   */
+  it("先验能回答就不问模型，哪怕库侧窗口放它进来了", () => {
+    expect(shouldClassify({ ...base, has_kind_prior: true })).toBe(false);
+  });
+
   it("本轮跑规则实现（local）或不跑（skip）时照补", () => {
     expect(shouldClassify({ ...base, content_plan: "local" })).toBe(true);
     expect(shouldClassify({ ...base, content_plan: "skip" })).toBe(true);
@@ -311,8 +324,22 @@ describe("shouldClassify", () => {
 });
 
 describe("classifyWindowWhere", () => {
+  const ALL_TOPICS = [...EVENT_TOPICS];
+  const CUTOFF = new Date("2025-05-14T12:00:00Z");
+  const where = (topics = ALL_TOPICS) => classifyWindowWhere(topics, CUTOFF);
+
   it("只捞没付过分类费的", () => {
-    expect(classifyWindowWhere().classified_at).toBeNull();
+    expect(where().classified_at).toBeNull();
+  });
+
+  /*
+   * `last_activity_at` 是最新一条信号的发布时刻，它早于信号保留期截止
+   * = 这个事件的信号全部已经过期，下一次清理会把它删成空壳再删掉。
+   * 实测代价：孤儿补跑把一批贴着 90 天线的信号聚成事件，其中约 29 个
+   * 刚分类完就被当轮清理删了（本地库 classified 从 74 掉回 45）。
+   */
+  it("信号全部过期的事件不花钱——下一轮清理就把它删了", () => {
+    expect(where().last_activity_at).toEqual({ gte: CUTOFF });
   });
 
   /*
@@ -325,9 +352,25 @@ describe("classifyWindowWhere", () => {
    * community 那三格（2.3% / 3.3% / 1.4%）。
    */
   it("先验已经能回答的事件不进窗口——问了也用不上", () => {
-    expect(classifyWindowWhere().NOT).toEqual({
+    expect(where().NOT).toEqual({
       source_kinds: { hasSome: ["status", "release"] },
     });
+  });
+
+  /*
+   * 与热度窗同一条理由：没人看得到的事件不该付模型费。
+   * 这批不是假想的——聚类按语料办事、不按显示口径办事，所以站点把主题关掉之后，
+   * 库里既有的信号照样会聚成那个主题的事件（本地库 5967 个里有 671 个，11%）。
+   */
+  it("关掉的主题不占分类预算", () => {
+    expect(where(["ai", "tech"]).topic).toEqual({
+      in: ["ai", "tech"],
+    });
+  });
+
+  /* 全开时不加 topic 条件——与列表查询同一条口径，别凭空多一个 IN。 */
+  it("主题全开时不加条件", () => {
+    expect(where().topic).toBeUndefined();
   });
 });
 
