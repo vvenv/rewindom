@@ -102,6 +102,10 @@ export const AuditAction = {
   NEWSLETTER_SUBSCRIBER_EXPORT: "NEWSLETTER_SUBSCRIBER_EXPORT",
   NEWSLETTER_DIGEST_RUN: "NEWSLETTER_DIGEST_RUN",
   NEWSLETTER_SUBSCRIBER_REACTIVATE: "NEWSLETTER_SUBSCRIBER_REACTIVATE",
+  CONTENT_CREATE: "CONTENT_CREATE",
+  CONTENT_UPDATE: "CONTENT_UPDATE",
+  CONTENT_DELETE: "CONTENT_DELETE",
+  CONTENT_GENERATE: "CONTENT_GENERATE",
 } as const;
 
 export type AuditActionType = (typeof AuditAction)[keyof typeof AuditAction];
@@ -264,6 +268,10 @@ export const AUDIT_ACTION_LABELS: Record<AuditActionType, string> = {
   [AuditAction.NEWSLETTER_SUBSCRIBER_EXPORT]: "导出订阅者名单",
   [AuditAction.NEWSLETTER_DIGEST_RUN]: "手动触发摘要投递",
   [AuditAction.NEWSLETTER_SUBSCRIBER_REACTIVATE]: "恢复订阅者发送",
+  [AuditAction.CONTENT_CREATE]: "创建内容",
+  [AuditAction.CONTENT_UPDATE]: "更新内容",
+  [AuditAction.CONTENT_DELETE]: "删除内容",
+  [AuditAction.CONTENT_GENERATE]: "生成内容",
 };
 
 export const AUDIT_ACTION_GROUPS = [
@@ -421,6 +429,15 @@ export const AUDIT_ACTION_GROUPS = [
       AuditAction.NEWSLETTER_SUBSCRIBER_EXPORT,
       AuditAction.NEWSLETTER_DIGEST_RUN,
       AuditAction.NEWSLETTER_SUBSCRIBER_REACTIVATE,
+    ],
+  },
+  {
+    label: "内容生成",
+    actions: [
+      AuditAction.CONTENT_CREATE,
+      AuditAction.CONTENT_UPDATE,
+      AuditAction.CONTENT_DELETE,
+      AuditAction.CONTENT_GENERATE,
     ],
   },
 ] as const;

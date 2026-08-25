@@ -56,6 +56,8 @@ export const ModelName = {
   Subscription: 'Subscription',
   Payment: 'Payment',
   Bookmark: 'Bookmark',
+  Content: 'Content',
+  ContentAsset: 'ContentAsset',
   DashboardPreference: 'DashboardPreference',
   ErrorLog: 'ErrorLog',
   EventFeed: 'EventFeed',
@@ -226,6 +228,42 @@ export const BookmarkScalarFieldEnum = {
 } as const
 
 export type BookmarkScalarFieldEnum = (typeof BookmarkScalarFieldEnum)[keyof typeof BookmarkScalarFieldEnum]
+
+
+export const ContentScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  title: 'title',
+  body: 'body',
+  brief: 'brief',
+  format: 'format',
+  status: 'status',
+  tags: 'tags',
+  error_message: 'error_message',
+  created_by: 'created_by',
+  updated_by: 'updated_by',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ContentScalarFieldEnum = (typeof ContentScalarFieldEnum)[keyof typeof ContentScalarFieldEnum]
+
+
+export const ContentAssetScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  content_id: 'content_id',
+  kind: 'kind',
+  mime_type: 'mime_type',
+  filename: 'filename',
+  size_bytes: 'size_bytes',
+  storage_key: 'storage_key',
+  text_body: 'text_body',
+  sort_order: 'sort_order',
+  created_at: 'created_at'
+} as const
+
+export type ContentAssetScalarFieldEnum = (typeof ContentAssetScalarFieldEnum)[keyof typeof ContentAssetScalarFieldEnum]
 
 
 export const DashboardPreferenceScalarFieldEnum = {

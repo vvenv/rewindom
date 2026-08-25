@@ -1,0 +1,40 @@
+// 外部模块的 Prisma schema——由 gen:external-modules 符号链接到
+// apps/server/prisma/models/content.prisma，汇入全局 schema。
+// 刻意不声明到 Tenant 的 relation：租户隔离由 tenant-guard 自动注入。
+model Content {
+  id            String         @id @default(uuid())
+  tenant_id     String
+  title         String         @default("")
+  body          String         @default("")
+  brief         String         @default("")
+  format        String         @default("note")
+  status        String         @default("draft")
+  tags          String[]       @default([])
+  error_message String?
+  created_by    String
+  updated_by    String?
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  assets        ContentAsset[]
+
+  @@index([tenant_id])
+  @@index([tenant_id, updated_at])
+}
+
+model ContentAsset {
+  id          String   @id @default(uuid())
+  tenant_id   String
+  content_id  String
+  kind        String
+  mime_type   String   @default("")
+  filename    String   @default("")
+  size_bytes  Int      @default(0)
+  storage_key String?
+  text_body   String?
+  sort_order  Int      @default(0)
+  created_at  DateTime @default(now())
+  content     Content  @relation(fields: [content_id], references: [id], onDelete: Cascade)
+
+  @@index([tenant_id])
+  @@index([tenant_id, content_id])
+}

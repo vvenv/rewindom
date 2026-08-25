@@ -32,6 +32,9 @@ describe("mime", () => {
       "image/avif",
       "image/x-icon",
       "font/woff2",
+      "video/mp4",
+      "video/webm",
+      "video/quicktime",
     ]) {
       expect(extensionToMimeType(mimeTypeToExtension(mime))).toBe(mime);
     }

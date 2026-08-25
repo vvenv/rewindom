@@ -1,5 +1,4 @@
 import { layoutSettings } from "../_common/settings.js";
-
 import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
 
 export const proseSection: SectionDefinition = {

@@ -67,6 +67,16 @@ export type Payment = Prisma.PaymentModel
  */
 export type Bookmark = Prisma.BookmarkModel
 /**
+ * Model Content
+ * 
+ */
+export type Content = Prisma.ContentModel
+/**
+ * Model ContentAsset
+ * 
+ */
+export type ContentAsset = Prisma.ContentAssetModel
+/**
  * Model DashboardPreference
  * 
  */

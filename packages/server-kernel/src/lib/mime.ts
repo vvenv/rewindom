@@ -15,6 +15,9 @@ const MIME_TO_EXTENSION: Record<string, string> = {
   "image/x-icon": ".ico",
   "image/vnd.microsoft.icon": ".ico",
   "font/woff2": ".woff2",
+  "video/mp4": ".mp4",
+  "video/webm": ".webm",
+  "video/quicktime": ".mov",
 };
 
 const EXTENSION_TO_MIME: Record<string, string> = {
@@ -27,6 +30,9 @@ const EXTENSION_TO_MIME: Record<string, string> = {
   ".svg": "image/svg+xml",
   ".ico": "image/x-icon",
   ".woff2": "font/woff2",
+  ".mp4": "video/mp4",
+  ".webm": "video/webm",
+  ".mov": "video/quicktime",
 };
 
 /** 认不出来返回空串，调用方自己决定回落（通常是 `.bin`）。 */

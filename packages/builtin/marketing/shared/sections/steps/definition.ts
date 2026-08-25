@@ -1,5 +1,4 @@
 import { headingSettings, layoutSettings } from "../_common/settings.js";
-
 import { MARKETING_SECTION_GROUP, type SectionDefinition } from "../types.js";
 
 /** 有先后的流程：编号 + 标题 + 说明。 */
