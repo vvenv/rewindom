@@ -11,10 +11,13 @@ import {
   useGenerateContent,
   useUpdateContent,
 } from "./useContentMutations.js";
+import { useBriefFields } from "./useBriefFields.js";
 import {
   INITIAL_CONTENT_FORM,
+  briefEntriesToValues,
   buildContentPayload,
   displayContentTitle,
+  validateBriefForm,
   validateContentForm,
   type ContentFormValues,
 } from "../lib/contents.js";
@@ -30,16 +33,20 @@ export function useContentDetailPage() {
   const deleteMutation = useDeleteContent();
   const [form, setForm] = useState<ContentFormValues>(INITIAL_CONTENT_FORM);
   const [formError, setFormError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const { fields, template } = useBriefFields(form.template_id);
 
   useEffect(() => {
     if (!query.data) return;
     setForm({
       title: query.data.title,
-      brief: query.data.brief,
       body: query.data.body,
       format: query.data.format,
+      template_id: query.data.template_id,
+      values: briefEntriesToValues(query.data.brief_values),
     });
     setFormError("");
+    setFieldErrors({});
   }, [query.data]);
 
   const generating = query.data?.status === "generating";
@@ -57,6 +64,13 @@ export function useContentDetailPage() {
       setFormError(validationError);
       return;
     }
+    const briefErrors = validateBriefForm(fields, form.values, t);
+    if (Object.keys(briefErrors).length > 0) {
+      setFieldErrors(briefErrors);
+      setFormError("");
+      return;
+    }
+    setFieldErrors({});
     try {
       await updateMutation.mutateAsync({
         id: query.data.id,
@@ -106,6 +120,9 @@ export function useContentDetailPage() {
     form,
     setForm,
     formError,
+    fieldErrors,
+    fields,
+    template,
     generating,
     busy,
     isSaving: updateMutation.isPending,

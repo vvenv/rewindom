@@ -16,19 +16,15 @@ import type * as Prisma from "../internal/prismaNamespace.js"
  * Model SiteDoc
  * *
  *  * 租户文档库里的一篇文档。
- *  *
  *  * 与 `MarketingPage`（页面版式系统）解耦：文档就是「标题 + Markdown 正文」，
  *  * 不进 section / block 体系——文档作者只写 markdown，不碰 Theme Editor。每租户
  *  * 默认有一个 `/docs` 索引与 `/docs/:slug` 详情路由，渲染复用站点 chrome +
  *  * `.prose` 排版。
- *  *
  *  * 与平台文档（`docs/*.md`，代码版本化）的区别：平台文档跟代码走、给默认租户产品
  *  * 站用；本表是租户自管、DB 存储、按租户隔离。
- *  *
  *  * draft / live 两列与页面同口径：无后缀是线上（访客看到的），`_draft`
  *  * 是编辑器在改的那一份。`status` 为 `draft` 时文档对访客不可见（不出现在 `/docs`）。
  *  * `locale` 与页面同口径（翻译组 key = `(tenant, slug)`）。
- *  *
  *  * 刻意不声明到 Tenant 的 relation：租户隔离由 tenant-guard + withTenantScope 保证。
  */
 export type SiteDocModel = runtime.Types.Result.DefaultSelection<Prisma.$SiteDocPayload>
@@ -737,7 +733,8 @@ export type $SiteDocPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     description: string
     body_md: string
     /**
-     * * 分类 key，对应 `SiteDocCategory.key`；空串表示未分类。
+     * *
+     *    * 分类 key，对应 `SiteDocCategory.key`；空串表示未分类。
      */
     category: string
     sort_order: number

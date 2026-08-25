@@ -6,6 +6,7 @@ import {
   parseMultipartFileUpload,
   parsePagination,
   parseSortDir,
+  resolveRequestLocale,
   sendCodedError,
 } from "@rewindom/module-sdk/server";
 
@@ -94,17 +95,20 @@ export async function contentRoutes(app: FastifyInstance): Promise<void> {
       try {
         const body = request.body as {
           title?: string;
-          brief?: string;
           body?: string;
           format?: string;
+          template_id?: string | null;
+          brief_values?: Record<string, string>;
         };
         const content = await createContent({
           tenant_id: request.tenantContext!.tenant_id,
           user_id: request.authUser!.userId,
+          locale: resolveRequestLocale(request),
           title: body.title,
-          brief: body.brief,
           body: body.body,
           format: body.format,
+          template_id: body.template_id,
+          brief_values: body.brief_values,
         });
 
         await emitAuditLogFromRequestSafe(app.events, app.log, request, {
@@ -137,18 +141,21 @@ export async function contentRoutes(app: FastifyInstance): Promise<void> {
         const { content_id } = request.params as { content_id: string };
         const body = request.body as {
           title?: string;
-          brief?: string;
           body?: string;
           format?: string;
+          template_id?: string | null;
+          brief_values?: Record<string, string>;
         };
         const content = await updateContent({
           tenant_id: request.tenantContext!.tenant_id,
           user_id: request.authUser!.userId,
+          locale: resolveRequestLocale(request),
           content_id,
           title: body.title,
-          brief: body.brief,
           body: body.body,
           format: body.format,
+          template_id: body.template_id,
+          brief_values: body.brief_values,
         });
 
         await emitAuditLogFromRequestSafe(app.events, app.log, request, {

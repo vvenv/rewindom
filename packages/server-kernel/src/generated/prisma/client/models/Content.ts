@@ -30,6 +30,7 @@ export type ContentMinAggregateOutputType = {
   title: string | null
   body: string | null
   brief: string | null
+  template_id: string | null
   format: string | null
   status: string | null
   error_message: string | null
@@ -45,6 +46,7 @@ export type ContentMaxAggregateOutputType = {
   title: string | null
   body: string | null
   brief: string | null
+  template_id: string | null
   format: string | null
   status: string | null
   error_message: string | null
@@ -60,6 +62,8 @@ export type ContentCountAggregateOutputType = {
   title: number
   body: number
   brief: number
+  brief_values: number
+  template_id: number
   format: number
   status: number
   tags: number
@@ -78,6 +82,7 @@ export type ContentMinAggregateInputType = {
   title?: true
   body?: true
   brief?: true
+  template_id?: true
   format?: true
   status?: true
   error_message?: true
@@ -93,6 +98,7 @@ export type ContentMaxAggregateInputType = {
   title?: true
   body?: true
   brief?: true
+  template_id?: true
   format?: true
   status?: true
   error_message?: true
@@ -108,6 +114,8 @@ export type ContentCountAggregateInputType = {
   title?: true
   body?: true
   brief?: true
+  brief_values?: true
+  template_id?: true
   format?: true
   status?: true
   tags?: true
@@ -197,6 +205,8 @@ export type ContentGroupByOutputType = {
   title: string
   body: string
   brief: string
+  brief_values: runtime.JsonValue
+  template_id: string | null
   format: string
   status: string
   tags: string[]
@@ -234,6 +244,8 @@ export type ContentWhereInput = {
   title?: Prisma.StringFilter<"Content"> | string
   body?: Prisma.StringFilter<"Content"> | string
   brief?: Prisma.StringFilter<"Content"> | string
+  brief_values?: Prisma.JsonFilter<"Content">
+  template_id?: Prisma.StringNullableFilter<"Content"> | string | null
   format?: Prisma.StringFilter<"Content"> | string
   status?: Prisma.StringFilter<"Content"> | string
   tags?: Prisma.StringNullableListFilter<"Content">
@@ -251,6 +263,8 @@ export type ContentOrderByWithRelationInput = {
   title?: Prisma.SortOrder
   body?: Prisma.SortOrder
   brief?: Prisma.SortOrder
+  brief_values?: Prisma.SortOrder
+  template_id?: Prisma.SortOrderInput | Prisma.SortOrder
   format?: Prisma.SortOrder
   status?: Prisma.SortOrder
   tags?: Prisma.SortOrder
@@ -271,6 +285,8 @@ export type ContentWhereUniqueInput = Prisma.AtLeast<{
   title?: Prisma.StringFilter<"Content"> | string
   body?: Prisma.StringFilter<"Content"> | string
   brief?: Prisma.StringFilter<"Content"> | string
+  brief_values?: Prisma.JsonFilter<"Content">
+  template_id?: Prisma.StringNullableFilter<"Content"> | string | null
   format?: Prisma.StringFilter<"Content"> | string
   status?: Prisma.StringFilter<"Content"> | string
   tags?: Prisma.StringNullableListFilter<"Content">
@@ -288,6 +304,8 @@ export type ContentOrderByWithAggregationInput = {
   title?: Prisma.SortOrder
   body?: Prisma.SortOrder
   brief?: Prisma.SortOrder
+  brief_values?: Prisma.SortOrder
+  template_id?: Prisma.SortOrderInput | Prisma.SortOrder
   format?: Prisma.SortOrder
   status?: Prisma.SortOrder
   tags?: Prisma.SortOrder
@@ -310,6 +328,8 @@ export type ContentScalarWhereWithAggregatesInput = {
   title?: Prisma.StringWithAggregatesFilter<"Content"> | string
   body?: Prisma.StringWithAggregatesFilter<"Content"> | string
   brief?: Prisma.StringWithAggregatesFilter<"Content"> | string
+  brief_values?: Prisma.JsonWithAggregatesFilter<"Content">
+  template_id?: Prisma.StringNullableWithAggregatesFilter<"Content"> | string | null
   format?: Prisma.StringWithAggregatesFilter<"Content"> | string
   status?: Prisma.StringWithAggregatesFilter<"Content"> | string
   tags?: Prisma.StringNullableListFilter<"Content">
@@ -326,6 +346,8 @@ export type ContentCreateInput = {
   title?: string
   body?: string
   brief?: string
+  brief_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  template_id?: string | null
   format?: string
   status?: string
   tags?: Prisma.ContentCreatetagsInput | string[]
@@ -343,6 +365,8 @@ export type ContentUncheckedCreateInput = {
   title?: string
   body?: string
   brief?: string
+  brief_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  template_id?: string | null
   format?: string
   status?: string
   tags?: Prisma.ContentCreatetagsInput | string[]
@@ -360,6 +384,8 @@ export type ContentUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   brief?: Prisma.StringFieldUpdateOperationsInput | string
+  brief_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  template_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   format?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   tags?: Prisma.ContentUpdatetagsInput | string[]
@@ -377,6 +403,8 @@ export type ContentUncheckedUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   brief?: Prisma.StringFieldUpdateOperationsInput | string
+  brief_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  template_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   format?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   tags?: Prisma.ContentUpdatetagsInput | string[]
@@ -394,6 +422,8 @@ export type ContentCreateManyInput = {
   title?: string
   body?: string
   brief?: string
+  brief_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  template_id?: string | null
   format?: string
   status?: string
   tags?: Prisma.ContentCreatetagsInput | string[]
@@ -410,6 +440,8 @@ export type ContentUpdateManyMutationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   brief?: Prisma.StringFieldUpdateOperationsInput | string
+  brief_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  template_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   format?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   tags?: Prisma.ContentUpdatetagsInput | string[]
@@ -426,6 +458,8 @@ export type ContentUncheckedUpdateManyInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   brief?: Prisma.StringFieldUpdateOperationsInput | string
+  brief_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  template_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   format?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   tags?: Prisma.ContentUpdatetagsInput | string[]
@@ -450,6 +484,8 @@ export type ContentCountOrderByAggregateInput = {
   title?: Prisma.SortOrder
   body?: Prisma.SortOrder
   brief?: Prisma.SortOrder
+  brief_values?: Prisma.SortOrder
+  template_id?: Prisma.SortOrder
   format?: Prisma.SortOrder
   status?: Prisma.SortOrder
   tags?: Prisma.SortOrder
@@ -466,6 +502,7 @@ export type ContentMaxOrderByAggregateInput = {
   title?: Prisma.SortOrder
   body?: Prisma.SortOrder
   brief?: Prisma.SortOrder
+  template_id?: Prisma.SortOrder
   format?: Prisma.SortOrder
   status?: Prisma.SortOrder
   error_message?: Prisma.SortOrder
@@ -481,6 +518,7 @@ export type ContentMinOrderByAggregateInput = {
   title?: Prisma.SortOrder
   body?: Prisma.SortOrder
   brief?: Prisma.SortOrder
+  template_id?: Prisma.SortOrder
   format?: Prisma.SortOrder
   status?: Prisma.SortOrder
   error_message?: Prisma.SortOrder
@@ -524,6 +562,8 @@ export type ContentCreateWithoutAssetsInput = {
   title?: string
   body?: string
   brief?: string
+  brief_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  template_id?: string | null
   format?: string
   status?: string
   tags?: Prisma.ContentCreatetagsInput | string[]
@@ -540,6 +580,8 @@ export type ContentUncheckedCreateWithoutAssetsInput = {
   title?: string
   body?: string
   brief?: string
+  brief_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  template_id?: string | null
   format?: string
   status?: string
   tags?: Prisma.ContentCreatetagsInput | string[]
@@ -572,6 +614,8 @@ export type ContentUpdateWithoutAssetsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   brief?: Prisma.StringFieldUpdateOperationsInput | string
+  brief_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  template_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   format?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   tags?: Prisma.ContentUpdatetagsInput | string[]
@@ -588,6 +632,8 @@ export type ContentUncheckedUpdateWithoutAssetsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   brief?: Prisma.StringFieldUpdateOperationsInput | string
+  brief_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  template_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   format?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   tags?: Prisma.ContentUpdatetagsInput | string[]
@@ -635,6 +681,8 @@ export type ContentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   title?: boolean
   body?: boolean
   brief?: boolean
+  brief_values?: boolean
+  template_id?: boolean
   format?: boolean
   status?: boolean
   tags?: boolean
@@ -653,6 +701,8 @@ export type ContentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   title?: boolean
   body?: boolean
   brief?: boolean
+  brief_values?: boolean
+  template_id?: boolean
   format?: boolean
   status?: boolean
   tags?: boolean
@@ -669,6 +719,8 @@ export type ContentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   title?: boolean
   body?: boolean
   brief?: boolean
+  brief_values?: boolean
+  template_id?: boolean
   format?: boolean
   status?: boolean
   tags?: boolean
@@ -685,6 +737,8 @@ export type ContentSelectScalar = {
   title?: boolean
   body?: boolean
   brief?: boolean
+  brief_values?: boolean
+  template_id?: boolean
   format?: boolean
   status?: boolean
   tags?: boolean
@@ -695,7 +749,7 @@ export type ContentSelectScalar = {
   updated_at?: boolean
 }
 
-export type ContentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "title" | "body" | "brief" | "format" | "status" | "tags" | "error_message" | "created_by" | "updated_by" | "created_at" | "updated_at", ExtArgs["result"]["content"]>
+export type ContentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "title" | "body" | "brief" | "brief_values" | "template_id" | "format" | "status" | "tags" | "error_message" | "created_by" | "updated_by" | "created_at" | "updated_at", ExtArgs["result"]["content"]>
 export type ContentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   assets?: boolean | Prisma.Content$assetsArgs<ExtArgs>
   _count?: boolean | Prisma.ContentCountOutputTypeDefaultArgs<ExtArgs>
@@ -714,6 +768,8 @@ export type $ContentPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     title: string
     body: string
     brief: string
+    brief_values: runtime.JsonValue
+    template_id: string | null
     format: string
     status: string
     tags: string[]
@@ -1151,6 +1207,8 @@ export interface ContentFieldRefs {
   readonly title: Prisma.FieldRef<"Content", 'String'>
   readonly body: Prisma.FieldRef<"Content", 'String'>
   readonly brief: Prisma.FieldRef<"Content", 'String'>
+  readonly brief_values: Prisma.FieldRef<"Content", 'Json'>
+  readonly template_id: Prisma.FieldRef<"Content", 'String'>
   readonly format: Prisma.FieldRef<"Content", 'String'>
   readonly status: Prisma.FieldRef<"Content", 'String'>
   readonly tags: Prisma.FieldRef<"Content", 'String[]'>

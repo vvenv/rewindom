@@ -1,7 +1,9 @@
 import { PageLayout, usePermissions } from "@rewindom/module-sdk/client";
+import { Button } from "@rewindom/ui/button";
 import { DraggableFabTrigger } from "@rewindom/ui/draggable-fab";
-import { Plus, PenLine } from "lucide-react";
+import { ClipboardList, Plus, PenLine } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 
 import { ContentCreateSheet } from "../components/ContentCreateSheet.js";
 import { ContentFilters } from "../components/ContentFilters.js";
@@ -42,12 +44,21 @@ export function Contents() {
       description={t("pageDescription")}
       action={
         canWrite ? (
-          <ContentCreateSheet>
-            <DraggableFabTrigger storageKey="contents_create_fab">
-              <Plus className="size-6 md:size-4" />
-              <span className="hidden md:inline">{t("create")}</span>
-            </DraggableFabTrigger>
-          </ContentCreateSheet>
+          <div className="flex items-center gap-2">
+            {/* 模板管理不占侧栏：一个模块一项，为一个配置页多挂一条会稀释导航 */}
+            <Button variant="outline" asChild>
+              <Link to="/app/contents/templates">
+                <ClipboardList className="size-4" />
+                <span className="hidden md:inline">{t("template.manage")}</span>
+              </Link>
+            </Button>
+            <ContentCreateSheet>
+              <DraggableFabTrigger storageKey="contents_create_fab">
+                <Plus className="size-6 md:size-4" />
+                <span className="hidden md:inline">{t("create")}</span>
+              </DraggableFabTrigger>
+            </ContentCreateSheet>
+          </div>
         ) : null
       }
     >

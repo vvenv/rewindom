@@ -57,6 +57,7 @@ export const ModelName = {
   Payment: 'Payment',
   Bookmark: 'Bookmark',
   Content: 'Content',
+  ContentTemplate: 'ContentTemplate',
   ContentAsset: 'ContentAsset',
   DashboardPreference: 'DashboardPreference',
   ErrorLog: 'ErrorLog',
@@ -236,6 +237,8 @@ export const ContentScalarFieldEnum = {
   title: 'title',
   body: 'body',
   brief: 'brief',
+  brief_values: 'brief_values',
+  template_id: 'template_id',
   format: 'format',
   status: 'status',
   tags: 'tags',
@@ -247,6 +250,27 @@ export const ContentScalarFieldEnum = {
 } as const
 
 export type ContentScalarFieldEnum = (typeof ContentScalarFieldEnum)[keyof typeof ContentScalarFieldEnum]
+
+
+export const ContentTemplateScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  name: 'name',
+  description: 'description',
+  format: 'format',
+  fields: 'fields',
+  guidelines: 'guidelines',
+  output_rules: 'output_rules',
+  samples: 'samples',
+  preset_key: 'preset_key',
+  sort_order: 'sort_order',
+  created_by: 'created_by',
+  updated_by: 'updated_by',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ContentTemplateScalarFieldEnum = (typeof ContentTemplateScalarFieldEnum)[keyof typeof ContentTemplateScalarFieldEnum]
 
 
 export const ContentAssetScalarFieldEnum = {

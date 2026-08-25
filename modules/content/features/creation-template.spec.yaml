@@ -1,0 +1,108 @@
+# 创作模板（SOP）—— 把「创作说明」从一个自由文本框换成租户自己定义的表单。
+#
+# 现状：`brief` 是一个 textarea，system prompt 写死在 content-generate.service.ts 里
+#（NOTE_SYSTEM_PROMPT / ARTICLE_SYSTEM_PROMPT）。租户唯一能调的变量是「写得多详细」，
+# 产出风格完全不可控，同一个团队两个人写出来的东西不像一个号发的。
+#
+# 本期把可控的三段都交给租户：**填什么**（字段表）、**怎么写**（写作规则）、
+# **写成什么样**（输出约束），外加可选的范文让模型学腔调。
+#
+# 「傻瓜化」不靠少填几个字段，靠**内置只读预设**：新租户点一下复制一份「小红书笔记」
+# 就能开工，不改也能跑；空模板编辑器只会比现在那个 textarea 更劝退。
+
+# ---------- 必填 ----------
+module: content
+surfaces: [tenant]
+goal: >-
+  租户可在 /app/contents/templates 定义创作模板（输入字段表 + 写作规则 + 输出约束 + 范文），
+  模块内置只读预设可一键复制；新建内容时先选模板、按模板字段填写，生成时用模板组装 prompt。
+gold: modules/site-form/shared/sections/form/fields.ts # 字段模型 + 校验单一真相源的写法
+touch:
+  - modules/content/features/creation-template.spec.yaml
+  - modules/content/MODULE.md
+  - modules/content/MODULE.spec.yaml
+  # content 建包时漏了 typescript 依赖，`pnpm typecheck` 一直跑不到这个模块。
+  # 本期的验收命令要用它，顺手补齐（与 bookmark / note 同一份版本）。
+  - modules/content/package.json
+  - modules/content/prisma/schema.prisma
+  - apps/server/prisma/migrations/
+  - packages/server-kernel/src/lib/tenant-guard.ts
+  - eslint-rules/tenant-models.json
+  - modules/content/shared/
+  - modules/content/server/
+  - modules/content/client/
+out_of_scope:
+  - 发布渠道对接（小红书 / 公众号），本期仍只做生成与编辑
+  - 模板的版本历史与回滚（先把「能定规矩」做对）
+  - 跨租户共享 / 模板市场
+  - 按模板统计产出效果（数据还没有）
+  - 复用 site-form 的字段模型（那份挂在 marketing 的 section schema 上，跨模块耦合）
+i18n: code # 模板名 / 字段标签是租户填的业务数据，不进 i18n；界面文案走 code
+acceptance:
+  - pnpm --filter @rewindom/content test
+  - node scripts/verify-module.mjs content
+  - pnpm check:i18n
+
+# ---------- 可选 ----------
+entitlement: contents
+permissions: [] # 复用 contents.write：定规矩和按规矩产出是同一件事的两端，多开一个键只让管理员多勾一个框
+models:
+  - name: ContentTemplate
+    scope: tenant
+    fields:
+      - { name: name, type: String, required: true }
+      - { name: description, type: String, required: false, default: "" }
+      - { name: format, type: String, required: true, default: "note" }
+      # 输入字段表：[{ id, label, type, required, placeholder, help, options }]
+      - { name: fields, type: Json, required: true }
+      # 写作规则：整段追加进 system prompt
+      - { name: guidelines, type: String, required: false, default: "" }
+      # 输出约束：{ title_max, body_min, body_max, hashtag_min, hashtag_max, tone }
+      - { name: output_rules, type: Json, required: false }
+      # 范文 few-shot：[{ title, body }]，最多 3 条
+      - { name: samples, type: Json, required: false }
+      - { name: preset_key, type: String, required: false } # 从哪个内置预设复制来的，仅作来源标记
+      - { name: sort_order, type: Int, required: true, default: 0 }
+      - { name: created_by, type: String, required: true }
+      - { name: updated_by, type: String, required: false }
+  - name: Content
+    scope: tenant
+    change: 加字段
+    fields:
+      - { name: template_id, type: String, required: false }
+      # 自描述存储：[{ id, label, value }]
+      - { name: brief_values, type: Json, required: true, default: "[]" }
+    drop:
+      - brief # 迁移时并进 brief_values 的单条 entry，不双读
+
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. **字段模型自己定一份**，不 import site-form。那份定义依赖 marketing 的 section schema
+#    与 block 体系，content 依赖过去等于为了省一个 interface 把两个限界上下文焊死。
+#    content 的字段类型只要 text / textarea / select / tags 四种，比表单段薄得多。
+#
+# 2. **brief_values 存 `[{ id, label, value }]`，不是 `{ fieldId: value }`**。
+#    这条直接抄 site-form 踩过的坑（见其 MODULE.md）：租户随时会改标签、删字段、调顺序，
+#    按 id 存的话三个月后回头看只剩一堆对不上任何东西的 uuid。已生成的内容要能自证
+#    「当时是按什么填的」，否则复盘产出质量无从谈起。
+#
+# 3. **内置预设是代码里的只读常量，不是种进库的行**（shared/template-presets.ts）。
+#    种进库的话，以后想改进预设文案就够不到已经种下去的那份了；只读常量 + 复制成租户自己的
+#    模板，既能持续改进预设，又不会覆盖租户已经改过的版本。preset_key 只作来源标记，
+#    不做「跟随预设更新」——那是隐式改写租户的规矩。
+#
+# 4. **prompt 组装分三段**：体裁基础提示（代码里，守住 JSON 输出契约与「不编造视频内容」）
+#    + 模板 guidelines + output_rules 渲染成的硬约束。范文作为额外的 assistant 示例消息。
+#    租户改不到基础提示那一段——JSON 契约被改坏会让整条生成链路失败，那不是租户该承担的。
+#
+# 5. **范文有长度上限**（单篇 2000 字、最多 3 篇），且计入 prompt 预算。
+#    不设限的话租户会贴一整个专栏进去，token 成本和超窗失败都由平台吃。
+#
+# 6. **存量数据一次性升级**：建一条「通用创作说明」模板（单个 textarea 字段），
+#    把已有 Content.brief 搬成它的单条 entry，然后删 brief 列。按仓库约定不做双读、不留兼容层。
+#
+# 7. **模板不做软删**：删模板时已引用它的 Content 保留 template_id（悬空即可）——
+#    brief_values 是自描述的，模板没了也读得懂。这正是第 2 条那个存储形状换来的。
+#
+# 8. **模板页不占侧栏**：/app/contents/templates 从列表页入口进。侧栏一个模块一项，
+#    为一个配置页多挂一条会把导航稀释掉。

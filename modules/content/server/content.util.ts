@@ -1,7 +1,6 @@
 import { isContentFormat, type ContentFormat } from "../shared/index.js";
 
 export const CONTENT_TITLE_MAX_LENGTH = 200;
-export const CONTENT_BRIEF_MAX_LENGTH = 8_000;
 export const CONTENT_BODY_MAX_LENGTH = 80_000;
 export const CONTENT_TEXT_ASSET_MAX_LENGTH = 20_000;
 export const CONTENT_ASSETS_MAX = 12;
@@ -25,7 +24,6 @@ export const CONTENT_VIDEO_MIME_TYPES = [
 
 export interface ContentInput {
   title?: string;
-  brief?: string;
   body?: string;
   format?: string;
 }
@@ -56,16 +54,6 @@ export function validateContentInput(
       return {
         code: "content.title_too_long",
         params: { max: CONTENT_TITLE_MAX_LENGTH },
-      };
-    }
-  }
-
-  if (!partial || input.brief !== undefined) {
-    const brief = input.brief?.trim() ?? "";
-    if (brief.length > CONTENT_BRIEF_MAX_LENGTH) {
-      return {
-        code: "content.brief_too_long",
-        params: { max: CONTENT_BRIEF_MAX_LENGTH },
       };
     }
   }

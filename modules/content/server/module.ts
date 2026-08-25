@@ -5,6 +5,7 @@ import {
 
 import { CONTENT_ENTITLEMENT } from "../shared/entitlements.js";
 
+import { contentTemplateRoutes } from "./content-template.routes.js";
 import { contentRoutes } from "./content.routes.js";
 import { failStaleGeneratingContents } from "./content.service.js";
 import { CONTENT_SERVER_I18N } from "./i18n.js";
@@ -29,7 +30,7 @@ export const contentServerModule: ServerAppModule = {
         key: "contents.write",
         label: "创建/编辑内容",
         group: "内容生成",
-        description: "创建、编辑、生成与删除内容",
+        description: "创建、编辑、生成与删除内容，以及定义创作模板",
       },
     ],
     auditActions: [
@@ -37,6 +38,9 @@ export const contentServerModule: ServerAppModule = {
       { action: "CONTENT_UPDATE", label: "更新内容" },
       { action: "CONTENT_DELETE", label: "删除内容" },
       { action: "CONTENT_GENERATE", label: "生成内容" },
+      { action: "CONTENT_TEMPLATE_CREATE", label: "创建创作模板" },
+      { action: "CONTENT_TEMPLATE_UPDATE", label: "更新创作模板" },
+      { action: "CONTENT_TEMPLATE_DELETE", label: "删除创作模板" },
     ],
   },
   server: {
@@ -44,6 +48,9 @@ export const contentServerModule: ServerAppModule = {
     registerRoutes: async (app) => {
       await registerTenantGatedRoutes(app, "contents", async (scoped) => {
         await scoped.register(contentRoutes, { prefix: "/api/contents" });
+        await scoped.register(contentTemplateRoutes, {
+          prefix: "/api/content-templates",
+        });
       });
     },
     onBoot: async (ctx) => {

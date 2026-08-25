@@ -41,6 +41,7 @@ type ModelPolicy =
 
 const MODEL_POLICIES: Record<string, ModelPolicy> = {
   ContentAsset: { kind: "tenant_id" },
+  ContentTemplate: { kind: "tenant_id" },
   Content: { kind: "tenant_id" },
   NewsletterDigestRun: { kind: "tenant_id" },
   NewsletterSubscription: { kind: "tenant_id" },

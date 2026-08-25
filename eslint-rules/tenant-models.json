@@ -57,5 +57,6 @@
   "newsletterSubscription": "tenant_id",
   "newsletterDigestRun": "tenant_id",
   "content": "tenant_id",
-  "contentAsset": "tenant_id"
+  "contentAsset": "tenant_id",
+  "contentTemplate": "tenant_id"
 }

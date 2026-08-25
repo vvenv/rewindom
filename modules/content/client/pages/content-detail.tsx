@@ -1,6 +1,5 @@
 import {
   ApiError,
-  FieldInfoTip,
   PageLayout,
   usePermissions,
 } from "@rewindom/module-sdk/client";
@@ -16,9 +15,12 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
 import { ContentAssetsEditor } from "../components/ContentAssetsEditor.js";
+import { ContentBriefFields } from "../components/ContentBriefFields.js";
 import { ContentFormatField } from "../components/ContentFormatField.js";
 import { ContentStatusBadge } from "../components/ContentStatusBadge.js";
+import { ContentTemplatePicker } from "../components/ContentTemplatePicker.js";
 import { useContentDetailPage } from "../hooks/useContentDetailPage.js";
+import { useContentTemplates } from "../hooks/useContentTemplates.js";
 import { displayContentTitle, translateContentError } from "../lib/contents.js";
 
 export function ContentDetail() {
@@ -26,6 +28,7 @@ export function ContentDetail() {
   const { hasPermission } = usePermissions();
   const canWrite = hasPermission("contents.write");
   const page = useContentDetailPage();
+  const templatesQuery = useContentTemplates();
 
   if (page.isLoading && !page.data) {
     return (
@@ -144,14 +147,29 @@ export function ContentDetail() {
           onSubmit={(event) => void page.handleSave(event)}
         >
           <FieldGroup>
-            <ContentFormatField
-              id="content-detail-format"
-              value={page.form.format}
+            <ContentTemplatePicker
+              id="content-detail-template"
+              templates={templatesQuery.data ?? []}
+              value={page.form.template_id}
               disabled={!canWrite || page.busy}
-              onChange={(format) =>
-                page.setForm((prev) => ({ ...prev, format }))
+              onChange={(templateId) =>
+                page.setForm((prev) => ({
+                  ...prev,
+                  template_id: templateId,
+                  values: {},
+                }))
               }
             />
+            {page.template ? null : (
+              <ContentFormatField
+                id="content-detail-format"
+                value={page.form.format}
+                disabled={!canWrite || page.busy}
+                onChange={(format) =>
+                  page.setForm((prev) => ({ ...prev, format }))
+                }
+              />
+            )}
             <Field>
               <FieldLabel htmlFor="content-detail-title">
                 {t("fieldTitle")}
@@ -168,27 +186,19 @@ export function ContentDetail() {
                 }
               />
             </Field>
-            <Field>
-              <FieldLabel
-                htmlFor="content-detail-brief"
-                className="flex items-center gap-1"
-              >
-                {t("fieldBrief")}
-                <FieldInfoTip text={t("fieldBriefTip")} />
-              </FieldLabel>
-              <Textarea
-                id="content-detail-brief"
-                className="min-h-32"
-                value={page.form.brief}
-                disabled={!canWrite || page.busy}
-                onChange={(event) =>
-                  page.setForm((prev) => ({
-                    ...prev,
-                    brief: event.target.value,
-                  }))
-                }
-              />
-            </Field>
+            <ContentBriefFields
+              idPrefix="content-detail-brief"
+              fields={page.fields}
+              values={page.form.values}
+              errors={page.fieldErrors}
+              disabled={!canWrite || page.busy}
+              onChange={(fieldId, value) =>
+                page.setForm((prev) => ({
+                  ...prev,
+                  values: { ...prev.values, [fieldId]: value },
+                }))
+              }
+            />
             <Field>
               <FieldLabel htmlFor="content-detail-body">
                 {t("fieldBody")}

@@ -13,6 +13,12 @@ const Contents = lazy(() =>
   })),
 );
 
+const ContentTemplates = lazy(() =>
+  import("../pages/content-templates.js").then((module) => ({
+    default: module.ContentTemplates,
+  })),
+);
+
 const ContentDetail = lazy(() =>
   import("../pages/content-detail.js").then((module) => ({
     default: module.ContentDetail,
@@ -29,6 +35,8 @@ export function renderContentsRoutes(): ReactNode {
     <Route element={<ContentModuleRoute />}>
       <Route element={<PermissionRoute permission="contents.read" />}>
         <Route path="/app/contents" element={<Contents />} />
+        {/* 静态段排在参数路由前面：`templates` 不能被当成一个 contentId */}
+        <Route path="/app/contents/templates" element={<ContentTemplates />} />
         <Route path="/app/contents/:contentId" element={<ContentDetail />} />
       </Route>
     </Route>

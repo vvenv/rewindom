@@ -83,7 +83,7 @@ describe("Content Routes 权限控制", () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/contents/",
-        payload: { brief: "t" },
+        payload: { brief_values: { brief: "t" } },
       });
       expect(response.statusCode).toBe(401);
     });
@@ -115,7 +115,7 @@ describe("Content Routes 权限控制", () => {
         method: "POST",
         url: "/api/contents/",
         headers: authHeaders(reader),
-        payload: { brief: "t" },
+        payload: { brief_values: { brief: "t" } },
       });
       expect(response.statusCode).toBe(403);
     });
@@ -145,7 +145,7 @@ describe("Content Routes 权限控制", () => {
         method: "POST",
         url: "/api/contents/",
         headers: authHeaders(systemAdmin),
-        payload: { brief: "t" },
+        payload: { brief_values: { brief: "t" } },
       });
       expect(response.statusCode).toBe(200);
     });

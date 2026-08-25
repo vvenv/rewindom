@@ -6,7 +6,12 @@ model Content {
   tenant_id     String
   title         String         @default("")
   body          String         @default("")
+  // 派生：由 brief_values 拼出的纯文本。真相源是 brief_values，这一列只为了
+  // 让列表页的关键词搜索有得可搜（jsonb 里 contains 搜不动），写入时永远重算。
   brief         String         @default("")
+  brief_values  Json           @default("[]")
+  // 模板删了也不清空：brief_values 是自描述的，模板没了那条填写记录照样读得懂。
+  template_id   String?
   format        String         @default("note")
   status        String         @default("draft")
   tags          String[]       @default([])
@@ -19,6 +24,31 @@ model Content {
 
   @@index([tenant_id])
   @@index([tenant_id, updated_at])
+}
+
+model ContentTemplate {
+  id           String   @id @default(uuid())
+  tenant_id    String
+  name         String
+  description  String   @default("")
+  format       String   @default("note")
+  // [{ id, label, type, required, placeholder, help, options }]
+  fields       Json
+  guidelines   String   @default("")
+  // { title_max, body_min, body_max, hashtag_min, hashtag_max, tone }
+  output_rules Json?
+  // [{ title, body }]，最多 3 条
+  samples      Json?
+  // 从哪个内置预设复制来的，仅作来源标记——不跟随预设更新。
+  preset_key   String?
+  sort_order   Int      @default(0)
+  created_by   String
+  updated_by   String?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  @@index([tenant_id])
+  @@index([tenant_id, sort_order])
 }
 
 model ContentAsset {

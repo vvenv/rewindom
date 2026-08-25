@@ -770,11 +770,13 @@ export type $AuditLogPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     action: string
     resource: string | null
     /**
-     * * detail_key 渲染出的 zh-CN 检索副本
+     * *
+     *    * detail_key 渲染出的 zh-CN 检索副本
      */
     details: string | null
     /**
-     * * 稳定模板 code，如 notes.audit.created；与 detail_params 成对
+     * *
+     *    * 稳定模板 code，如 notes.audit.created；与 detail_params 成对
      */
     detail_key: string | null
     detail_params: runtime.JsonValue | null

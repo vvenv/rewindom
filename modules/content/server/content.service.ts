@@ -6,6 +6,7 @@ import {
   resolveSortField,
   resolveSortOrder,
   withTenantScope,
+  type Prisma,
 } from "@rewindom/module-sdk/server";
 
 import { deleteStoredAssets } from "./content-asset.service.js";
@@ -17,11 +18,22 @@ import {
   validateContentInput,
 } from "./content.util.js";
 
-import type {
-  Content,
-  ContentFormat,
-  ContentListItem,
+import {
+  composeBriefText,
+  contentTemplatePresets,
+  normalizeBriefEntries,
+  normalizeOutputRules,
+  normalizeSamples,
+  normalizeTemplateFields,
+  validateBriefValues,
+  type Content,
+  type ContentFormat,
+  type ContentListItem,
+  type ContentTemplateField,
 } from "../shared/index.js";
+
+import type { AppLocale } from "@rewindom/module-sdk";
+import type { GenerateContentTemplate } from "./content-generate.service.js";
 
 export interface ListContentsParams {
   tenant_id: string;
@@ -97,6 +109,64 @@ function buildContentListWhere(
   });
 }
 
+/**
+ * 没选模板时的兜底字段表 = 「通用创作说明」预设的那一个多行框。
+ *
+ * 让「无模板」也走同一条校验与存储路径：不然模块在租户建出第一个模板之前
+ * 就得有第二套写法，而那套写法迟早会和模板这条漂开。
+ */
+function fallbackFields(locale: AppLocale): ContentTemplateField[] {
+  const preset = contentTemplatePresets(locale).find(
+    (item) => item.key === "general",
+  );
+  return preset?.fields ?? [];
+}
+
+/**
+ * 按模板验收一次填写，返回落库要写的三样。
+ *
+ * 服务端只做「拦得住」这一层：逐字段的错误提示由前端按同一份 `validateBriefValues`
+ * 渲染，这里报第一条就够——绕过表单构造请求的人不需要漂亮的表单反馈。
+ */
+async function resolveBrief(params: {
+  tenant_id: string;
+  locale: AppLocale;
+  template_id?: string | null;
+  brief_values?: Record<string, string>;
+}): Promise<{
+  template_id: string | null;
+  brief_values: Prisma.InputJsonValue;
+  brief: string;
+}> {
+  let fields = fallbackFields(params.locale);
+  let template_id: string | null = null;
+
+  if (params.template_id) {
+    const template = await prisma.contentTemplate.findFirst({
+      where: withTenantScope(params.tenant_id, { id: params.template_id }),
+      select: { id: true, fields: true },
+    });
+    if (!template) {
+      throw new NotFoundError("content.template.not_found");
+    }
+    fields = normalizeTemplateFields(template.fields);
+    template_id = template.id;
+  }
+
+  const result = validateBriefValues(fields, params.brief_values ?? {});
+  if (!result.ok) {
+    const [fieldId, code] = Object.entries(result.errors)[0]!;
+    const field = fields.find((item) => item.id === fieldId);
+    throw new ValidationError(code, { field: field?.label ?? fieldId });
+  }
+
+  return {
+    template_id,
+    brief_values: result.entries as unknown as Prisma.InputJsonValue,
+    brief: composeBriefText(result.entries),
+  };
+}
+
 function throwIfInvalid(issue: ReturnType<typeof validateContentInput>): void {
   if (issue) {
     throw new ValidationError(issue.code, issue.params);
@@ -155,27 +225,31 @@ export async function getContent(
 export async function createContent(params: {
   tenant_id: string;
   user_id: string;
+  locale: AppLocale;
   title?: string;
-  brief?: string;
   body?: string;
   format?: string;
+  template_id?: string | null;
+  brief_values?: Record<string, string>;
 }): Promise<Content> {
   throwIfInvalid(
     validateContentInput({
       title: params.title,
-      brief: params.brief,
       body: params.body,
       format: params.format,
     }),
   );
   const format = parseContentFormat(params.format) ?? "note";
+  const brief = await resolveBrief(params);
 
   const record = await prisma.content.create({
     data: {
       tenant_id: params.tenant_id,
       title: params.title?.trim() ?? "",
-      brief: params.brief?.trim() ?? "",
       body: params.body?.trim() ?? "",
+      template_id: brief.template_id,
+      brief: brief.brief,
+      brief_values: brief.brief_values,
       format,
       created_by: params.user_id,
     },
@@ -188,17 +262,18 @@ export async function createContent(params: {
 export async function updateContent(params: {
   tenant_id: string;
   user_id: string;
+  locale: AppLocale;
   content_id: string;
   title?: string;
-  brief?: string;
   body?: string;
   format?: string;
+  template_id?: string | null;
+  brief_values?: Record<string, string>;
 }): Promise<Content> {
   throwIfInvalid(
     validateContentInput(
       {
         title: params.title,
-        brief: params.brief,
         body: params.body,
         format: params.format,
       },
@@ -222,13 +297,30 @@ export async function updateContent(params: {
       ? undefined
       : (parseContentFormat(params.format) ?? undefined);
 
+  // 填写整体重算：模板可能换了，逐字段 patch 会留下上一个模板的孤儿 entry
+  const brief =
+    params.brief_values === undefined
+      ? null
+      : await resolveBrief({
+          tenant_id: params.tenant_id,
+          locale: params.locale,
+          template_id: params.template_id,
+          brief_values: params.brief_values,
+        });
+
   await prisma.content.update({
     where: withTenantScope(params.tenant_id, { id: params.content_id }),
     data: {
       ...(params.title !== undefined ? { title: params.title.trim() } : {}),
-      ...(params.brief !== undefined ? { brief: params.brief.trim() } : {}),
       ...(params.body !== undefined ? { body: params.body.trim() } : {}),
       ...(format !== undefined ? { format } : {}),
+      ...(brief
+        ? {
+            template_id: brief.template_id,
+            brief: brief.brief,
+            brief_values: brief.brief_values,
+          }
+        : {}),
       updated_by: params.user_id,
     },
   });
@@ -312,7 +404,11 @@ async function runContentGeneration(params: {
 
     const generated = await generateContentFromSources(params.tenant_id, {
       format: record.format === "article" ? "article" : "note",
-      brief: record.brief,
+      entries: normalizeBriefEntries(record.brief_values),
+      template: await loadGenerateTemplate(
+        params.tenant_id,
+        record.template_id,
+      ),
       assets: record.assets.map((asset) => ({
         kind:
           asset.kind === "image" ||
@@ -357,6 +453,29 @@ async function runContentGeneration(params: {
       data: { status: "failed", error_message: code },
     });
   }
+}
+
+/**
+ * 生成时**现取一次模板**，不用创建时的快照。
+ *
+ * 模板改了之后重新生成就该按新规矩来——那正是「定 SOP」的意义。填写记录用快照
+ * （`brief_values`），规矩用现值，两者的取舍方向刚好相反。
+ */
+async function loadGenerateTemplate(
+  tenant_id: string,
+  template_id: string | null,
+): Promise<GenerateContentTemplate | null> {
+  if (!template_id) return null;
+  const template = await prisma.contentTemplate.findFirst({
+    where: withTenantScope(tenant_id, { id: template_id }),
+    select: { guidelines: true, output_rules: true, samples: true },
+  });
+  if (!template) return null;
+  return {
+    guidelines: template.guidelines,
+    output_rules: normalizeOutputRules(template.output_rules),
+    samples: normalizeSamples(template.samples),
+  };
 }
 
 export async function failStaleGeneratingContents(): Promise<number> {

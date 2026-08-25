@@ -37,7 +37,7 @@ permissions:
       key: contents.write,
       label: 创建/编辑内容,
       group: 内容生成,
-      description: 创建、编辑、生成与删除内容,
+      description: 创建、编辑、生成与删除内容，以及定义创作模板,
     }
 
 # ---------- 必填 · 数据模型 ----------
@@ -53,6 +53,7 @@ models:
           default: "",
           multiline: true,
         }
+      # 派生列：由 brief_values 重算，只供列表关键词搜索
       - {
           name: brief,
           type: String,
@@ -60,6 +61,8 @@ models:
           default: "",
           multiline: true,
         }
+      - { name: brief_values, type: Json, required: true, default: "[]" }
+      - { name: template_id, type: String, required: false }
       - { name: format, type: String, required: true, default: "note" }
       - { name: status, type: String, required: true, default: "draft" }
       - { name: error_message, type: String, required: false }
@@ -68,6 +71,24 @@ models:
     indexes:
       - [tenant_id]
       - [tenant_id, updated_at]
+  # 创作模板（SOP）：字段表 + 写作规则 + 输出约束 + 范文
+  # 见 features/creation-template.spec.yaml
+  - name: ContentTemplate
+    fields:
+      - { name: name, type: String, required: true }
+      - { name: description, type: String, required: false, default: "" }
+      - { name: format, type: String, required: true, default: "note" }
+      - { name: fields, type: Json, required: true }
+      - { name: guidelines, type: String, required: false, default: "" }
+      - { name: output_rules, type: Json, required: false }
+      - { name: samples, type: Json, required: false }
+      - { name: preset_key, type: String, required: false }
+      - { name: sort_order, type: Int, required: true, default: 0 }
+      - { name: created_by, type: String, required: true }
+      - { name: updated_by, type: String, required: false }
+    indexes:
+      - [tenant_id]
+      - [tenant_id, sort_order]
   - name: ContentAsset
     fields:
       - { name: content_id, type: String, required: true }
@@ -84,6 +105,7 @@ api:
   prefix: /api/contents
   operations: [list, detail, create, update, delete, generate, assets]
 
+  # 模板另挂 /api/content-templates（含 GET /presets），复用 contents.* 权限
   list:
     search_fields: [title, brief, body]
     sort_whitelist: [title, updated_at, created_at, status, format]
@@ -100,7 +122,10 @@ client:
     icon: PenLine
   page:
     layout: list-filter-table
-    form_fields: [title, brief, body]
+    # 创作说明不再是固定字段：按所选模板的字段表动态渲染
+    form_fields: [title, body]
+  extra_routes:
+    - /app/contents/templates # 模板管理，从列表页入口进，不占侧栏
 
 # ---------- 可选 ----------
 audit:
