@@ -224,7 +224,7 @@ function timelineHtml(
             entry.role === "conflict" ? " events-timeline-role-conflict" : ""
           }">${escapeHtml(entry.role_label)}</span>`
         : "";
-      const icon = sourceIconImgHtml(entry.icon_url);
+      const icon = sourceIconImgHtml(entry.icon_url, entry.source_name);
       const source = entry.url
         ? `<a class="events-timeline-source" href="${escapeHtml(
             entry.url,
@@ -289,6 +289,7 @@ function sourcesHtml(event: PublicEventDetailView, label: string): string {
                 item.title,
               )}</a><span class="events-source-meta"><span class="events-source-name" translate="no">${sourceIconImgHtml(
                 item.icon_url,
+                item.source_name,
               )}${escapeHtml(
                 item.source_name,
               )}</span><time class="events-source-time" datetime="${escapeHtml(

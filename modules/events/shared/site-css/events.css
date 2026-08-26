@@ -303,7 +303,29 @@
  * 网格轨道（`minmax(260px, 1fr)`）因此不会被一串 hash 撑宽，把同排的卡一起挤变形。
  * 正常的词照旧按词断，只有断不开的时候才从中间切。
  */
+/*
+ * 标题封顶三行。
+ *
+ * 网格是 stretch，同排卡高由最长的那张决定；`margin-top:auto` 把来源行沉到卡底
+ * 之后，剩下的高度差全部变成标题与来源之间的**空洞**。
+ *
+ * 线上同一页 15 张卡上前后各量一次（yestino.com 首页，1512px）：最高的卡
+ * 258 → 234px，空洞平均 50 → 44px、最大 124 → 100px，整页卡片总高 3408 → 3261px。
+ * 收得**不多**——空洞的大头是同排最长的那张标题，三行以内的卡一个字都不动。
+ * 封顶管的是上界：四行、五行的标题不再把整排卡一起撑高。
+ * 真要把空洞清零得让卡片不等高（`align-items:start`），那会丢掉一排卡的共同
+ * 下边线，是 card-affordance §3 明确定过的取舍，不在这次范围里。
+ *
+ * `overflow-wrap: anywhere` 必须留着（长 token 那条）：line-clamp 的
+ * `overflow:hidden` 不参与 min-content 计算，去掉它，一串 hash 照样会把网格轨道
+ * 撑宽、把同排的卡一起挤变形。
+ */
 .events-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
   font-weight: 600;
   line-height: 1.35;
   overflow-wrap: anywhere;
@@ -404,6 +426,15 @@
 }
 
 /*
+ * 封顶之后剩下的家数。读起来要比列出来的名字轻一档——它是个计数，不是第四个来源，
+ * 所以不给图标槽、不给边框。
+ */
+.events-source-more {
+  color: var(--muted-fg);
+  font-variant-numeric: tabular-nums;
+}
+
+/*
  * 卡底的时间。推到行尾（`margin-left:auto`），跟来源之间自然拉开——
  * 来源说「谁在报」，时间说「多新」，是两件事，不该挨在一起像第四个来源。
  * 折行时 auto 失效退回正常流，不会在窄卡上留一条诡异的空隙。
@@ -416,13 +447,17 @@
   white-space: nowrap;
 }
 
+/*
+ * 图标槽从 12px 抬到 14px：占位换成首字母之后，12px 上一个字母塞不下。
+ * 仍在 source-icon-coverage 说的 12–16px 那一档里，来源行高度不变。
+ */
 .events-source-icon-slot {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 0.75rem;
-  height: 0.75rem;
+  width: 0.875rem;
+  height: 0.875rem;
   flex: none;
   overflow: hidden;
   border-radius: 2px;
@@ -435,6 +470,25 @@
   display: block;
   width: 100%;
   height: 100%;
+}
+
+/*
+ * 取不到 favicon 时的占位：出版方首字母。
+ *
+ * 原来是一枚 Lucide Globe——12px 上它是一团灰糊，一排来源扫过去读不出任何东西，
+ * 而且它和「取到了一张空图」长得一模一样（PMC 六家的全零 ICO，现在在服务端就被
+ * 判成没取到了）。底色只用 --fg 兑一层淡的，**不按名字抖色相**：一排随机色块
+ * 不携带信息，那是程序化题图被删掉的同一个理由。
+ */
+.events-source-icon-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0;
+  background: color-mix(in srgb, var(--fg) 8%, transparent);
 }
 
 .events-source-icon-slot:has(.events-source-icon) .events-source-icon-fallback {

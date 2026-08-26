@@ -55,6 +55,7 @@ function itemHtml(item: PublicSourceCatalogItem): string {
     item.href,
   )}" rel="noreferrer noopener" target="_blank" translate="no">${sourceIconImgHtml(
     item.icon_url,
+    item.name,
   )}${escapeHtml(item.name)}</a><span class="events-source-catalog-kind">${escapeHtml(
     item.kind_label,
   )}</span></li>`;

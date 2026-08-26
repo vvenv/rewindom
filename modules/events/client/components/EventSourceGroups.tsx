@@ -61,6 +61,7 @@ export function EventSourceGroups({
                       <span className="inline-flex items-center gap-1">
                         <SourceIcon
                           url={source.icon_url}
+                          name={source.source_name}
                           className="size-3.5"
                         />
                         <Badge variant="outline">{source.source_name}</Badge>

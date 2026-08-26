@@ -1,40 +1,22 @@
 /**
  * 采集源 favicon。地址是本站 `/events/icons/{host}`。
- * 没有地址或取图失败时用 globe fallback 占位，不把图标摘掉。
+ * 没有地址或取图失败时用出版方**首字母**占位，不把图标摘掉——
+ * 有的有标有的空一截比都没有更差。
  * alt 留空：名字写在旁边，图标是装饰。
  */
 
 import { useState, type ReactElement } from "react";
 
-function SourceIconFallback({
-  className,
-}: {
-  className?: string;
-}): ReactElement {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className={className}
-    >
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 2a14.5 14.5 0 0 1 0 20 14.5 14.5 0 0 1 0-20" />
-      <path d="M2 12h20" />
-    </svg>
-  );
-}
+import { sourceMonogram } from "../../shared/index.js";
 
 export function SourceIcon({
   url,
+  name,
   className = "size-4",
 }: {
   url: string | null | undefined;
+  /** 占位要画的首字母从这里来。与公开面 `sourceIconImgHtml` 同一份规则 */
+  name: string;
   className?: string;
 }): ReactElement {
   const [broken, setBroken] = useState<string | null>(null);
@@ -59,7 +41,9 @@ export function SourceIcon({
           }}
         />
       ) : (
-        <SourceIconFallback className="size-full" />
+        <span className="bg-foreground/8 flex size-full items-center justify-center text-[0.5625rem] leading-none font-semibold">
+          {sourceMonogram(name)}
+        </span>
       )}
     </span>
   );

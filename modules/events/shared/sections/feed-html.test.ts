@@ -426,7 +426,7 @@ describe("renderEventsFeedHtml", () => {
     expect(html).not.toContain("google.com/s2");
   });
 
-  it("没有 icon URL 时仍画 fallback 占位", () => {
+  it("没有 icon URL 时仍画首字母占位", () => {
     const html = renderCards([
       card("a", {
         source_names: ["OpenAI"],
@@ -434,8 +434,43 @@ describe("renderEventsFeedHtml", () => {
       }),
     ]);
     expect(html).toContain("events-source-icon-slot");
-    expect(html).toContain("events-source-icon-fallback");
+    expect(html).toContain(
+      '<span class="events-source-icon-fallback">O</span>',
+    );
     expect(html).not.toContain("<img");
+  });
+
+  it("来源封顶三家，其余收成 +N——列九家会把标题压成次要信息", () => {
+    const html = renderCards([
+      card("a", {
+        source_names: [
+          "Variety",
+          "The Hollywood Reporter",
+          "Screen Rant",
+          "Hacker News",
+          "IGN",
+          "Polygon",
+        ],
+        source_icon_urls: [],
+      }),
+    ]);
+    expect(html).toContain("Variety");
+    expect(html).toContain("Screen Rant");
+    expect(html).not.toContain("Polygon");
+    expect(html).toContain('<span class="events-source-more">+3</span>');
+    expect(html.match(/events-source-icon-slot/g)?.length).toBe(3);
+  });
+
+  it("时间仍挂在来源行末尾，+N 排在它前面", () => {
+    const html = renderCards([
+      card("a", {
+        source_names: ["A", "B", "C", "D"],
+        source_icon_urls: [],
+      }),
+    ]);
+    expect(html.indexOf("events-source-more")).toBeLessThan(
+      html.indexOf("events-card-time"),
+    );
   });
 });
 

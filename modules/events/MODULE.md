@@ -58,7 +58,7 @@ LLM key 时唯一的译文来源。译文一旦入库就代表了这个事件，
 | 面 | 靠什么 | 没有时 |
 | --- | --- | --- |
 | 首页 / 专题页 | 租户在中台传的真图（`events.hero` 的 `image`，媒体库） | 不画，markup 与加这个设置之前逐字节相同 |
-| 实体页 | 该实体作为出版方的那条采集源的 favicon（`publisher_entity_name` → `/events/icons/:host`） | 不画，也**不退回地球图标**——名片上只有一张图，画个地球等于说「这个实体长这样」 |
+| 实体页 | 该实体作为出版方的那条采集源的 favicon（`publisher_entity_name` → `/events/icons/:host`） | 不画，也**不退回占位**——名片上只有一张图，给它画一枚首字母方块等于说「这个实体长这样」 |
 | 事件卡片 | 主题色画成卡顶一条 3px 的线，**不是图** | 不存在：主题认不出来时回落 tech，缺一条线会让那张卡看起来是坏的 |
 | 事件详情页 | 排版题头（主题色作底 + 左竖线，主角是标题排版）**加一张原文插图** | 没有可署名的图时只有题头 |
 
@@ -313,6 +313,56 @@ path handler，由 `renderEventsTemplatePage` 补上，否则页头会退回七�
 同属「这条材料的出处与新旧」，而且薄卡（单来源、无 meta）因此终于有了第二个可读信息。
 读者看「3 小时前」，爬虫读 `<time datetime>` 里的绝对时刻——与首屏「最近更新」
 共用 `site.relative.*`（所以那组 key 从 `site.hero.updated.*` 提了上来）。
+
+#### 卡片的主体是标题，来源行封顶三家
+
+线上量的（yestino.com 首页，1512px）：一张 Dolly Parton 的卡列了 **9 家来源、占三行
+灰图标**，视觉重量压过标题本身——而从第四个名字起，读者读到的已经不是「谁在报」。
+工作台那张 React 卡片一直是 3 家 + `+N`，公开这份却全量渲染：同一个产品两套口径。
+
+`sourcesLineHtml` 收一个 `limit`，卡片传 `CARD_SOURCE_LIMIT`（3），详情页与来源列表
+**不传**——那两处是清单，要列全。`+N` 是数字不是句子，不进 i18n。
+
+封顶管的是**上界，不是行数**：名字长起来（`The Hollywood Reporter`）三家照样折两行，
+量过的那一页 15 张卡里折行的仍是 6 张，前后没变。值钱的是九家那种卡不再出现。
+
+标题跟着封 3 行（`-webkit-line-clamp`）。网格是 stretch，同排卡高由最长的那张决定，
+`margin-top:auto` 把来源沉到卡底之后，剩下的高度差全部变成标题与来源之间的**空洞**。
+同一页前后各量一次：最高的卡 258 → 234px，空洞平均 50 → 44px、最大 124 → 100px，
+整页卡片总高 3408 → 3261px。**收得不多，如实记在这里**——空洞的大头是同排最长的
+那张标题，三行以内的卡一个字都不动。要把空洞清零得让卡片不等高
+（`align-items:start`），那会丢掉一排卡的共同下边线，是上面那条明确定过的取舍。
+
+`overflow-wrap: anywhere` 必须留着：line-clamp 的 `overflow:hidden` 不参与 min-content
+计算，去掉它，一串 hash 照样会把网格轨道撑宽。
+
+#### 来源图标：空图当作没取到，占位是首字母
+
+PMC 六家（Variety / The Hollywood Reporter / Deadline / Rolling Stone / Billboard /
+Consequence）的 `/favicon.ico` 是**同一个 198 字节的桩**：16×16、1bpp，XOR 位图整片
+同一个调色板索引、AND 掩码整片透明——屏幕上什么都画不出来。但它是一张合法的光栅图，
+`sniffImageType` 认，浏览器也「加载成功」，于是 `:has(.events-source-icon)` 把占位藏掉，
+卡片上就是一块空槽：**比没有图标更像坏了**。首页 17 家出版方里占 6 家。
+
+更要紧的是它把真图挡住了：这几家的 HTML 里都挂着 `<link rel="icon">`（variety 的
+`favicon.png`、deadline 的 `icon-32x32.png`、consequence 的 `favicon-32x32.png`），
+只要 `/favicon.ico` 返回 200，取图流程就永远走不到那一步。
+
+`icoDrawsNothing` 判成「没取到」，后面的 HTML 那一步自己会接上。判据是结构性的、
+不认字节数：**每一格**都是调色板 BMP（色深 ≤ 8、非压缩），且 XOR 位图与 AND 掩码
+**各自单一取值**。三条容易踩的：
+
+- 逐行比、跳过 4 字节对齐的填充。16 宽的 1bpp 每行只有 2 个字节有意义，后两个恒为 0，
+  整段拉平比会永远判不出「单一取值」。
+- 色深 > 8 不判：32bpp 的 ICO 常年把 AND 掩码写死成全透明，形状在 alpha 通道里。
+- XOR 或掩码只判一边不够：老式单色图会把形状全画在掩码上。
+
+取不到图时的占位从 Lucide Globe 换成**出版方首字母**（`sourceMonogram`，公开面与
+工作台同一份）。12px 上一个地球是一团灰糊，一排扫过去读不出任何东西，而且它和上面
+那张空图在屏幕上长得一模一样；首字母是这家出版方自己的信息，占的宽度一模一样。
+跳过前导 `The `（`The Athletic` 和 `The Verge` 都画 T 等于没画），按码点取首字，
+槽位 12px → 14px（否则字母塞不下）。底色只用 `--fg` 兑一层淡的，**不按名字抖色相**——
+一排随机色块不携带信息，那是程序化题图被删掉的同一个理由。
 
 #### 强调色的笔画走 `--accent-text`，不走 `--accent`
 
@@ -1594,7 +1644,8 @@ Yahoo Finance / Yahoo Sports、WSJ Tech / MarketWatch、NYT World / The Athletic
 来源名旁边的 favicon 是本站 `/events/icons/{host}`：访客不打 Google（那个地址不是全球可达），
 由服务端用采集那条 HTTP 出口去源站拉图并缓存。host 从采集源 URL + connector 推（HN 永远是
 `news.ycombinator.com`，不拿文章域名；GitHub releases 映到项目域名），只代理本站源列表里的
-host，不落库。推不出 host 或取图失败时用 globe fallback 占位，不把图标摘掉。
+host，不落库。推不出 host 或取图失败时用**出版方首字母**占位，不把图标摘掉
+（见「来源图标：空图当作没取到，占位是首字母」）。
 至少留一格。源仍可增删改（名称、地址、类型、默认主题）。
 
 > 目录里每个 URL 都实际请求验证过，口径是 **HTTP 2xx + 用本模块的 `parseFeed`

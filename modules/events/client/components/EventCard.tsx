@@ -70,6 +70,7 @@ export function EventCard({ event }: { event: EventListItem }) {
                 >
                   <SourceIcon
                     url={event.source_icon_urls[index]}
+                    name={name}
                     className="size-3.5"
                   />
                   {name}

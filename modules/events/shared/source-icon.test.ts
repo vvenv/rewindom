@@ -6,7 +6,7 @@ import {
   isIconHost,
   resolveSourceIconUrl,
   sourceIconApiUrl,
-  sourceIconFallbackSvg,
+  sourceMonogram,
   sourceIconHost,
   sourceIconUrl,
   sourceIconUrlFromHost,
@@ -219,12 +219,27 @@ describe("resolveSourceIconUrl", () => {
   });
 });
 
-describe("sourceIconFallbackSvg", () => {
-  it("是本站 globe，不引用外链", () => {
-    const svg = sourceIconFallbackSvg();
-    expect(svg).toContain('viewBox="0 0 24 24"');
-    expect(svg).toContain("events-source-icon-fallback");
-    expect(svg).not.toContain("https://");
-    expect(svg).not.toContain("google.com");
+describe("sourceMonogram", () => {
+  it("取名字首字母并大写", () => {
+    expect(sourceMonogram("Variety")).toBe("V");
+    expect(sourceMonogram("ign")).toBe("I");
+  });
+
+  it("跳过前导 The——不然 The Athletic 和 The Verge 都画 T", () => {
+    expect(sourceMonogram("The Hollywood Reporter")).toBe("H");
+    expect(sourceMonogram("the athletic")).toBe("A");
+  });
+
+  it("Theranos 这种以 the 开头的一个词不剥", () => {
+    expect(sourceMonogram("TheWrap")).toBe("T");
+  });
+
+  it("按码点取，CJK / emoji 不会被切成半个", () => {
+    expect(sourceMonogram("少数派")).toBe("少");
+    expect(sourceMonogram("𝕏 Blog")).toBe("𝕏");
+  });
+
+  it("空名字给空串，渲染侧照样占位", () => {
+    expect(sourceMonogram("   ")).toBe("");
   });
 });

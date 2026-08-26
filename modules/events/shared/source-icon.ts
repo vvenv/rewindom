@@ -5,7 +5,7 @@
  * 拿它当 favicon 会在「Hacker News」旁边画出被链站点的标。
  *
  * 取图地址是本站 `/events/icons/{host}`：访客不打 Google，由服务端去源站拉。
- * 推不出 host 或取图失败时用 globe fallback 占位。
+ * 推不出 host 或取图失败时用出版方首字母占位（`sourceMonogram`）。
  */
 
 const FEED_HOST_PREFIXES = new Set([
@@ -76,16 +76,23 @@ const BLOCKED_ICON_TLDS = new Set([
 ]);
 
 /**
- * 取不到发行人 favicon 时用。Lucide Globe，跟着前景色走。
- * 公开面 HTML 与工作台 React 同一份 path，避免两套图形漂。
+ * 取不到发行人 favicon 时的占位：这家出版方名字的**首字母**。
+ *
+ * 原来是一枚 Lucide Globe。删了：槽位只有 12–14px，一个地球在这个尺寸上是一团
+ * 灰糊，一排来源扫过去读不出任何东西——而且它和「取到了一张空图」在屏幕上长得
+ * 一模一样（PMC 那六家的 `/favicon.ico` 就是一张 16×16 全透明的 1bpp ICO，
+ * 见 `server/ssr/source-icon.ts` 的 `icoDrawsNothing`）。
+ * 首字母是这家出版方**自己的**信息，占的宽度一模一样。
+ *
+ * 跳过前导 `The `：`The Hollywood Reporter` 和 `The Athletic` 都画 T 等于没画。
+ * 用 `Array.from` 取码点而不是 `name[0]`——UTF-16 会把 CJK 之外的字符切成半个。
  */
-export const SOURCE_ICON_FALLBACK_INNER =
-  '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 1 0 20 14.5 14.5 0 0 1 0-20"/><path d="M2 12h20"/>';
+const LEADING_ARTICLE_RE = /^the\s+/iu;
 
-export function sourceIconFallbackSvg(
-  className = "events-source-icon-fallback",
-): string {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="${className}">${SOURCE_ICON_FALLBACK_INNER}</svg>`;
+export function sourceMonogram(name: string): string {
+  const trimmed = name.trim().replace(LEADING_ARTICLE_RE, "");
+  const [first] = Array.from(trimmed);
+  return (first ?? "").toLocaleUpperCase();
 }
 
 /**

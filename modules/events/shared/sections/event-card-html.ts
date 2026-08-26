@@ -10,7 +10,7 @@ import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
 import { siteHref } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
 import { topicAccentStyle } from "../event-accent.js";
-import { sourcesLineHtml } from "../source-icon-html.js";
+import { CARD_SOURCE_LIMIT, sourcesLineHtml } from "../source-icon-html.js";
 
 import type { PublicEventCard } from "../events-section-context.js";
 import type { SectionHtmlRenderer } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
@@ -61,9 +61,21 @@ export function eventCardHtml(
 }
 
 function footHtml(card: PublicEventCard, showSources: boolean): string {
+  /*
+   * 来源封顶三家，其余收成 `+N`。全量渲染时一张卡能列九家、占三行灰图标——
+   * 从第四个名字起读者读到的不再是「谁在报」，而卡片的主体本该是标题。
+   * 工作台那张 React 卡片一直是这个数，这里补上：一个产品不该有两套口径。
+   *
+   * 封顶**不**保证来源行只占一行——名字长起来（`The Hollywood Reporter`）
+   * 三家照样折行。它管的是上界，不是行数。
+   */
   const sources =
     showSources && card.source_names.length > 0
-      ? sourcesLineHtml(card.source_names, card.source_icon_urls)
+      ? sourcesLineHtml(
+          card.source_names,
+          card.source_icon_urls,
+          CARD_SOURCE_LIMIT,
+        )
       : "";
   if (!card.last_activity_label) {
     return sources;

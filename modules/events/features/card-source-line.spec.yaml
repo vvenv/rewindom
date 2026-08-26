@@ -1,0 +1,119 @@
+# 卡片的来源行喧宾夺主，而且有一半图标是空的。
+#
+# 线上实测（yestino.com 首页，1512px，15 张卡）：
+#
+# 1. **六家出版方的 favicon 是一张全空的图**。`/events/icons/{host}` 给
+#    variety / hollywoodreporter / deadline / rollingstone / billboard /
+#    consequence 返回的是同一个 198 字节的 ICO：16×16、1bpp，XOR 位图整片同一个
+#    调色板索引、AND 掩码整片透明——屏幕上什么都画不出来。
+#    它**加载成功**，于是 `:has(.events-source-icon)` 把 fallback 藏掉，
+#    卡片上就是一排空灰方块——比没有图标更像坏了。
+#    这几家的 HTML 里其实**有**真图（variety 的 favicon.png、deadline 的
+#    icon-32x32.png、consequence 的 favicon-32x32.png），只是 `/favicon.ico`
+#    先返回了 200，取图流程再也走不到 `<link rel=icon>` 那一步。
+#
+# 2. **公开卡片的来源行没有上限**。工作台那张 React 卡片截到 3 家 + `+N`，
+#    SSR 这份全量渲染：一张 Dolly Parton 的卡列了 9 家、占三行，
+#    视觉重量压过标题本身。同一个产品两套口径。
+#
+# 3. **标题与来源之间还有空洞**。`margin-top:auto`（card-affordance）解决的是
+#    「内容全部顶对齐」，剩下的方差来自标题行数：同排卡高恒为 258px，
+#    标题 2 行的卡 gap 84px、4 行的 gap 8px，15 张平均 39px。
+#
+# 4. **12px 的 globe fallback 不携带信息**。一团灰糊，和上面那张空图看不出区别；
+#    而首字母是这家出版方**自己的**信息，同样零宽度成本。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr, tenant]
+goal: 公开事件卡片重新以标题为主体——来源行封顶 3 家 + `+N`（与工作台同口径）、标题封顶 3 行收敛卡高方差；取图端拒收「全空 ICO」让真图能被取到，取不到时的占位从 globe 换成出版方首字母。
+gold: modules/events/shared/sections/event-card-html.ts
+touch:
+  - modules/events/features/card-source-line.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/source-icon.ts
+  - modules/events/shared/source-icon.test.ts
+  - modules/events/shared/source-icon-html.ts
+  - modules/events/shared/source-icon-html.test.ts
+  - modules/events/shared/sections/event-card-html.ts
+  - modules/events/shared/sections/feed-html.test.ts
+  - modules/events/shared/sections/entity-html.test.ts
+  - modules/events/shared/sections/detail-html.ts
+  - modules/events/shared/sections/detail-html.test.ts
+  - modules/events/shared/sections/sources-html.ts
+  - modules/events/shared/sections/sources-html.test.ts
+  - modules/events/shared/site-css/events.css
+  - modules/events/shared/site-css.generated.ts
+  - modules/events/server/ssr/source-icon.ts
+  - modules/events/server/ssr/source-icon.test.ts
+  - modules/events/client/components/SourceIcon.tsx
+  - modules/events/client/components/EventCard.tsx
+  # 首字母占位要名字：SourceIcon 的 `name` 是必填 prop，四个调用点一起改
+  - modules/events/client/components/EventFeedList.tsx
+  - modules/events/client/components/EventSourceGroups.tsx
+  - modules/events/client/components/EventTimeline.tsx
+out_of_scope:
+  - 卡片厚薄两档的判定口径（见 MODULE.md「列表卡片是厚薄两档」）
+  - 证据角标 / 事实 chips / 势头角标的文案与优先级
+  - 「N 家在跟进」与来源行列出的家数重复（同一个数字仍会说两遍，另立 spec）
+  - 网格 `align-items`（卡片仍等高、来源行仍沉底，见 card-affordance §3）
+  - 把 favicon 落盘或进对象存储；Google s2 / 任何第三方图标 CDN
+  - 代理源站 SVG
+  - 详情页与来源列表的来源行（那里是清单，不是卡片，不封顶）
+  - 新模型字段 / migration
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/source-icon.test.ts shared/source-icon-html.test.ts server/ssr/source-icon.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run shared/sections/feed-html.test.ts shared/sections/entity-html.test.ts shared/sections/detail-html.test.ts shared/sections/sources-html.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - pnpm --filter @rewindom/builtin assemble:module-css 后 generated 与 .css 一致
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. **空 ICO 当作没取到**，不是当作取到了一张空图。
+#    判据是结构性的、不认字节数（`icoDrawsNothing`）：**每一格**都是调色板 BMP
+#    （色深 ≤ 8、非压缩），且 XOR 位图与 AND 掩码**各自单一取值**——
+#    整片同色 + 整片同透明度 = 这张图上画不出任何形状。
+#    逐行比、跳过 4 字节对齐的填充：16 宽的 1bpp 每行只有 2 个字节有意义，
+#    后两个恒为 0，整段拉平比会永远判不出「单一取值」。
+#    色深 > 8 不判：32bpp 的 ICO 常年把 AND 掩码写死成全透明，形状在 alpha 里。
+#    只判 XOR **或** 掩码任一片单一取值都不够——老式单色图会把形状全画在掩码上。
+#    命中就当 `/favicon.ico` 不存在，继续走 HTML 的 `<link rel=icon>`——
+#    variety / deadline / consequence 的真图就在那儿。
+#    只判 ICO：PNG / WebP 的「空图」要解码才知道，成本不值当，而且没见过。
+#
+# 2. **占位从 globe 换成首字母**。12px 的地球是一团糊，一排下来读不出任何东西；
+#    首字母是这家出版方自己的信息。取名字第一个字（跳过前导 `The `），
+#    `Array.from` 取码点（CJK / emoji 不会被切一半），大写。
+#    槽位从 12px 抬到 14px（coverage spec 说的是 12–16px 那一档），
+#    否则字母塞不下。仍然**始终占位**：有的有标有的空一截比都没有更差。
+#    实体名片仍然不画占位（MODULE.md「配图」那张表不动）——那里只有一张图，
+#    画个字母等于说「这个实体长这样」。
+#
+# 3. **来源行封顶 3 家 + `+N`**，与工作台 `EventCard` 同一个数。
+#    `+N` 是数字不是句子，不进 i18n（工作台那份也是这么写的）。
+#    封顶只作用在**卡片**：`sourcesLineHtml` 收一个 limit 参数，
+#    详情页与来源列表那两处不传，仍然列全。
+#    它管的是**上界**，不是行数：名字长起来（`The Hollywood Reporter`）三家
+#    照样折两行——量过的那一页 15 张卡里折行的仍是 6 张，前后没变。
+#    值钱的是九家那种卡不再出现，以及两个面终于是同一个数。
+#
+# 4. **标题封顶 3 行**（`-webkit-line-clamp`，`display:-webkit-box`）。
+#    同一页 15 张卡前后各量一次：最高的卡 258 → 234px，空洞平均 50 → 44px、
+#    最大 124 → 100px，整页总高 3408 → 3261px。收得不多，如实记在这里——
+#    空洞的大头是同排最长的那张标题，三行以内的卡一个字都不动；封顶管的是上界。
+#    空洞清零要让卡片不等高，那会丢掉共同下边线（card-affordance §3），不做。
+#    厚薄卡同一个数——薄卡字号小，3 行本来就很少撞到。
+#    `overflow-wrap: anywhere`（长 token 那条，card-affordance §10）要留着：
+#    line-clamp 的 `overflow:hidden` 不参与 min-content 计算，
+#    去掉它网格轨道照样会被一串 hash 撑宽。
+#
+# 5. 只用官网 token，笔画走 `--accent-text`（site-section-css rule）。
+#    首字母那块底色用 `color-mix(--fg 8%)`，不引第二套配色、不按名字抖色相——
+#    随机色块不携带信息，那是程序化题图被删掉的同一个理由。

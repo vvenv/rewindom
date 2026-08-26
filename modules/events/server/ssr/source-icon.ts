@@ -8,6 +8,8 @@
  * `isIconHost`；这里再对一次源列表。未在列表里 → 404，一次 fetch 都不发。
  *
  * 不代理 SVG：字节从本站源发出，SVG 即代码。
+ *
+ * 空图不算取到：见 `icoDrawsNothing`。
  */
 
 import { prisma, withTenantScope } from "@rewindom/module-sdk/server";
@@ -23,6 +25,11 @@ const HIT_TTL_MS = 24 * 60 * 60 * 1000;
 const MISS_TTL_MS = 60 * 60 * 1000;
 const FETCH_TIMEOUT_MS = 5_000;
 const MAX_BYTES = 64 * 1024;
+const ICO_DIR_OFFSET = 6;
+const ICO_DIR_ENTRY_BYTES = 16;
+const BMP_HEADER_BYTES = 40;
+/** 只对调色板 BMP 判空；32bpp 的形状在 alpha 里，AND 掩码常年是全透明 */
+const MAX_PALETTE_BIT_COUNT = 8;
 
 const LINK_TAG_RE = /<link\b[^>]*>/giu;
 const ATTR_RE = /\b(rel|href)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/giu;
@@ -138,6 +145,124 @@ export function sniffImageType(bytes: Uint8Array): string | null {
     return "image/webp";
   }
   return null;
+}
+
+/**
+ * 这张 ICO 画不出任何形状吗？
+ *
+ * PMC 那六家（Variety / The Hollywood Reporter / Deadline / Rolling Stone /
+ * Billboard / Consequence）的 `/favicon.ico` 是同一个 198 字节的桩：
+ * 16×16、1bpp、XOR 位图整片同一个调色板索引、AND 掩码整片透明——屏幕上什么都没有。
+ * 但它**是**一张合法的光栅图，`sniffImageType` 认，浏览器也「加载成功」，
+ * 于是卡片上的首字母占位被盖住，读者看到的是一块空槽——比没有图标更像坏了。
+ *
+ * 更要紧的是它把真图挡住了：这几家的 HTML 里都挂着 `<link rel="icon">`
+ * （variety 的 favicon.png、deadline 的 icon-32x32.png、consequence 的
+ * favicon-32x32.png），只要 `/favicon.ico` 返回 200 就永远走不到那一步。
+ * 判成「没取到」之后取图流程会自己接着往下走。
+ *
+ * 判据是结构性的，不认字节数：**每一格**都是调色板 BMP（色深 ≤ 8）且
+ * XOR 与 AND 各自单一取值。逐行比、跳过 4 字节对齐的填充——16 宽的 1bpp
+ * 每行只有 2 个字节有意义，后两个恒为 0，整段拉平比会永远判不出「单一取值」。
+ *
+ * 只判 ICO：PNG / WebP 的空图要解码才知道，成本不值当，而且没见过。
+ * 色深 > 8 也不判：32bpp 的 ICO 常年把 AND 掩码写死成全透明，形状在 alpha 通道里。
+ */
+export function icoDrawsNothing(bytes: Uint8Array): boolean {
+  if (bytes.length < ICO_DIR_OFFSET) {
+    return false;
+  }
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (view.getUint16(0, true) !== 0 || view.getUint16(2, true) !== 1) {
+    return false;
+  }
+  const count = view.getUint16(4, true);
+  if (
+    count === 0 ||
+    ICO_DIR_OFFSET + count * ICO_DIR_ENTRY_BYTES > bytes.length
+  ) {
+    return false;
+  }
+  for (let index = 0; index < count; index += 1) {
+    const dir = ICO_DIR_OFFSET + index * ICO_DIR_ENTRY_BYTES;
+    const size = view.getUint32(dir + 8, true);
+    const offset = view.getUint32(dir + 12, true);
+    if (!icoEntryDrawsNothing(bytes, view, offset, size)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function icoEntryDrawsNothing(
+  bytes: Uint8Array,
+  view: DataView,
+  offset: number,
+  size: number,
+): boolean {
+  const end = offset + size;
+  if (
+    offset < ICO_DIR_OFFSET ||
+    end > bytes.length ||
+    size < BMP_HEADER_BYTES
+  ) {
+    return false;
+  }
+  // PNG-in-ICO 没有 BMP 头也没有 AND 掩码，走不了下面这套
+  if (view.getUint32(offset, true) !== BMP_HEADER_BYTES) {
+    return false;
+  }
+  const width = view.getInt32(offset + 4, true);
+  // ICO 的 biHeight 是「图 + 掩码」，真高度是它的一半
+  const height = Math.floor(view.getInt32(offset + 8, true) / 2);
+  const bitCount = view.getUint16(offset + 14, true);
+  const compression = view.getUint32(offset + 16, true);
+  if (width <= 0 || height <= 0 || bitCount > MAX_PALETTE_BIT_COUNT) {
+    return false;
+  }
+  if (compression !== 0) {
+    return false;
+  }
+  const declaredColors = view.getUint32(offset + 32, true);
+  const colors = declaredColors > 0 ? declaredColors : 2 ** bitCount;
+  const xorOffset = offset + BMP_HEADER_BYTES + colors * 4;
+  const xorRowBytes = Math.ceil((width * bitCount) / 8);
+  const maskRowBytes = Math.ceil(width / 8);
+  const maskOffset = xorOffset + stride(xorRowBytes) * height;
+  if (maskOffset + stride(maskRowBytes) * height > end) {
+    return false;
+  }
+  return (
+    isUniformBitmap(bytes, xorOffset, xorRowBytes, height) &&
+    isUniformBitmap(bytes, maskOffset, maskRowBytes, height)
+  );
+}
+
+/** BMP 每行按 4 字节对齐，尾部填充不携带像素。 */
+function stride(rowBytes: number): number {
+  return Math.ceil(rowBytes / 4) * 4;
+}
+
+function isUniformBitmap(
+  bytes: Uint8Array,
+  offset: number,
+  rowBytes: number,
+  height: number,
+): boolean {
+  const first = bytes[offset];
+  if (first === undefined) {
+    return false;
+  }
+  const rowStride = stride(rowBytes);
+  for (let row = 0; row < height; row += 1) {
+    const start = offset + row * rowStride;
+    for (let byte = 0; byte < rowBytes; byte += 1) {
+      if (bytes[start + byte] !== first) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 export async function renderSourceIcon(input: {
@@ -266,6 +391,10 @@ async function tryImage(
     }
     const sniffed = sniffImageType(raw);
     if (!sniffed) {
+      return null;
+    }
+    // 空桩当作没取到，让取图流程继续去读 HTML 里的 <link rel="icon">
+    if (sniffed === "image/x-icon" && icoDrawsNothing(raw)) {
       return null;
     }
     return { body: Buffer.from(raw), content_type: sniffed };
