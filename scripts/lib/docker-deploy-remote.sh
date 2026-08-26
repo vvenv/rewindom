@@ -361,6 +361,32 @@ exit 1
 "
 }
 
+APP_OPS_DIR="/etc/rewindom/scripts"
+
+# 把 Docker 清理脚本同步到服务器并安装每天 04:15 的 cron（幂等）。
+# 失败不阻断部署：清理是磁盘卫生，构建/启动才是主路径。
+docker_ensure_prune_cron() {
+  log_info "同步 Docker 清理脚本并确保定时任务..."
+  if ! _run_ssh "mkdir -p '${APP_OPS_DIR}/lib'"; then
+    log_warn "无法创建 ${APP_OPS_DIR}，跳过 Docker 清理定时任务"
+    return 0
+  fi
+  if ! _run_scp "$ROOT/scripts/docker-prune.sh" "${DEPLOY_SSH_USER}@${DEPLOY_HOST}:${APP_OPS_DIR}/docker-prune.sh" \
+    || ! _run_scp "$ROOT/scripts/docker-prune-cron.sh" "${DEPLOY_SSH_USER}@${DEPLOY_HOST}:${APP_OPS_DIR}/docker-prune-cron.sh" \
+    || ! _run_scp "$ROOT/scripts/lib/log.sh" "${DEPLOY_SSH_USER}@${DEPLOY_HOST}:${APP_OPS_DIR}/lib/log.sh"; then
+    log_warn "同步 Docker 清理脚本失败，跳过定时任务"
+    return 0
+  fi
+  if ! _run_ssh "chmod +x '${APP_OPS_DIR}/docker-prune.sh' '${APP_OPS_DIR}/docker-prune-cron.sh' && bash '${APP_OPS_DIR}/docker-prune-cron.sh' install"; then
+    log_warn "安装 Docker 清理定时任务失败"
+  fi
+}
+
+docker_remote_prune() {
+  local extra="${1:-}"
+  _run_ssh "if command -v docker >/dev/null 2>&1; then bash '${APP_OPS_DIR}/docker-prune.sh' ${extra} || true; fi"
+}
+
 # docker_deploy environment yes bootstrap [env_only] [pull_base]
 # env_only=1: 仅同步 .env 并重启容器，不上传源码
 # pull_base=1: docker compose build --pull（刷新 base image；日常默认关）
@@ -418,6 +444,8 @@ docker_deploy() {
   fi
 
   _run_ssh "mkdir -p '${remote_dir}'"
+  docker_ensure_prune_cron
+  docker_remote_prune --skip-builder
 
   local remote_env
   remote_env="$(mktemp)"
@@ -465,6 +493,7 @@ docker compose -f docker-compose.prod.yml --env-file '${remote_env_file}' up -d
 
   log_info "健康检查..."
   docker_wait_for_health "$remote_dir" "$port"
+  docker_remote_prune
 
   if [ -n "$ssl_email" ]; then
     log_info "部署完成: https://${domain}"

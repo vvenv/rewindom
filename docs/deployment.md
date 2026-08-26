@@ -83,7 +83,7 @@ pnpm bootstrap -- --env production
 pnpm deploy -- --env production
 ```
 
-服务器执行 `docker compose build`。Dockerfile 已按 sibling **shipest** 做分层缓存（先 install 依赖清单、BuildKit pnpm store、prod prune）：**依赖未变时二次构建会快很多**；勿在服务器随意 `docker system prune` 清掉层缓存。
+服务器执行 `docker compose build`。Dockerfile 已按 sibling **shipest** 做分层缓存（先 install 依赖清单、BuildKit pnpm store、prod prune）：**依赖未变时二次构建会快很多**。不要在服务器跑 `docker system prune -a` / `--volumes`（会拆掉层缓存和 PG/Redis 数据卷）。日常清理用 `scripts/docker-prune.sh`（只删悬空镜像、退出容器、失败构建缓存）；`pnpm deploy` 会安装每天 04:15 的 cron。
 
 ### 官网（租户 CMS SSR）
 
@@ -163,6 +163,21 @@ docker compose -f docker-compose.prod.yml logs -f app
 ```
 
 GitHub Actions → **Ops** workflow：`status` / `logs` / `health-check` / `restart` / `stop` / `sync-env`。
+
+### Docker 磁盘清理
+
+小盘 VPS 上失败/中断的 `compose build` 会留下悬空镜像和 BuildKit 缓存。脚本**不**删数据卷、不删仍被容器使用的镜像：
+
+```bash
+# 服务器上
+bash /etc/rewindom/scripts/docker-prune.sh --dry-run
+bash /etc/rewindom/scripts/docker-prune.sh
+
+# 开发机装到远程（每天 04:15）
+./scripts/docker-prune-cron.sh install --remote --env production
+```
+
+`pnpm deploy` / `pnpm bootstrap` 会同步脚本并确保 cron 已安装。日志：`/var/log/rewindom-docker-prune.log`。
 
 ### 数据库备份
 

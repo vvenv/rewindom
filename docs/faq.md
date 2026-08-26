@@ -244,6 +244,8 @@ bash /etc/rewindom/scripts/backup.sh --env production   # 或 --env test
 产物在 `/var/backups/app`：`app_backup_<时间戳>.dump`（PG）、`app_redis_backup_<时间戳>.rdb.gz`（Redis）。
 定时备份用 `./scripts/backup-cron.sh install --env production` 安装。
 
+Docker 磁盘（悬空镜像 / 失败构建缓存 / 过大容器日志）用 `bash /etc/rewindom/scripts/docker-prune.sh`；定时任务：`./scripts/docker-prune-cron.sh install --remote --env production`（`pnpm deploy` 也会装）。不要 `docker system prune -a --volumes`。
+
 也可在本地直接拉取远程备份：`./scripts/db-remote.sh pull --env production --fresh`。
 
 ### Q17: 如何恢复数据库？
