@@ -28,3 +28,8 @@ export interface UpdateThingBody {
   text?: string;
   enabled?: boolean;
 }
+
+/** 今天那条。池子空时 thing 为 null——这是正常状态，不是错误。 */
+export interface TodayThingResponse {
+  thing: Thing | null;
+}

@@ -51,10 +51,12 @@ describe("sourcesLineHtml", () => {
   it("传了 limit 就截断，剩下的收成一个 +N", () => {
     const names = ["Variety", "Deadline", "TheWrap", "Billboard", "Pitchfork"];
     const html = sourcesLineHtml(names, [], CARD_SOURCE_LIMIT);
-    expect(html.match(/events-source-icon-slot/g)?.length).toBe(2);
+    expect(html.match(/events-source-icon-slot/g)?.length).toBe(3);
     expect(html).toContain("Variety");
-    expect(html).not.toContain("TheWrap");
-    expect(html).toContain('<span class="events-source-more">+3</span>');
+    expect(html).toContain("TheWrap");
+    // 第四家起收进 +N —— 封顶 3 家与工作台 EventCard 同口径（见 card-source-line.spec.yaml §3）
+    expect(html).not.toContain("Billboard");
+    expect(html).toContain('<span class="events-source-more">+2</span>');
   });
 
   it("正好等于 limit 时不画 +0", () => {

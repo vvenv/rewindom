@@ -8,7 +8,12 @@ import {
 } from "@rewindom/module-sdk/server";
 
 import { toThing, toThingListItem } from "./thing.mapper.js";
-import { validateThingInput } from "./thing.util.js";
+import {
+  DAILY_ROTATION_OFFSET_MINUTES,
+  localDayNumber,
+  pickDailyIndex,
+  validateThingInput,
+} from "./thing.util.js";
 
 import type { Thing, ThingListItem } from "../shared/index.js";
 
@@ -184,4 +189,36 @@ export async function deleteThing(
   await prisma.thing.delete({
     where: withTenantScope(tenant_id, { id: thing_id }),
   });
+}
+
+/**
+ * 取「今天那条」：只在 enabled 的句子里按天轮换。
+ *
+ * 同一天内恒定——刷新拿到的是同一条，跨当地零点换下一条。池子空时返回 null。
+ *
+ * 排序刻意用 created_at 而非 updated_at：轮换必须建立在稳定顺序上，否则编辑
+ * 任意一条都会把当天的句子换掉。created_at 并列时用 id 兜底，保证确定性。
+ */
+export async function getTodayThing(
+  tenant_id: string,
+  options: { now?: Date; offset_minutes?: number } = {},
+): Promise<Thing | null> {
+  const now = options.now ?? new Date();
+  const offset = options.offset_minutes ?? DAILY_ROTATION_OFFSET_MINUTES;
+
+  const where = withTenantScope(tenant_id, { enabled: true });
+  const total = await prisma.thing.count({ where });
+  if (total === 0) {
+    return null;
+  }
+
+  const index = pickDailyIndex(localDayNumber(now, offset), total);
+  const [record] = await prisma.thing.findMany({
+    where,
+    orderBy: [{ created_at: "asc" }, { id: "asc" }],
+    skip: index,
+    take: 1,
+  });
+
+  return record ? toThing(record) : null;
 }

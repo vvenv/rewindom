@@ -102,6 +102,11 @@ export const SERVER_MODULE_MANIFEST = [
     requires: ["rbac", "audit"],
   },
   {
+    id: "content",
+    kind: "business",
+    requires: ["rbac", "audit"],
+  },
+  {
     id: "events",
     kind: "business",
     // platform：读 tenant_modules 判断站点是否开通事件雷达
@@ -140,13 +145,8 @@ export const SERVER_MODULE_MANIFEST = [
     requires: ["rbac", "audit"],
   },
   {
-    id: "content",
-    kind: "business",
-    requires: ["rbac", "audit"],
-  },
-  {
     id: "useless",
     kind: "business",
-    requires: ["rbac", "audit"],
+    requires: ["rbac", "audit", "marketing"],
   },
 ] as const satisfies readonly ModuleManifestEntry[];

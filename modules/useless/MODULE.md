@@ -24,6 +24,30 @@
 | 页面路由     | `client/tenant/routes.tsx`                                     | `PermissionRoute permission="things.read"` |
 | 页面内写操作 | `client/pages/things.tsx`、`client/components/ThingsTable.tsx` | `hasPermission("things.write")`            |
 
+## 公开站贡献
+
+工作台负责录句子，**公开站上「今天那条」是一个贡献段**（`useless.today`），
+租户在 Theme Editor 里把它摆到站点根或任意页面上。
+
+| 面 | 登记 | 在哪 |
+| --- | --- | --- |
+| 实站 SSR 渲染 | `registerSiteSectionHtml` | `server/sections/register.ts`（模块 `onBoot`） |
+| 实站 SSR 取数 | `registerSectionContextProvider` | 同上 |
+| 编辑器「添加区块」 | `registerSiteSectionView` | `client/module.tsx` 顶层 |
+| 编辑器预览取数 | `registerEditorContextProvider` | `client/editor-context.ts` |
+
+**四处都要。** 漏 SSR 那两处实站不渲染，漏 client 那两处租户在编辑器里找不到 /
+预览一片空白。
+
+- 句子**直接进 HTML**，公开站不取数：关掉 JS 也看得见，没有 loading 态。因此本段
+  不需要 site-enhance 脚本。
+- 未开通 `useless` 开关的站点根本走不到渲染器（`marketing/shared/sections/html.ts`
+  的 entitlement 闸门先返回空串）。
+- 句子是纯文本、没有 locale map，所以两端 provider 都用不到 `input.locale`——不是漏了。
+  正文哪天改成按语言存，两边都要跟着页面语言取数。
+- CSS 真源是 `shared/site-css/useless.css`，改完必须跑
+  `pnpm --filter @rewindom/builtin assemble:module-css`（生成物随提交入库）。
+
 ## 相对生成物的手工偏离
 
 `gen-module.mjs` 的产出停在「能跑的单语版本」，下面几处是生成后补的。

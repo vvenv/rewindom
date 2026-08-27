@@ -18,7 +18,7 @@ import { sourceMonogram } from "./source-icon.js";
  *
  * 只作用在**卡片**。详情页与来源列表是清单，那里要列全。
  */
-export const CARD_SOURCE_LIMIT = 2;
+export const CARD_SOURCE_LIMIT = 3;
 
 export function sourceIconImgHtml(
   iconUrl: string | null | undefined,

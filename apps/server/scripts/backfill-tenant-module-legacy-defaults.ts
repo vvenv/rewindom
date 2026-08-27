@@ -9,10 +9,9 @@
  *   pnpm --filter server exec tsx scripts/backfill-tenant-module-legacy-defaults.ts --dry-run
  *   pnpm --filter server exec tsx scripts/backfill-tenant-module-legacy-defaults.ts
  */
-import { Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
-import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
-
 import { TENANT_MODULES_STORAGE_KEY } from "@rewindom/builtin/platform/shared/tenant-modules.js";
+import { type Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 
 /**
  * 本次改默认之前为 `default_enabled: true` 的 entitlement key。

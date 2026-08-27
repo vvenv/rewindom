@@ -33,5 +33,15 @@
   "validation": {
     "textRequired": "请输入正文",
     "textTooLong": "正文不能超过 {{max}} 个字符"
+  },
+  "section": {
+    "group": "无用",
+    "today": {
+      "label": "今天那条",
+      "group": "内容",
+      "emptyText": "池子空时显示",
+      "emptyTextInfo": "还没有启用的句子时显示这句，避免这一段看起来是坏的。",
+      "emptyDefault": "今天没有。"
+    }
   }
 }

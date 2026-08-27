@@ -6,6 +6,7 @@ import {
 import { THING_ENTITLEMENT } from "../shared/entitlements.js";
 
 import { USELESS_SERVER_I18N } from "./i18n.js";
+import { registerUselessSiteContributions } from "./sections/register.js";
 import { thingRoutes } from "./thing.routes.js";
 
 export const uselessServerModule: ServerAppModule = {
@@ -14,7 +15,7 @@ export const uselessServerModule: ServerAppModule = {
   label: "Useless",
   kind: "business",
   description: "无用句子库——每天一条没有用的话",
-  requires: ["rbac", "audit"],
+  requires: ["rbac", "audit", "marketing"],
   tenantEntitlements: [THING_ENTITLEMENT],
   shared: {
     permissions: [
@@ -39,6 +40,9 @@ export const uselessServerModule: ServerAppModule = {
   },
   server: {
     i18n: USELESS_SERVER_I18N,
+    onBoot: async () => {
+      registerUselessSiteContributions();
+    },
     registerRoutes: async (app) => {
       await registerTenantGatedRoutes(app, "useless", async (scoped) => {
         await scoped.register(thingRoutes, { prefix: "/api/things" });

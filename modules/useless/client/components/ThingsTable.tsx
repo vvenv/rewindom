@@ -6,6 +6,7 @@ import {
   DataTableColumnHeader,
   useConfirm,
   usePermissions,
+  type DataTableFeatures,
   formatBusinessDateOrTimeAgo,
 } from "@rewindom/module-sdk/client";
 import { Button } from "@rewindom/ui/button";
@@ -97,7 +98,7 @@ export function ThingsTable({
     [confirm, deleteMutation, t],
   );
 
-  const columns = useMemo<ColumnDef<ThingListItem>[]>(
+  const columns = useMemo<ColumnDef<DataTableFeatures, ThingListItem>[]>(
     () => [
       {
         accessorKey: "text",
@@ -159,7 +160,7 @@ export function ThingsTable({
                   </Button>
                 </div>
               ),
-            } satisfies ColumnDef<ThingListItem>,
+            } satisfies ColumnDef<DataTableFeatures, ThingListItem>,
           ]
         : []),
     ],
@@ -177,11 +178,9 @@ export function ThingsTable({
       pageSize={pageSize}
       total={total}
       pageCount={pageCount}
-      emptyIcon={<Quote className="size-10" />}
-      emptyHeader={t("emptyHeader")}
-      emptyMessage={
-        q ? t("emptyMessageFiltered") : t("emptyMessage")
-      }
+      emptyIcon={Quote}
+      emptyTitle={t("emptyHeader")}
+      emptyDescription={q ? t("emptyMessageFiltered") : t("emptyMessage")}
       onRetry={onRetry}
       sorting={sorting}
       onSortingChange={onSortingChange}

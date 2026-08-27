@@ -12,7 +12,7 @@ resource:
   singular: thing
   plural: things
 surfaces: [tenant]
-requires: [rbac, audit]
+requires: [rbac, audit, marketing]
 
 entitlement:
   key: useless

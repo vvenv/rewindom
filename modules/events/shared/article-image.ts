@@ -93,14 +93,42 @@ export function absoluteImageUrl(
   }
 }
 
+/*
+ * base64url 用 Web 标准 API 实现，**不用 `Buffer`**：本文件是两端共用的，
+ * `Buffer` 只在 Node 里有，浏览器侧走到就是 ReferenceError（`apps/client`
+ * 的 typecheck 也会因为找不到它而红）。`btoa`/`atob` 两端都有。
+ *
+ * 与 `Buffer.from(x).toString("base64url")` 字节等价（含非 ASCII 与无填充），
+ * 所以存量 token 继续解得开。
+ */
+function toBase64Url(bytes: Uint8Array): string {
+  let binary = "";
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+function fromBase64Url(token: string): Uint8Array {
+  const binary = atob(token.replace(/-/g, "+").replace(/_/g, "/"));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
 /** 代理地址的 token = 原地址的 base64url。路由再反查「这条我们真的采过」。 */
 export function encodeImageToken(url: string): string {
-  return Buffer.from(url, "utf8").toString("base64url");
+  return toBase64Url(new TextEncoder().encode(url));
 }
 
 export function decodeImageToken(token: string): string | null {
   try {
-    const url = Buffer.from(token, "base64url").toString("utf8");
+    const url = new TextDecoder().decode(fromBase64Url(token));
     return isUsableImageUrl(url) ? url : null;
   } catch {
     return null;

@@ -7,3 +7,6 @@ export const THING_ENTITLEMENT: TenantModuleEntitlement = {
   disabled_hint: "该站点未开通无用模块",
   default_enabled: false,
 };
+
+/** 编辑器「添加区块」分组。无用的段共用这一 key。 */
+export const USELESS_SECTION_GROUP = "useless:section.group";

@@ -13,6 +13,7 @@ import {
   createThing,
   deleteThing,
   getThing,
+  getTodayThing,
   listThings,
   updateThing,
 } from "./thing.service.js";
@@ -44,6 +45,18 @@ export async function thingRoutes(app: FastifyInstance): Promise<void> {
         sort_by,
         sort_dir: parseSortDir(sort_dir),
       });
+    },
+  });
+
+  defineRoute(app, {
+    method: "GET",
+    url: "/today",
+    context: "ThingToday",
+    errorCode: "THING_TODAY_FAILED",
+    preHandler: [app.requirePermission("things.read")],
+    handler: async (request) => {
+      const thing = await getTodayThing(request.tenantContext!.tenant_id);
+      return { thing };
     },
   });
 

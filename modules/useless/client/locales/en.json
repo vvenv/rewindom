@@ -33,5 +33,15 @@
   "validation": {
     "textRequired": "Text is required",
     "textTooLong": "Text must be at most {{max}} characters"
+  },
+  "section": {
+    "group": "Useless",
+    "today": {
+      "label": "Today's line",
+      "group": "Content",
+      "emptyText": "Shown when empty",
+      "emptyTextInfo": "Shown when no line is enabled yet, so the section doesn't look broken.",
+      "emptyDefault": "Nothing today."
+    }
   }
 }
