@@ -87,7 +87,7 @@
 | ---- | ---- | ---- |
 | POST | `/api/platform/tenants/:id/custom-domain/certificate` | 平台管理员 |
 
-未配置 `ACME_HELPER_URL` / `ACME_HELPER_TOKEN` 时返回 503。DNS 未指向本实例时 400。签发过程可能持续约 1–2 分钟。
+未配置 `ACME_HELPER_URL` / `ACME_HELPER_TOKEN` 时返回 503。DNS 未指向本实例时 400。helper 连不上（`fetch failed`）时 500。签发过程可能持续约 1–2 分钟。
 
 ## 数据备份与还原
 

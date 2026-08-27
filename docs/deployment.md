@@ -239,7 +239,7 @@ curl http://127.0.0.1:3700/health
 
 应用层绑定：平台控制台为租户填写唯一 hostname；客户配 DNS；平台管理员点「签发证书」（宿主机 ACME helper + Let's Encrypt）。同一实例可服务多域名。
 
-需要 `ACME_HELPER_TOKEN`（及可选 `ACME_HELPER_URL`，compose 默认 `http://host.docker.internal:9370`）。`pnpm deploy` 会安装 helper。
+需要 `ACME_HELPER_TOKEN`（及可选 `ACME_HELPER_URL`，compose 默认 `http://host.docker.internal:9370`）。`pnpm deploy` 会安装 helper：听 `0.0.0.0:9370` 供容器经 `host.docker.internal` 访问，并用 iptables 把该端口限制在回环 + RFC1918。
 
 **完整步骤、客户说明模板与验收清单**：见 [`custom-domain.md`](./custom-domain.md)。设计口径：[`design/tenant-config.md`](./design/tenant-config.md) §5.9。
 

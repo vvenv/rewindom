@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
-"""Localhost ACME helper: issue a Let's Encrypt cert for one custom hostname.
+"""Host ACME helper: issue a Let's Encrypt cert for one custom hostname.
 
 The app container POSTs here; this process runs on the host as root so it can
-edit Nginx and invoke certbot. Listen on 127.0.0.1 only.
+edit Nginx and invoke certbot.
+
+Listens on 0.0.0.0 by default so Docker can reach `host.docker.internal`
+(compose `host-gateway`). iptables then drops public TCP to this port; only
+loopback and RFC1918 (Docker bridges) are allowed. Override with
+`ACME_HELPER_BIND=127.0.0.1` for local-only.
 """
 from __future__ import annotations
 
@@ -13,7 +18,7 @@ import subprocess
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 HOSTNAME_RE = re.compile(
     r"^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$"
@@ -26,6 +31,82 @@ TOKEN = os.environ.get("ACME_HELPER_TOKEN", "").strip()
 PORT = int(os.environ.get("ACME_HELPER_PORT", "9370"))
 APP_PORT = os.environ.get("APP_PORT", "3700")
 SSL_EMAIL = os.environ.get("SSL_EMAIL", "").strip()
+
+ALLOWED_LISTEN_HOSTS = frozenset({"0.0.0.0", "127.0.0.1"})
+IPTABLES_CHAIN = "REWINDOM_ACME"
+PRIVATE_SOURCE_CIDRS = (
+    "127.0.0.0/8",
+    "10.0.0.0/8",
+    "172.16.0.0/12",
+    "192.168.0.0/16",
+)
+
+IptablesRunner = Callable[[list[str]], subprocess.CompletedProcess[str]]
+
+
+def resolve_listen_host(raw: str | None) -> str:
+    value = (raw or "").strip() or "0.0.0.0"
+    if value not in ALLOWED_LISTEN_HOSTS:
+        raise ValueError(
+            "ACME_HELPER_BIND must be 0.0.0.0 or 127.0.0.1, "
+            f"got {value!r}"
+        )
+    return value
+
+
+def _default_iptables_run(argv: list[str]) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(argv, check=False, capture_output=True, text=True)
+
+
+def restrict_tcp_port_to_private_networks(
+    port: int,
+    *,
+    run: IptablesRunner | None = None,
+) -> bool:
+    """INPUT dport → DROP except loopback / RFC1918. Idempotent. Returns True if applied."""
+    runner = run or _default_iptables_run
+    try:
+        listed = runner(["iptables", "-nL", IPTABLES_CHAIN])
+    except FileNotFoundError:
+        sys.stderr.write("acme-helper: iptables not found; skip port restriction\n")
+        return False
+    if listed.returncode != 0:
+        created = runner(["iptables", "-N", IPTABLES_CHAIN])
+        if created.returncode != 0:
+            sys.stderr.write(
+                "acme-helper: iptables -N "
+                f"{IPTABLES_CHAIN} failed: {(created.stderr or created.stdout).strip()}\n"
+            )
+            return False
+    runner(["iptables", "-F", IPTABLES_CHAIN])
+    for cidr in PRIVATE_SOURCE_CIDRS:
+        runner(["iptables", "-A", IPTABLES_CHAIN, "-s", cidr, "-j", "ACCEPT"])
+    runner(["iptables", "-A", IPTABLES_CHAIN, "-j", "DROP"])
+    port_s = str(port)
+    jumped = runner(
+        ["iptables", "-C", "INPUT", "-p", "tcp", "--dport", port_s, "-j", IPTABLES_CHAIN]
+    )
+    if jumped.returncode != 0:
+        inserted = runner(
+            [
+                "iptables",
+                "-I",
+                "INPUT",
+                "-p",
+                "tcp",
+                "--dport",
+                port_s,
+                "-j",
+                IPTABLES_CHAIN,
+            ]
+        )
+        if inserted.returncode != 0:
+            sys.stderr.write(
+                "acme-helper: iptables -I INPUT failed: "
+                f"{(inserted.stderr or inserted.stdout).strip()}\n"
+            )
+            return False
+    return True
 
 
 def _valid_hostname(value: str) -> bool:
@@ -243,8 +324,18 @@ def main() -> None:
     if not TOKEN:
         sys.stderr.write("ACME_HELPER_TOKEN is required\n")
         sys.exit(1)
-    server = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
-    sys.stderr.write(f"acme-helper listening on 127.0.0.1:{PORT}\n")
+    try:
+        host = resolve_listen_host(os.environ.get("ACME_HELPER_BIND"))
+    except ValueError as exc:
+        sys.stderr.write(f"{exc}\n")
+        sys.exit(1)
+    if host == "0.0.0.0":
+        if restrict_tcp_port_to_private_networks(PORT):
+            sys.stderr.write(
+                f"acme-helper: INPUT tcp/{PORT} restricted to loopback+RFC1918\n"
+            )
+    server = ThreadingHTTPServer((host, PORT), Handler)
+    sys.stderr.write(f"acme-helper listening on {host}:{PORT}\n")
     server.serve_forever()
 
 

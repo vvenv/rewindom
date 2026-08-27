@@ -209,6 +209,7 @@ chmod 755 /opt/rewindom-acme/acme-helper.py
 cat > /etc/rewindom/acme-helper.env <<EOF
 ACME_HELPER_TOKEN=${token}
 ACME_HELPER_PORT=9370
+ACME_HELPER_BIND=0.0.0.0
 APP_PORT=${port}
 APP_DOMAIN=${domain}
 SSL_EMAIL=${ssl_email}
@@ -216,7 +217,7 @@ EOF
 chmod 600 /etc/rewindom/acme-helper.env
 cat > /etc/systemd/system/rewindom-acme-helper.service <<'UNIT'
 [Unit]
-Description=rewindom ACME helper (localhost)
+Description=rewindom ACME helper (host; reachable from Docker)
 After=network.target nginx.service
 
 [Service]

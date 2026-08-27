@@ -204,7 +204,7 @@ DNS 未生效前，请勿要求平台「绑定失败」；先把解析做对。
 前置：
 
 1. 客户 DNS 已生效（与产品主域解析到同一 IP）
-2. 生产已配置 `ACME_HELPER_TOKEN`（`pnpm deploy` / `pnpm bootstrap` 会安装 `rewindom-acme-helper`）
+2. 生产已配置 `ACME_HELPER_TOKEN`（`pnpm deploy` / `pnpm bootstrap` 会安装 `rewindom-acme-helper`，听 `0.0.0.0:9370` + iptables 限私网，供 app 容器经 `host.docker.internal` 访问）
 3. `SSL_EMAIL` 已填（Certbot 账号邮箱）
 
 `{slug}.{TENANT_BASE_DOMAIN}` 仍走平台通配证书，不必点签发。
@@ -264,6 +264,7 @@ curl -sS -H "Host: portal.acme.com" https://portal.acme.com/api/public/config | 
 | 提示保留/无效域名             | 填了平台主域、localhost、带协议/端口等    | 按 §4 规则改正                                                                                                                   |
 | 工作台 OAuth 回调跑回主域     | 未用当前域名发起登录，或回调 URL 写死主域 | 在绑定域名上点 OAuth；生产建议为各入口配置可达的回调（见部署文档）                                                               |
 | 会员 OAuth 无法在自定义域登录 | 平台应用未登记统一回调，或 exchange 失败  | 平台 OAuth 应用须登记 `{FRONTEND_URL}/api/auth/oauth/{provider}/callback`（与工作台共用）；浏览器会先回主域再跳回绑定域种 Cookie |
+| 签发证书报「服务器内部错误」/ `fetch failed` | 容器连不上宿主机 helper（旧版只听 `127.0.0.1`） | 确认 `rewindom-acme-helper` 在跑且听 `0.0.0.0:9370`；从 app 容器 `fetch http://host.docker.internal:9370/health` 应返回 200 |
 
 本阶段**不包含**：客户自助在租户设置里改域名、客户自定义域名的 DNS TXT 自动校验、保存绑定时自动签发证书。平台管理员可在控制台点「签发证书」。通配子域与通配证书续期见 §0。
 
