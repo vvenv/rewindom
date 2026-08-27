@@ -55,7 +55,7 @@
 | --- | --- |
 | 管理路由 | `requirePermission("docs.read" / "docs.write")` |
 | 导航 | `anyPermission: ["docs.read"]`；挂在「官网 CMS」分组；`tenantModule: "site-docs"` |
-| entitlement | key `site-docs`，`default_enabled: true` |
+| entitlement | key `site-docs`，`default_enabled: false` |
 
 ## 与 marketing 的边界
 

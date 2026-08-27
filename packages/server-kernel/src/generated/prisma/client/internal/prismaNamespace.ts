@@ -467,7 +467,8 @@ export const ModelName = {
   SiteMemberOAuthExchangeCode: 'SiteMemberOAuthExchangeCode',
   SlowQueryLog: 'SlowQueryLog',
   SlowRequestLog: 'SlowRequestLog',
-  Todo: 'Todo'
+  Todo: 'Todo',
+  Thing: 'Thing'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -483,7 +484,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "content" | "contentTemplate" | "contentAsset" | "dashboardPreference" | "errorLog" | "eventFeed" | "eventSignal" | "newsEvent" | "eventEntity" | "eventEntityLink" | "eventEntityFollow" | "eventRevision" | "eventTimelineEntry" | "eventFollow" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "mailDelivery" | "marketingSite" | "marketingPage" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "newsletterSubscriber" | "newsletterSubscription" | "newsletterDigestRun" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "shopSetting" | "shopProduct" | "shopCollection" | "shopCollectionProduct" | "shopDiscount" | "shopVariant" | "shopCart" | "shopCartItem" | "shopShippingZone" | "shopShippingRate" | "shopOrder" | "shopOrderLine" | "shopShipment" | "shopPayment" | "memberPlan" | "memberSubscription" | "memberPayment" | "siteDocCategory" | "siteDoc" | "siteFormSubmission" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "slowRequestLog" | "todo"
+    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "content" | "contentTemplate" | "contentAsset" | "dashboardPreference" | "errorLog" | "eventFeed" | "eventSignal" | "newsEvent" | "eventEntity" | "eventEntityLink" | "eventEntityFollow" | "eventRevision" | "eventTimelineEntry" | "eventFollow" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "mailDelivery" | "marketingSite" | "marketingPage" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "newsletterSubscriber" | "newsletterSubscription" | "newsletterDigestRun" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "shopSetting" | "shopProduct" | "shopCollection" | "shopCollectionProduct" | "shopDiscount" | "shopVariant" | "shopCart" | "shopCartItem" | "shopShippingZone" | "shopShippingRate" | "shopOrder" | "shopOrderLine" | "shopShipment" | "shopPayment" | "memberPlan" | "memberSubscription" | "memberPayment" | "siteDocCategory" | "siteDoc" | "siteFormSubmission" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "slowRequestLog" | "todo" | "thing"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -5741,6 +5742,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Thing: {
+      payload: Prisma.$ThingPayload<ExtArgs>
+      fields: Prisma.ThingFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ThingFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThingPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ThingFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThingPayload>
+        }
+        findFirst: {
+          args: Prisma.ThingFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThingPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ThingFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThingPayload>
+        }
+        findMany: {
+          args: Prisma.ThingFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThingPayload>[]
+        }
+        create: {
+          args: Prisma.ThingCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThingPayload>
+        }
+        createMany: {
+          args: Prisma.ThingCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ThingCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThingPayload>[]
+        }
+        delete: {
+          args: Prisma.ThingDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThingPayload>
+        }
+        update: {
+          args: Prisma.ThingUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThingPayload>
+        }
+        deleteMany: {
+          args: Prisma.ThingDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ThingUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ThingUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThingPayload>[]
+        }
+        upsert: {
+          args: Prisma.ThingUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThingPayload>
+        }
+        aggregate: {
+          args: Prisma.ThingAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateThing>
+        }
+        groupBy: {
+          args: Prisma.ThingGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ThingGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ThingCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ThingCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -7005,6 +7080,20 @@ export const TodoScalarFieldEnum = {
 export type TodoScalarFieldEnum = (typeof TodoScalarFieldEnum)[keyof typeof TodoScalarFieldEnum]
 
 
+export const ThingScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  text: 'text',
+  enabled: 'enabled',
+  created_by: 'created_by',
+  updated_by: 'updated_by',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ThingScalarFieldEnum = (typeof ThingScalarFieldEnum)[keyof typeof ThingScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -7357,6 +7446,7 @@ export type GlobalOmitConfig = {
   slowQueryLog?: Prisma.SlowQueryLogOmit
   slowRequestLog?: Prisma.SlowRequestLogOmit
   todo?: Prisma.TodoOmit
+  thing?: Prisma.ThingOmit
 }
 
 /* Types for Logging */

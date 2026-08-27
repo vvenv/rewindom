@@ -9,6 +9,7 @@ import { shopClientModule } from "@rewindom/shop/client/module.js";
 import { siteDocsClientModule } from "@rewindom/site-docs/client/module.js";
 import { siteFormClientModule } from "@rewindom/site-form/client/module.js";
 import { todoClientModule } from "@rewindom/todo/client/module.js";
+import { uselessClientModule } from "@rewindom/useless/client/module.js";
 
 import type { ClientAppModule } from "@rewindom/client-kit";
 
@@ -22,4 +23,5 @@ export const EXTERNAL_CLIENT_MODULES = [
   siteDocsClientModule,
   siteFormClientModule,
   todoClientModule,
+  uselessClientModule,
 ] as const satisfies readonly ClientAppModule[];

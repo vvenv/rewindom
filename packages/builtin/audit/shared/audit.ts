@@ -106,6 +106,9 @@ export const AuditAction = {
   CONTENT_UPDATE: "CONTENT_UPDATE",
   CONTENT_DELETE: "CONTENT_DELETE",
   CONTENT_GENERATE: "CONTENT_GENERATE",
+  THING_CREATE: "THING_CREATE",
+  THING_UPDATE: "THING_UPDATE",
+  THING_DELETE: "THING_DELETE",
 } as const;
 
 export type AuditActionType = (typeof AuditAction)[keyof typeof AuditAction];
@@ -272,6 +275,9 @@ export const AUDIT_ACTION_LABELS: Record<AuditActionType, string> = {
   [AuditAction.CONTENT_UPDATE]: "更新内容",
   [AuditAction.CONTENT_DELETE]: "删除内容",
   [AuditAction.CONTENT_GENERATE]: "生成内容",
+  [AuditAction.THING_CREATE]: "创建无用句子",
+  [AuditAction.THING_UPDATE]: "更新无用句子",
+  [AuditAction.THING_DELETE]: "删除无用句子",
 };
 
 export const AUDIT_ACTION_GROUPS = [
@@ -438,6 +444,14 @@ export const AUDIT_ACTION_GROUPS = [
       AuditAction.CONTENT_UPDATE,
       AuditAction.CONTENT_DELETE,
       AuditAction.CONTENT_GENERATE,
+    ],
+  },
+  {
+    label: "Useless",
+    actions: [
+      AuditAction.THING_CREATE,
+      AuditAction.THING_UPDATE,
+      AuditAction.THING_DELETE,
     ],
   },
 ] as const;

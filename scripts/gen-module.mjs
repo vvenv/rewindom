@@ -616,7 +616,7 @@ export const ${n.CONST}_ENTITLEMENT: TenantModuleEntitlement = {
   label: "${spec.entitlement.label}",
   description: "${spec.entitlement.description ?? spec.entitlement.label}",
   disabled_hint: "${spec.entitlement.disabled_hint ?? `该租户未开通${spec.entitlement.label}模块`}",
-  default_enabled: ${spec.entitlement.default_enabled ?? true},
+  default_enabled: ${spec.entitlement.default_enabled ?? false},
 };
 `,
   );

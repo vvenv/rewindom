@@ -1,0 +1,37 @@
+{
+  "title": "Useless",
+  "description": "A library of useless lines — one a day",
+  "pageDescription": "One useless line a day. Disabled lines stay out of the rotation.",
+  "create": "New line",
+  "createTitle": "New line",
+  "createDescription": "Write a line that is of no use.",
+  "editTitle": "Edit line",
+  "editDescription": "Changes take effect once saved.",
+  "editAriaLabel": "Edit",
+  "deleteAriaLabel": "Delete",
+  "deleteConfirmTitle": "Delete line",
+  "deleteConfirmDescription": "Delete \"{{text}}\"? This cannot be undone.",
+  "fieldText": "Text",
+  "fieldEnabled": "Enabled",
+  "fieldUpdatedAt": "Updated",
+  "columnActions": "Actions",
+  "searchPlaceholder": "Search text…",
+  "emptyHeader": "No lines yet",
+  "emptyMessage": "Create the first one to get started.",
+  "emptyMessageFiltered": "No matching records. Try a different search.",
+  "created": "Created",
+  "updated": "Updated",
+  "deleted": "Deleted",
+  "createFailed": "Could not create. Try again.",
+  "updateFailed": "Could not update. Try again.",
+  "deleteFailed": "Could not delete. Try again.",
+  "cancel": "Cancel",
+  "save": "Save",
+  "nav": {
+    "things": "Useless"
+  },
+  "validation": {
+    "textRequired": "Text is required",
+    "textTooLong": "Text must be at most {{max}} characters"
+  }
+}

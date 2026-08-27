@@ -16,6 +16,7 @@ import type * as Prisma from "../internal/prismaNamespace.js"
  * Model MarketingRedirect
  * *
  *  * 站内 301/302 重定向。
+ *  *
  *  * 迁站、改 slug、下线活动页时用来保住外部链接与既有排名。按 `from_path` 精确匹配，
  *  * **不**做通配/正则：通配规则写错的后果是整站进重定向循环，而这类规则又恰恰最难在
  *  * 编辑器里看出对不对。真需要批量时，多加几条明确的记录比一条聪明的规则可靠。
@@ -454,18 +455,15 @@ export type $MarketingRedirectPayload<ExtArgs extends runtime.Types.Extensions.I
     id: string
     tenant_id: string
     /**
-     * *
-     *    * 源路径，站内绝对路径（`/old-pricing`）；同租户唯一。
+     * * 源路径，站内绝对路径（`/old-pricing`）；同租户唯一。
      */
     from_path: string
     /**
-     * *
-     *    * 目标：站内路径或 http(s) 绝对地址。
+     * * 目标：站内路径或 http(s) 绝对地址。
      */
     to_path: string
     /**
-     * *
-     *    * 301 永久（默认，会被浏览器与搜索引擎缓存）/ 302 临时。
+     * * 301 永久（默认，会被浏览器与搜索引擎缓存）/ 302 临时。
      */
     status_code: number
     created_at: Date

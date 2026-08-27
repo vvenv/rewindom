@@ -1,0 +1,91 @@
+# ⚠️ 生成后做过手工补全：server/client i18n、稳定错误码、detail_key 审计、
+#    nav 的 ns:key 与 /app 路由前缀。直接 --force 会把这些覆盖掉。
+# 无用句子库：一天一条没有用的话，站点内管理。
+# 资源名沿用 thing/things —— 「无用之物」同时盖得住句子与将来的投稿链接，
+# 免得以后把投稿箱并进来时要改 20+ 个文件名。
+id: useless
+label: Useless
+description: 无用句子库——每天一条没有用的话
+kind: business
+placement: modules/useless
+resource:
+  singular: thing
+  plural: things
+surfaces: [tenant]
+requires: [rbac, audit]
+
+entitlement:
+  key: useless
+  label: 无用
+  description: 无用句子库
+  disabled_hint: 该站点未开通无用模块
+  default_enabled: false
+
+permissions:
+  - {
+      key: things.read,
+      label: 查看无用句子,
+      group: 无用,
+      description: 查看句子列表与详情,
+    }
+  - {
+      key: things.write,
+      label: 创建/编辑无用句子,
+      group: 无用,
+      description: 创建、编辑与删除句子,
+    }
+
+models:
+  - name: Thing
+    fields:
+      - {
+          name: text,
+          type: String,
+          required: true,
+          multiline: true,
+          label: 正文,
+        }
+      - {
+          name: enabled,
+          type: Boolean,
+          required: true,
+          default: true,
+          label: 启用,
+        }
+      - { name: created_by, type: String, required: true }
+      - { name: updated_by, type: String, required: false }
+    indexes:
+      - [tenant_id]
+      # 取「今天那条」只在启用的句子里轮换，enabled 前置
+      - [tenant_id, enabled, updated_at]
+
+api:
+  prefix: /api/things
+  operations: [list, detail, create, update, delete]
+  list:
+    search_fields: [text]
+    sort_whitelist: [text, enabled, updated_at, created_at]
+    default_sort: { by: updated_at, dir: desc }
+
+client:
+  mount: renderRoutes
+  route_path: /app/things
+  nav:
+    section: 内容
+    label: 无用
+    title: 无用
+    icon: Quote
+  page:
+    layout: list-filter-table
+    form_fields: [text, enabled]
+
+audit:
+  actions:
+    - { action: THING_CREATE, label: 创建无用句子 }
+    - { action: THING_UPDATE, label: 更新无用句子 }
+    - { action: THING_DELETE, label: 删除无用句子 }
+
+options:
+  soft_delete: false
+  page_size: 20
+  mobile_tab: false

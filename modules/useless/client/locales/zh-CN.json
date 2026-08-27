@@ -1,0 +1,37 @@
+{
+  "title": "无用",
+  "description": "无用句子库——每天一条没有用的话",
+  "pageDescription": "每天一条没有用的话。停用的不参与轮换。",
+  "create": "新建句子",
+  "createTitle": "新建句子",
+  "createDescription": "写一条没有用的话。",
+  "editTitle": "编辑句子",
+  "editDescription": "修改后保存即可生效。",
+  "editAriaLabel": "编辑",
+  "deleteAriaLabel": "删除",
+  "deleteConfirmTitle": "删除句子",
+  "deleteConfirmDescription": "确定删除「{{text}}」吗？此操作不可撤销。",
+  "fieldText": "正文",
+  "fieldEnabled": "启用",
+  "fieldUpdatedAt": "更新时间",
+  "columnActions": "操作",
+  "searchPlaceholder": "搜索正文…",
+  "emptyHeader": "还没有句子",
+  "emptyMessage": "创建第一条开始使用。",
+  "emptyMessageFiltered": "没有匹配的记录，请调整搜索条件。",
+  "created": "已创建",
+  "updated": "已更新",
+  "deleted": "已删除",
+  "createFailed": "创建失败，请重试",
+  "updateFailed": "更新失败，请重试",
+  "deleteFailed": "删除失败，请重试",
+  "cancel": "取消",
+  "save": "保存",
+  "nav": {
+    "things": "无用"
+  },
+  "validation": {
+    "textRequired": "请输入正文",
+    "textTooLong": "正文不能超过 {{max}} 个字符"
+  }
+}

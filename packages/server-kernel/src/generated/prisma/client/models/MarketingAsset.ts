@@ -16,8 +16,10 @@ import type * as Prisma from "../internal/prismaNamespace.js"
  * Model MarketingAsset
  * *
  *  * 媒体库里的一张图。
+ *  *
  *  * 以前上传只落盘、不落库：URL 一旦从编辑器里删掉，那个文件就再也找不回来，也没人知道
  *  * 它还在不在被引用。有了这行才谈得上「列出来、复用、删掉、写 alt」。
+ *  *
  *  * `alt` 存在这里而不是随每个引用点存一份：同一张图在十个地方用，无障碍文案不该抄十遍。
  */
 export type MarketingAssetModel = runtime.Types.Result.DefaultSelection<Prisma.$MarketingAssetPayload>
@@ -544,21 +546,18 @@ export type $MarketingAssetPayload<ExtArgs extends runtime.Types.Extensions.Inte
     id: string
     tenant_id: string
     /**
-     * *
-     *    * 落盘文件名（`<id><ext>`），也是公开 URL 的最后一段。
+     * * 落盘文件名（`<id><ext>`），也是公开 URL 的最后一段。
      */
     filename: string
     mime_type: string
     size_bytes: number
     /**
-     * *
-     *    * 原始像素尺寸；解析不出来时为 0（SVG 没有固有尺寸）。
+     * * 原始像素尺寸；解析不出来时为 0（SVG 没有固有尺寸）。
      */
     width: number
     height: number
     /**
-     * *
-     *    * 无障碍替代文本；空表示装饰性图片。
+     * * 无障碍替代文本；空表示装饰性图片。
      */
     alt: string
     created_at: Date

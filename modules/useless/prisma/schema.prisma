@@ -1,0 +1,16 @@
+// modules/useless/prisma/schema.prisma
+// 由 apps/server/prisma/models/useless.prisma 符号链接汇入（gen:external-modules 自动建链）
+// --- module: useless ---
+model Thing {
+  id         String   @id @default(uuid())
+  tenant_id  String
+  text String
+  enabled Boolean @default(true)
+  created_by String
+  updated_by String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([tenant_id])
+  @@index([tenant_id, enabled, updated_at])
+}

@@ -83,6 +83,9 @@ importers:
       '@rewindom/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@rewindom/useless':
+        specifier: workspace:*
+        version: link:../../modules/useless
       '@tanstack/react-query':
         specifier: ^5.101.4
         version: 5.101.4(react@19.2.8)
@@ -294,6 +297,9 @@ importers:
       '@rewindom/todo':
         specifier: workspace:*
         version: link:../../modules/todo
+      '@rewindom/useless':
+        specifier: workspace:*
+        version: link:../../modules/useless
       bcrypt:
         specifier: ^6.0.0
         version: 6.0.0
@@ -957,6 +963,61 @@ importers:
       react-i18next:
         specifier: ^17.0.12
         version: 17.0.12(i18next@26.4.0(typescript@7.0.2))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@7.0.2)
+      react-router:
+        specifier: ^8.0.0
+        version: 8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+    devDependencies:
+      '@rewindom/client-test':
+        specifier: workspace:*
+        version: link:../../packages/client-test
+      '@rewindom/server-test':
+        specifier: workspace:*
+        version: link:../../packages/server-test
+      '@testing-library/jest-dom':
+        specifier: ^7.0.1
+        version: 7.0.1(@testing-library/dom@10.4.1)(vitest@4.1.11)
+      '@testing-library/react':
+        specifier: ^16.3.2
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@types/react':
+        specifier: ^19.2.18
+        version: 19.2.18
+      '@types/react-dom':
+        specifier: ^19.2.4
+        version: 19.2.4(@types/react@19.2.18)
+      happy-dom:
+        specifier: ^20.11.6
+        version: 20.11.6
+      msw:
+        specifier: ^2.15.0
+        version: 2.15.0(@types/node@26.2.0)(typescript@7.0.2)
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@26.2.0)(@vitest/coverage-v8@4.1.11)(@vitest/ui@4.1.11)(happy-dom@20.11.6)(jsdom@30.0.1)(msw@2.15.0(@types/node@26.2.0)(typescript@7.0.2))(vite@8.2.2(@types/node@26.2.0)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12))
+
+  modules/useless:
+    dependencies:
+      '@rewindom/module-sdk':
+        specifier: workspace:*
+        version: link:../../packages/module-sdk
+      '@rewindom/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@tanstack/react-query':
+        specifier: ^5.101.4
+        version: 5.101.4(react@19.2.8)
+      fastify:
+        specifier: 5.11.3
+        version: 5.11.3
+      lucide-react:
+        specifier: ^1.33.0
+        version: 1.33.0(react@19.2.8)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.8
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.8(react@19.2.8)
       react-router:
         specifier: ^8.0.0
         version: 8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)

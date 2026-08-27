@@ -16,8 +16,10 @@ import type * as Prisma from "../internal/prismaNamespace.js"
  * Model MarketingPageVersion
  * *
  *  * 页面正文的一次发布快照。
+ *  *
  *  * 现有的草稿 / 线上两列只回答「有没有未发布的改动」，答不了「上周三线上是什么样」。
  *  * 每次发布存一份，才谈得上回滚到任意一版——而不是只能撤销到最近一次发布。
+ *  *
  *  * 存**完整正文**而不是 diff：正文是一棵 section 树，逐版存 diff 要在读取时按序重放，
  *  * 中间任何一版损坏就全线报废；而一页正文才几十 KB，直接存整份换来的是「任何一版都能
  *  * 独立读出来」。
@@ -524,8 +526,7 @@ export type $MarketingPageVersionPayload<ExtArgs extends runtime.Types.Extension
     tenant_id: string
     page_id: string
     /**
-     * *
-     *    * 同一页内自增，从 1 开始；展示与排序都用它，不用时间戳。
+     * * 同一页内自增，从 1 开始；展示与排序都用它，不用时间戳。
      */
     version: number
     title: string
@@ -533,8 +534,7 @@ export type $MarketingPageVersionPayload<ExtArgs extends runtime.Types.Extension
     sections: runtime.JsonValue
     settings: runtime.JsonValue
     /**
-     * *
-     *    * 触发这次发布的用户，供「谁改的」一列。
+     * * 触发这次发布的用户，供「谁改的」一列。
      */
     created_by: string
     created_at: Date

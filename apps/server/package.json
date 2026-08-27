@@ -45,6 +45,7 @@
     "@rewindom/site-docs": "workspace:*",
     "@rewindom/site-form": "workspace:*",
     "@rewindom/todo": "workspace:*",
+    "@rewindom/useless": "workspace:*",
     "bcrypt": "^6.0.0",
     "bullmq": "^6.2.0",
     "cron-parser": "^5.10.0",

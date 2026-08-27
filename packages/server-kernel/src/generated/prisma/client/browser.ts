@@ -170,6 +170,7 @@ export type MarketingPage = Prisma.MarketingPageModel
  * Model MarketingRedirect
  * *
  *  * 站内 301/302 重定向。
+ *  *
  *  * 迁站、改 slug、下线活动页时用来保住外部链接与既有排名。按 `from_path` 精确匹配，
  *  * **不**做通配/正则：通配规则写错的后果是整站进重定向循环，而这类规则又恰恰最难在
  *  * 编辑器里看出对不对。真需要批量时，多加几条明确的记录比一条聪明的规则可靠。
@@ -179,8 +180,10 @@ export type MarketingRedirect = Prisma.MarketingRedirectModel
  * Model MarketingAsset
  * *
  *  * 媒体库里的一张图。
+ *  *
  *  * 以前上传只落盘、不落库：URL 一旦从编辑器里删掉，那个文件就再也找不回来，也没人知道
  *  * 它还在不在被引用。有了这行才谈得上「列出来、复用、删掉、写 alt」。
+ *  *
  *  * `alt` 存在这里而不是随每个引用点存一份：同一张图在十个地方用，无障碍文案不该抄十遍。
  */
 export type MarketingAsset = Prisma.MarketingAssetModel
@@ -188,8 +191,10 @@ export type MarketingAsset = Prisma.MarketingAssetModel
  * Model MarketingPageVersion
  * *
  *  * 页面正文的一次发布快照。
+ *  *
  *  * 现有的草稿 / 线上两列只回答「有没有未发布的改动」，答不了「上周三线上是什么样」。
  *  * 每次发布存一份，才谈得上回滚到任意一版——而不是只能撤销到最近一次发布。
+ *  *
  *  * 存**完整正文**而不是 diff：正文是一棵 section 树，逐版存 diff 要在读取时按序重放，
  *  * 中间任何一版损坏就全线报废；而一页正文才几十 KB，直接存整份换来的是「任何一版都能
  *  * 独立读出来」。
@@ -352,6 +357,7 @@ export type MemberPayment = Prisma.MemberPaymentModel
  * Model SiteDocCategory
  * *
  *  * 文档库分类：稳定 key + 多语言显示名。
+ *  *
  *  * 各语言版本的文档共用同一个 `key`（存在 `SiteDoc.category`），显示名走
  *  * `label`（纯字符串或 `{ __i18n }`）。与「每语言各填一个分类名字符串」解耦。
  */
@@ -360,15 +366,19 @@ export type SiteDocCategory = Prisma.SiteDocCategoryModel
  * Model SiteDoc
  * *
  *  * 租户文档库里的一篇文档。
+ *  *
  *  * 与 `MarketingPage`（页面版式系统）解耦：文档就是「标题 + Markdown 正文」，
  *  * 不进 section / block 体系——文档作者只写 markdown，不碰 Theme Editor。每租户
  *  * 默认有一个 `/docs` 索引与 `/docs/:slug` 详情路由，渲染复用站点 chrome +
  *  * `.prose` 排版。
+ *  *
  *  * 与平台文档（`docs/*.md`，代码版本化）的区别：平台文档跟代码走、给默认租户产品
  *  * 站用；本表是租户自管、DB 存储、按租户隔离。
+ *  *
  *  * draft / live 两列与页面同口径：无后缀是线上（访客看到的），`_draft`
  *  * 是编辑器在改的那一份。`status` 为 `draft` 时文档对访客不可见（不出现在 `/docs`）。
  *  * `locale` 与页面同口径（翻译组 key = `(tenant, slug)`）。
+ *  *
  *  * 刻意不声明到 Tenant 的 relation：租户隔离由 tenant-guard + withTenantScope 保证。
  */
 export type SiteDoc = Prisma.SiteDocModel
@@ -376,9 +386,11 @@ export type SiteDoc = Prisma.SiteDocModel
  * Model SiteFormSubmission
  * *
  *  * 公开表单的一次提交。
+ *  *
  *  * 内容存成自描述的 `[{ id, label, value }]` 而不是 `{ fieldId: value }`：字段是 block，
  *  * 租户随时会改标题、删字段、调顺序——按 id 存的话，三个月后回头看后台列表只剩一堆
  *  * uuid 对不上任何东西。存下提交**当时**的标签，历史记录才读得懂。
+ *  *
  *  * 与页面的关联只存 slug / locale / section_id 三个字符串，不连外键：页面在 marketing
  *  * 那个模块里，跨模块 relation 会把两个部署单元焊死。段被删掉之后这条记录仍要读得懂，
  *  * 所以标题也另存了一份快照。
@@ -419,3 +431,8 @@ export type SlowRequestLog = Prisma.SlowRequestLogModel
  * 
  */
 export type Todo = Prisma.TodoModel
+/**
+ * Model Thing
+ * 
+ */
+export type Thing = Prisma.ThingModel

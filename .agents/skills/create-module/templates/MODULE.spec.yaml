@@ -23,7 +23,7 @@ entitlement:
   label: 笔记
   description: 租户内笔记管理（示例模块）
   disabled_hint: 该租户未开通笔记模块
-  default_enabled: true
+  default_enabled: false
 
 # ---------- 必填 · 权限 ----------
 # key 必须与前端 hasPermission() / nav 的 anyPermission 字面一致

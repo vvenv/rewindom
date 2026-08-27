@@ -121,7 +121,8 @@ export const ModelName = {
   SiteMemberOAuthExchangeCode: 'SiteMemberOAuthExchangeCode',
   SlowQueryLog: 'SlowQueryLog',
   SlowRequestLog: 'SlowRequestLog',
-  Todo: 'Todo'
+  Todo: 'Todo',
+  Thing: 'Thing'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1363,6 +1364,20 @@ export const TodoScalarFieldEnum = {
 } as const
 
 export type TodoScalarFieldEnum = (typeof TodoScalarFieldEnum)[keyof typeof TodoScalarFieldEnum]
+
+
+export const ThingScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  text: 'text',
+  enabled: 'enabled',
+  created_by: 'created_by',
+  updated_by: 'updated_by',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ThingScalarFieldEnum = (typeof ThingScalarFieldEnum)[keyof typeof ThingScalarFieldEnum]
 
 
 export const SortOrder = {

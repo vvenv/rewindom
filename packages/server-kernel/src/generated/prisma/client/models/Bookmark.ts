@@ -479,8 +479,7 @@ export type $BookmarkPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     tenant_id: string
     url: string
     /**
-     * *
-     *    * URL 的主机名（去 www.），列表按站点筛选与卡片展示都用它，避免每次现算。
+     * * URL 的主机名（去 www.），列表按站点筛选与卡片展示都用它，避免每次现算。
      */
     host: string
     title: string

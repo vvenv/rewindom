@@ -102,7 +102,7 @@ ExecStart=/opt/certbot-dns/bin/certbot -q renew --no-random-sleep-on-renew
 | 角色            | 负责事项                                                                  |
 | --------------- | ------------------------------------------------------------------------- |
 | **租户 / 客户** | DNS（自定义域）；在中台 `/app/site` 编辑并发布官网内容                    |
-| **平台管理员**  | 控制台绑定 `custom_domain`；开通 entitlement `tenant-marketing`（默认开） |
+| **平台管理员**  | 控制台绑定 `custom_domain`；开通 entitlement `tenant-marketing` |
 | **实例运维**    | 公网入口、TLS；Nginx 按 Host 分流（平台控制台 SPA / 租户 SSR）            |
 
 通配子域只需运维完成 §0；自定义域还需客户 DNS + 控制台绑定。官网文案由租户在 CMS 发布后生效。

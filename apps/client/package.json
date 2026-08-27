@@ -31,6 +31,7 @@
     "@rewindom/site-form": "workspace:*",
     "@rewindom/todo": "workspace:*",
     "@rewindom/ui": "workspace:*",
+    "@rewindom/useless": "workspace:*",
     "@tanstack/react-query": "^5.101.4",
     "@tanstack/react-table": "^9.1.2",
     "@tanstack/react-virtual": "^3.14.10",

@@ -16,8 +16,7 @@ entitlement:
   label: 站点表单
   description: 官网表单段与提交记录
   disabled_hint: 该站点未开通表单
-  # 拆分前表单是内置段，所有站点都在用；默认开才不会在升级当天让存量表单消失
-  default_enabled: true
+  default_enabled: false
 
 permissions:
   - { key: form.read, label: 查看表单提交, group: 站点表单, description: 查看官网表单收到的提交}

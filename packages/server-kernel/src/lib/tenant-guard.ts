@@ -40,6 +40,7 @@ type ModelPolicy =
   | { kind: "global"; reason: string };
 
 const MODEL_POLICIES: Record<string, ModelPolicy> = {
+  Thing: { kind: "tenant_id" },
   ContentAsset: { kind: "tenant_id" },
   ContentTemplate: { kind: "tenant_id" },
   Content: { kind: "tenant_id" },

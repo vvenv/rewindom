@@ -5,5 +5,5 @@ export const TODO_ENTITLEMENT: TenantModuleEntitlement = {
   label: "待办",
   description: "租户内待办事项管理",
   disabled_hint: "该组织未开通待办模块",
-  default_enabled: true,
+  default_enabled: false,
 };

@@ -27,7 +27,7 @@ Rule：`.cursor/rules/extension-points.mdc`（含跨模块通信决策表）
 | `kind` + `placement`                           | `modules/<id>/` vs `packages/builtin/<id>/`                             | 物理布局整体推倒                           |
 | `resource.singular/plural`                     | 20+ 文件名、URL、路径参数、queryKey                                   | 事后重命名成本最高                         |
 | `surfaces`                                     | 是否生成 `platform-*.routes.ts` / `renderPlatformRoutes`              | 平台面漏建或白建                           |
-| `entitlement.key` + `default_enabled`          | `registerTenantGatedRoutes` + `APP_TENANT_ENTITLEMENTS`               | **漏了等于绕过租户开关，是安全问题**       |
+| `entitlement.key`                              | `registerTenantGatedRoutes` + `APP_TENANT_ENTITLEMENTS`               | **漏了等于绕过租户开关，是安全问题**       |
 | `permissions[].key`                            | 后端 `requirePermission` + 前端 `hasPermission` + nav `anyPermission` | 字面不一致 → 权限静默失效                  |
 | `models[].fields`                              | Prisma + mapper + 表单 + 表格列                                       | 唯一无法从模板推导的部分                   |
 | `client.mount`                                 | 决定页面外壳（见 `frontend-page-structure`）                          | 租户页漏 `PageLayout` / 平台页多套一层标题 |
@@ -38,7 +38,7 @@ Rule：`.cursor/rules/extension-points.mdc`（含跨模块通信决策表）
 一次最多 4 题，分两轮，不要 20 连问：
 
 - **轮 1（骨架）**：`kind` + `placement` / `resource` 单复数 / `surfaces` / `client.mount`
-- **轮 2（契约）**：`permissions` key 列表 / `models` 字段 / `entitlement` key + 默认开关 / `route_path` + nav 三件套
+- **轮 2（契约）**：`permissions` key 列表 / `models` 字段 / `entitlement` key / `route_path` + nav 三件套
 
 ### 可默认项（直接采用，不要问；在最终回复里列出所用默认值）
 
@@ -49,6 +49,7 @@ Rule：`.cursor/rules/extension-points.mdc`（含跨模块通信决策表）
 | 审计                | 每个写操作一个 `<RESOURCE>_<ACTION>`，经 `events.emit` 上报                    |
 | 测试                | `*.routes.test.ts` + client `lib/*.test.ts`                                    |
 | 软删除 / 移动端 tab | 关                                                                             |
+| `entitlement.default_enabled` | `false`（有租户开关的能力默认关；无开关的基础设施无法关）                     |
 
 ### 硬规则
 

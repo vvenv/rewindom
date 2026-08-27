@@ -29,9 +29,9 @@ entitlement:
   label: 邮件发送
   description: 配置本站发信通道，查看投递记录
   disabled_hint: 该组织未开通邮件发送
-  # 存量租户默认开：关掉的语义是「这个租户一封信都不发」，
-  # getMailProvider() 对它返回 null，依赖发信的模块随之诚实失败（见下方设计要点 4）。
-  default_enabled: true
+  # 关掉的语义是「这个租户一封信都不发」，getMailProvider() 对它返回 null，
+  # 依赖发信的模块随之诚实失败（见下方设计要点 4）。
+  default_enabled: false
 
 # ---------- 必填 · 权限 ----------
 permissions:

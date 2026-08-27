@@ -5,5 +5,5 @@ export const BOOKMARK_ENTITLEMENT: TenantModuleEntitlement = {
   label: "书签",
   description: "租户内书签管理",
   disabled_hint: "该组织未开通书签模块",
-  default_enabled: true,
+  default_enabled: false,
 };

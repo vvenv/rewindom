@@ -1,0 +1,61 @@
+# 新租户只默认开通没有租户开关的基础设施。凡声明了 tenantEntitlements 的
+# 能力一律 default_enabled: false（含官网 / 发信 / 组织订阅），由平台控制台按需打开。
+#
+# 三套开关正交：本变更只动 Tenant Module 的缺省，不从 ENABLED_*_MODULES 卸模块
+# （代码仍加载，才能在控制台打开）。存量租户已写入的显式开关不动；
+# 从未写入、一直靠旧默认 true 开通的 key，由 backfill 写成显式 true。
+
+module: platform
+surfaces: [platform, tenant]
+goal: "新租户默认只开通无租户开关的基础设施；凡有 tenantEntitlements 的能力（含官网 / 发信 / 组织订阅）default_enabled: false。"
+gold: modules/shop/shared/entitlements.ts
+touch:
+  - packages/builtin/platform/features/default-required-modules-only.spec.yaml
+  - packages/builtin/marketing/shared/entitlements.ts
+  - packages/builtin/billing/shared/entitlements.ts
+  - packages/builtin/billing/MODULE.spec.yaml
+  - packages/builtin/mailer/shared/entitlements.ts
+  - packages/builtin/mailer/MODULE.spec.yaml
+  - packages/builtin/platform/server/services/tenant-module.service.ts
+  - packages/builtin/site-member/shared/entitlements.ts
+  - packages/builtin/site-billing/shared/entitlements.ts
+  - modules/note/shared/entitlements.ts
+  - modules/todo/shared/entitlements.ts
+  - modules/todo/MODULE.spec.yaml
+  - modules/bookmark/shared/entitlements.ts
+  - modules/content/shared/entitlements.ts
+  - modules/content/MODULE.spec.yaml
+  - modules/events/shared/entitlements.ts
+  - modules/events/MODULE.spec.yaml
+  - modules/events/server/lib/entitlement.ts
+  - modules/events/server/lib/entitlement.test.ts
+  - modules/site-docs/shared/entitlements.ts
+  - modules/site-docs/MODULE.spec.yaml
+  - modules/site-docs/MODULE.md
+  - modules/site-form/shared/entitlements.ts
+  - modules/site-form/MODULE.spec.yaml
+  - modules/site-form/MODULE.md
+  - modules/newsletter/shared/entitlements.ts
+  - docs/design/tenant-features.md
+  - docs/custom-domain.md
+  - .agents/skills/create-module/templates/MODULE.spec.yaml
+  - .agents/skills/create-module/SKILL.md
+  - scripts/gen-module.mjs
+  - apps/server/scripts/backfill-tenant-module-legacy-defaults.ts
+  - apps/server/scripts/backfill-tenant-module-legacy-defaults.dry.sql
+  - apps/server/scripts/backfill-tenant-module-legacy-defaults.apply.sql
+out_of_scope:
+  - 从 enabled-modules / EXTERNAL_*_MODULES 移除模块
+  - 把已有租户的显式 true 改成 false
+  - 改套餐级 tenant_features / pricing-plans
+  - 改无 entitlement 的基础设施模块（user / rbac / dashboard 等）
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/lib/entitlement.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project platform/server platform/server/services/tenant-module.service.test.ts
+  - node scripts/verify-module.mjs platform
+  - pnpm check:modules
+
+entitlement: none
+permissions: []
+models: []

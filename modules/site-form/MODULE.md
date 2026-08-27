@@ -10,7 +10,7 @@
 | 公开站交互                               | `client/enhance/index.ts`（由 marketing 的 site-enhance 扫进同一个 IIFE） |
 | 工作台                                   | `/api/site-form/submissions`（列表 + 删一条）、`/app/site-form`           |
 | 存储                                     | `SiteFormSubmission`                                                      |
-| 租户开关                                 | `site-form`（`default_enabled: true`）                                    |
+| 租户开关                                 | `site-form`（`default_enabled: false`）                                   |
 | 权限                                     | `form.read` / `form.write`                                                |
 
 ## 贡献给「站点」的是什么

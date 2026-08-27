@@ -1,7 +1,10 @@
 import { getServerTenantCatalog } from "@rewindom/server-kernel/runtime/tenant-catalog.js";
 import { type TenantModuleFlags } from "@rewindom/shared";
 
-import { TENANT_MODULES_STORAGE_KEY, createDefaultTenantModuleFlags } from "../../shared/index.js";
+import {
+  TENANT_MODULES_STORAGE_KEY,
+  createDefaultTenantModuleFlags,
+} from "../../shared/index.js";
 
 import {
   getTenantJsonSetting,
@@ -38,7 +41,8 @@ function resolveModuleEnabled(
   const definition = getServerTenantCatalog().modules.find(
     (module) => module.module_id === moduleId,
   );
-  return definition?.default_enabled ?? true;
+  // 目录里找不到定义时 fail-closed：可选模块默认关，未知 key 不当成开通。
+  return definition?.default_enabled ?? false;
 }
 
 export async function getTenantModuleFlags(

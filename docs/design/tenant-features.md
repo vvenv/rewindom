@@ -42,14 +42,20 @@
    `modules/note/shared/entitlements.ts`：
 
    ```typescript
-   export const NOTES_ENTITLEMENT: TenantModuleEntitlement = {
-     key: "notes",
+   export const NOTE_ENTITLEMENT: TenantModuleEntitlement = {
+     key: "note",
      label: "笔记",
      description: "租户内笔记管理（示例模块）",
-     disabled_hint: "该租户未开通笔记模块",
-     default_enabled: true,
+     disabled_hint: "该组织未开通笔记模块",
+     default_enabled: false,
    };
    ```
+
+   **默认开通口径**（新租户 / 未写入开关时）：只开没有租户开关的基础设施
+   （user / rbac / audit / dashboard / platform / notification…）。凡声明了
+   `tenantEntitlements` 的能力一律 `default_enabled: false`，由平台控制台按需打开。
+   新建模块模板与 `gen-module` 缺省同此。官网、发信、组织订阅也在此列——它们有开关
+   就是因为可以关，工作台不依赖它们。
 
 2. **套餐级 feature flag** — 定义在 `packages/builtin/platform/shared/pricing-plans.ts`
    的 `TenantFeatureFlags` 中，跨模块共享。
