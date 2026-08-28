@@ -3,7 +3,7 @@
  *
  * 幂等：句子按正文查重，可交互物按标题查重。
  * 可交互物的 HTML **会同步**：皮肤和手感改了，再跑一遍就把已入库的换上。
- * 句子仍不覆盖——那是站点后来可能改过的话。
+ * 句子入库即停用——公开站只出可交互物。
  */
 import { prisma, withTenantScope } from "@rewindom/module-sdk/server";
 
@@ -146,6 +146,15 @@ export async function seedUselessDemo(
     created += 1;
   }
 
+  const disabledTexts = await prisma.thing.updateMany({
+    where: withTenantScope(tenantId, {
+      kind: "text",
+      OR: [{ enabled: true }, { published_on: { not: null } }],
+    }),
+    data: { enabled: false, published_on: null },
+  });
+  updated += disabledTexts.count;
+
   for (const text of LINES) {
     const existing = await prisma.thing.findFirst({
       where: withTenantScope(tenantId, { kind: "text", text }),
@@ -160,7 +169,7 @@ export async function seedUselessDemo(
       user_id: userId,
       kind: "text",
       text,
-      enabled: true,
+      enabled: false,
     });
     created += 1;
   }
