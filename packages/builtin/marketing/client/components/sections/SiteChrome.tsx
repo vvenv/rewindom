@@ -204,17 +204,16 @@ function NavColumnItem({ item }: { item: ResolvedNavItem }): ReactElement {
   );
 }
 
+/** 项目由调用方解析后传进来：一条都没有的导航整块不产出，调用方要拿这个结果决定 drawer。 */
 function ChromeNav({
   block,
-  ctx,
+  items,
   fallbackLabel,
 }: {
   block: SiteBlock;
-  ctx: SiteNavContext;
+  items: ResolvedNavItem[];
   fallbackLabel?: string;
-}): ReactElement | null {
-  const items = resolveNavItems(settingNavItems(block.settings), ctx);
-  if (items.length === 0) return null;
+}): ReactElement {
   const column = settingText(block.settings, "display") === "column";
   const title = settingText(block.settings, "title");
   const label = title || fallbackLabel || "";
@@ -451,10 +450,14 @@ export function SiteChrome({
       case "chrome_nav": {
         const isMain = !mainNavUsed;
         mainNavUsed = true;
+        // 空导航在这里就判掉（SSR 同样返回空串）：交给 ChromeNav 自己返回 null 的话，
+        // 外面拿到的是个「非空」的元素，抽屉与汉堡照样会为一个什么都不渲染的块留位置
+        const items = resolveNavItems(settingNavItems(block.settings), ctx);
+        if (items.length === 0) return null;
         return (
           <ChromeNav
             block={block}
-            ctx={ctx}
+            items={items}
             fallbackLabel={isMain ? mainNavLabel(ctx.locale) : undefined}
           />
         );
@@ -587,7 +590,8 @@ export function SiteChrome({
             {drawers.length > 0 ? (
               <div className="chrome-menu-popup">{drawers}</div>
             ) : null}
-            {row.hasMenu ? (
+            {/* 汉堡跟着抽屉走：一条项目都没有的导航渲染成 null，抽屉为空时点开只是个空浮层 */}
+            {drawers.length > 0 ? (
               <input
                 type="checkbox"
                 className="chrome-menu-toggle"

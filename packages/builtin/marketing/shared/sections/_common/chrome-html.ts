@@ -388,13 +388,15 @@ function renderRowHtml(
    * `.chrome-menu-popup`——抽屉收在这一层里，和 input 不是兄弟，`~` 够不着。
    */
   const menuId = `chrome-menu-${escapeHtml(sectionId)}-${row.index}`;
-  const menu = row.hasMenu
+  // 按渲染出来的抽屉判断，不按「块声明了 menu」——设成收进菜单的导航若一条项目都没有，
+  // 块本身渲染成空串，抽屉一个都不剩，这时的汉堡点开是个空浮层
+  const hasDrawer = drawers.length > 0;
+  const menu = hasDrawer
     ? `<input type="checkbox" id="${menuId}" class="chrome-menu-toggle" aria-label="${escapeHtml(chromeMenuLabel(input.ctx.locale))}" />`
     : "";
-  const popup =
-    drawers.length > 0
-      ? `<div class="chrome-menu-popup">${drawers.join("")}</div>`
-      : "";
+  const popup = hasDrawer
+    ? `<div class="chrome-menu-popup">${drawers.join("")}</div>`
+    : "";
   return `<div class="wrap chrome-row chrome-row-${row.index}">${zones.join("")}${popup}${menu}</div>`;
 }
 

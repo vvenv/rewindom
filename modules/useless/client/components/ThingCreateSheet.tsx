@@ -2,8 +2,6 @@ import { useState, type ReactNode, type SubmitEvent } from "react";
 
 import { ApiError } from "@rewindom/module-sdk/client";
 import { Button } from "@rewindom/ui/button";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@rewindom/ui/field";
-
 import {
   Sheet,
   SheetClose,
@@ -15,8 +13,6 @@ import {
   SheetTrigger,
 } from "@rewindom/ui/sheet";
 import { Spinner } from "@rewindom/ui/spinner";
-import { Switch } from "@rewindom/ui/switch";
-import { Textarea } from "@rewindom/ui/textarea";
 import { toast } from "@rewindom/ui/toast";
 import { Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -28,6 +24,8 @@ import {
   validateThingForm,
   type ThingFormValues,
 } from "../lib/things.js";
+
+import { ThingFields } from "./ThingFields.js";
 
 interface ThingCreateSheetProps {
   children?: ReactNode;
@@ -88,30 +86,12 @@ export function ThingCreateSheet({ children }: ThingCreateSheetProps) {
             <SheetDescription>{t("createDescription")}</SheetDescription>
           </SheetHeader>
 
-          <FieldGroup className="min-h-0 flex-1 overflow-y-auto px-4">
-            <Field>
-              <FieldLabel htmlFor={"thing-text"}>{t("fieldText")}</FieldLabel>
-              <Textarea
-                id={"thing-text"}
-                className="min-h-40"
-                value={form.text}
-                onChange={(event) =>
-                  setForm((prev) => ({ ...prev, text: event.target.value }))
-                }
-              />
-            </Field>
-            <Field orientation="horizontal">
-              <FieldLabel htmlFor={"thing-enabled"}>{t("fieldEnabled")}</FieldLabel>
-              <Switch
-                id={"thing-enabled"}
-                checked={form.enabled}
-                onCheckedChange={(checked) =>
-                  setForm((prev) => ({ ...prev, enabled: checked }))
-                }
-              />
-            </Field>
-            {error ? <FieldError>{error}</FieldError> : null}
-          </FieldGroup>
+          <ThingFields
+            form={form}
+            onChange={(patch) => setForm((prev) => ({ ...prev, ...patch }))}
+            error={error}
+            idPrefix="thing-new"
+          />
 
           <SheetFooter>
             <SheetClose asChild>

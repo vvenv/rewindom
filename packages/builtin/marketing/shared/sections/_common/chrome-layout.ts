@@ -27,8 +27,6 @@ export interface ChromeRow {
   /** 1 起，用于 class 与调试；不连续（第 2 行空着时第 3 行仍叫 3）。 */
   index: number;
   zones: ChromeZone[];
-  /** 这一行里有没有「窄屏收进菜单」的块——汉堡按钮据此逐行决定渲不渲染。 */
-  hasMenu: boolean;
 }
 
 /**
@@ -46,11 +44,7 @@ export function chromeRows(blocks: readonly SiteBlock[]): ChromeRow[] {
       align,
       blocks: inRow.filter((block) => blockAlign(block) === align),
     })).filter((zone) => zone.blocks.length > 0);
-    rows.push({
-      index,
-      zones,
-      hasMenu: inRow.some((block) => blockMobile(block) === "menu"),
-    });
+    rows.push({ index, zones });
   }
   return rows;
 }

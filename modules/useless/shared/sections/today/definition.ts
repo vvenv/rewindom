@@ -40,7 +40,11 @@ export const uselessTodaySection: SectionDefinition = {
       id: "empty_text",
       label: "useless:section.today.emptyText",
       info: "useless:section.today.emptyTextInfo",
-      default: "useless:section.today.emptyDefault",
+      /*
+       * **刻意不给 default**：编辑器「添加区块」那条路径不展开 `ns:key`
+       *（`defaultSettingValue` 原样存），访客会直接看到 `useless:...` 原文。
+       * 留空时由服务端 provider 送来的 `labels.empty` 兜底。
+       */
     },
     /*
      * 留白是这一段唯一的版式主张，所以默认值给得比别的段大得多（常规段是 48）。

@@ -147,6 +147,15 @@ describe("SiteChrome 定位", () => {
     ]);
     expect(container.querySelector(".chrome-menu-toggle")).toBeNull();
   });
+
+  // 汉堡是「有东西可展开」才有意义：一条项目都没有的导航块渲染成 null
+  it("收进菜单的块渲染成空时也没有汉堡", () => {
+    const { container } = area("header", [
+      block("chrome_nav", { items: [], mobile: "menu" }),
+    ]);
+    expect(container.querySelector(".chrome-menu-toggle")).toBeNull();
+    expect(container.querySelector(".chrome-menu-popup")).toBeNull();
+  });
 });
 
 describe("SiteChrome 导航", () => {

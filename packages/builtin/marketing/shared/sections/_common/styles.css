@@ -683,6 +683,10 @@
     align-items: center;
     column-gap: 0.5rem;
   }
+  /* 没有汉堡就不留第三格：空 track 是 0 宽，可 grid 的 column-gap 照旧，右侧会多出 0.5rem */
+  .chrome-row:not(:has(.chrome-menu-toggle)) {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
   .chrome-zone {
     display: contents;
   }

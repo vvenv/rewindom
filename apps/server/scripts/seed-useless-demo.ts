@@ -37,7 +37,7 @@ async function main(): Promise<void> {
 
   const result = await seedUselessDemo(tenant.id, user.id);
   console.log(
-    `[seed-useless-demo] tenant=${slug} user=${user.username} enabled_useless=${result.enabled_module} lines=+${result.created} skipped=${result.skipped}`,
+    `[seed-useless-demo] tenant=${slug} user=${user.username} enabled_useless=${result.enabled_module} lines=+${result.created} skipped=${result.skipped} backfilled=${result.backfilled}`,
   );
   console.log("[seed-useless-demo] workspace /app/things");
 }

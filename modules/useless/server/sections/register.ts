@@ -16,7 +16,8 @@ import { renderUselessTodayHtml } from "../../shared/sections/today/html.js";
 import { USELESS_CSS } from "../../shared/site-css.generated.js";
 import { uselessContextEntry } from "../../shared/useless-section-context.js";
 import { isUselessEnabled } from "../lib/entitlement.js";
-import { getTodayThing } from "../thing.service.js";
+import { registerUselessDayPath } from "../ssr/day-path-handler.js";
+import { buildUselessContext } from "./context.js";
 
 /** 在模块 `onBoot` 里调。 */
 export function registerUselessSiteContributions(): void {
@@ -24,18 +25,29 @@ export function registerUselessSiteContributions(): void {
 
   registerSiteSectionHtml(uselessTodaySection, renderUselessTodayHtml, css);
 
+  // /20260826 —— 回看那一天
+  registerUselessDayPath();
+
   registerSectionContextProvider({
     sectionTypes: [USELESS_TODAY_SECTION_TYPE],
     /*
-     * 句子是纯文本、没有 locale map，所以这里用不到 `input.locale`——不是漏了。
-     * 哪天正文改成按语言存，取数就得跟着 `input.locale` 走（见 site-section skill）。
+     * 东西是纯文本 / HTML、没有 locale map，所以这里用不到 `input.locale`——不是漏了。
+     * 哪天内容改成按语言存，取数就得跟着 `input.locale` 走（见 site-section skill）。
      */
     provide: async (input) => {
       if (!(await isUselessEnabled(input.tenantId))) return {};
-      const thing = await getTodayThing(input.tenantId);
-      return uselessContextEntry({
-        today: thing ? { text: thing.text } : null,
-      });
+      /*
+       * `?d=` 来自访客，**必须自己校验**：`buildUselessContext` 里解不出合法日期
+       * 就退回今天，绝不把原样字符串带进查询。
+       */
+      const context = await buildUselessContext(
+        input.tenantId,
+        input.query?.d,
+        new Date(),
+        // 导航文案要跟**当前页面的语言**走，不是工作台界面语言
+        input.locale,
+      );
+      return uselessContextEntry(context);
     },
   });
 }

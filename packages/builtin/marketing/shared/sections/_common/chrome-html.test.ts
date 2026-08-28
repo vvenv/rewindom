@@ -139,6 +139,13 @@ describe("chrome 窄屏", () => {
     expect(html).not.toContain("chrome-menu-popup");
   });
 
+  // 汉堡是「有东西可展开」才有意义：一条项目都没有的导航块渲染成空串
+  it("收进菜单的块渲染成空时也没有汉堡", () => {
+    const html = header([block("chrome_nav", { items: [], mobile: "menu" })]);
+    expect(html).not.toContain("chrome-menu-toggle");
+    expect(html).not.toContain("chrome-menu-popup");
+  });
+
   it("窄屏隐藏的块带 chrome-mobile-hide", () => {
     const html = header([block("chrome_text", { mobile: "hide" })]);
     expect(html).toContain("chrome-block chrome-mobile-hide");

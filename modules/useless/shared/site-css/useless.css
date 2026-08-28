@@ -1,17 +1,20 @@
 /*
- * 「今天那条」的样式。
+ * 「那天那个」的样式。
  *
  * 真源在此；`pnpm --filter @rewindom/builtin assemble:module-css` 压缩后写入
  * ../site-css.generated.ts。只用官网已有的 token，换主题、切明暗都跟着变。
  *
- * 版式口径：这一段的内容是**一句话加它周围的空当**。所以只做三件事——
- * 把行宽收到一句话该有的宽度、把行高放到接近双倍、让字号随视口走。
- * 不加边框、不加底色、不加强调色：任何装饰都会把「无用」变成一个栏目。
+ * 版式口径：内容是**一样东西加它周围的空当**。句子只做三件事——收行宽、
+ * 放行高、字号随视口。不加边框、不加底色、不加强调色。
+ * 可交互物直接长在页面里（不套 iframe），所以这里**只给它一个居中的位置**，
+ * 不画边框、不给底色——那会把它变成一个「区块」。它自己的样式由它自己带。
  */
 
 .useless-today {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
 
 .useless-today-text {
@@ -29,4 +32,132 @@
   color: var(--muted-fg);
   font-size: 1.0625rem;
   line-height: 2.1;
+}
+
+.useless-thing {
+  width: 100%;
+  max-width: 40rem;
+}
+
+.useless-thing-title {
+  margin: 0;
+  color: var(--muted-fg);
+  font-size: 0.8125rem;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 日期导航 —— 一整块不依赖 JS                                                  */
+/* -------------------------------------------------------------------------- */
+
+.useless-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 3.5rem;
+  font-size: 0.8125rem;
+}
+
+.useless-nav-link {
+  color: var(--muted-fg);
+  text-decoration: none;
+}
+.useless-nav-link:hover {
+  color: var(--fg);
+}
+/* 没有上一天 / 下一天时仍占位，避免选择器左右跳动 */
+.useless-nav-link.is-off {
+  opacity: 0.35;
+}
+
+.useless-nav-pick {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* 选择器自带日期文字，标签只留给读屏软件 */
+.useless-nav-pick-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.useless-nav-pick input {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.8125rem;
+}
+.useless-nav-pick input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.useless-nav-today {
+  color: var(--muted-fg);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+}
+.useless-nav-today:hover {
+  color: var(--fg);
+}
+
+/* -------------------------------------------------------------------------- */
+/* 日期行沉底 —— 页上还有空当时，它落到最底                                     */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * 这一段常常是整张页上唯一的东西：一句话，之后全是空当。日期行紧贴在句子下面
+ * 时读起来像那句话的一部分；沉到页底它才回到「翻页的地方」这个位置上，句子四周
+ * 的空当也才真的是空的。
+ *
+ * 条件写在 DOM 上，不加设置——段自己并不知道它被摆在哪张页上：
+ *   - 只有 `.site-main` 里的**最后一段**才沉。后面还跟着别的段时把日期行拽到
+ *     页底，它就和自己那句话拆散了。
+ *   - `flex: 1` 只吃**剩下的**高度。页面本来就摆满了的话，这几条什么都不改。
+ * `.sec` / `.sec-band` / `.sec-content` 是 base.css 的常驻类，随页常在，不会漏发。
+ */
+
+/*
+ * 第一步是把外壳撑满视口：`.site-stack` 那条 `min-height: 100%` 其实是落空的
+ * ——外层 `.marketing-site-root` 只有 `min-height` 没有 `height`，百分比无处可依，
+ * 于是页面根本没有「剩下的高度」可分。让 root 变成纵向 flex、stack 吃掉剩下的
+ * 即可。编辑器预览里 root 是 `min-height: 100%`（同样落空），这两条于是什么都
+ * 不改，不会把预览撑出容器。
+ */
+.marketing-site-root:has(.site-main > .sec:last-child .useless-nav) {
+  display: flex;
+  flex-direction: column;
+}
+.marketing-site-root:has(.site-main > .sec:last-child .useless-nav)
+  > .site-stack {
+  flex: 1 1 auto;
+}
+.site-main:has(> .sec:last-child .useless-nav) {
+  display: flex;
+  flex-direction: column;
+}
+.site-main:has(> .sec:last-child .useless-nav) > .sec:last-child,
+.site-main:has(> .sec:last-child .useless-nav) > .sec:last-child > .sec-band,
+.site-main:has(> .sec:last-child .useless-nav)
+  > .sec:last-child
+  > .sec-band
+  > .sec-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+/* 沉底时把那 3.5rem 的固定间距让给「撑开上面」 */
+.site-main:has(> .sec:last-child .useless-nav) .useless-nav {
+  margin-top: auto;
 }

@@ -7083,7 +7083,11 @@ export type TodoScalarFieldEnum = (typeof TodoScalarFieldEnum)[keyof typeof Todo
 export const ThingScalarFieldEnum = {
   id: 'id',
   tenant_id: 'tenant_id',
+  kind: 'kind',
+  title: 'title',
   text: 'text',
+  html: 'html',
+  published_on: 'published_on',
   enabled: 'enabled',
   created_by: 'created_by',
   updated_by: 'updated_by',

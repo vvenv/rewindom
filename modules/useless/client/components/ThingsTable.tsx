@@ -7,7 +7,6 @@ import {
   useConfirm,
   usePermissions,
   type DataTableFeatures,
-  formatBusinessDateOrTimeAgo,
 } from "@rewindom/module-sdk/client";
 import { Button } from "@rewindom/ui/button";
 import { Checkbox } from "@rewindom/ui/checkbox";
@@ -18,6 +17,7 @@ import { useTranslation } from "react-i18next";
 import { useDeleteThing, useUpdateThing } from "../hooks/useThingMutations.js";
 
 import { ThingEditSheet } from "./ThingEditSheet.js";
+import { ThingPreviewSheet } from "./ThingPreviewSheet.js";
 
 import type { ThingListItem } from "../../shared/index.js";
 import type { ColumnDef, SortingState, Updater } from "@tanstack/react-table";
@@ -78,7 +78,9 @@ export function ThingsTable({
     async (item: ThingListItem) => {
       const confirmed = await confirm({
         title: t("deleteConfirmTitle"),
-        description: t("deleteConfirmDescription", { text: item.text }),
+        description: t("deleteConfirmDescription", {
+          text: (item.kind === "embed" ? item.title : item.text) || "—",
+        }),
         destructive: true,
       });
       if (!confirmed) {
@@ -101,14 +103,42 @@ export function ThingsTable({
   const columns = useMemo<ColumnDef<DataTableFeatures, ThingListItem>[]>(
     () => [
       {
+        accessorKey: "published_on",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t("fieldDate")} />
+        ),
+        enableSorting: true,
+        cell: ({ row }) => (
+          <span className="text-muted-foreground font-mono text-xs tabular-nums">
+            {/* 未排期是常态：等着被随机绑上 */}
+            {row.original.published_on ?? t("unscheduled")}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "kind",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t("fieldKind")} />
+        ),
+        enableSorting: true,
+        cell: ({ row }) => (
+          <span className="text-muted-foreground text-xs">
+            {row.original.kind === "embed" ? t("kindEmbed") : t("kindText")}
+          </span>
+        ),
+      },
+      {
         accessorKey: "text",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t("fieldText")} />
+          <DataTableColumnHeader column={column} title={t("columnContent")} />
         ),
         enableSorting: true,
         cell: ({ row }) => (
           <div className="text-muted-foreground line-clamp-2 max-w-xl text-sm">
-            {row.original.text || "—"}
+            {/* 可交互物没有正文，列表上用名字代表它 */}
+            {(row.original.kind === "embed"
+              ? row.original.title
+              : row.original.text) || "—"}
           </div>
         ),
       },
@@ -129,40 +159,33 @@ export function ThingsTable({
           />
         ),
       },
+      /*
+       * 操作列**常驻**：预览只要 things.read，只读用户也该能看。
+       * 写权限只关住编辑与删除两个按钮。
+       */
       {
-        accessorKey: "updated_at",
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t("fieldUpdatedAt")} />
+        id: "actions",
+        header: t("columnActions"),
+        cell: ({ row }: { row: { original: ThingListItem } }) => (
+          <div className="flex items-center gap-1">
+            <ThingPreviewSheet item={row.original} />
+            {canWrite ? (
+              <>
+                <ThingEditSheet item={row.original} />
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  aria-label={t("deleteAriaLabel")}
+                  disabled={deletingId === row.original.id}
+                  onClick={() => void handleDelete(row.original)}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </>
+            ) : null}
+          </div>
         ),
-        enableSorting: true,
-        cell: ({ row }) => (
-          <span className="text-muted-foreground text-sm">
-            {formatBusinessDateOrTimeAgo(row.original.updated_at)}
-          </span>
-        ),
-      },
-      ...(canWrite
-        ? [
-            {
-              id: "actions",
-              header: t("columnActions"),
-              cell: ({ row }: { row: { original: ThingListItem } }) => (
-                <div className="flex items-center gap-1">
-                  <ThingEditSheet item={row.original} />
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    aria-label={t("deleteAriaLabel")}
-                    disabled={deletingId === row.original.id}
-                    onClick={() => void handleDelete(row.original)}
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
-              ),
-            } satisfies ColumnDef<DataTableFeatures, ThingListItem>,
-          ]
-        : []),
+      } satisfies ColumnDef<DataTableFeatures, ThingListItem>,
     ],
     [canWrite, deletingId, handleDelete, togglingId, handleToggleEnabled, t],
   );

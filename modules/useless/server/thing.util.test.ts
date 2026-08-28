@@ -1,62 +1,97 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  DAILY_ROTATION_OFFSET_MINUTES,
-  localDayNumber,
-  pickDailyIndex,
+  localDateKey,
+  parseDateKey,
+  shiftDateKey,
+  validateThingInput,
 } from "./thing.util.js";
 
-describe("localDayNumber", () => {
-  it("同一天内恒定", () => {
-    const morning = new Date("2026-08-27T00:30:00+08:00");
-    const night = new Date("2026-08-27T23:30:00+08:00");
-    expect(localDayNumber(morning, DAILY_ROTATION_OFFSET_MINUTES)).toBe(
-      localDayNumber(night, DAILY_ROTATION_OFFSET_MINUTES),
-    );
+describe("localDateKey", () => {
+  it("按站点挂钟切日，不是 UTC", () => {
+    // 北京时间早上八点正是 UTC 切日的时刻——这时候换东西对读者是错的
+    const seven = new Date("2026-08-27T07:00:00+08:00");
+    const nine = new Date("2026-08-27T09:00:00+08:00");
+    expect(localDateKey(nine)).toBe(localDateKey(seven));
+    expect(localDateKey(seven)).toBe("2026-08-27");
   });
 
-  it("跨当地零点 +1", () => {
-    const before = new Date("2026-08-27T23:59:59+08:00");
-    const after = new Date("2026-08-28T00:00:01+08:00");
-    expect(localDayNumber(after, DAILY_ROTATION_OFFSET_MINUTES)).toBe(
-      localDayNumber(before, DAILY_ROTATION_OFFSET_MINUTES) + 1,
-    );
-  });
-
-  it("北京时间早上八点不换——那正是 UTC 切日的时刻", () => {
-    const sevenAm = new Date("2026-08-27T07:00:00+08:00");
-    const nineAm = new Date("2026-08-27T09:00:00+08:00");
-    expect(localDayNumber(nineAm, DAILY_ROTATION_OFFSET_MINUTES)).toBe(
-      localDayNumber(sevenAm, DAILY_ROTATION_OFFSET_MINUTES),
-    );
-    // 对照：用 UTC 切日的话这两个时刻会落在不同的天，即八点换句子
-    expect(localDayNumber(nineAm, 0)).toBe(localDayNumber(sevenAm, 0) + 1);
+  it("跨当地零点换一天", () => {
+    expect(localDateKey(new Date("2026-08-27T23:59:59+08:00"))).toBe("2026-08-27");
+    expect(localDateKey(new Date("2026-08-28T00:00:01+08:00"))).toBe("2026-08-28");
   });
 });
 
-describe("pickDailyIndex", () => {
-  it("在 [0, count) 内循环", () => {
-    expect(pickDailyIndex(0, 3)).toBe(0);
-    expect(pickDailyIndex(1, 3)).toBe(1);
-    expect(pickDailyIndex(2, 3)).toBe(2);
-    expect(pickDailyIndex(3, 3)).toBe(0);
+describe("parseDateKey", () => {
+  it("认合法日期", () => {
+    expect(parseDateKey("2026-08-27")?.toISOString()).toBe(
+      "2026-08-27T00:00:00.000Z",
+    );
   });
 
-  it("连续的天给出连续的下标", () => {
-    const day = 20_000;
-    const picks = [0, 1, 2, 3].map((d) => pickDailyIndex(day + d, 18));
-    expect(new Set(picks).size).toBe(4);
-  });
-
-  it("负数天不会越界", () => {
-    for (const d of [-1, -17, -18, -19]) {
-      const i = pickDailyIndex(d, 18);
-      expect(i).toBeGreaterThanOrEqual(0);
-      expect(i).toBeLessThan(18);
+  it("挡住访客乱填的东西", () => {
+    // `?d=` 来自地址栏，绝不能原样带进查询
+    for (const bad of [
+      "2026-02-30",
+      "26-08-27",
+      "2026/08/27",
+      "2026-08-27T00:00:00Z",
+      "'; DROP TABLE",
+      "",
+      null,
+      42,
+    ]) {
+      expect(parseDateKey(bad)).toBeNull();
     }
   });
+});
 
-  it("空池子返回 0，由调用方先判空", () => {
-    expect(pickDailyIndex(12_345, 0)).toBe(0);
+describe("shiftDateKey", () => {
+  it("跨月跨年都对", () => {
+    expect(shiftDateKey("2026-08-31", 1)).toBe("2026-09-01");
+    expect(shiftDateKey("2026-01-01", -1)).toBe("2025-12-31");
+  });
+});
+
+describe("validateThingInput", () => {
+  it("句子要正文", () => {
+    expect(validateThingInput({ kind: "text", text: "  " })?.code).toBe(
+      "useless.text_required",
+    );
+    expect(validateThingInput({ kind: "text", text: "有" })).toBeNull();
+  });
+
+  it("可交互的要 HTML 和名字", () => {
+    expect(
+      validateThingInput({ kind: "embed", title: "按钮", html: "" })?.code,
+    ).toBe("useless.html_required");
+    expect(
+      validateThingInput({ kind: "embed", title: "", html: "<button>" })?.code,
+    ).toBe("useless.title_required");
+    expect(
+      validateThingInput({ kind: "embed", title: "按钮", html: "<button>" }),
+    ).toBeNull();
+  });
+
+  it("可交互的不要求正文——那是另一种形态的字段", () => {
+    expect(
+      validateThingInput({ kind: "embed", title: "按钮", html: "<button>", text: "" }),
+    ).toBeNull();
+  });
+
+  it("认不出的 kind 直接挡掉", () => {
+    expect(validateThingInput({ kind: "iframe" })?.code).toBe(
+      "useless.kind_invalid",
+    );
+  });
+
+  it("日期不合法就挡掉", () => {
+    expect(
+      validateThingInput({ kind: "text", text: "有", published_on: "2026-13-01" })
+        ?.code,
+    ).toBe("useless.date_invalid");
+    expect(
+      validateThingInput({ kind: "text", text: "有", published_on: null }),
+    ).toBeNull();
   });
 });

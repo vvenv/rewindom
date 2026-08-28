@@ -2,15 +2,30 @@
 // 由 apps/server/prisma/models/useless.prisma 符号链接汇入（gen:external-modules 自动建链）
 // --- module: useless ---
 model Thing {
-  id         String   @id @default(uuid())
-  tenant_id  String
-  text String
-  enabled Boolean @default(true)
+  id        String @id @default(uuid())
+  tenant_id String
+
+  /// text = 一句话；embed = 可交互的 HTML/CSS/JS（只在沙箱 iframe 里执行）
+  kind String @default("text")
+  /// 归档与日期选择器上显示的名字。embed 必填；text 可空，正文自己就是标题
+  title String @default("")
+  /// kind=text 的正文
+  text String @default("")
+  /// kind=embed 的 HTML 片段，可含 <style>/<script>。**绝不直接注入页面**
+  html String @default("")
+
+  /// 哪一天发。null = 未排期（草稿）。
+  /// 归档要能回看，「哪天是哪条」就必须显式落库——取模轮换一加新条历史就错位。
+  /// Postgres 里 NULL 互不相等，所以草稿可以有很多条，同一天只能有一条。
+  published_on DateTime?
+
+  enabled    Boolean  @default(true)
   created_by String
   updated_by String?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
+  @@unique([tenant_id, published_on])
   @@index([tenant_id])
-  @@index([tenant_id, enabled, updated_at])
+  @@index([tenant_id, enabled, published_on])
 }
