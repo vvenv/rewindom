@@ -1,0 +1,25 @@
+# 可交互物收到极简
+module: useless
+surfaces: [ssr]
+goal: 可交互物的皮肤收到极简：方角按钮、1px 进度条、无动效；机制说明从页面上拿掉
+gold: modules/useless/shared/site-css/useless.css
+touch:
+  - modules/useless/features/play-kit.spec.yaml
+  - modules/useless/shared/site-css/useless.css
+  - modules/useless/shared/site-css.generated.ts
+  - modules/useless/server/seed-embeds/shell.ts
+  - modules/useless/server/seed-embeds/misc.ts
+  - modules/useless/server/seed-embeds/work.ts
+  - modules/useless/server/seed-embeds/time.ts
+  - modules/useless/server/seed-embeds/people.ts
+  - modules/useless/server/seed-embeds/words.ts
+  - modules/useless/server/seed-embeds/machine.ts
+  - modules/useless/server/seed-embeds/self.ts
+  - modules/useless/server/seed-demo.ts
+  - apps/server/scripts/seed-useless-demo.ts
+out_of_scope:
+  - 改动各个东西的玩笑逻辑
+  - 公开站重新画出名字
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/useless test

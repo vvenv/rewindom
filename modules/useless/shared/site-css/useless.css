@@ -15,6 +15,9 @@
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .useless-today-text {
@@ -35,14 +38,125 @@
 }
 
 .useless-thing {
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  max-width: 40rem;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
-.useless-thing-title {
-  margin: 0;
-  color: var(--muted-fg);
-  font-size: 0.8125rem;
+/*
+ * Play-kit。只做三件事：排好、能点、一根线。
+ * 不加圆角、底色、字距、缩放。数字多大由每个东西自己定。
+ */
+.useless-today .useless-thing .ut {
+  gap: 1rem;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.useless-today .useless-thing .ut-mono {
+  font-size: 0.75rem;
+  opacity: 0.45;
+  min-height: 1.2em;
+  letter-spacing: 0;
+}
+
+.useless-today .useless-thing .ut-btn {
+  font: inherit;
+  padding: 0.45rem 1.1rem;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 0;
+  line-height: 1;
+  letter-spacing: 0;
+  user-select: none;
+}
+.useless-today .useless-thing .ut-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.useless-today .useless-thing .ut-btn:focus-visible {
+  outline: 1px solid var(--fg);
+  outline-offset: 3px;
+}
+
+.useless-today .useless-thing .ut-tap {
+  cursor: pointer;
+}
+
+.useless-today .useless-thing .ut-bar,
+.useless-today .useless-thing .ut-bar2,
+.useless-today .useless-thing .ut-ld,
+.useless-today .useless-thing .ut-cut-bar,
+.useless-today .useless-thing .ut-life {
+  width: min(14rem, 100%);
+  height: 1px;
+  background: color-mix(in srgb, var(--fg) 18%, transparent);
+  overflow: hidden;
+}
+.useless-today .useless-thing .ut-fill,
+.useless-today .useless-thing .ut-fill2,
+.useless-today .useless-thing .ut-ld-f,
+.useless-today .useless-thing .ut-cut-f,
+.useless-today .useless-thing .ut-life-f {
+  height: 100%;
+  background: var(--fg);
+}
+
+.useless-today .useless-thing input[type="text"],
+.useless-today .useless-thing input[type="number"],
+.useless-today .useless-thing input[type="date"],
+.useless-today .useless-thing textarea {
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--fg);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  padding: 0.5rem 0;
+  width: min(18rem, 100%);
+  text-align: center;
+  outline: none;
+}
+.useless-today .useless-thing textarea {
+  text-align: left;
+  min-height: 4.5rem;
+  resize: none;
+  line-height: 1.7;
+}
+.useless-today .useless-thing input[type="text"]:focus,
+.useless-today .useless-thing input[type="number"]:focus,
+.useless-today .useless-thing input[type="date"]:focus,
+.useless-today .useless-thing textarea:focus {
+  border-bottom-color: var(--fg);
+}
+.useless-today .useless-thing input[aria-hidden="true"] {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  padding: 0;
+  border: 0;
+  pointer-events: none;
+}
+
+.useless-today .useless-thing input[type="range"] {
+  width: min(14rem, 100%);
+  accent-color: var(--fg);
+  cursor: pointer;
+}
+
+.useless-today .useless-thing canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -159,5 +273,114 @@
 }
 /* 沉底时把那 3.5rem 的固定间距让给「撑开上面」 */
 .site-main:has(> .sec:last-child .useless-nav) .useless-nav {
+  margin-top: auto;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 铺满视口 —— 舞台在页头页脚下面                                               */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * 这一段常常是整张页上唯一的东西：句子或可交互物都把视口当成舞台。内容本身
+ * fixed 钉满，页头页脚始终在、z-index 更高，叠在舞台上面。日期行留在文档流里
+ * （main 底边，也就是页脚之上），z-index 介于舞台和页头页脚之间，才点得到。
+ *
+ * 编辑器预览（`.is-embedded`）不钉视口：钉了会盖住工作台。那里只在画布里尽量
+ * 撑开，看起来仍是一块舞台。
+ *
+ * 页头 `.sticky` 已是 z-index: 40。非吸顶页头没有 position，z-index 不生效，
+ * 要补 relative。页脚同理。不要给吸顶页头再写 position：会把 sticky 盖掉。
+ */
+
+.useless-today.is-stage {
+  align-items: stretch;
+  gap: 0;
+}
+
+.sec:has(.useless-today.is-stage) {
+  --sec-pt: 0px;
+  --sec-pb: 0px;
+  --sec-pl: 0px;
+  --sec-pr: 0px;
+  --sec-gap: 0px;
+  margin-top: 0;
+}
+
+.sec:has(.useless-today.is-stage) .sec-head {
+  display: none;
+}
+
+.sec:has(.useless-today.is-stage) .sec-band,
+.sec:has(.useless-today.is-stage) .sec-content {
+  max-width: none;
+  width: 100%;
+  margin-inline: 0;
+  padding: 0;
+}
+
+.marketing-site-root:not(.is-embedded):has(.useless-today.is-stage) {
+  height: 100svh;
+  overflow: hidden;
+}
+.marketing-site-root:not(.is-embedded):has(.useless-today.is-stage) .site-main {
+  padding-inline: 0;
+}
+
+.marketing-site-root:not(.is-embedded):has(.useless-today.is-stage)
+  .site-header:not(.sticky) {
+  position: relative;
+  z-index: 40;
+}
+.marketing-site-root:not(.is-embedded):has(.useless-today.is-stage)
+  .site-header.sticky {
+  z-index: 40;
+}
+.marketing-site-root:not(.is-embedded):has(.useless-today.is-stage) .site-footer {
+  position: relative;
+  z-index: 40;
+}
+
+.marketing-site-root:not(.is-embedded) .useless-today.is-stage .useless-thing,
+.marketing-site-root:not(.is-embedded) .useless-today.is-stage .useless-today-text,
+.marketing-site-root:not(.is-embedded)
+  .useless-today.is-stage
+  .useless-today-empty {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  width: auto;
+  height: auto;
+  max-width: none;
+  box-sizing: border-box;
+  background: var(--bg);
+  overscroll-behavior: none;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.marketing-site-root:not(.is-embedded) .useless-today.is-stage .useless-today-text,
+.marketing-site-root:not(.is-embedded)
+  .useless-today.is-stage
+  .useless-today-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  /* 盒子钉满视口，行宽仍收在约 17 个字，那句话才像一句话 */
+  padding-inline: max(1.5rem, calc((100% - 17em) / 2));
+}
+
+.marketing-site-root:not(.is-embedded) .useless-today.is-stage .useless-nav {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  padding: 0.75rem 1rem 1.25rem;
+}
+
+.marketing-site-root.is-embedded .useless-today.is-stage {
+  min-height: 24rem;
+}
+
+.marketing-site-root.is-embedded .useless-today.is-stage .useless-nav {
   margin-top: auto;
 }

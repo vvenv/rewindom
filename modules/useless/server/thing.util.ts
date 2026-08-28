@@ -78,7 +78,8 @@ export interface ThingValidationIssue {
 /**
  * 按 kind 校验：句子要正文，可交互的要 HTML 和标题。
  *
- * 标题对 embed 是必填——归档列表和日期选择器上要有个名字，一段 HTML 没法当名字用。
+ * 标题对 embed 是必填——后台列表要靠它认这个东西，一段 HTML 没法当名字用。
+ * 公开站**不画**这个名字：访客自己去摸，标题会把玩笑先说破。
  * text 则不必：正文自己就是标题。
  */
 export function validateThingInput(

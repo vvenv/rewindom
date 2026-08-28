@@ -77,20 +77,30 @@ describe("那天那个 · 可交互", () => {
     expect(html).toContain('class="useless-thing" id="ut-sec-1"');
   });
 
-  it("名字仍然转义 —— 它是当文本画出来的", () => {
-    const html = renderUselessTodayHtml(
-      section(),
-      embed("<button>x</button>", "<script>alert(1)</script>"),
+  it("舞台带 is-stage，日期行收在舞台里 —— 句子和可交互物都铺满视口", () => {
+    const html = renderUselessTodayHtml(section(), embed("<button>x</button>"));
+    expect(html).toContain('class="useless-today is-stage"');
+    expect(html).toMatch(
+      /class="useless-today is-stage"[\s\S]*class="useless-thing"[\s\S]*class="useless-nav"/,
     );
-    expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
+
+    const lineHtml = renderUselessTodayHtml(
+      section(),
+      line("宜家的铅笔，你拿回家过。"),
+    );
+    expect(lineHtml).toContain('class="useless-today is-stage"');
+    expect(lineHtml).toMatch(
+      /class="useless-today is-stage"[\s\S]*useless-today-text[\s\S]*class="useless-nav"/,
+    );
   });
 
-  it("名字画在下面：归档与选择器都靠它认这个东西", () => {
+  it("名字不进页面 —— 访客自己去摸，标题会把玩笑先说破", () => {
     const html = renderUselessTodayHtml(
       section(),
-      embed("<button>x</button>", "会跑的按钮"),
+      embed("<button>x</button>", "永远差一点的加载"),
     );
-    expect(html).toContain("会跑的按钮");
+    expect(html).not.toContain("永远差一点的加载");
+    expect(html).not.toContain("useless-thing-title");
   });
 });
 

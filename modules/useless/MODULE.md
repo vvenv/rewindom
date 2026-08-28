@@ -47,6 +47,9 @@
   正文哪天改成按语言存，两边都要跟着页面语言取数。
 - CSS 真源是 `shared/site-css/useless.css`，改完必须跑
   `pnpm --filter @rewindom/builtin assemble:module-css`（生成物随提交入库）。
+- 公开站上这一段 **fixed 铺满视口**（句子和可交互物都是），z-index 低于页头页脚：
+  页头页脚始终显示并叠在舞台上面，段留白清零，日期行贴在页脚之上。
+  编辑器预览（`.is-embedded`）不钉视口，避免盖住工作台。
 
 ## 相对生成物的手工偏离
 

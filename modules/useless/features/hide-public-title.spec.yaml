@@ -1,0 +1,22 @@
+# 公开站不画名字 —— 让访客自己去摸那个东西
+module: useless
+surfaces: [ssr]
+goal: 可交互物的名字只留给后台列表与 seed 查重，公开站不再画出来，避免标题把玩笑先说破
+gold: modules/useless/shared/sections/today/html.ts
+touch:
+  - modules/useless/features/hide-public-title.spec.yaml
+  - modules/useless/shared/sections/today/html.ts
+  - modules/useless/shared/sections/today/html.test.ts
+  - modules/useless/shared/site-css/useless.css
+  - modules/useless/shared/site-css.generated.ts
+  - modules/useless/server/thing.util.ts
+  - modules/useless/client/lib/things.ts
+  - modules/useless/client/locales/zh-CN.json
+  - modules/useless/client/locales/en.json
+out_of_scope:
+  - seed 标题文案（后台仍要靠它认东西、查重）
+  - 把 embed 的名字改成选填
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/useless test
+  - pnpm check:i18n

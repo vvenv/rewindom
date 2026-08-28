@@ -11,14 +11,20 @@ export interface SeedEmbed {
   html: string;
 }
 
-/** 每个东西的公共外壳：只管自己那一块，不碰页面其余部分。 */
+/**
+ * 每个东西的公共外壳：只管自己那一块，不碰页面其余部分。
+ *
+ * 手感写在 `useless.css`。这里只保证没加载段 CSS 时仍能排版、能点。
+ */
 export const BOX =
   "<style>.useless-thing .ut{display:flex;flex-direction:column;align-items:center;" +
-  "justify-content:center;gap:.9rem;min-height:15rem;text-align:center;" +
-  "font-size:.875rem;line-height:2;color:var(--muted-fg,#777)}" +
-  ".useless-thing .ut-mono{font-family:ui-monospace,Menlo,monospace;font-size:.75rem;opacity:.7}" +
-  ".useless-thing .ut-btn{font:inherit;padding:.55rem 1.3rem;border:1px solid currentColor;" +
-  "background:transparent;color:inherit;cursor:pointer;border-radius:2px;line-height:1;" +
-  // 按钮文字不该能被框选——躲避型按钮上尤其难看
+  "justify-content:center;gap:1rem;width:100%;height:100%;min-height:14rem;flex:1;" +
+  "text-align:center;" +
+  "font-size:.875rem;line-height:1.7;color:var(--muted-fg,#777);" +
+  "user-select:none;-webkit-tap-highlight-color:transparent}" +
+  ".useless-thing .ut-mono{font-family:ui-monospace,Menlo,monospace;font-size:.75rem;" +
+  "opacity:.45;min-height:1.2em}" +
+  ".useless-thing .ut-btn{font:inherit;padding:.45rem 1.1rem;border:1px solid currentColor;" +
+  "background:transparent;color:inherit;cursor:pointer;border-radius:0;line-height:1;" +
   "user-select:none}" +
   ".useless-thing .ut-tap{cursor:pointer;user-select:none}</style>";

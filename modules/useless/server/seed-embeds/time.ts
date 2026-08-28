@@ -55,7 +55,7 @@ export const TIME_EMBEDS: SeedEmbed[] = [
       ".useless-thing .ut-rev-n{max-width:24em}</style>" +
       "<div class='ut'><p class='ut-rev-t'>--:--:--</p><p class='ut-rev-d'></p>" +
       "<input class='ut-rev-in' type='date' aria-label='你出生那天' />" +
-      "<p class='ut-mono ut-rev-n'>时间在倒着走。填一个出生日期，日期也跟着往回流。</p></div>" +
+      "<p class='ut-mono ut-rev-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var ct=R.querySelector('.ut-rev-t'),cd=R.querySelector('.ut-rev-d')," +
       "inp=R.querySelector('.ut-rev-in'),t=R.querySelector('.ut-rev-n');" +
@@ -141,7 +141,7 @@ export const TIME_EMBEDS: SeedEmbed[] = [
       "font-family:ui-monospace,Menlo,monospace;transition:opacity .12s}" +
       ".useless-thing .ut-cd.zero{opacity:.15}</style>" +
       "<div class='ut'><p class='ut-cd'>10:00</p>" +
-      "<p class='ut-mono'>它归零，然后重新开始。你每次打开它，它都在倒数。</p></div>" +
+      "<p class='ut-mono'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var e=R.querySelector('.ut-cd'),T=600000,t0=Date.now();" +
       "function p2(v){return v<10?'0'+v:''+v;}" +
@@ -159,7 +159,7 @@ export const TIME_EMBEDS: SeedEmbed[] = [
       "<style>.useless-thing .ut-sec{font-size:3rem;color:var(--fg,#333);" +
       "font-variant-numeric:tabular-nums;line-height:1.1}</style>" +
       "<div class='ut'><p class='ut-sec'>0</p><p>秒过去了。</p>" +
-      "<p class='ut-mono'>不暂停、不归零、不保存，也不计入任何统计。</p></div>" +
+      "<p class='ut-mono'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var e=R.querySelector('.ut-sec'),t0=Date.now();" +
       "setInterval(function(){" +
@@ -177,7 +177,7 @@ export const TIME_EMBEDS: SeedEmbed[] = [
       "background:transparent;color:inherit}" +
       ".useless-thing .ut-ye-n{max-width:24em;min-height:2.5em}</style>" +
       "<div class='ut'><p class='ut-ye'></p>" +
-      "<input class='ut-ye-i' type='text' placeholder='明天你想做的一件事，回车留下' />" +
+      "<input class='ut-ye-i' type='text' />" +
       "<p class='ut-mono ut-ye-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var p=R.querySelector('.ut-ye'),i=R.querySelector('.ut-ye-i')," +
@@ -210,7 +210,7 @@ export const TIME_EMBEDS: SeedEmbed[] = [
       ".useless-thing .ut-an-i.go{opacity:0}" +
       ".useless-thing .ut-an-n{max-width:23em;min-height:3em}</style>" +
       "<div class='ut'><p class='ut-an-d'></p>" +
-      "<input class='ut-an-i' type='text' placeholder='那天你在担心什么？' />" +
+      "<input class='ut-an-i' type='text' />" +
       "<p class='ut-mono ut-an-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var d=R.querySelector('.ut-an-d'),i=R.querySelector('.ut-an-i')," +
@@ -276,7 +276,7 @@ export const TIME_EMBEDS: SeedEmbed[] = [
       BOX +
       "<style>.useless-thing .ut-pl{display:block;max-width:100%;height:auto}</style>" +
       "<div class='ut'><canvas class='ut-pl' width='320' height='200'></canvas>" +
-      "<p class='ut-mono'>每分钟 72 下。它在这里跳，跟你的没有关系。</p></div>" +
+      "<p class='ut-mono'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var c=R.querySelector('.ut-pl'),x=c.getContext('2d'),W=320,H=200,r=[],last=0;" +
       "var CX=160,CY=100,MAX=Math.min(CX,CY)-6;" +

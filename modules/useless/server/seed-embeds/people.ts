@@ -57,7 +57,7 @@ export const PEOPLE_EMBEDS: SeedEmbed[] = [
       "<div class='ut-pa-f'>" +
       "<input class='ut-pa-i ut-pa-age' type='number' min='30' max='110' placeholder='他多大了' />" +
       "<input class='ut-pa-i ut-pa-day' type='number' min='0' max='9999' placeholder='上次通话几天前' />" +
-      "</div><p class='ut-mono ut-pa-n'>填两个数。剩下的是算术。</p></div>" +
+      "</div><p class='ut-mono ut-pa-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var big=R.querySelector('.ut-pa-b'),age=R.querySelector('.ut-pa-age')," +
       "day=R.querySelector('.ut-pa-day'),n=R.querySelector('.ut-pa-n');" +
@@ -81,7 +81,7 @@ export const PEOPLE_EMBEDS: SeedEmbed[] = [
       "background:transparent;color:inherit}" +
       ".useless-thing .ut-nb-n{max-width:24em;min-height:2.6em}</style>" +
       "<div class='ut'><canvas class='ut-nb' width='260' height='120'></canvas>" +
-      "<input class='ut-nb-i' type='text' placeholder='隔壁那家姓什么？' />" +
+      "<input class='ut-nb-i' type='text' />" +
       "<p class='ut-mono ut-nb-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var c=R.querySelector('.ut-nb'),x=c.getContext('2d')," +
@@ -111,8 +111,8 @@ export const PEOPLE_EMBEDS: SeedEmbed[] = [
       ".useless-thing .ut-bye-i.go{opacity:0}" +
       ".useless-thing .ut-bye-n{max-width:23em;min-height:2.6em}</style>" +
       "<div class='ut'><div class='ut-bye'>（空的）</div>" +
-      "<input class='ut-bye-i' type='text' placeholder='你今天有没有想过跟谁告别？' />" +
-      "<p class='ut-mono ut-bye-n'>写下来。它不会保存，也不会发出去。</p></div>" +
+      "<input class='ut-bye-i' type='text' />" +
+      "<p class='ut-mono ut-bye-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var i=R.querySelector('.ut-bye-i'),n=R.querySelector('.ut-bye-n'),k=0;" +
       "i.addEventListener('keydown',function(e){" +
@@ -152,7 +152,7 @@ export const PEOPLE_EMBEDS: SeedEmbed[] = [
       "<style>.useless-thing .ut-sq{display:block;max-width:100%;height:auto;cursor:crosshair}" +
       ".useless-thing .ut-sq-n{max-width:24em;min-height:2.6em}</style>" +
       "<div class='ut'><canvas class='ut-sq' width='320' height='180'></canvas>" +
-      "<p class='ut-mono ut-sq-n'>把鼠标放到广场上，看着长椅上那个人。</p></div>" +
+      "<p class='ut-mono ut-sq-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var c=R.querySelector('.ut-sq'),x=c.getContext('2d'),n=R.querySelector('.ut-sq-n');" +
       "var on=false,sec=0,best=0;" +
@@ -333,7 +333,7 @@ export const PEOPLE_EMBEDS: SeedEmbed[] = [
       "border:1px solid var(--border,rgba(128,128,128,.3));cursor:crosshair;" +
       "touch-action:none}</style>" +
       "<div class='ut'><canvas class='ut-dr' width='340' height='190'></canvas>" +
-      "<p class='ut-mono'>画吧。它会自己淡掉，谁也看不到，包括这台服务器。</p></div>" +
+      "<p class='ut-mono'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var c=R.querySelector('.ut-dr'),x=c.getContext('2d'),S=[],cur=null;" +
       "function pt(e){var r=c.getBoundingClientRect();" +
@@ -368,8 +368,8 @@ export const PEOPLE_EMBEDS: SeedEmbed[] = [
       "background:transparent;color:inherit}" +
       ".useless-thing .ut-btl-n{max-width:24em;min-height:2.6em}</style>" +
       "<div class='ut'><div class='ut-btl'></div>" +
-      "<input class='ut-btl-i' type='text' placeholder='给下一个人留一句话，回车放走' />" +
-      "<p class='ut-mono ut-btl-n'>它不会发给任何人。这一页没有服务器，也没有下一个人。</p></div>" +
+      "<input class='ut-btl-i' type='text' />" +
+      "<p class='ut-mono ut-btl-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var box=R.querySelector('.ut-btl'),i=R.querySelector('.ut-btl-i')," +
       "n=R.querySelector('.ut-btl-n'),k=0;" +
@@ -397,8 +397,8 @@ export const PEOPLE_EMBEDS: SeedEmbed[] = [
       "background:transparent;color:inherit;text-align:center}" +
       ".useless-thing .ut-lk-n{max-width:24em;min-height:3em}</style>" +
       "<div class='ut'><p class='ut-lk-b'>—</p>" +
-      "<input class='ut-lk-i' type='number' min='0' max='9999' placeholder='今天点了几个赞' />" +
-      "<p class='ut-mono ut-lk-n'>把它们回收一下。</p></div>" +
+      "<input class='ut-lk-i' type='number' min='0' max='9999' />" +
+      "<p class='ut-mono ut-lk-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var b=R.querySelector('.ut-lk-b'),i=R.querySelector('.ut-lk-i')," +
       "n=R.querySelector('.ut-lk-n');" +

@@ -31,7 +31,7 @@ export const WORK_EMBEDS: SeedEmbed[] = [
       ".useless-thing .ut-xl-n{max-width:24em;min-height:2.4em}</style>" +
       "<div class='ut'><div class='ut-xl'><div class='ut-xl-h'></div>" +
       "<div class='ut-xl-b'></div></div>" +
-      "<p class='ut-mono ut-xl-n'>把鼠标放上去动一动。</p></div>" +
+      "<p class='ut-mono ut-xl-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var head=R.querySelector('.ut-xl-h'),body=R.querySelector('.ut-xl-b')," +
       "grid=R.querySelector('.ut-xl'),n=R.querySelector('.ut-xl-n'),C=[],moved=0,t0=Date.now();" +
@@ -63,7 +63,7 @@ export const WORK_EMBEDS: SeedEmbed[] = [
       ".useless-thing .ut-hot-r.read .ut-hot-t{opacity:.4;text-decoration:line-through}" +
       ".useless-thing .ut-hot-n{max-width:24em;min-height:2.4em}</style>" +
       "<div class='ut'><div class='ut-hot'></div>" +
-      "<p class='ut-mono ut-hot-n'>点一条看看。</p></div>" +
+      "<p class='ut-mono ut-hot-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var box=R.querySelector('.ut-hot'),n=R.querySelector('.ut-hot-n'),k=0;" +
       // 全是占位，不指向任何真事——热搜的形状本来就比内容重要
@@ -123,7 +123,7 @@ export const WORK_EMBEDS: SeedEmbed[] = [
       "font-size:.8125rem;line-height:1.9;text-align:left}" +
       ".useless-thing .ut-ec-n{max-width:24em;min-height:2.4em}</style>" +
       "<div class='ut'>" +
-      "<input class='ut-ec-i' type='text' placeholder='你今年的目标，回车' />" +
+      "<input class='ut-ec-i' type='text' />" +
       "<div class='ut-ec-o'></div><p class='ut-mono ut-ec-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var i=R.querySelector('.ut-ec-i'),o=R.querySelector('.ut-ec-o')," +
@@ -194,7 +194,7 @@ export const WORK_EMBEDS: SeedEmbed[] = [
       "line-height:1.9;min-height:2em}" +
       ".useless-thing .ut-adv-n{max-width:23em}</style>" +
       "<div class='ut'><p class='ut-adv-a'></p>" +
-      "<input class='ut-adv-i' type='text' placeholder='问点什么，回车' />" +
+      "<input class='ut-adv-i' type='text' />" +
       "<p class='ut-mono ut-adv-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var i=R.querySelector('.ut-adv-i'),a=R.querySelector('.ut-adv-a')," +
@@ -273,7 +273,7 @@ export const WORK_EMBEDS: SeedEmbed[] = [
       ".useless-thing .ut-pr-w{position:absolute;white-space:nowrap;font-size:.875rem;" +
       "color:var(--fg,#333)}</style>" +
       "<div class='ut'><div class='ut-pr'></div>" +
-      "<p class='ut-mono'>它每三秒换一种语气。哪一种都不冲你来。</p></div>" +
+      "<p class='ut-mono'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var box=R.querySelector('.ut-pr'),W=[];" +
       "var G=[['你真棒','厉害','了不起','优秀','太强了']," +
@@ -304,7 +304,7 @@ export const WORK_EMBEDS: SeedEmbed[] = [
       "background:transparent;color:inherit;text-align:center}" +
       ".useless-thing .ut-worth-n{max-width:23em;min-height:3em}</style>" +
       "<div class='ut'><p class='ut-worth-b'>—</p>" +
-      "<input class='ut-worth-i' type='number' min='0' placeholder='一个数' />" +
+      "<input class='ut-worth-i' type='number' min='0' />" +
       "<p class='ut-mono ut-worth-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var b=R.querySelector('.ut-worth-b'),i=R.querySelector('.ut-worth-i')," +
@@ -329,7 +329,7 @@ export const WORK_EMBEDS: SeedEmbed[] = [
       ".useless-thing .ut-rz-n{max-width:23em;min-height:2.6em;font-size:.9375rem;" +
       "color:var(--fg,#333)}</style>" +
       "<div class='ut'><button class='ut-btn' type='button'>要求加薪</button>" +
-      "<input class='ut-rz-i' type='number' min='0' placeholder='你觉得你应得多少' />" +
+      "<input class='ut-rz-i' type='number' min='0' />" +
       "<p class='ut-mono ut-rz-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var b=R.querySelector('.ut-btn'),i=R.querySelector('.ut-rz-i')," +
@@ -366,5 +366,40 @@ export const WORK_EMBEDS: SeedEmbed[] = [
       "n.textContent='散会了。你想不起来讲了什么。';return;}" +
       "var s=Math.floor(left/1000);" +
       "e.textContent=p2(Math.floor(s/60))+':'+p2(s%60);},250);})();</script>",
+  },
+  {
+    title: "砍一刀",
+    html:
+      BOX +
+      "<style>.useless-thing .ut-cut-n{font-size:2.2rem;color:var(--fg,#333);" +
+      "font-variant-numeric:tabular-nums;line-height:1.2}" +
+      ".useless-thing .ut-cut-bar{width:14rem;height:3px;" +
+      "background:var(--border,rgba(128,128,128,.25));overflow:hidden}" +
+      ".useless-thing .ut-cut-f{height:100%;width:0;background:currentColor;" +
+      "transition:width .35s cubic-bezier(.4,0,.2,1)}</style>" +
+      "<div class='ut'><p class='ut-cut-n'>99.00</p><p>元。</p>" +
+      "<div class='ut-cut-bar'><div class='ut-cut-f'></div></div>" +
+      "<button class='ut-btn ut-cut-b' type='button'>砍一刀</button>" +
+      "<p class='ut-mono ut-cut-t'></p></div>" +
+      "<script>(function(){var R=document.currentScript.parentNode;" +
+      "var f=R.querySelector('.ut-cut-f'),n=R.querySelector('.ut-cut-n')," +
+      "t=R.querySelector('.ut-cut-t'),b=R.querySelector('.ut-cut-b')," +
+      "remain=99,k=0,bumped=false;" +
+      "var SAY=['就差一点点了','仅差最后一刀','仅差最后一刀'," +
+      "'再邀请 1 位好友即可领取','该好友已参与过','请邀请从未注册过的用户'," +
+      "'今日新用户名额已满','仅差最后一刀'];" +
+      "function fmt(v){if(v>=0.01)return v.toFixed(2);" +
+      "if(v>=0.0001)return v.toFixed(4);return v.toFixed(6);}" +
+      "function draw(){n.textContent=fmt(remain);" +
+      "f.style.width=((1-remain/99)*100).toFixed(3)+'%';}" +
+      "b.addEventListener('click',function(){" +
+      "if(b.disabled)return;k++;" +
+      // 每一刀都是还没砍掉的那截的一个比例，越砍越小，永远不到零
+      "remain-=remain*Math.min(0.85,0.9/Math.pow(k,0.5));" +
+      // 快到底时加一截回去——话术叫加码，进度条会倒退一格
+      "if(!bumped&&remain<0.28){remain+=0.91;bumped=true;t.textContent='活动加码';}" +
+      "else t.textContent=SAY[Math.min(k-1,SAY.length-1)];" +
+      "draw();b.disabled=true;" +
+      "setTimeout(function(){b.disabled=false;},380);});})();</script>",
   },
 ];

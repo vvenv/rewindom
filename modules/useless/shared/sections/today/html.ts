@@ -25,17 +25,16 @@ function thingHtml(
   sectionId: string,
 ): string {
   const rootId = `ut-${sectionId}`;
+  /*
+   * 名字不画。它只给后台列表和 seed 查重用——写在页面上会把玩笑先说破，
+   * 访客该自己去摸这个东西。
+   */
   return [
     `<div class="useless-thing" id="${escapeHtml(rootId)}">`,
     // 刻意不转义：这里就是要执行它。内容的可信度由人工审核保证。
     thing.html,
     `</div>`,
-    thing.title
-      ? `<p class="useless-thing-title">${escapeHtml(thing.title)}</p>`
-      : "",
-  ]
-    .filter(Boolean)
-    .join("");
+  ].join("");
 }
 
 /** 上一天 / 下一天 / 回到今天 + 原生日期选择器。整块**不依赖 JS**。 */
@@ -102,11 +101,17 @@ export const renderUselessTodayHtml: SectionHtmlRenderer = (section, ctx) => {
   // 上下文缺失（预览未登记 provider）时不画导航——一排点不动的按钮比不画更糟
   const nav = context ? navHtml(context) : "";
 
+  const stageClass = "useless-today is-stage";
+
+  /*
+   * 导航收进舞台：内容 fixed 铺满视口时，日期行留在文档流里贴着页脚，
+   * 而不是跟着内容钉到视口底边（那会藏到页脚下面）。
+   */
   return [
     sectionHeading(s),
-    `<div class="useless-today">`,
+    `<div class="${stageClass}">`,
     body,
-    `</div>`,
     nav,
+    `</div>`,
   ].join("");
 };

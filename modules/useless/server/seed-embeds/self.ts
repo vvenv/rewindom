@@ -22,7 +22,7 @@ export const SELF_EMBEDS: SeedEmbed[] = [
       "<style>.useless-thing .ut-sh{display:block;max-width:100%;height:auto;" +
       "cursor:crosshair}</style>" +
       "<div class='ut'><canvas class='ut-sh' width='320' height='190'></canvas>" +
-      "<p class='ut-mono'>你往这边，它往那边。你跟不上它，它早就走了。</p></div>" +
+      "<p class='ut-mono'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       /* 起手就错开：落在正中央的话影子和本人完全重叠，看着像画错了 */
       "var c=R.querySelector('.ut-sh'),x=c.getContext('2d'),mx=108,my=72;" +
@@ -88,7 +88,7 @@ export const SELF_EMBEDS: SeedEmbed[] = [
       "<div class='ut-ideal-c'><span class='ut-ideal-h'>理想的我</span>" +
       "<div class='ut-ideal-b'></div></div>" +
       "<div class='ut-ideal-c'><span class='ut-ideal-h'>实际的我</span>" +
-      "<textarea class='ut-ideal-t' placeholder='你自己写'></textarea></div>" +
+      "<textarea class='ut-ideal-t'></textarea></div>" +
       "</div><button class='ut-btn' type='button'>写好了</button>" +
       "<p class='ut-mono ut-ideal-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
@@ -112,7 +112,7 @@ export const SELF_EMBEDS: SeedEmbed[] = [
       "line-height:1.9;min-height:3em}" +
       ".useless-thing .ut-ai-n{max-width:23em}</style>" +
       "<div class='ut'><p class='ut-ai-a'></p>" +
-      "<input class='ut-ai-i' type='text' placeholder='问它任何问题，回车' />" +
+      "<input class='ut-ai-i' type='text' />" +
       "<p class='ut-mono ut-ai-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var i=R.querySelector('.ut-ai-i'),a=R.querySelector('.ut-ai-a')," +
@@ -189,7 +189,7 @@ export const SELF_EMBEDS: SeedEmbed[] = [
       "font-variant-numeric:tabular-nums;transition:font-size .8s ease-out}" +
       ".useless-thing .ut-waste-n{max-width:23em}</style>" +
       "<div class='ut'><p class='ut-waste'>0</p><p>秒。</p>" +
-      "<p class='ut-mono ut-waste-n'>关掉之后它归零。下次打开，从头再来。</p></div>" +
+      "<p class='ut-mono ut-waste-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var e=R.querySelector('.ut-waste'),t0=Date.now();e.style.fontSize='2rem';" +
       "setInterval(function(){var s=Math.floor((Date.now()-t0)/1000);" +
@@ -309,7 +309,7 @@ export const SELF_EMBEDS: SeedEmbed[] = [
       ".useless-thing .ut-epi-n{max-width:23em}</style>" +
       "<div class='ut'><div class='ut-epi'></div>" +
       "<button class='ut-btn' type='button'>换一块</button>" +
-      "<p class='ut-mono ut-epi-n'>你可以关掉。它会等你下次打开。</p></div>" +
+      "<p class='ut-mono ut-epi-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var e=R.querySelector('.ut-epi'),b=R.querySelector('.ut-btn');" +
       "var S=['这里躺着一个人，他一生中大部分时间在为别人的事焦虑。'," +
@@ -332,7 +332,7 @@ export const SELF_EMBEDS: SeedEmbed[] = [
       "background:transparent;color:inherit;text-align:center}" +
       ".useless-thing .ut-ret-n{max-width:24em;min-height:3em}</style>" +
       "<div class='ut'><canvas class='ut-ret' width='240' height='140'></canvas>" +
-      "<input class='ut-ret-i' type='number' min='1900' max='2030' placeholder='出生年份' />" +
+      "<input class='ut-ret-i' type='number' min='1900' max='2030' />" +
       "<p class='ut-mono ut-ret-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var c=R.querySelector('.ut-ret'),x=c.getContext('2d')," +
@@ -423,7 +423,7 @@ export const SELF_EMBEDS: SeedEmbed[] = [
       "background:transparent;color:inherit}" +
       ".useless-thing .ut-kind-n{max-width:24em;min-height:2.4em}</style>" +
       "<div class='ut'><p class='ut-kind-t'></p>" +
-      "<input class='ut-kind-i' type='text' placeholder='留一句没有人称的话，回车' />" +
+      "<input class='ut-kind-i' type='text' />" +
       "<p class='ut-mono ut-kind-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var p=R.querySelector('.ut-kind-t'),i=R.querySelector('.ut-kind-i')," +

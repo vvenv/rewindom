@@ -11,8 +11,9 @@ import { Switch } from "@rewindom/ui/switch";
 import { Textarea } from "@rewindom/ui/textarea";
 import { useTranslation } from "react-i18next";
 
+import { isThingKind } from "../../shared/index.js";
+
 import type { ThingFormValues } from "../lib/things.js";
-import type { ThingKind } from "../../shared/index.js";
 import type { ReactElement } from "react";
 
 /**
@@ -40,7 +41,19 @@ export function ThingFields({
         <FieldLabel htmlFor={`${idPrefix}-kind`}>{t("fieldKind")}</FieldLabel>
         <Select
           value={form.kind}
-          onValueChange={(value) => onChange({ kind: value as ThingKind })}
+          /*
+           * 只收下认识的值。Radix 的 Select 背后挂着一个隐藏的原生 <select>，
+           * 受控值一变它就 `select.value = 新值` 再补发一个 change；而这个原生
+           * select 的 <option> 是 SelectItem 挂载时才注册的。异步回填必然踩中这个
+           * 时序——表单先挂上（kind=text），detail 后到（kind=embed），赋值时
+           * 「embed」这个 option 还不存在，原生 select 落回空串，change 又把空串
+           * 通过 onValueChange 回吐给我们，kind 就被抹平了：类型显示为空，正文
+           * 区域也跟着切回「一句话」的那一栏（可交互的正文在 html 里，于是全空）。
+           * 这里只有 text / embed 两个选项，别的一律不是用户选的。
+           */
+          onValueChange={(value) => {
+            if (isThingKind(value)) onChange({ kind: value });
+          }}
         >
           <SelectTrigger id={`${idPrefix}-kind`}>
             <SelectValue />

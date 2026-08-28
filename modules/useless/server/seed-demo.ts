@@ -1,7 +1,9 @@
 /**
  * 给指定站点铺一批无用句子，并开通 useless 模块。
  *
- * 幂等：正文已存在的跳过，不覆盖站点后来的编辑。
+ * 幂等：句子按正文查重，可交互物按标题查重。
+ * 可交互物的 HTML **会同步**：皮肤和手感改了，再跑一遍就把已入库的换上。
+ * 句子仍不覆盖——那是站点后来可能改过的话。
  */
 import { prisma, withTenantScope } from "@rewindom/module-sdk/server";
 
@@ -16,29 +18,30 @@ const TENANT_MODULES_KEY = "tenant_modules";
  * 想改口径直接改这个数组，重跑 seed 只会补新增的。
  */
 const LINES: string[] = [
-  "你写过的代码，大部分已经不在运行了。",
+  "写过的代码，大部分已经不在运行了。",
   "一个标签页被关掉的时候，它占的内存立刻被回收，没有任何提示。",
-  "你刚才读这句话，用了大约两秒。",
-  "你电脑里有个文件夹叫「新建文件夹」，你不敢删。",
-  "地铁报站的那个声音，你听了十年，不知道她叫什么。",
-  "有一根头发卡在你键盘缝里，已经很久了。",
-  "某个你再也不会打开的软件，正在后台等更新。",
+  "刚才读这句话，用了大约两秒。",
+  "电脑里有个文件夹叫「新建文件夹」，不敢删。",
+  "地铁报站的那个声音，听了十年，不知道她叫什么。",
+  "有一根头发卡在键盘缝里，已经很久了。",
+  "再也不会打开的软件，正在后台等更新。",
   "打印机没人用的时候，偶尔会自己响一声。",
   /*
    * 下面这些够得着大的东西，但一律**停在事实上**——再多走一步就是鸡汤。
    * 判断标准很简单：如果一句话在告诉你该怎么感受，它就不该留在这里。
    */
-  "你身上大部分原子来自某颗爆炸过的恒星。它们不认识你。",
-  "你出生那天的报纸头条是什么，没有人记得了，包括当时读它的人。",
+  "身上大部分原子来自某颗爆炸过的恒星。它们不认识你。",
+  "出生那天的报纸头条是什么，没有人记得了，包括当时读它的人。",
   "宇宙微波背景辐射此刻正落在你的皮肤上。你没有感觉。",
-  "你这辈子见过的人里，有一些你已经见过最后一面了。当时不知道。",
-  "你说过的话，绝大部分没有留下任何记录。",
-  "你昨天做的梦，今天已经想不起来了。它当时很真。",
+  "这辈子见过的人里，有一些已经见过最后一面了。当时不知道。",
+  "说过的话，绝大部分没有留下任何记录。",
+  "昨天做的梦，今天已经想不起来了。",
 ];
 
 export interface SeedUselessResult {
   enabled_module: boolean;
   created: number;
+  updated: number;
   skipped: number;
   backfilled: number;
 }
@@ -112,15 +115,24 @@ export async function seedUselessDemo(
   const enabled_module = await enableUselessModule(tenantId);
 
   let created = 0;
+  let updated = 0;
   let skipped = 0;
 
   for (const embed of SEED_EMBEDS) {
     const existing = await prisma.thing.findFirst({
       where: withTenantScope(tenantId, { kind: "embed", title: embed.title }),
-      select: { id: true },
+      select: { id: true, html: true },
     });
     if (existing) {
-      skipped += 1;
+      if (existing.html !== embed.html) {
+        await prisma.thing.update({
+          where: withTenantScope(tenantId, { id: existing.id }),
+          data: { html: embed.html },
+        });
+        updated += 1;
+      } else {
+        skipped += 1;
+      }
       continue;
     }
     await createThing({
@@ -155,5 +167,5 @@ export async function seedUselessDemo(
 
   const backfilled = await backfillDays(tenantId, 10, new Date());
 
-  return { enabled_module, created, skipped, backfilled };
+  return { enabled_module, created, updated, skipped, backfilled };
 }

@@ -44,7 +44,8 @@ export function validateThingForm(
   }
 
   if (values.kind === "embed") {
-    // 可交互的东西必须有名字：归档与日期选择器上要显示它，一段 HTML 当不了名字
+    // 可交互的东西必须有名字：后台列表要靠它认，一段 HTML 当不了名字。
+    // 公开站不画这个名字。
     if (!values.title.trim()) return t("validation.titleRequired");
     if (!values.html.trim()) return t("validation.htmlRequired");
     if (values.html.length > THING_HTML_MAX_LENGTH) {

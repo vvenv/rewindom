@@ -29,7 +29,7 @@ export const MACHINE_EMBEDS: SeedEmbed[] = [
       "background:transparent;color:inherit}" +
       ".useless-thing .ut-dead-n{max-width:24em;min-height:2.6em}</style>" +
       "<div class='ut'><div class='ut-dead'></div>" +
-      "<input class='ut-dead-i' type='text' placeholder='再想起一个注册过的地方，回车' />" +
+      "<input class='ut-dead-i' type='text' />" +
       "<p class='ut-mono ut-dead-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var box=R.querySelector('.ut-dead'),i=R.querySelector('.ut-dead-i')," +
@@ -123,7 +123,7 @@ export const MACHINE_EMBEDS: SeedEmbed[] = [
       ".useless-thing .ut-sig.out{opacity:0}" +
       ".useless-thing .ut-sig-n{max-width:24em}</style>" +
       "<div class='ut'><p class='ut-sig'></p>" +
-      "<p class='ut-mono ut-sig-n'>这一句由时钟决定。此刻打开这一页的人，看到的是同一句。</p></div>" +
+      "<p class='ut-mono ut-sig-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var p=R.querySelector('.ut-sig');" +
       "var S=['天亮了吗','还没有','我在','别关灯','听得见吗','那就好'," +
@@ -167,7 +167,7 @@ export const MACHINE_EMBEDS: SeedEmbed[] = [
       "opacity:.5;max-width:24em;line-height:1.9;text-align:left}</style>" +
       "<div class='ut'><p class='ut-wx'>今日天气：错误</p>" +
       "<p class='ut-wx-r'></p>" +
-      "<p class='ut-mono'>它没有连任何气象站。窗外的天气不受影响。</p></div>" +
+      "<p class='ut-mono'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var r=R.querySelector('.ut-wx-r');" +
       // 一份看起来很像回事的报错。没有数据源，所以也不会有正确的那一天

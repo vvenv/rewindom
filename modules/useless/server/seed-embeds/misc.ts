@@ -33,7 +33,7 @@ export const MISC_EMBEDS: SeedEmbed[] = [
       "b=(Math.random()*160+60)|0,c='#'+h(r)+h(g)+h(b);" +
       "sw.style.background=c;" +
       "nm.textContent=A[(Math.random()*A.length)|0]+B[(Math.random()*B.length)|0];" +
-      "hx.textContent=c+' · 点一下换一个';}" +
+      "hx.textContent=c;}" +
       "go();box.addEventListener('pointerdown',go);})();</script>",
   },
   {
@@ -150,7 +150,7 @@ export const MISC_EMBEDS: SeedEmbed[] = [
       "<style>.useless-thing .ut-fade{max-width:22em;font-size:1rem}" +
       ".useless-thing .ut-fade span{transition:opacity 1.4s linear}</style>" +
       "<div class='ut'><p class='ut-fade'></p>" +
-      "<p class='ut-mono'>把鼠标放上来，它们会回来</p></div>" +
+      "<p class='ut-mono'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var box=R.querySelector('.ut'),p=R.querySelector('.ut-fade');" +
       "var s='这句话会在你读它的时候一个字一个字地消失。',i=0;" +
@@ -184,7 +184,7 @@ export const MISC_EMBEDS: SeedEmbed[] = [
       "color:var(--fg,#333);font-variant-numeric:tabular-nums}" +
       ".useless-thing .ut-beat.on{opacity:.55}</style>" +
       "<div class='ut'><p class='ut-beat'>0</p>" +
-      "<p>下心跳。</p><p class='ut-mono'>按每分钟 70 下估算</p></div>" +
+      "<p>下心跳。</p><p class='ut-mono'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var n=R.querySelector('.ut-beat'),t0=Date.now(),c=0;" +
       // 不问你是谁、不存任何东西——它只是替你数，数完就算了
@@ -271,7 +271,7 @@ export const MISC_EMBEDS: SeedEmbed[] = [
       "<div class='ut'><div class='ut-row'>" +
       "<div><p class='ut-num ut-in'>0</p><p class='ut-cap'>个人来了</p></div>" +
       "<div><p class='ut-num ut-out'>0</p><p class='ut-cap'>个人走了</p></div>" +
-      "</div><p class='ut-mono'>按全球平均速率估算，不是实时数据</p></div>" +
+      "</div><p class='ut-mono'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var a=R.querySelector('.ut-in'),b=R.querySelector('.ut-out'),t0=Date.now();" +
       // 4.2 / 2.0 是公开的全球出生与死亡年均速率，换算成每秒
@@ -337,7 +337,7 @@ export const MISC_EMBEDS: SeedEmbed[] = [
       BOX +
       "<style>.useless-thing .ut-wind{display:block;max-width:100%;height:auto}</style>" +
       "<div class='ut'><canvas class='ut-wind' width='420' height='220'></canvas>" +
-      "<p class='ut-mono'>动一下鼠标</p></div>" +
+      "<p class='ut-mono'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var c=R.querySelector('.ut-wind'),x=c.getContext('2d'),W=420,H=220,P=[];" +
       "for(var i=0;i<260;i++)P.push({x:Math.random()*W,y:Math.random()*H," +
@@ -401,7 +401,7 @@ export const MISC_EMBEDS: SeedEmbed[] = [
       "border:1px solid var(--border,#ccc);border-radius:6px;background:transparent;" +
       "color:inherit}</style>" +
       "<div class='ut'><div class='ut-chat'><div class='ut-log'></div>" +
-      "<input class='ut-in' type='text' placeholder='说点什么，回车发送' /></div>" +
+      "<input class='ut-in' type='text' /></div>" +
       "<p class='ut-mono'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var inp=R.querySelector('.ut-in'),log=R.querySelector('.ut-log')," +
@@ -427,7 +427,7 @@ export const MISC_EMBEDS: SeedEmbed[] = [
       "<div class='ut'><div class='ut-eyes'>" +
       "<div class='ut-eye'><div class='ut-pu'></div></div>" +
       "<div class='ut-eye'><div class='ut-pu'></div></div></div>" +
-      "<p class='ut-mono'>它不收集任何东西。只是看着你。</p></div>" +
+      "<p class='ut-mono'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var box=R.querySelector('.ut'),ps=R.querySelectorAll('.ut-pu')," +
       "es=R.querySelectorAll('.ut-eye'),last=Date.now(),spin=0;" +
@@ -451,7 +451,7 @@ export const MISC_EMBEDS: SeedEmbed[] = [
       "border:1px solid var(--border,#ccc);border-radius:6px;background:transparent;color:inherit}" +
       ".useless-thing .ut-done{text-decoration:line-through;opacity:.5;font-size:.9375rem}</style>" +
       "<div class='ut'><div class='ut-todo'>" +
-      "<input class='ut-ti' type='text' placeholder='今天要做的一件事，回车添加' />" +
+      "<input class='ut-ti' type='text' />" +
       "<p class='ut-done'></p></div><p class='ut-mono'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var i=R.querySelector('.ut-ti'),d=R.querySelector('.ut-done'),t=R.querySelector('.ut-mono');" +
@@ -491,7 +491,7 @@ export const MISC_EMBEDS: SeedEmbed[] = [
       ".useless-thing .ut-ki{position:absolute;opacity:0;pointer-events:none}</style>" +
       "<div class='ut'><div class='ut-kb'></div>" +
       "<input class='ut-ki' aria-hidden='true' />" +
-      "<p class='ut-mono'>点这里，然后随便打字</p></div>" +
+      "<p class='ut-mono'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var kb=R.querySelector('.ut-kb'),inp=R.querySelector('.ut-ki')," +
       "box=R.querySelector('.ut'),t=R.querySelector('.ut-mono'),n=0,left=26;" +

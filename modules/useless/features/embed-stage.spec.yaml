@@ -1,0 +1,19 @@
+# 那天那个铺满视口
+module: useless
+surfaces: [ssr]
+goal: 「那天那个」无论句子还是可交互物都 fixed 铺满视口，z-index 低于页头页脚；页头页脚始终显示
+gold: modules/useless/shared/site-css/useless.css
+touch:
+  - modules/useless/features/embed-stage.spec.yaml
+  - modules/useless/shared/site-css/useless.css
+  - modules/useless/shared/site-css.generated.ts
+  - modules/useless/shared/sections/today/html.ts
+  - modules/useless/shared/sections/today/html.test.ts
+  - modules/useless/server/seed-embeds/shell.ts
+  - modules/useless/MODULE.md
+out_of_scope:
+  - 改动各个东西自己的玩笑逻辑与内在尺寸
+  - 编辑器预览里跳出画布去盖工作台
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/useless test

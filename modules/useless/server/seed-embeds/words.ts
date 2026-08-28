@@ -50,7 +50,7 @@ export const WORDS_EMBEDS: SeedEmbed[] = [
       "background:transparent;color:inherit}" +
       ".useless-thing .ut-bub-n{max-width:23em;min-height:2.4em}</style>" +
       "<div class='ut'><div class='ut-bub'></div>" +
-      "<input class='ut-bub-i' type='text' placeholder='说点什么，回车' />" +
+      "<input class='ut-bub-i' type='text' />" +
       "<p class='ut-mono ut-bub-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var box=R.querySelector('.ut-bub'),i=R.querySelector('.ut-bub-i')," +
@@ -80,7 +80,7 @@ export const WORDS_EMBEDS: SeedEmbed[] = [
       ".useless-thing .ut-sry-a{font-size:1.2rem;color:var(--fg,#333);min-height:2em}" +
       ".useless-thing .ut-sry-n{max-width:23em}</style>" +
       "<div class='ut'><p class='ut-sry-a'></p>" +
-      "<input class='ut-sry-i' type='text' placeholder='今天的遗憾，回车' />" +
+      "<input class='ut-sry-i' type='text' />" +
       "<p class='ut-mono ut-sry-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var i=R.querySelector('.ut-sry-i'),a=R.querySelector('.ut-sry-a')," +
@@ -100,7 +100,7 @@ export const WORDS_EMBEDS: SeedEmbed[] = [
       "max-width:17em;line-height:2;transition:opacity .5s}" +
       ".useless-thing .ut-neg.out{opacity:.12}</style>" +
       "<div class='ut'><p class='ut-neg'></p>" +
-      "<p class='ut-mono'>你看哪一句才是真的？</p></div>" +
+      "<p class='ut-mono'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var p=R.querySelector('.ut-neg');" +
       "var A='你今天已经做得够好了。',B='你今天没有做得够好。',on=true;" +
@@ -136,8 +136,8 @@ export const WORDS_EMBEDS: SeedEmbed[] = [
       "background:transparent;color:inherit}" +
       ".useless-thing .ut-said-n{max-width:23em}</style>" +
       "<div class='ut'><p class='ut-said'></p>" +
-      "<input class='ut-said-i' type='text' placeholder='今天你想说的一句，回车' />" +
-      "<p class='ut-mono ut-said-n'>它只显示这一次。刷新就没有了。</p></div>" +
+      "<input class='ut-said-i' type='text' />" +
+      "<p class='ut-mono ut-said-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var i=R.querySelector('.ut-said-i'),p=R.querySelector('.ut-said')," +
       "n=R.querySelector('.ut-said-n');" +
@@ -159,7 +159,7 @@ export const WORDS_EMBEDS: SeedEmbed[] = [
       "color:var(--fg,#333);min-height:3em}" +
       ".useless-thing .ut-bs-n{max-width:23em}</style>" +
       "<div class='ut'>" +
-      "<input class='ut-bs-i' type='text' placeholder='一句普通的话，回车' />" +
+      "<input class='ut-bs-i' type='text' />" +
       "<p class='ut-bs-o'></p>" +
       "<button class='ut-btn' type='button'>再翻一次</button>" +
       "<p class='ut-mono ut-bs-n'></p></div>" +
@@ -189,7 +189,7 @@ export const WORDS_EMBEDS: SeedEmbed[] = [
       "background:transparent;color:inherit;text-align:center;outline:none}" +
       ".useless-thing .ut-van:focus{border-bottom-color:currentColor}" +
       ".useless-thing .ut-van-n{max-width:22em;min-height:2.4em}</style>" +
-      "<div class='ut'><input class='ut-van' type='text' placeholder='写点什么，回车' />" +
+      "<div class='ut'><input class='ut-van' type='text' />" +
       "<p class='ut-mono ut-van-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var i=R.querySelector('.ut-van'),n=R.querySelector('.ut-van-n'),c=0,k=0;" +
@@ -255,7 +255,7 @@ export const WORDS_EMBEDS: SeedEmbed[] = [
       "letter-spacing:.1em}" +
       ".useless-thing .ut-rec-n{max-width:23em}</style>" +
       "<div class='ut'><p class='ut-rec-s'></p>" +
-      "<textarea class='ut-rec-i' placeholder='那句你想收回的话'></textarea>" +
+      "<textarea class='ut-rec-i'></textarea>" +
       "<button class='ut-btn' type='button'>回收</button>" +
       "<p class='ut-mono ut-rec-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
@@ -277,7 +277,7 @@ export const WORDS_EMBEDS: SeedEmbed[] = [
       "font-size:1.05rem;line-height:1.9;color:var(--fg,#333);transition:opacity 1.1s}" +
       ".useless-thing .ut-solo-l.old{opacity:.12}</style>" +
       "<div class='ut'><div class='ut-solo'></div>" +
-      "<p class='ut-mono'>它自己说自己的，后一句盖住前一句。</p></div>" +
+      "<p class='ut-mono'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var box=R.querySelector('.ut-solo');" +
       "var L=['我在想一件事。','想不起来是什么了。','刚才明明还在的。'," +
@@ -298,7 +298,7 @@ export const WORDS_EMBEDS: SeedEmbed[] = [
       "<style>.useless-thing .ut-cnt{font-size:2.6rem;color:var(--fg,#333);" +
       "font-variant-numeric:tabular-nums;line-height:1.2}</style>" +
       "<div class='ut'><p class='ut-cnt'>—</p><p>人在线。</p>" +
-      "<p class='ut-mono'>这个数字不存到任何地方。你看到它的时候它已经变了。</p></div>" +
+      "<p class='ut-mono'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var e=R.querySelector('.ut-cnt'),v=3+Math.floor(Math.random()*40);" +
       "e.textContent=String(v);" +
@@ -318,7 +318,7 @@ export const WORDS_EMBEDS: SeedEmbed[] = [
       "color:var(--fg,#333);min-height:2em}" +
       ".useless-thing .ut-apo-n{max-width:23em}</style>" +
       "<div class='ut'><p class='ut-apo-o'></p>" +
-      "<textarea class='ut-apo-i' placeholder='你想为什么道歉'></textarea>" +
+      "<textarea class='ut-apo-i'></textarea>" +
       "<button class='ut-btn' type='button'>生成</button>" +
       "<p class='ut-mono ut-apo-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
