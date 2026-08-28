@@ -9,7 +9,7 @@
  *
  * 作用域约定见 `../seed-embeds.ts` 顶部。
  */
-import { BOX } from "./shell.js";
+import { BOX, MEM } from "./shell.js";
 
 import type { SeedEmbed } from "./shell.js";
 
@@ -19,13 +19,15 @@ export const TIME_EMBEDS: SeedEmbed[] = [
     title: "落下的沙子",
     html:
       BOX +
-      "<style>.useless-thing .ut-sand{display:block;max-width:100%;height:auto}" +
-      ".useless-thing .ut-sand-w{max-width:24em}</style>" +
+      "<style>.useless-thing .ut-sand{display:block;max-width:100%;height:auto;" +
+      "cursor:pointer;transition:transform .9s ease-in-out}" +
+      ".useless-thing .ut-sand-w{min-height:1.2em}</style>" +
       "<div class='ut'><canvas class='ut-sand' width='220' height='250'></canvas>" +
       "<p class='ut-mono ut-sand-w'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
+      MEM +
       "var c=R.querySelector('.ut-sand'),x=c.getContext('2d')," +
-      "t=R.querySelector('.ut-sand-w'),W=220,H=250,t0=Date.now(),P=[];" +
+      "lab=R.querySelector('.ut-sand-w'),W=220,H=250,P=[];" +
       "function frame(){x.clearRect(0,0,W,H);" +
       "x.strokeStyle='rgba(128,128,128,.4)';x.lineWidth=1;x.beginPath();" +
       "x.moveTo(34,18);x.lineTo(186,18);x.lineTo(114,124);x.lineTo(186,232);" +
@@ -37,9 +39,15 @@ export const TIME_EMBEDS: SeedEmbed[] = [
       "for(var i=P.length-1;i>=0;i--){var p=P[i];p.y+=p.v;p.v+=0.05;" +
       // 到底就没了，下面一粒也不攒——攒起来就成了「还剩多少」，那是另一回事
       "if(p.y>228){P.splice(i,1);continue;}x.fillRect(p.x,p.y,2,2);}" +
-      "t.textContent='你盯着它看了 '+Math.floor((Date.now()-t0)/1000)+" +
-      "' 秒。落下去的沙子没有攒在下面，上面也一点没少。';" +
-      "requestAnimationFrame(frame);}frame();})();</script>",
+      "requestAnimationFrame(frame);}frame();" +
+      // 点一下把它倒过来。转完一圈，上面还是满的，下面还是什么都没有
+      "var n=M.num('sand',0),deg=0,busy=false;" +
+      "lab.textContent=n>0?'翻过 '+n+' 次':'';" +
+      "c.addEventListener('click',function(){if(busy)return;busy=true;" +
+      "deg+=360;c.style.transform='rotate('+deg+'deg)';" +
+      "n++;M.set('sand',n);lab.textContent='翻过 '+n+' 次';" +
+      "setTimeout(function(){busy=false;},960);});" +
+      "})();</script>",
   },
   {
     // 3 倒着走的人生
@@ -139,17 +147,30 @@ export const TIME_EMBEDS: SeedEmbed[] = [
       "<style>.useless-thing .ut-cd{font-size:3.4rem;line-height:1.1;" +
       "color:var(--fg,#333);font-variant-numeric:tabular-nums;" +
       "font-family:ui-monospace,Menlo,monospace;transition:opacity .12s}" +
-      ".useless-thing .ut-cd.zero{opacity:.15}</style>" +
+      ".useless-thing .ut-cd.zero{opacity:.15}" +
+      ".useless-thing .ut-cd-n{min-height:1.2em}</style>" +
       "<div class='ut'><p class='ut-cd'>10:00</p>" +
-      "<p class='ut-mono'></p></div>" +
+      "<button class='ut-btn' type='button'>重来</button>" +
+      "<p class='ut-mono ut-cd-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var e=R.querySelector('.ut-cd'),T=600000,t0=Date.now();" +
+      MEM +
+      "var e=R.querySelector('.ut-cd'),b=R.querySelector('.ut-btn')," +
+      "lab=R.querySelector('.ut-cd-n');" +
+      // 重来是有代价的：每按一次，这一轮能给你的就少半分钟
+      "var k=M.num('glass',0),T=Math.max(0,600000-k*30000),t0=Date.now();" +
       "function p2(v){return v<10?'0'+v:''+v;}" +
-      "setInterval(function(){var left=T-(Date.now()-t0)%T;" +
-      "var s=Math.floor(left/1000);" +
+      "function draw(){if(T<=0){e.textContent='00:00';e.className='ut-cd zero';" +
+      "b.disabled=true;return;}" +
+      "var left=T-(Date.now()-t0)%T,s=Math.floor(left/1000);" +
       "e.textContent=p2(Math.floor(s/60))+':'+p2(s%60);" +
       // 归零那一下闪一闪，然后什么都没发生——十分钟就这么过去了
-      "e.className=left<600?'ut-cd zero':'ut-cd';},100);})();</script>",
+      "e.className=left<600?'ut-cd zero':'ut-cd';}" +
+      "setInterval(draw,100);draw();" +
+      "lab.textContent=k>0?'重来过 '+k+' 次':'';" +
+      "b.addEventListener('click',function(){k++;M.set('glass',k);" +
+      "T=Math.max(0,600000-k*30000);t0=Date.now();" +
+      "lab.textContent='重来过 '+k+' 次';draw();});" +
+      "})();</script>",
   },
   {
     // 8 / 17 / 77 读秒器（清单里出现了三次，是同一个）
@@ -157,13 +178,20 @@ export const TIME_EMBEDS: SeedEmbed[] = [
     html:
       BOX +
       "<style>.useless-thing .ut-sec{font-size:3rem;color:var(--fg,#333);" +
-      "font-variant-numeric:tabular-nums;line-height:1.1}</style>" +
+      "font-variant-numeric:tabular-nums;line-height:1.1}" +
+      ".useless-thing .ut-sec-n{min-height:1.2em;font-variant-numeric:tabular-nums}</style>" +
       "<div class='ut'><p class='ut-sec'>0</p><p>秒过去了。</p>" +
-      "<p class='ut-mono'></p></div>" +
+      "<button class='ut-btn' type='button'>暂停</button>" +
+      "<p class='ut-mono ut-sec-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var e=R.querySelector('.ut-sec'),t0=Date.now();" +
-      "setInterval(function(){" +
-      "e.textContent=String(Math.floor((Date.now()-t0)/1000));},200);})();</script>",
+      "var e=R.querySelector('.ut-sec'),b=R.querySelector('.ut-btn')," +
+      "n=R.querySelector('.ut-sec-n'),t0=Date.now(),hold=false;" +
+      // 暂停的只是这个数字。旁边那个小的没停，因为停的从来不是时间
+      "setInterval(function(){var real=Math.floor((Date.now()-t0)/1000);" +
+      "if(!hold)e.textContent=String(real);" +
+      "n.textContent=hold?String(real):'';},200);" +
+      "b.addEventListener('click',function(){hold=!hold;" +
+      "b.textContent=hold?'继续':'暂停';});})();</script>",
   },
   {
     // 9 昨日理想
@@ -251,13 +279,21 @@ export const TIME_EMBEDS: SeedEmbed[] = [
     title: "无限楼梯",
     html:
       BOX +
-      "<style>.useless-thing .ut-st{display:block;max-width:100%;height:auto}</style>" +
+      "<style>.useless-thing .ut-st{display:block;max-width:100%;height:auto;" +
+      "cursor:pointer;touch-action:none}" +
+      ".useless-thing .ut-st-n{min-height:1.2em}</style>" +
       "<div class='ut'><canvas class='ut-st' width='300' height='210'></canvas>" +
-      "<p class='ut-mono'></p></div>" +
+      "<p class='ut-mono ut-st-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var c=R.querySelector('.ut-st'),x=c.getContext('2d'),t=R.querySelector('.ut-mono');" +
-      "var W=300,H=210,ph=0,N=52;" +
-      "function frame(){x.clearRect(0,0,W,H);ph+=0.011;" +
+      MEM +
+      "var c=R.querySelector('.ut-st'),x=c.getContext('2d')," +
+      "lab=R.querySelector('.ut-st-n');" +
+      "var W=300,H=210,ph=0,N=52,fast=false,laps=M.num('stairs',0),shown=-1;" +
+      "function frame(){x.clearRect(0,0,W,H);" +
+      // 按住就爬得快四倍。快慢都一样：这道楼梯没有高度
+      "var was=ph;ph+=fast?0.044:0.011;" +
+      "if(Math.floor(ph/(Math.PI*2))!==Math.floor(was/(Math.PI*2))){" +
+      "laps++;M.set('stairs',laps);}" +
       "for(var i=N-1;i>=0;i--){" +
       // 每级往上 4px、转 0.32 弧度；整体循环平移，于是永远有下一级
       "var k=(i*4+ph*60)%(N*4),a=i*0.32+ph;" +
@@ -266,33 +302,46 @@ export const TIME_EMBEDS: SeedEmbed[] = [
       "x.strokeStyle='rgba(128,128,128,'+(0.12+0.5*(1-k/(N*4))).toFixed(2)+')';" +
       "x.lineWidth=1;x.beginPath();x.moveTo(cx-w/2,cy);x.lineTo(cx+w/2,cy);" +
       "x.lineTo(cx+w/2-6,cy+7);x.lineTo(cx-w/2-6,cy+7);x.closePath();x.stroke();}" +
-      "t.textContent='你已经爬了 '+(ph/(Math.PI*2)).toFixed(1)+" +
-      "' 圈。高度没变，你还在原地。';requestAnimationFrame(frame);}frame();})();</script>",
+      "if(laps!==shown){shown=laps;lab.textContent=laps>0?laps+' 圈':'';}" +
+      "requestAnimationFrame(frame);}frame();" +
+      "c.addEventListener('pointerdown',function(e){fast=true;" +
+      "c.setPointerCapture(e.pointerId);});" +
+      "c.addEventListener('pointerup',function(){fast=false;});" +
+      "c.addEventListener('pointercancel',function(){fast=false;});" +
+      "})();</script>",
   },
   {
     // 15 脉搏
     title: "脉搏",
     html:
       BOX +
-      "<style>.useless-thing .ut-pl{display:block;max-width:100%;height:auto}</style>" +
-      "<div class='ut'><canvas class='ut-pl' width='320' height='200'></canvas>" +
-      "<p class='ut-mono'></p></div>" +
+      "<style>.useless-thing .ut-pl{display:block;max-width:100%;height:auto;" +
+      "cursor:pointer}</style>" +
+      "<div class='ut'><canvas class='ut-pl' width='320' height='200'></canvas></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var c=R.querySelector('.ut-pl'),x=c.getContext('2d'),W=320,H=200,r=[],last=0;" +
-      "var CX=160,CY=100,MAX=Math.min(CX,CY)-6;" +
+      "var CX=160,CY=100,MAX=Math.min(CX,CY)-6,mine=0;" +
       "function frame(){var now=Date.now();x.clearRect(0,0,W,H);" +
       // 72bpm = 每 833 毫秒一下
-      "if(now-last>833){last=now;r.push({t:now});}" +
+      "if(now-last>833){last=now;r.push({t:now,m:0});}" +
       "for(var i=r.length-1;i>=0;i--){var age=(now-r[i].t)/1000;" +
       "if(age>3.4){r.splice(i,1);continue;}" +
       "var d=age*46,rad=d<=MAX?d:MAX-(d-MAX),o=Math.max(0,0.5-age*0.15);" +
       // 撞到边界就往回收：反射回来的那一圈更淡，最后什么也不剩
       "if(rad<=0)continue;x.beginPath();x.arc(CX,CY,rad,0,7);" +
-      "x.strokeStyle='rgba(198,86,86,'+o.toFixed(3)+')';x.lineWidth=1;x.stroke();}" +
+      // 你自己拍的那几下是灰的，而且越拍越淡；第三十下起就完全看不见了
+      "if(r[i].m){var q=Math.max(0,1-r[i].m/30);" +
+      "x.strokeStyle='rgba(140,140,140,'+(o*q).toFixed(3)+')';}" +
+      "else{x.strokeStyle='rgba(198,86,86,'+o.toFixed(3)+')';}" +
+      "x.lineWidth=1;x.stroke();}" +
       "var p=Math.max(0,1-(now-last)/260);" +
       "x.beginPath();x.arc(CX,CY,4+p*4,0,7);" +
       "x.fillStyle='rgba(198,86,86,'+(0.45+p*0.5).toFixed(2)+')';x.fill();" +
-      "requestAnimationFrame(frame);}frame();})();</script>",
+      "requestAnimationFrame(frame);}frame();" +
+      // 你可以插一下自己的。它不会打乱那个 833 毫秒
+      "c.addEventListener('pointerdown',function(){mine++;" +
+      "r.push({t:Date.now(),m:mine});});" +
+      "})();</script>",
   },
   {
     // 16 空房间
@@ -300,12 +349,13 @@ export const TIME_EMBEDS: SeedEmbed[] = [
     html:
       BOX +
       "<style>.useless-thing .ut-emp{display:block;max-width:100%;height:auto;" +
-      "image-rendering:pixelated}</style>" +
+      "image-rendering:pixelated;touch-action:none}</style>" +
       "<div class='ut'><canvas class='ut-emp' width='260' height='170'></canvas></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var c=R.querySelector('.ut-emp'),x=c.getContext('2d'),D=[];" +
       "for(var i=0;i<26;i++)D.push({x:40+Math.random()*180,y:30+Math.random()*110," +
       "vx:(Math.random()-.5)*.14,vy:(Math.random()-.5)*.1});" +
+      "var mx=-999,my=-999;" +
       "function frame(){x.clearRect(0,0,260,170);" +
       "var a=0.5+0.06*Math.sin(Date.now()/2300);" +
       // 灯下面那圈光。屋里就这些：一张床、一把椅子，没有人
@@ -316,10 +366,21 @@ export const TIME_EMBEDS: SeedEmbed[] = [
       "x.beginPath();x.arc(130,86,3,0,7);" +
       "x.fillStyle='rgba(220,206,160,'+a.toFixed(2)+')';x.fill();" +
       "x.fillStyle='rgba(160,160,160,.35)';" +
-      "for(var i=0;i<D.length;i++){var d=D[i];d.x+=d.vx;d.y+=d.vy;" +
-      "if(d.x<30||d.x>230)d.vx*=-1;if(d.y<24||d.y>146)d.vy*=-1;" +
+      "for(var i=0;i<D.length;i++){var d=D[i];" +
+      // 屋里唯一会动的东西是灰。你一靠近它就躲，躲到哪儿就停在哪儿——
+      // 不回原位，所以中间会慢慢被你清空
+      "var dx=d.x-mx,dy=d.y-my,dd=dx*dx+dy*dy;" +
+      "if(dd<1400){var f=2.2/(Math.sqrt(dd)+2);d.vx+=dx*f*0.06;d.vy+=dy*f*0.06;}" +
+      "d.x+=d.vx;d.y+=d.vy;d.vx*=0.96;d.vy*=0.96;" +
+      "if(d.x<30){d.x=30;d.vx=0;}if(d.x>230){d.x=230;d.vx=0;}" +
+      "if(d.y<24){d.y=24;d.vy=0;}if(d.y>146){d.y=146;d.vy=0;}" +
       "x.fillRect(d.x|0,d.y|0,1,1);}" +
-      "requestAnimationFrame(frame);}frame();})();</script>",
+      "requestAnimationFrame(frame);}frame();" +
+      "function at(e){var r=c.getBoundingClientRect();" +
+      "mx=(e.clientX-r.left)/r.width*260;my=(e.clientY-r.top)/r.height*170;}" +
+      "c.addEventListener('pointermove',at);" +
+      "c.addEventListener('pointerleave',function(){mx=-999;my=-999;});" +
+      "})();</script>",
   },
   {
     // 19 / 71 无限加载
@@ -333,18 +394,24 @@ export const TIME_EMBEDS: SeedEmbed[] = [
       "color:var(--fg,#333)}</style>" +
       "<div class='ut'><p class='ut-ld-t'></p>" +
       "<div class='ut-ld'><div class='ut-ld-f'></div></div>" +
-      "<p class='ut-mono'>0%</p></div>" +
+      "<p class='ut-mono'>0%</p>" +
+      "<button class='ut-btn' type='button'>取消</button></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var f=R.querySelector('.ut-ld-f'),p=R.querySelector('.ut-mono')," +
-      "t=R.querySelector('.ut-ld-t'),v=0,k=0;" +
+      "t=R.querySelector('.ut-ld-t'),b=R.querySelector('.ut-btn'),v=0,k=0,d=0;" +
       "var S=['正在加载你的耐心…','正在加载今天剩下的部分…','正在加载一个你不需要的东西…'," +
       "'加载完毕——骗你的。','正在加载上一次没加载完的那个…','正在加载「加载」…'," +
       "'正在确认你还在看…','正在加载一个更好的你…'];" +
-      "t.textContent=S[0];" +
+      // 取消也是一件要加载的事，而且套得越来越深
+      "function nest(){var s='取消';for(var j=1;j<d;j++)s='取消「'+s+'」';return '正在'+s+'…';}" +
+      "function label(){return d?nest():S[k];}" +
+      "t.textContent=label();" +
       "setInterval(function(){v+=0.7+Math.random()*1.6;" +
       // 到 99 就跳回 0，换一句话接着来。它没有第 100 步
-      "if(v>=99){v=0;k=(k+1)%S.length;t.textContent=S[k];}" +
-      "f.style.width=v+'%';p.textContent=v.toFixed(0)+'%';},60);})();</script>",
+      "if(v>=99){v=0;if(!d){k=(k+1)%S.length;}t.textContent=label();}" +
+      "f.style.width=v+'%';p.textContent=v.toFixed(0)+'%';},60);" +
+      "b.addEventListener('click',function(){d++;v=0;t.textContent=label();" +
+      "if(d>=5){b.disabled=true;b.textContent='取消不掉';}});})();</script>",
   },
   {
     // 20 颜色心情
@@ -352,15 +419,31 @@ export const TIME_EMBEDS: SeedEmbed[] = [
     html:
       BOX +
       "<style>.useless-thing .ut-mood{width:100%;max-width:26rem;height:11rem;" +
-      "border-radius:2px}</style>" +
+      "border-radius:2px}" +
+      ".useless-thing .ut-mood-r{width:min(16rem,80%);accent-color:currentColor;" +
+      "cursor:pointer}</style>" +
       "<div class='ut'><div class='ut-mood'></div>" +
-      "<p class='ut-mono'>今天的心情是这种颜色。明天换。</p></div>" +
+      "<input class='ut-mood-r' type='range' min='-180' max='180' value='0' " +
+      "aria-label='今天的心情' /></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var d=R.querySelector('.ut-mood'),n=new Date();" +
+      MEM +
+      "var d=R.querySelector('.ut-mood'),r=R.querySelector('.ut-mood-r')," +
+      "n=new Date();" +
       // 由日期算出来，不随机：同一天里刷新多少次都是这一种
       "var s=n.getFullYear()*10000+(n.getMonth()+1)*100+n.getDate();" +
       "function rnd(){s=(s*1103515245+12345)%2147483648;return s/2147483648;}" +
-      "rnd();var h=Math.floor(rnd()*360),l=Math.floor(38+rnd()*24);" +
-      "d.style.background='hsl('+h+',22%,'+l+'%)';})();</script>",
+      "rnd();var h0=Math.floor(rnd()*360),l=Math.floor(38+rnd()*24);" +
+      // 你可以调。松开手它就往今天那个颜色滑回去——调过越多次，滑得越慢
+      "var off=0,tries=M.num('mood',0),dragging=false;" +
+      "function paint(){var h=((h0+off)%360+360)%360;" +
+      "d.style.background='hsl('+h.toFixed(0)+',22%,'+l+'%)';}" +
+      "paint();" +
+      "function frame(){if(!dragging&&Math.abs(off)>0.2){" +
+      "off+=-off*Math.max(0.0015,0.02-tries*0.0018);r.value=String(Math.round(off));paint();}" +
+      "requestAnimationFrame(frame);}frame();" +
+      "r.addEventListener('input',function(){dragging=true;off=parseFloat(r.value);paint();});" +
+      "r.addEventListener('change',function(){dragging=false;" +
+      "tries++;M.set('mood',tries);});" +
+      "})();</script>",
   },
 ];

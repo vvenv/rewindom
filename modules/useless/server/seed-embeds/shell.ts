@@ -28,3 +28,20 @@ export const BOX =
   "background:transparent;color:inherit;cursor:pointer;border-radius:0;line-height:1;" +
   "user-select:none}" +
   ".useless-thing .ut-tap{cursor:pointer;user-select:none}</style>";
+
+/**
+ * 跨访问记忆。拼在 IIFE 开头，之后用 `M.get(k,d)` / `M.num(k,d)` / `M.set(k,v)`。
+ *
+ * localStorage 在隐私窗口、或读者把站点数据关掉时**取属性就抛**，所以先探一次、
+ * 之后每次再包一层：拿不到就当没记过，东西照样能玩，只是每次回来都从头开始。
+ * key 统一加 `ut.` 前缀，免得和官网自己存的东西撞。
+ */
+export const MEM =
+  "var M=(function(){var ok=true;try{window.localStorage.setItem('ut.probe','1');" +
+  "window.localStorage.removeItem('ut.probe');}catch(e){ok=false;}" +
+  "return{get:function(k,d){if(!ok)return d;" +
+  "try{var v=window.localStorage.getItem('ut.'+k);return v===null?d:v;}catch(e){return d;}}," +
+  "set:function(k,v){if(!ok)return;" +
+  "try{window.localStorage.setItem('ut.'+k,String(v));}catch(e){}}," +
+  "num:function(k,d){var v=this.get(k,null);var n=v===null?NaN:parseFloat(v);" +
+  "return isFinite(n)?n:d;}};})();";

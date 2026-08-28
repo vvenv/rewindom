@@ -9,7 +9,7 @@
  *
  * 作用域约定见 `../seed-embeds.ts` 顶部。
  */
-import { BOX } from "./shell.js";
+import { BOX, MEM } from "./shell.js";
 
 import type { SeedEmbed } from "./shell.js";
 
@@ -187,15 +187,25 @@ export const SELF_EMBEDS: SeedEmbed[] = [
       BOX +
       "<style>.useless-thing .ut-waste{color:var(--fg,#333);line-height:1.3;" +
       "font-variant-numeric:tabular-nums;transition:font-size .8s ease-out}" +
-      ".useless-thing .ut-waste-n{max-width:23em}</style>" +
+      ".useless-thing .ut-waste-n{min-height:1.2em}</style>" +
       "<div class='ut'><p class='ut-waste'>0</p><p>秒。</p>" +
+      "<button class='ut-btn' type='button'>不算了</button>" +
       "<p class='ut-mono ut-waste-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var e=R.querySelector('.ut-waste'),t0=Date.now();e.style.fontSize='2rem';" +
-      "setInterval(function(){var s=Math.floor((Date.now()-t0)/1000);" +
+      MEM +
+      "var e=R.querySelector('.ut-waste'),b=R.querySelector('.ut-btn')," +
+      "lab=R.querySelector('.ut-waste-n');" +
+      // 归零是可以的，代价是之后走得更快：抹掉一次，秒就比上回值钱一点半
+      "var k=M.num('waste',0),t0=Date.now();e.style.fontSize='2rem';" +
+      "function rate(){return Math.pow(1.5,k);}" +
+      "function say(){lab.textContent=k>0?'抹掉过 '+k+' 次':'';}" +
+      "say();" +
+      "setInterval(function(){var s=Math.floor((Date.now()-t0)/1000*rate());" +
       "e.textContent=String(s);" +
       // 每十秒大一号，到 6rem 封顶——再大就要挤到别人身上了
-      "e.style.fontSize=Math.min(6,2+Math.floor(s/10)*0.5)+'rem';},250);})();</script>",
+      "e.style.fontSize=Math.min(6,2+Math.floor(s/10)*0.5)+'rem';},250);" +
+      "b.addEventListener('click',function(){k++;M.set('waste',k);t0=Date.now();say();});" +
+      "})();</script>",
   },
   {
     // 89 为什么你不做
@@ -229,21 +239,33 @@ export const SELF_EMBEDS: SeedEmbed[] = [
       "border-top:2px solid var(--border,rgba(128,128,128,.5));" +
       "border-bottom:1px solid var(--border,rgba(128,128,128,.3));padding:.8rem 0;" +
       "text-align:left}" +
-      ".useless-thing .ut-daily-h{font-size:1.05rem;color:var(--fg,#333);line-height:1.8}" +
-      ".useless-thing .ut-daily-b{font-size:.8125rem;line-height:1.9;opacity:.75}" +
-      ".useless-thing .ut-daily-n{max-width:23em}</style>" +
+      ".useless-thing .ut-daily-h{font-size:1.05rem;color:var(--fg,#333);line-height:1.8;" +
+      "min-height:1.8em;transition:opacity .4s}" +
+      ".useless-thing .ut-daily-h.out{opacity:0}" +
+      ".useless-thing .ut-daily-b{font-size:.8125rem;line-height:1.9;opacity:.75}</style>" +
       "<div class='ut'><div class='ut-daily'>" +
       "<div class='ut-daily-h'></div><div class='ut-daily-b'></div></div>" +
-      "<p class='ut-mono ut-daily-n'>本报没有记者。以上数字全是编的。</p></div>" +
+      "<button class='ut-btn' type='button'>订阅</button></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var h=R.querySelector('.ut-daily-h'),b=R.querySelector('.ut-daily-b');" +
+      "var h=R.querySelector('.ut-daily-h'),b=R.querySelector('.ut-daily-b')," +
+      "btn=R.querySelector('.ut-btn');" +
       "var H=['本地居民今日平均发呆时长上升 10%','本市今日无人提出新的人生规划'," +
       "'调查显示：多数人昨晚又刷到了两点','本地今日共有 0 人开始那件想做很久的事'," +
       "'本区居民今日平均叹气 4.2 次'];" +
+      // 订了之后它一直发，但每一条都比上一条短。发到「正常。」就没有下一条了
+      "var F=['本地一切正常','本地正常','正常','正常。'];" +
       "var n=new Date(),k=(n.getFullYear()*372+n.getMonth()*31+n.getDate())%H.length;" +
       "h.textContent=H[k];" +
       // 结尾那句是这份报纸的全部社论
-      "b.textContent='相关部门表示情况正常，无需处理。但大家看起来都还行。';})();</script>",
+      "b.textContent='相关部门表示情况正常，无需处理。但大家看起来都还行。';" +
+      "var i=0,iv=null;" +
+      "btn.addEventListener('click',function(){if(iv)return;" +
+      "btn.disabled=true;btn.textContent='已订阅';" +
+      "iv=setInterval(function(){h.className='ut-daily-h out';" +
+      "setTimeout(function(){" +
+      "if(i<F.length){h.textContent=F[i];i++;}else{clearInterval(iv);}" +
+      "h.className='ut-daily-h';},420);},8000);});" +
+      "})();</script>",
   },
   {
     // 91 再见，理想
@@ -447,24 +469,36 @@ export const SELF_EMBEDS: SeedEmbed[] = [
     html:
       BOX +
       "<style>.useless-thing .ut-end-t{font-size:1.5rem;color:var(--fg,#333);" +
-      "max-width:18em;line-height:2}" +
+      "max-width:18em;line-height:2;min-height:2em}" +
       ".useless-thing .ut-end-c{font-variant-numeric:tabular-nums;font-size:1.1rem}" +
-      ".useless-thing .ut-end-n{max-width:23em}</style>" +
+      ".useless-thing .ut-end-n{min-height:1.2em}</style>" +
       "<div class='ut'><p class='ut-end-t'></p><p class='ut-end-c'></p>" +
+      "<button class='ut-btn' type='button'>提前结束</button>" +
       "<p class='ut-mono ut-end-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
+      MEM +
       "var t=R.querySelector('.ut-end-t'),c=R.querySelector('.ut-end-c')," +
-      "n=R.querySelector('.ut-end-n');" +
+      "b=R.querySelector('.ut-btn'),lab=R.querySelector('.ut-end-n');" +
+      "var key=new Date().toDateString();" +
+      "var k=(M.get('endday','')===key)?M.num('endk',0):0;" +
+      "M.set('endday',key);M.set('endk',k);" +
+      "var until=0;" +
       "function p2(v){return v<10?'0'+v:''+v;}" +
-      "setInterval(function(){var d=new Date();" +
+      "function say(){lab.textContent=k>0?'今天提前结束过 '+k+' 次':'';}" +
+      "say();if(k>=3){b.disabled=true;b.textContent='今天结束不了了';}" +
+      "setInterval(function(){if(Date.now()<until)return;var d=new Date();" +
       "var end=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1,0,0,0);" +
       "var s=Math.floor((end-d)/1000);" +
       // 一天真的结束了才说那句话；在那之前只是在数
       "if(d.getHours()>=22){t.textContent='今天结束了。你做了些什么？不重要了。';" +
-      "c.textContent=p2(Math.floor(s/3600))+':'+p2(Math.floor(s/60)%60)+':'+p2(s%60);" +
-      "n.textContent='明天零点重置。它不会记得今天。';}" +
+      "c.textContent=p2(Math.floor(s/3600))+':'+p2(Math.floor(s/60)%60)+':'+p2(s%60);}" +
       "else{t.textContent='今天还没结束。';" +
-      "c.textContent='还剩 '+p2(Math.floor(s/3600))+':'+p2(Math.floor(s/60)%60)+':'+p2(s%60);" +
-      "n.textContent='晚上十点之后，这一页会换一句话。';}},500);})();</script>",
+      "c.textContent='还剩 '+p2(Math.floor(s/3600))+':'+p2(Math.floor(s/60)%60)+':'+p2(s%60);}" +
+      "},500);" +
+      // 按一下它就真的到零。数完三秒，剩下的那些小时又回来了
+      "b.addEventListener('click',function(){if(k>=3)return;k++;M.set('endk',k);say();" +
+      "t.textContent='今天结束了。';c.textContent='00:00:00';until=Date.now()+3000;" +
+      "if(k>=3){b.disabled=true;b.textContent='今天结束不了了';}});" +
+      "})();</script>",
   },
 ];

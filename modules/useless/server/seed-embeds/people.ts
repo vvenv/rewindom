@@ -9,7 +9,7 @@
  *
  * 作用域约定见 `../seed-embeds.ts` 顶部。
  */
-import { BOX } from "./shell.js";
+import { BOX, MEM } from "./shell.js";
 
 import type { SeedEmbed } from "./shell.js";
 
@@ -19,26 +19,38 @@ export const PEOPLE_EMBEDS: SeedEmbed[] = [
     title: "朋友",
     html:
       BOX +
-      "<style>.useless-thing .ut-fr{width:100%;max-width:22rem;display:flex;" +
+      "<style>.useless-thing .ut-fr{width:100%;max-width:23rem;display:flex;" +
       "flex-direction:column;gap:.55rem}" +
       ".useless-thing .ut-fr-r{display:flex;justify-content:space-between;gap:1rem;" +
+      "align-items:center;" +
       "border-bottom:1px solid var(--border,rgba(128,128,128,.2));padding-bottom:.4rem;" +
       "font-size:.875rem}" +
-      ".useless-thing .ut-fr-w{color:var(--fg,#333)}" +
-      ".useless-thing .ut-fr-n{max-width:23em}</style>" +
-      "<div class='ut'><div class='ut-fr'></div>" +
-      "<p class='ut-mono ut-fr-n'></p></div>" +
+      ".useless-thing .ut-fr-w{color:var(--fg,#333);text-align:left}" +
+      ".useless-thing .ut-fr-d{opacity:.7;font-variant-numeric:tabular-nums}" +
+      ".useless-thing .ut-fr-b{font:inherit;font-size:.75rem;padding:.15rem .55rem;" +
+      "border:1px solid currentColor;background:transparent;color:inherit;" +
+      "border-radius:0;cursor:pointer;flex:0 0 auto}" +
+      ".useless-thing .ut-fr-b:disabled{opacity:.25;cursor:default}</style>" +
+      "<div class='ut'><div class='ut-fr'></div></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var box=R.querySelector('.ut-fr'),n=R.querySelector('.ut-fr-n');" +
+      "var box=R.querySelector('.ut-fr');" +
       // 不读通讯录。给的是关系，不是名字——名字要你自己想起来
       "var L=['高中同桌','大学室友','第一份工作带你的人','一起旅行过的那个'," +
       "'以前每天一起吃午饭的','搬走前住你隔壁的','介绍你现在这份工作的人'];" +
-      "for(var i=0;i<L.length;i++){var d=30+Math.floor(Math.random()*900);" +
+      "for(var i=0;i<L.length;i++){(function(name){" +
+      "var d=30+Math.floor(Math.random()*900),k=0;" +
       "var r=document.createElement('div');r.className='ut-fr-r';" +
-      "var a=document.createElement('span');a.className='ut-fr-w';a.textContent=L[i];" +
-      "var b=document.createElement('span');b.textContent='上次联系：'+d+' 天前';" +
-      "r.appendChild(a);r.appendChild(b);box.appendChild(r);}" +
-      "n.textContent='天数是随机编的，这一页不认识你。但你刚才为每一行想到了具体的人。';" +
+      "var a=document.createElement('span');a.className='ut-fr-w';a.textContent=name;" +
+      "var s=document.createElement('span');s.className='ut-fr-d';" +
+      "var b=document.createElement('button');b.type='button';" +
+      "b.className='ut-fr-b';b.textContent='联系';" +
+      "function draw(){s.textContent='上次联系：'+d+' 天前';}draw();" +
+      // 按下去它归零，两秒后又回去了——按钮上写的是「联系」，做的不是
+      "b.addEventListener('click',function(){if(k>=3){d+=1;draw();return;}" +
+      "k++;s.textContent='上次联系：刚刚';b.disabled=true;" +
+      "setTimeout(function(){b.disabled=false;draw();},2000);});" +
+      "r.appendChild(a);r.appendChild(s);r.appendChild(b);box.appendChild(r);" +
+      "})(L[i]);}" +
       "})();</script>",
   },
   {
@@ -127,22 +139,36 @@ export const PEOPLE_EMBEDS: SeedEmbed[] = [
     title: "匿名拥抱",
     html:
       BOX +
-      "<style>.useless-thing .ut-hug{display:block;max-width:100%;height:auto;" +
+      "<style>.useless-thing .ut-hug-w{display:flex;align-items:center;" +
+      "justify-content:center;width:100%;flex:1;min-height:14rem;" +
+      "cursor:pointer;touch-action:none}" +
+      ".useless-thing .ut-hug{display:block;max-width:100%;height:auto;" +
       "image-rendering:pixelated}</style>" +
-      "<div class='ut'><canvas class='ut-hug' width='200' height='150'></canvas>" +
-      "<p class='ut-mono'>给此刻正在看这个页面的人。</p></div>" +
+      "<div class='ut'><div class='ut-hug-w'>" +
+      "<canvas class='ut-hug' width='200' height='150'></canvas></div></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var c=R.querySelector('.ut-hug'),x=c.getContext('2d');" +
+      "var w=R.querySelector('.ut-hug-w'),c=R.querySelector('.ut-hug')," +
+      "x=c.getContext('2d');" +
       "function body(cx,dir,col,arm){x.fillStyle=col;" +
       "x.fillRect(cx-7,42,14,14);x.fillRect(cx-10,58,20,40);" +
       "x.fillRect(cx-6,98,5,24);x.fillRect(cx+1,98,5,24);" +
       "if(arm>0)x.fillRect(dir>0?cx+6:cx-6-arm,66,arm,5);}" +
       /* 靠到最近时手臂才伸出去绕到对方背后；不然两个人只是站得近而已 */
-      "function frame(){var p=(Date.now()/4200)%1,e=(1-Math.cos(p*Math.PI*2))/2;" +
-      "var gap=Math.round(30-e*19);x.clearRect(0,0,200,150);" +
-      "var arm=Math.round(e*(gap+8));" +
+      // 得一直按着他们才靠近。松手就分开——抱是一件要一直做着的事
+      "var e=0,on=false,held=0,slow=1,last=Date.now();" +
+      "function frame(){var now=Date.now(),dt=now-last;last=now;" +
+      "if(on){held+=dt;e=Math.min(1,e+dt/2200);}" +
+      "else{e=Math.max(0,e-dt/(2200*slow));}" +
+      "var gap=Math.round(30-e*19),arm=Math.round(e*(gap+8));" +
+      "x.clearRect(0,0,200,150);" +
       "body(100-gap,1,'#8d949a',arm);body(100+gap,-1,'#a89a92',arm);" +
-      "requestAnimationFrame(frame);}frame();})();</script>",
+      "requestAnimationFrame(frame);}frame();" +
+      "w.addEventListener('pointerdown',function(ev){w.setPointerCapture(ev.pointerId);" +
+      "on=true;held=0;});" +
+      // 抱够十秒，松手也散得慢
+      "function up(){if(!on)return;on=false;slow=held>10000?4:1;}" +
+      "w.addEventListener('pointerup',up);w.addEventListener('pointercancel',up);" +
+      "})();</script>",
   },
   {
     // 26 隔空对望
@@ -204,18 +230,25 @@ export const PEOPLE_EMBEDS: SeedEmbed[] = [
     html:
       BOX +
       "<style>.useless-thing .ut-res{font-size:2.8rem;color:var(--fg,#333);" +
-      "font-variant-numeric:tabular-nums;line-height:1.2}" +
-      ".useless-thing .ut-res-n{max-width:23em;min-height:2.6em}</style>" +
+      "font-variant-numeric:tabular-nums;line-height:1.2;transition:opacity .15s}" +
+      ".useless-thing .ut-res.on{opacity:.5}" +
+      ".useless-thing .ut-res-n{min-height:1.2em}</style>" +
       "<div class='ut'><p class='ut-res'>0</p><p>个人和你有同样的感受。</p>" +
+      "<button class='ut-btn' type='button'>我也是</button>" +
       "<p class='ut-mono ut-res-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var e=R.querySelector('.ut-res'),n=R.querySelector('.ut-res-n')," +
-      "v=1200+Math.floor(Math.random()*6000),k=0;" +
+      MEM +
+      "var e=R.querySelector('.ut-res'),b=R.querySelector('.ut-btn')," +
+      "n=R.querySelector('.ut-res-n');" +
+      // 大数字是随机跳的，没统计任何人。只有你按的那几下是真的
+      "var v=1200+Math.floor(Math.random()*6000),mine=M.num('res',0);" +
+      "function say(){n.textContent=mine>0?'其中 '+mine+' 个是你':'';}" +
+      "e.textContent=String(v);say();" +
       "setInterval(function(){v+=Math.floor(Math.random()*11)-4;" +
-      "e.textContent=String(v);k++;" +
-      // 数字是随机跳的。归属感是真的，这就是它荒唐的地方
-      "if(k===14)n.textContent='这个数字是随机跳的，没有统计任何人。';" +
-      "if(k===34)n.textContent='你因为一群不认识的人产生了归属感。他们不关心你。';},700);" +
+      "e.textContent=String(v);},700);" +
+      "b.addEventListener('click',function(){v++;mine++;M.set('res',mine);" +
+      "e.textContent=String(v);say();e.className='ut-res on';" +
+      "setTimeout(function(){e.className='ut-res';},160);});" +
       "})();</script>",
   },
   {
@@ -225,15 +258,25 @@ export const PEOPLE_EMBEDS: SeedEmbed[] = [
       BOX +
       "<style>.useless-thing .ut-on{font-size:3.2rem;color:var(--fg,#333);line-height:1.1}" +
       ".useless-thing .ut-on-d{width:7px;height:7px;border-radius:50%;" +
-      "background:currentColor;opacity:.25}</style>" +
+      "background:currentColor;opacity:.25;transition:opacity .3s}" +
+      ".useless-thing .ut-on-d.busy{opacity:.7}" +
+      ".useless-thing .ut-on-n{min-height:1.2em}</style>" +
       "<div class='ut'><div class='ut-on-d'></div><p class='ut-on'>0</p>" +
-      "<p>位好友在线。</p><p class='ut-mono'></p></div>" +
+      "<p>位好友在线。</p><button class='ut-btn' type='button'>刷新</button>" +
+      "<p class='ut-mono ut-on-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var t=R.querySelector('.ut-mono'),n=0;" +
-      // 它永远是 0。刷新也是 0
-      "setInterval(function(){n++;" +
-      "if(n===6)t.textContent='还在找。';" +
-      "if(n===13)t.textContent='他们都在忙。你也是。';},1000);})();</script>",
+      MEM +
+      "var d=R.querySelector('.ut-on-d'),b=R.querySelector('.ut-btn')," +
+      "n=R.querySelector('.ut-on-n'),k=M.num('online',0),busy=false;" +
+      "function say(){n.textContent=k>0?'刷新过 '+k+' 次':'';}" +
+      "say();if(k>=10){b.disabled=true;b.textContent='不用刷了';}" +
+      // 它永远是 0。刷十次之后连刷新都不给你刷了
+      "b.addEventListener('click',function(){if(busy)return;busy=true;" +
+      "b.disabled=true;d.className='ut-on-d busy';" +
+      "setTimeout(function(){k++;M.set('online',k);say();" +
+      "d.className='ut-on-d';busy=false;" +
+      "if(k>=10){b.textContent='不用刷了';}else{b.disabled=false;}},1500);});" +
+      "})();</script>",
   },
   {
     // 32 未读消息
@@ -274,24 +317,31 @@ export const PEOPLE_EMBEDS: SeedEmbed[] = [
       ".useless-thing .ut-fx-r{display:flex;justify-content:space-between;gap:1rem;" +
       "font-size:.8125rem;border-bottom:1px solid var(--border,rgba(128,128,128,.2));" +
       "padding-bottom:.35rem}" +
-      ".useless-thing .ut-fx-a{color:var(--fg,#333)}" +
-      ".useless-thing .ut-fx-n{max-width:24em}</style>" +
+      ".useless-thing .ut-fx-a{color:var(--fg,#333);text-align:left}" +
+      ".useless-thing .ut-fx-i{width:min(18rem,90%);font:inherit;font-size:.875rem;" +
+      "text-align:center;background:transparent;color:inherit;border:0;" +
+      "border-bottom:1px solid var(--border,rgba(128,128,128,.3));" +
+      "padding:.45rem 0;outline:none;border-radius:0}" +
+      ".useless-thing .ut-fx-o{font-size:1.05rem;color:var(--fg,#333);min-height:1.6em}</style>" +
       "<div class='ut'><div class='ut-fx'></div>" +
-      "<p class='ut-mono ut-fx-n'>今日汇率，随时波动，不接受兑换。</p></div>" +
+      "<input class='ut-fx-i' type='text' maxlength='20' placeholder='想兑换什么' />" +
+      "<p class='ut-fx-o'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var box=R.querySelector('.ut-fx');" +
+      "var box=R.querySelector('.ut-fx'),i=R.querySelector('.ut-fx-i')," +
+      "o=R.querySelector('.ut-fx-o');" +
       "var T=[['1 条朋友圈','0.3 个真实的关心'],['1 条短视频','0.1 个真实的连接']," +
       "['100 个赞','1 次有人记得你的生日'],['1 小时刷手机','0 分钟被人想起']," +
       "['全部已发布的内容','一杯拿铁的价格']];" +
-      "for(var i=0;i<T.length;i++){var r=document.createElement('div');" +
+      "for(var k=0;k<T.length;k++){var r=document.createElement('div');" +
       "r.className='ut-fx-r';var a=document.createElement('span');" +
-      "a.className='ut-fx-a';a.textContent=T[i][0];" +
-      "var b=document.createElement('span');b.textContent='≈ '+T[i][1];" +
+      "a.className='ut-fx-a';a.textContent=T[k][0];" +
+      "var b=document.createElement('span');b.textContent='≈ '+T[k][1];" +
       "r.appendChild(a);r.appendChild(b);box.appendChild(r);}" +
-      // 最后一行才是重点：拿铁至少你喝到了
-      "var last=document.createElement('div');last.className='ut-fx-r';" +
-      "var s=document.createElement('span');s.textContent='但拿铁更实在。';" +
-      "last.appendChild(s);box.appendChild(last);})();</script>",
+      // 拿什么来兑都是 0。除了拿铁——拿铁至少你喝到了
+      "i.addEventListener('keydown',function(e){if(e.key!=='Enter')return;" +
+      "var v=i.value.trim();if(!v)return;" +
+      "o.textContent=/拿铁|咖啡|coffee/i.test(v)?(v+' ≈ 1 杯拿铁'):(v+' ≈ 0 个真实的关心');});" +
+      "})();</script>",
   },
   {
     // 34 别人都比你过得好
@@ -437,18 +487,30 @@ export const PEOPLE_EMBEDS: SeedEmbed[] = [
     html:
       BOX +
       "<style>.useless-thing .ut-off{font-size:2.6rem;color:var(--fg,#333);" +
-      "font-variant-numeric:tabular-nums;line-height:1.2}" +
-      ".useless-thing .ut-off-n{max-width:24em;min-height:3em}</style>" +
-      "<div class='ut'><p class='ut-off'>00:00</p>" +
-      "<p class='ut-mono ut-off-n'></p></div>" +
+      "font-variant-numeric:tabular-nums;line-height:1.2;min-height:1.2em;" +
+      "transition:opacity .8s}" +
+      ".useless-thing .ut-off-w{display:flex;flex-direction:column;align-items:center;" +
+      "justify-content:center;gap:1rem;width:100%;flex:1;min-height:14rem;cursor:default}" +
+      ".useless-thing .ut-off-w.dark{cursor:pointer}" +
+      ".useless-thing .ut-off-w.dark .ut-off{opacity:0}" +
+      ".useless-thing .ut-off-w.dark .ut-btn{opacity:0;pointer-events:none}</style>" +
+      "<div class='ut'><div class='ut-off-w'><p class='ut-off'>00:00</p>" +
+      "<button class='ut-btn' type='button'>离线</button></div></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var e=R.querySelector('.ut-off'),n=R.querySelector('.ut-off-n'),t0=Date.now();" +
+      "var w=R.querySelector('.ut-off-w'),e=R.querySelector('.ut-off')," +
+      "b=R.querySelector('.ut-btn');" +
+      "var t0=Date.now(),dark=false,at=0,keep=0;" +
       "function p2(v){return v<10?'0'+v:''+v;}" +
-      "setInterval(function(){var s=Math.floor((Date.now()-t0)/1000);" +
-      "e.textContent=p2(Math.floor(s/60))+':'+p2(s%60);" +
-      // 它数的是「你离开网络的时间」，而你正在网上看它。这就是全部
-      "n.textContent=s<12?'离线计时开始。'" +
-      ":'你并没有离线。这个计时器只是在数，数的是你盯着一个离线计时器的时间。';},500);" +
+      "setInterval(function(){if(dark||Date.now()<keep)return;" +
+      "var s=Math.floor((Date.now()-t0)/1000);" +
+      "e.textContent=p2(Math.floor(s/60))+':'+p2(s%60);},500);" +
+      // 这一页真的可以离线：按下去它就什么都不剩了。点一下才回来
+      "b.addEventListener('click',function(ev){ev.stopPropagation();" +
+      "dark=true;at=Date.now();w.className='ut-off-w dark';});" +
+      "w.addEventListener('click',function(){if(!dark)return;dark=false;" +
+      "w.className='ut-off-w';" +
+      "e.textContent='你离线了 '+Math.round((Date.now()-at)/1000)+' 秒';" +
+      "keep=Date.now()+3000;t0=Date.now();});" +
       "})();</script>",
   },
   {

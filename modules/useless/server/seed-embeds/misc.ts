@@ -8,7 +8,7 @@
  *
  * 作用域约定见 `../seed-embeds.ts` 顶部。
  */
-import { BOX } from "./shell.js";
+import { BOX, MEM } from "./shell.js";
 
 import type { SeedEmbed } from "./shell.js";
 
@@ -183,14 +183,23 @@ export const MISC_EMBEDS: SeedEmbed[] = [
       "<style>.useless-thing .ut-beat{font-size:2.6rem;line-height:1.3;" +
       "color:var(--fg,#333);font-variant-numeric:tabular-nums}" +
       ".useless-thing .ut-beat.on{opacity:.55}</style>" +
-      "<div class='ut'><p class='ut-beat'>0</p>" +
-      "<p>下心跳。</p><p class='ut-mono'></p></div>" +
+      "<div class='ut'><p class='ut-beat'>0</p><p>下心跳。</p>" +
+      "<button class='ut-btn' type='button'>拿回去</button></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var n=R.querySelector('.ut-beat'),t0=Date.now(),c=0;" +
-      // 不问你是谁、不存任何东西——它只是替你数，数完就算了
-      "setInterval(function(){var k=Math.floor((Date.now()-t0)/1000*70/60);" +
-      "if(k===c)return;c=k;n.textContent=String(c);" +
+      "var n=R.querySelector('.ut-beat'),b=R.querySelector('.ut-btn')," +
+      "t0=Date.now(),shown=-1,back=false,peak=0;" +
+      // 不问你是谁、不存任何东西——它只是替你数
+      "function rate(ms){return Math.floor(ms/1000*70/60);}" +
+      "setInterval(function(){var k;" +
+      // 想拿回来也可以：退回零要花掉和刚才一样多的心跳，退完你还在这儿，于是重新开始数
+      "if(back){k=peak-rate(Date.now()-t0);" +
+      "if(k<=0){k=0;back=false;t0=Date.now();b.disabled=false;b.textContent='拿回去';}}" +
+      "else{k=rate(Date.now()-t0);}" +
+      "if(k===shown)return;shown=k;n.textContent=String(k);" +
       "n.className='ut-beat on';setTimeout(function(){n.className='ut-beat'},90);},80);" +
+      "b.addEventListener('click',function(){if(back)return;" +
+      "peak=rate(Date.now()-t0);back=true;t0=Date.now();" +
+      "b.disabled=true;b.textContent='正在拿回去';});" +
       "})();</script>",
   },
   {
@@ -264,32 +273,51 @@ export const MISC_EMBEDS: SeedEmbed[] = [
     title: "你来了之后的世界",
     html:
       BOX +
-      "<style>.useless-thing .ut-row{display:flex;gap:2.4rem;justify-content:center}" +
+      "<style>.useless-thing .ut-row{display:flex;gap:2.4rem;justify-content:center;" +
+      "align-items:flex-start}" +
       ".useless-thing .ut-num{font-size:2rem;color:var(--fg,#333);" +
       "font-variant-numeric:tabular-nums;line-height:1.2}" +
-      ".useless-thing .ut-cap{font-size:.75rem;opacity:.6}</style>" +
+      ".useless-thing .ut-cap{font-size:.75rem;opacity:.6}" +
+      ".useless-thing .ut-col-me{opacity:0;transition:opacity 1.6s}" +
+      ".useless-thing .ut-col-me.on{opacity:1}" +
+      ".useless-thing .ut-wr{width:min(16rem,80%);accent-color:currentColor;" +
+      "cursor:pointer}</style>" +
       "<div class='ut'><div class='ut-row'>" +
       "<div><p class='ut-num ut-in'>0</p><p class='ut-cap'>个人来了</p></div>" +
       "<div><p class='ut-num ut-out'>0</p><p class='ut-cap'>个人走了</p></div>" +
-      "</div><p class='ut-mono'></p></div>" +
+      "<div class='ut-col-me'><p class='ut-num'>1</p><p class='ut-cap'>你</p></div>" +
+      "</div>" +
+      "<input class='ut-wr' type='range' min='1' max='3600' value='60' " +
+      "aria-label='一段时间' /><p class='ut-mono'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var a=R.querySelector('.ut-in'),b=R.querySelector('.ut-out'),t0=Date.now();" +
+      "var a=R.querySelector('.ut-in'),b=R.querySelector('.ut-out')," +
+      "me=R.querySelector('.ut-col-me'),r=R.querySelector('.ut-wr')," +
+      "t=R.querySelector('.ut-mono');" +
       // 4.2 / 2.0 是公开的全球出生与死亡年均速率，换算成每秒
-      "setInterval(function(){var s=(Date.now()-t0)/1000;" +
+      "function go(){var s=parseInt(r.value,10);" +
       "a.textContent=String(Math.floor(s*4.2));" +
-      "b.textContent=String(Math.floor(s*2.0));},120);})();</script>",
+      "b.textContent=String(Math.floor(s*2.0));" +
+      "t.textContent=s<60?s+' 秒':(s<3600?Math.floor(s/60)+' 分 '+(s%60)+' 秒':'1 小时');" +
+      // 拖到一小时那一格，第三个数才出现。它不跟着变
+      "me.className=s>=1800?'ut-col-me on':'ut-col-me';}" +
+      "r.addEventListener('input',go);go();})();</script>",
   },
   {
     title: "时钟在撒谎",
     html:
       BOX +
-      "<style>.useless-thing .ut-cl{display:block;margin:0 auto}</style>" +
+      "<style>.useless-thing .ut-cl{display:block;margin:0 auto;cursor:grab;" +
+      "touch-action:none}" +
+      ".useless-thing .ut-cl.hold{cursor:grabbing}" +
+      ".useless-thing .ut-lie{min-height:1.4em;font-size:.9375rem}</style>" +
       "<div class='ut'><canvas class='ut-cl' width='200' height='200'></canvas>" +
       "<p class='ut-lie'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
+      MEM +
       "var c=R.querySelector('.ut-cl'),x=c.getContext('2d'),p=R.querySelector('.ut-lie');" +
       // 一进来就定好撒多少谎，之后一直保持——一块时快时慢的表只是坏了，不是在撒谎
-      "var lie=2+Math.floor(Math.random()*14);" +
+      "var base=M.num('lie',0)||2+Math.floor(Math.random()*14);" +
+      "var lie=base,drag=false;M.set('lie',base);" +
       "function hand(a,len,w,col){x.beginPath();x.lineWidth=w;x.strokeStyle=col;" +
       "x.moveTo(100,100);x.lineTo(100+Math.sin(a)*len,100-Math.cos(a)*len);x.stroke();}" +
       "function tick(){var d=new Date();x.clearRect(0,0,200,200);" +
@@ -298,10 +326,25 @@ export const MISC_EMBEDS: SeedEmbed[] = [
       "for(var i=0;i<12;i++){var a=i*Math.PI/6;x.beginPath();" +
       "x.moveTo(100+Math.sin(a)*80,100-Math.cos(a)*80);" +
       "x.lineTo(100+Math.sin(a)*86,100-Math.cos(a)*86);x.stroke();}" +
+      // 你调准了它也会自己走回去，而且每被调一次，它下回要快得更多
+      "if(!drag&&Math.abs(lie-base)>0.02)lie+=(base-lie)*0.004;" +
       "var m=d.getMinutes()+lie+d.getSeconds()/60,h=d.getHours()%12+m/60;" +
       "hand(h*Math.PI/6,48,3,'#555');hand(m*Math.PI/30,74,1.5,'#555');" +
-      "p.textContent='它快了 '+lie+' 分钟。你多过了 '+lie+' 分钟，那些不存在。';" +
-      "requestAnimationFrame(tick);}tick();})();</script>",
+      "var v=Math.round(lie);" +
+      "p.textContent=v===0?'准了。':(v>0?'快了 '+v+' 分钟':'慢了 '+(-v)+' 分钟');" +
+      "requestAnimationFrame(tick);}tick();" +
+      "function set(e){var r=c.getBoundingClientRect();" +
+      "var dx=(e.clientX-r.left)/r.width*200-100,dy=(e.clientY-r.top)/r.height*200-100;" +
+      "var ang=Math.atan2(dx,-dy);if(ang<0)ang+=Math.PI*2;" +
+      "var d=new Date(),want=ang/(Math.PI*2)*60,now=d.getMinutes()+d.getSeconds()/60;" +
+      "var v=want-now;while(v<-30)v+=60;while(v>=30)v-=60;lie=v;}" +
+      "c.addEventListener('pointerdown',function(e){drag=true;c.className='ut-cl hold';" +
+      "c.setPointerCapture(e.pointerId);set(e);});" +
+      "c.addEventListener('pointermove',function(e){if(drag)set(e);});" +
+      "function up(){if(!drag)return;drag=false;c.className='ut-cl';" +
+      "base=Math.round((base+1.5)*100)/100;M.set('lie',base);}" +
+      "c.addEventListener('pointerup',up);c.addEventListener('pointercancel',up);" +
+      "})();</script>",
   },
   {
     title: "重力",
@@ -357,33 +400,62 @@ export const MISC_EMBEDS: SeedEmbed[] = [
     title: "呼吸的像素",
     html:
       BOX +
-      "<style>.useless-thing .ut-br{width:9rem;height:9rem;border-radius:3px;" +
+      "<style>.useless-thing .ut-br-w{display:flex;align-items:center;" +
+      "justify-content:center;width:100%;flex:1;min-height:14rem;touch-action:none;" +
+      "cursor:pointer}" +
+      ".useless-thing .ut-br{width:9rem;height:9rem;border-radius:3px;" +
       "transition:background 2.6s linear}</style>" +
-      "<div class='ut'><div class='ut-br'></div></div>" +
+      "<div class='ut'><div class='ut-br-w'><div class='ut-br'></div></div></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var d=R.querySelector('.ut-br'),t0=Date.now();" +
+      "var w=R.querySelector('.ut-br-w'),d=R.querySelector('.ut-br');" +
       "var C=['#8fa6a0','#a08f9e','#9aa08f','#8f96a0','#a09b8f','#96a08f'],i=0;" +
       "d.style.background=C[0];" +
       "setInterval(function(){i=(i+1)%C.length;d.style.background=C[i];},30000);" +
       // 4 秒吸、4 秒呼——比一般人自然呼吸慢一点，跟着它会不自觉地慢下来
-      "function tick(){var p=(Date.now()-t0)/8000%1;" +
-      "var s=0.72+0.28*(1-Math.cos(p*Math.PI*2))/2;" +
-      "d.style.transform='scale('+s.toFixed(3)+')';requestAnimationFrame(tick);}tick();" +
+      "var mode='auto',lvl=0,last=Date.now(),held=0,slow=1,t0=Date.now();" +
+      "function tick(){var now=Date.now(),dt=now-last;last=now;" +
+      "if(mode==='auto'){lvl=(1-Math.cos((now-t0)/8000%1*Math.PI*2))/2;}" +
+      // 你也可以自己按着吸。憋过八秒就吸不进去了，而且要用两倍的时间才呼得完
+      "else if(mode==='in'){held+=dt;lvl=Math.min(1,lvl+dt/4000);}" +
+      "else{lvl=Math.max(0,lvl-dt/(4000*slow));" +
+      "if(lvl<=0){mode='auto';t0=now;}}" +
+      "d.style.transform='scale('+(0.72+0.28*lvl).toFixed(3)+')';" +
+      "requestAnimationFrame(tick);}tick();" +
+      "w.addEventListener('pointerdown',function(e){w.setPointerCapture(e.pointerId);" +
+      "mode='in';held=0;});" +
+      "function up(){if(mode!=='in')return;slow=held>8000?2:1;mode='out';}" +
+      "w.addEventListener('pointerup',up);w.addEventListener('pointercancel',up);" +
       "})();</script>",
   },
   {
     title: "地平线",
     html:
       BOX +
-      "<style>.useless-thing .ut-hz{position:relative;width:100%;max-width:28rem;height:9rem}" +
-      ".useless-thing .ut-hzl{position:absolute;top:50%;height:1px;width:34%;" +
+      "<style>.useless-thing .ut-hz{position:relative;width:100%;max-width:28rem;" +
+      "height:13rem;cursor:grab;touch-action:none}" +
+      ".useless-thing .ut-hz.hold{cursor:grabbing}" +
+      ".useless-thing .ut-hzl{position:absolute;height:1px;width:34%;" +
       "background:currentColor;opacity:.55}</style>" +
       "<div class='ut'><div class='ut-hz'><div class='ut-hzl'></div></div></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var box=R.querySelector('.ut-hz'),l=R.querySelector('.ut-hzl'),t0=Date.now();" +
+      "var box=R.querySelector('.ut-hz'),l=R.querySelector('.ut-hzl')," +
+      "t0=Date.now(),off=0,drag=false,let0=0;" +
       // 一条线从左走到右，走完再来。没有别的。
+      // 你能把它拽上拽下，但松开它就回到正中间——拽得越远，回得越慢
       "function tick(){var p=(Date.now()-t0)/26000%1;" +
-      "l.style.left=(p*134-34).toFixed(2)+'%';requestAnimationFrame(tick);}tick();})();</script>",
+      "l.style.left=(p*134-34).toFixed(2)+'%';" +
+      "if(!drag&&Math.abs(off)>0.3)off+=-off*Math.max(0.004,0.05-let0/4000);" +
+      "l.style.top='calc(50% + '+off.toFixed(1)+'px)';" +
+      "requestAnimationFrame(tick);}tick();" +
+      "function set(e){var r=box.getBoundingClientRect();" +
+      "off=e.clientY-(r.top+r.height/2);}" +
+      "box.addEventListener('pointerdown',function(e){drag=true;box.className='ut-hz hold';" +
+      "box.setPointerCapture(e.pointerId);set(e);});" +
+      "box.addEventListener('pointermove',function(e){if(drag)set(e);});" +
+      "function up(){if(!drag)return;drag=false;box.className='ut-hz';" +
+      "let0=Math.abs(off);}" +
+      "box.addEventListener('pointerup',up);box.addEventListener('pointercancel',up);" +
+      "})();</script>",
   },
   {
     title: "消息已读模拟器",

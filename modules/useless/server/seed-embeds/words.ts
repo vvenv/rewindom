@@ -18,21 +18,28 @@ export const WORDS_EMBEDS: SeedEmbed[] = [
     title: "波浪里的字",
     html:
       BOX +
-      "<style>.useless-thing .ut-wv{font-size:1.5rem;color:var(--fg,#333);" +
-      "max-width:20em;line-height:2.2}" +
+      "<style>.useless-thing .ut-wv-w{display:flex;align-items:center;" +
+      "justify-content:center;width:100%;flex:1;min-height:14rem;touch-action:none}" +
+      ".useless-thing .ut-wv{font-size:1.5rem;color:var(--fg,#333);" +
+      "max-width:20em;line-height:2.6}" +
       ".useless-thing .ut-wv span{display:inline-block;will-change:transform}</style>" +
-      "<div class='ut'><p class='ut-wv'></p>" +
-      "<p class='ut-mono'>你读完了。但它还在晃。</p></div>" +
+      "<div class='ut'><div class='ut-wv-w'><p class='ut-wv'></p></div></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var p=R.querySelector('.ut-wv');" +
-      "var s='水面上的字，读完了也不会停下来。',E=[];" +
+      "var w=R.querySelector('.ut-wv-w'),p=R.querySelector('.ut-wv');" +
+      "var s='水面上的字，读完了也不会停下来。',E=[],A=[];" +
       "for(var i=0;i<s.length;i++){var e=document.createElement('span');" +
-      "e.textContent=s[i];p.appendChild(e);E.push(e);}" +
+      "e.textContent=s.charAt(i);p.appendChild(e);E.push(e);A.push(5);}" +
       // 每个字差一点相位，看起来就像有东西从下面推过去
       "function frame(){var t=Date.now()/620;" +
-      "for(var i=0;i<E.length;i++)" +
-      "E[i].style.transform='translateY('+(Math.sin(t-i*0.42)*5).toFixed(2)+'px)';" +
-      "requestAnimationFrame(frame);}frame();})();</script>",
+      "for(var i=0;i<E.length;i++){A[i]+=(5-A[i])*0.008;" +
+      "E[i].style.transform='translateY('+(Math.sin(t-i*0.42)*A[i]).toFixed(2)+'px)';}" +
+      "requestAnimationFrame(frame);}frame();" +
+      // 手划过去水面就被搅起来，而且要很久才平回去。字一个也没变
+      "w.addEventListener('pointermove',function(ev){" +
+      "for(var i=0;i<E.length;i++){var r=E[i].getBoundingClientRect();" +
+      "var d=Math.abs(ev.clientX-(r.left+r.width/2))+Math.abs(ev.clientY-(r.top+r.height/2));" +
+      "if(d<70)A[i]=Math.min(20,A[i]+(70-d)/70*1.4);}});" +
+      "})();</script>",
   },
   {
     // 57 你的话变成了气泡
@@ -97,16 +104,23 @@ export const WORDS_EMBEDS: SeedEmbed[] = [
     html:
       BOX +
       "<style>.useless-thing .ut-neg{font-size:1.45rem;color:var(--fg,#333);" +
-      "max-width:17em;line-height:2;transition:opacity .5s}" +
-      ".useless-thing .ut-neg.out{opacity:.12}</style>" +
+      "max-width:17em;line-height:2;transition:opacity .5s;min-height:2em}" +
+      ".useless-thing .ut-neg.out{opacity:.12}" +
+      ".useless-thing .ut-neg-b{transition:opacity .5s}" +
+      ".useless-thing .ut-neg-b.hide{opacity:0;pointer-events:none}</style>" +
       "<div class='ut'><p class='ut-neg'></p>" +
-      "<p class='ut-mono'></p></div>" +
+      "<button class='ut-btn ut-neg-b' type='button'>就这一句</button></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var p=R.querySelector('.ut-neg');" +
-      "var A='你今天已经做得够好了。',B='你今天没有做得够好。',on=true;" +
+      "var p=R.querySelector('.ut-neg'),b=R.querySelector('.ut-neg-b');" +
+      "var A='你今天已经做得够好了。',B='你今天没有做得够好。',on=true,hold=false;" +
       "p.textContent=A;" +
-      "setInterval(function(){p.className='ut-neg out';" +
-      "setTimeout(function(){on=!on;p.textContent=on?A:B;p.className='ut-neg';},520);},3000);" +
+      "setInterval(function(){if(hold)return;p.className='ut-neg out';" +
+      "setTimeout(function(){if(hold){p.className='ut-neg';return;}" +
+      "on=!on;p.textContent=on?A:B;p.className='ut-neg';},520);},3000);" +
+      // 摁住这一句能停五秒。五秒之后它接着换，按钮也回来——你可以再摁一次
+      "b.addEventListener('click',function(){if(hold)return;hold=true;" +
+      "b.className='ut-btn ut-neg-b hide';" +
+      "setTimeout(function(){hold=false;b.className='ut-btn ut-neg-b';},5000);});" +
       "})();</script>",
   },
   {
@@ -208,17 +222,27 @@ export const WORDS_EMBEDS: SeedEmbed[] = [
       "<style>.useless-thing .ut-quiet{position:relative;width:100%;max-width:26rem;" +
       "min-height:13rem;display:grid;place-content:center}" +
       ".useless-thing .ut-quiet-v{position:absolute;inset:0;" +
-      "background:rgba(10,10,10,.92);color:#8b8b8b;display:grid;place-content:center;" +
+      "background:rgba(10,10,10,.92);color:#8b8b8b;display:flex;" +
+      "flex-direction:column;align-items:center;justify-content:center;gap:1.4rem;" +
       "font-size:.8125rem;letter-spacing:.08em;opacity:0;pointer-events:none;" +
       "transition:opacity 2.4s ease-in}" +
-      ".useless-thing .ut-quiet-v.on{opacity:1}</style>" +
+      ".useless-thing .ut-quiet-v.on{opacity:1;pointer-events:auto}" +
+      ".useless-thing .ut-quiet-x{font:inherit;letter-spacing:.08em;" +
+      "padding:.35rem .9rem;border:1px solid currentColor;background:transparent;" +
+      "color:inherit;cursor:pointer;border-radius:0;transition:opacity .6s}" +
+      ".useless-thing .ut-quiet-x.gone{opacity:0;pointer-events:none}</style>" +
       "<div class='ut'><div class='ut-quiet'>" +
       "<p class='ut-mono'>什么都不要做。</p>" +
-      "<div class='ut-quiet-v'>你已进入安静模式</div></div></div>" +
+      "<div class='ut-quiet-v'><span>你已进入安静模式</span>" +
+      "<button class='ut-quiet-x' type='button'>退出</button></div></div></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var v=R.querySelector('.ut-quiet-v');" +
-      // 没有退出键。要出去只能重新加载这一页——这就是「安静」的代价
-      "setTimeout(function(){v.className='ut-quiet-v on';},1800);})();</script>",
+      "var v=R.querySelector('.ut-quiet-v'),x=R.querySelector('.ut-quiet-x'),k=0;" +
+      "setTimeout(function(){v.className='ut-quiet-v on';},1800);" +
+      // 退得出去，但三秒后它又回来。退到第四次，连那个「退出」都不给了
+      "x.addEventListener('click',function(){k++;v.className='ut-quiet-v';" +
+      "if(k>=4)x.className='ut-quiet-x gone';" +
+      "setTimeout(function(){v.className='ut-quiet-v on';},3000);});" +
+      "})();</script>",
   },
   {
     // 66 聊天记录回顾
@@ -229,19 +253,29 @@ export const WORDS_EMBEDS: SeedEmbed[] = [
       "flex-direction:column;gap:.45rem}" +
       ".useless-thing .ut-ch-m{max-width:76%;padding:.4rem .7rem;font-size:.8125rem;" +
       "line-height:1.6;border:1px solid var(--border,rgba(128,128,128,.35));" +
-      "border-radius:10px;filter:blur(3.5px);user-select:none}" +
+      "border-radius:10px;filter:blur(3.5px);user-select:none;" +
+      "transition:filter .5s}" +
       ".useless-thing .ut-ch-m.me{align-self:flex-end}" +
-      ".useless-thing .ut-ch-n{max-width:23em}</style>" +
-      "<div class='ut'><div class='ut-ch'></div>" +
-      "<p class='ut-mono ut-ch-n'>说了很多，都不记得了。</p></div>" +
+      ".useless-thing .ut-ch-m.clear{filter:none}</style>" +
+      "<div class='ut'><div class='ut-ch'></div></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
       "var box=R.querySelector('.ut-ch');" +
-      // 内容是糊的，也没打算清楚——记不清才是这段记录的全部内容
-      "var L=[[0,'那天的事我想了很久'],[1,'嗯 我也是'],[0,'其实当时我想说的是']," +
-      "[1,'算了 都过去了'],[0,'那你最近还好吗'],[1,'挺好的 你呢']];" +
-      "for(var i=0;i<L.length;i++){var m=document.createElement('div');" +
-      "m.className=L[i][0]?'ut-ch-m me':'ut-ch-m';m.textContent=L[i][1];" +
-      "box.appendChild(m);}})();</script>",
+      // 糊着的是当时说的。盯住两秒它就清楚了，清楚下来的却是另一句——
+      // 你记得的比说过的短
+      "var L=[[0,'那天的事我想了很久','那天的事'],[1,'嗯 我也是','嗯']," +
+      "[0,'其实当时我想说的是','……'],[1,'算了 都过去了','算了']," +
+      "[0,'那你最近还好吗','还好吗'],[1,'挺好的 你呢','挺好的']];" +
+      "for(var i=0;i<L.length;i++){(function(row){" +
+      "var m=document.createElement('div');" +
+      "var base=row[0]?'ut-ch-m me':'ut-ch-m';" +
+      "m.className=base;m.textContent=row[1];box.appendChild(m);" +
+      "var tm=null,lock=false;" +
+      "m.addEventListener('pointerenter',function(){if(lock)return;" +
+      "m.className=base+' clear';" +
+      "tm=setTimeout(function(){lock=true;m.textContent=row[2];},2000);});" +
+      "m.addEventListener('pointerleave',function(){if(tm)clearTimeout(tm);" +
+      "if(lock)return;m.className=base;});" +
+      "})(L[i]);}})();</script>",
   },
   {
     // 67 声音回收站
@@ -275,36 +309,56 @@ export const WORDS_EMBEDS: SeedEmbed[] = [
       "height:9rem}" +
       ".useless-thing .ut-solo-l{position:absolute;left:0;right:0;top:0;" +
       "font-size:1.05rem;line-height:1.9;color:var(--fg,#333);transition:opacity 1.1s}" +
-      ".useless-thing .ut-solo-l.old{opacity:.12}</style>" +
+      ".useless-thing .ut-solo-l.old{opacity:.12}" +
+      ".useless-thing .ut-solo-i{width:min(18rem,90%);font:inherit;font-size:.875rem;" +
+      "text-align:center;background:transparent;color:inherit;border:0;" +
+      "border-bottom:1px solid var(--border,rgba(128,128,128,.3));" +
+      "padding:.45rem 0;outline:none;border-radius:0}</style>" +
       "<div class='ut'><div class='ut-solo'></div>" +
-      "<p class='ut-mono'></p></div>" +
+      "<input class='ut-solo-i' type='text' maxlength='18' /></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var box=R.querySelector('.ut-solo');" +
-      "var L=['我在想一件事。','想不起来是什么了。','刚才明明还在的。'," +
+      "var box=R.querySelector('.ut-solo'),i=R.querySelector('.ut-solo-i');" +
+      "var A=['我在想一件事。','想不起来是什么了。','刚才明明还在的。'," +
       "'算了。','再想想。','是不是跟你有关。','也可能不是。','我在想一件事。'];" +
-      "var k=0,cur=null;" +
+      "var k=0,cur=null,xi=-1,xn=0;" +
       "function next(){if(cur)cur.className='ut-solo-l old';" +
+      // 你插的那句和别的没两样：转三圈之后，它也想不起来了
+      "if(xi>=0&&k%A.length===xi){xn++;if(xn>3)A[xi]='刚才想说的那句，忘了。';}" +
       "var e=document.createElement('div');e.className='ut-solo-l';" +
-      "e.textContent=L[k%L.length];box.appendChild(e);cur=e;k++;" +
+      "e.textContent=A[k%A.length];box.appendChild(e);cur=e;k++;" +
       // 只留最近三句的影子，再往前的连影子都没有了
       "while(box.children.length>3)box.removeChild(box.firstChild);}" +
-      "next();setInterval(next,3600);})();</script>",
+      "next();setInterval(next,3600);" +
+      "i.addEventListener('keydown',function(e){if(e.key!=='Enter')return;" +
+      "var v=i.value.trim();if(!v)return;i.value='';" +
+      "A.push(v);xi=A.length-1;xn=0;});" +
+      "})();</script>",
   },
   {
     // 69 沉默的计数器
     title: "沉默的计数器",
     html:
       BOX +
-      "<style>.useless-thing .ut-cnt{font-size:2.6rem;color:var(--fg,#333);" +
-      "font-variant-numeric:tabular-nums;line-height:1.2}</style>" +
-      "<div class='ut'><p class='ut-cnt'>—</p><p>人在线。</p>" +
-      "<p class='ut-mono'></p></div>" +
+      "<style>.useless-thing .ut-sil{font-size:2.6rem;color:var(--fg,#333);" +
+      "font-variant-numeric:tabular-nums;line-height:1.2}" +
+      ".useless-thing .ut-sil-i{width:min(18rem,90%);font:inherit;font-size:.875rem;" +
+      "text-align:center;background:transparent;color:inherit;border:0;" +
+      "border-bottom:1px solid var(--border,rgba(128,128,128,.3));" +
+      "padding:.45rem 0;outline:none;border-radius:0}</style>" +
+      "<div class='ut'><p class='ut-sil'>—</p><p>人在线。</p>" +
+      "<input class='ut-sil-i' type='text' maxlength='30' placeholder='说点什么' /></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var e=R.querySelector('.ut-cnt'),v=3+Math.floor(Math.random()*40);" +
+      "var e=R.querySelector('.ut-sil'),i=R.querySelector('.ut-sil-i')," +
+      "v=3+Math.floor(Math.random()*40);" +
       "e.textContent=String(v);" +
       // 跳，但不落库。没有历史，也没有峰值
       "setInterval(function(){v=Math.max(1,v+Math.floor(Math.random()*7)-3);" +
-      "e.textContent=String(v);},1400);})();</script>",
+      "e.textContent=String(v);},1400);" +
+      // 你说的话不会出现在任何地方，只会让在线的人少一个。剩到一个就是你
+      "i.addEventListener('keydown',function(ev){if(ev.key!=='Enter')return;" +
+      "if(!i.value.trim())return;i.value='';v=Math.max(1,v-1);" +
+      "e.textContent=String(v);});" +
+      "})();</script>",
   },
   {
     // 70 道歉生成器

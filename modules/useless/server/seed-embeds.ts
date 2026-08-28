@@ -18,6 +18,7 @@
  *
  * 这三条由 `seed-embeds.test.ts` 逐条把关，违反了测试就红。
  */
+import { DEEP_EMBEDS } from "./seed-embeds/deep.js";
 import { MACHINE_EMBEDS } from "./seed-embeds/machine.js";
 import { MISC_EMBEDS } from "./seed-embeds/misc.js";
 import { PEOPLE_EMBEDS } from "./seed-embeds/people.js";
@@ -32,6 +33,7 @@ export type { SeedEmbed } from "./seed-embeds/shell.js";
 
 /**
  * 顺序 = 未排期时的入库顺序，也就是回看往前补的顺序。先铺最早那批，再按类走。
+ * `DEEP_EMBEDS` 在最后：前七类已经上过站，中间插一类只会把已排期的顺序搅乱。
  */
 export const SEED_EMBEDS: SeedEmbed[] = [
   ...MISC_EMBEDS,
@@ -41,4 +43,5 @@ export const SEED_EMBEDS: SeedEmbed[] = [
   ...WORDS_EMBEDS,
   ...MACHINE_EMBEDS,
   ...SELF_EMBEDS,
+  ...DEEP_EMBEDS,
 ];

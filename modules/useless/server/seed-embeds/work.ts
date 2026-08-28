@@ -142,27 +142,42 @@ export const WORK_EMBEDS: SeedEmbed[] = [
     title: "快捷键指南",
     html:
       BOX +
-      "<style>.useless-thing .ut-ks{width:100%;max-width:22rem;display:flex;" +
-      "flex-direction:column;gap:.4rem;font-size:.8125rem}" +
+      "<style>.useless-thing .ut-ks-w{display:flex;flex-direction:column;" +
+      "align-items:center;gap:1rem;width:100%;max-width:22rem;padding:.5rem;" +
+      "outline:none;cursor:pointer}" +
+      ".useless-thing .ut-ks-w:focus-visible{outline:1px solid currentColor;" +
+      "outline-offset:6px}" +
+      ".useless-thing .ut-ks{width:100%;display:flex;flex-direction:column;" +
+      "gap:.4rem;font-size:.8125rem}" +
       ".useless-thing .ut-ks-r{display:flex;justify-content:space-between;gap:1rem;" +
-      "border-bottom:1px solid var(--border,rgba(128,128,128,.18));padding-bottom:.3rem}" +
+      "border-bottom:1px solid var(--border,rgba(128,128,128,.18));padding-bottom:.3rem;" +
+      "transition:opacity .4s}" +
+      ".useless-thing .ut-ks-r.done{opacity:.22;text-decoration:line-through}" +
       ".useless-thing .ut-ks-k{font-family:ui-monospace,Menlo,monospace;" +
       "color:var(--fg,#333)}" +
-      ".useless-thing .ut-ks-h{max-width:24em;color:var(--fg,#333);font-size:.9375rem}</style>" +
-      "<div class='ut'><p class='ut-ks-h'>你不需要这个。</p>" +
-      "<div class='ut-ks'></div>" +
-      "<p class='ut-mono'>你都会。但你还是点进来了。</p></div>" +
+      ".useless-thing .ut-ks-h{color:var(--fg,#333);font-size:.9375rem}</style>" +
+      "<div class='ut'><div class='ut-ks-w' tabindex='0'>" +
+      "<p class='ut-ks-h'>你不需要这个。</p><div class='ut-ks'></div>" +
+      "<p class='ut-mono'>点这里，然后按。</p></div></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var box=R.querySelector('.ut-ks');" +
-      "var T=[['Ctrl / Cmd + C','复制'],['Ctrl / Cmd + V','粘贴']," +
-      "['Ctrl / Cmd + Z','撤销'],['Ctrl / Cmd + S','保存']," +
-      "['Ctrl / Cmd + F','查找'],['Ctrl / Cmd + W','关掉这一页']," +
-      "['Alt / Cmd + Tab','换一件事做']];" +
+      "var w=R.querySelector('.ut-ks-w'),box=R.querySelector('.ut-ks');" +
+      "var T=[['Ctrl / Cmd + C','复制','c'],['Ctrl / Cmd + V','粘贴','v']," +
+      "['Ctrl / Cmd + Z','撤销','z'],['Ctrl / Cmd + S','保存','s']," +
+      "['Ctrl / Cmd + F','查找','f'],['Ctrl / Cmd + A','全选','a']," +
+      // 最后这条抓不到：换一件事做是系统的事，不归这一页管，所以它划不掉
+      "['Alt / Cmd + Tab','换一件事做','']];" +
+      "var rows=[];" +
       "for(var i=0;i<T.length;i++){var r=document.createElement('div');" +
       "r.className='ut-ks-r';var k=document.createElement('span');" +
       "k.className='ut-ks-k';k.textContent=T[i][0];" +
       "var d=document.createElement('span');d.textContent=T[i][1];" +
-      "r.appendChild(k);r.appendChild(d);box.appendChild(r);}})();</script>",
+      "r.appendChild(k);r.appendChild(d);box.appendChild(r);rows.push(r);}" +
+      "w.addEventListener('pointerdown',function(){w.focus();});" +
+      "w.addEventListener('keydown',function(e){" +
+      "if(!(e.ctrlKey||e.metaKey))return;var key=(e.key||'').toLowerCase();" +
+      "for(var j=0;j<T.length;j++){if(T[j][2]&&T[j][2]===key){" +
+      "e.preventDefault();rows[j].className='ut-ks-r done';return;}}});" +
+      "})();</script>",
   },
   {
     // 47 年度总结提前看
@@ -170,17 +185,24 @@ export const WORK_EMBEDS: SeedEmbed[] = [
     html:
       BOX +
       "<style>.useless-thing .ut-yr-t{font-size:1.15rem;color:var(--fg,#333);" +
-      "max-width:22em;line-height:2}" +
-      ".useless-thing .ut-yr-n{max-width:23em;min-height:2.4em}</style>" +
+      "max-width:22em;line-height:2;min-height:4em;transition:opacity .35s}" +
+      ".useless-thing .ut-yr-t.out{opacity:0}" +
+      ".useless-thing .ut-yr-n{min-height:1.2em}</style>" +
       "<div class='ut'><p class='ut-yr-t'></p>" +
+      "<button class='ut-btn' type='button'>就这样吧</button>" +
       "<p class='ut-mono ut-yr-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var t=R.querySelector('.ut-yr-t'),n=R.querySelector('.ut-yr-n');" +
-      "var d=new Date(),y=d.getFullYear();" +
-      "var left=11-d.getMonth()+(d.getDate()<28?0:0);" +
-      "t.textContent=y+' 年，你大部分时间在刷手机。偶尔焦虑。年底发现跟去年差不多。';" +
-      // 提前发，省得到年底再写一遍
-      "n.textContent='还剩 '+left+' 个月。这份总结现在就可以发了，年底不用再写。';})();</script>",
+      "var t=R.querySelector('.ut-yr-t'),b=R.querySelector('.ut-btn')," +
+      "n=R.querySelector('.ut-yr-n');" +
+      "var y=new Date().getFullYear(),k=0;" +
+      // 提前发，省得到年底再写一遍。按一下就再往后发一年，内容一个字不用改
+      "function draw(){t.textContent=k>=5?(y+' 年。跟前面几年差不多。')" +
+      ":(y+' 年，你大部分时间在刷手机。偶尔焦虑。年底发现跟去年差不多。');" +
+      "n.textContent=k>0?'已经提前发到 '+y+' 年':'';}" +
+      "draw();" +
+      "b.addEventListener('click',function(){k++;y++;t.className='ut-yr-t out';" +
+      "setTimeout(function(){draw();t.className='ut-yr-t';},380);});" +
+      "})();</script>",
   },
   {
     // 48 人生顾问
@@ -271,24 +293,33 @@ export const WORK_EMBEDS: SeedEmbed[] = [
       "<style>.useless-thing .ut-pr{position:relative;width:100%;max-width:26rem;" +
       "height:13rem;overflow:hidden}" +
       ".useless-thing .ut-pr-w{position:absolute;white-space:nowrap;font-size:.875rem;" +
-      "color:var(--fg,#333)}</style>" +
+      "color:var(--fg,#333);cursor:pointer;transition:opacity .5s}" +
+      ".useless-thing .ut-pr-n{min-height:1.2em}</style>" +
       "<div class='ut'><div class='ut-pr'></div>" +
-      "<p class='ut-mono'></p></div>" +
+      "<p class='ut-mono ut-pr-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var box=R.querySelector('.ut-pr'),W=[];" +
+      "var box=R.querySelector('.ut-pr'),lab=R.querySelector('.ut-pr-n'),W=[];" +
       "var G=[['你真棒','厉害','了不起','优秀','太强了']," +
       "['……你真棒','嗯，厉害','行吧，了不起','好的，优秀']," +
       "['你真棒。','厉害。','了不起。','优秀。'],['你真棒？','厉害？','了不起？']];" +
-      "var g=0;setInterval(function(){g=(g+1)%G.length;},3000);" +
-      "setInterval(function(){if(W.length>26)return;" +
+      "var g=0,got=0,stop=false;" +
+      "setInterval(function(){if(!stop&&g<3)g=(g+1)%G.length;},3000);" +
+      "setInterval(function(){if(stop||W.length>26)return;" +
       "var e=document.createElement('div');e.className='ut-pr-w';" +
       "var L=G[g];e.textContent=L[(Math.random()*L.length)|0];" +
       "e.style.left=(Math.random()*78)+'%';e.style.top='-1.4rem';" +
       "e.style.opacity=(0.25+Math.random()*0.6).toFixed(2);" +
+      // 接得住。接满十句雨就停了，五秒后重来，来的全是带问号的那一组
+      "e.addEventListener('click',function(){if(e.dataset.got)return;" +
+      "e.dataset.got='1';e.style.opacity='0';got++;lab.textContent='接住 '+got+' 句';" +
+      "if(got<10)return;stop=true;g=3;" +
+      "setTimeout(function(){for(var i=W.length-1;i>=0;i--)" +
+      "{if(W[i].e.parentNode)W[i].e.parentNode.removeChild(W[i].e);}W.length=0;" +
+      "setTimeout(function(){stop=false;got=0;lab.textContent='';},5000);},600);});" +
       "box.appendChild(e);W.push({e:e,y:-22,v:0.5+Math.random()*1.1});},260);" +
       "function frame(){var h=box.getBoundingClientRect().height||208;" +
       "for(var i=W.length-1;i>=0;i--){var w=W[i];w.y+=w.v;" +
-      "if(w.y>h){w.e.remove();W.splice(i,1);continue;}" +
+      "if(w.y>h){if(w.e.parentNode)w.e.parentNode.removeChild(w.e);W.splice(i,1);continue;}" +
       "w.e.style.top=w.y.toFixed(0)+'px';}" +
       "requestAnimationFrame(frame);}frame();})();</script>",
   },
@@ -351,21 +382,26 @@ export const WORK_EMBEDS: SeedEmbed[] = [
       "<style>.useless-thing .ut-mt{font-size:3rem;color:var(--fg,#333);" +
       "font-variant-numeric:tabular-nums;line-height:1.1;" +
       "font-family:ui-monospace,Menlo,monospace}" +
-      ".useless-thing .ut-mt-n{max-width:24em;min-height:2.6em}</style>" +
+      ".useless-thing .ut-mt-n{min-height:1.2em}</style>" +
       "<div class='ut'><p class='ut-mt'>--:--</p>" +
+      "<button class='ut-btn' type='button'>延长 15 分钟</button>" +
       "<p class='ut-mono ut-mt-n'></p></div>" +
       "<script>(function(){var R=document.currentScript.parentNode;" +
-      "var e=R.querySelector('.ut-mt'),n=R.querySelector('.ut-mt-n');" +
+      "var e=R.querySelector('.ut-mt'),b=R.querySelector('.ut-btn')," +
+      "n=R.querySelector('.ut-mt-n');" +
       // 时长是开页那一刻随机定的，跟任何一场真实会议无关
-      "var T=(25+Math.floor(Math.random()*70))*60000,t0=Date.now();" +
+      "var T=(25+Math.floor(Math.random()*70))*60000,t0=Date.now(),k=0;" +
+      "var P=['延长 15 分钟','再延长 15 分钟','还要延长 15 分钟','继续延长 15 分钟'];" +
       "function p2(v){return v<10?'0'+v:''+v;}" +
-      "n.textContent='这场会议长 '+Math.round(T/60000)+" +
-      "' 分钟。没有议题，也不会有结论。';" +
+      "function say(){n.textContent=k>0?'已延长 '+k+' 次':'';}" +
       "setInterval(function(){var left=T-(Date.now()-t0);" +
-      "if(left<=0){e.textContent='00:00';" +
-      "n.textContent='散会了。你想不起来讲了什么。';return;}" +
+      // 归零也不散会：它自己往后再续五分钟
+      "if(left<=0){T+=300000;k++;say();left=T-(Date.now()-t0);}" +
       "var s=Math.floor(left/1000);" +
-      "e.textContent=p2(Math.floor(s/60))+':'+p2(s%60);},250);})();</script>",
+      "e.textContent=p2(Math.floor(s/60))+':'+p2(s%60);},250);" +
+      "b.addEventListener('click',function(){T+=900000;k++;say();" +
+      "b.textContent=P[Math.min(k,P.length-1)];});" +
+      "})();</script>",
   },
   {
     title: "砍一刀",
