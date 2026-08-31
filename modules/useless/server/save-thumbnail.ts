@@ -1,7 +1,8 @@
 /**
- * 把截下来的 JPEG 写进官网媒体库，URL 存回 Thing.thumbnail。
+ * 把截下来的 PNG 写进官网媒体库，URL 存回 Thing.thumbnail。
  *
- * 已经是本租户媒体库地址的，覆盖同一把键（公开 URL 不变）；否则新传一张。
+ * 已经是本租户媒体库里的 PNG，覆盖同一把键（公开 URL 不变）。
+ * 旧 JPEG 不能原地换成 PNG（扩展名钉在对象键上），会新传一张。
  */
 import {
   replaceSiteAsset,
@@ -36,23 +37,28 @@ export function parseSiteAssetIdFromThumbnailUrl(
   return match?.[1] ?? null;
 }
 
+function thumbnailUrlLooksPng(url: string): boolean {
+  const path = url.split(/[?#]/u)[0] ?? url;
+  return /\.png$/i.test(path);
+}
+
 export async function saveThingThumbnail(input: {
   tenant_id: string;
   tenant_slug: string;
-  jpeg: Buffer;
+  png: Buffer;
   existing_url?: string;
 }): Promise<string> {
   const existingId = input.existing_url
     ? parseSiteAssetIdFromThumbnailUrl(input.existing_url, input.tenant_slug)
     : null;
-  if (existingId) {
+  if (existingId && thumbnailUrlLooksPng(input.existing_url ?? "")) {
     const replaced = await replaceSiteAsset({
       tenant_id: input.tenant_id,
       tenant_slug: input.tenant_slug,
       id: existingId,
-      buffer: input.jpeg,
-      mime_type: "image/jpeg",
-      filename: `${existingId}.jpg`,
+      buffer: input.png,
+      mime_type: "image/png",
+      filename: `${existingId}.png`,
     });
     if (replaced) return replaced.url;
   }
@@ -60,9 +66,9 @@ export async function saveThingThumbnail(input: {
   const uploaded = await uploadSiteAsset({
     tenant_id: input.tenant_id,
     tenant_slug: input.tenant_slug,
-    buffer: input.jpeg,
-    mime_type: "image/jpeg",
-    filename: "thumbnail.jpg",
+    buffer: input.png,
+    mime_type: "image/png",
+    filename: "thumbnail.png",
   });
   return uploaded.url;
 }

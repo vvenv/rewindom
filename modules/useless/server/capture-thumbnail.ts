@@ -1,5 +1,5 @@
 /**
- * 用无头浏览器给一件可交互物截一张 4:3 的 JPEG。
+ * 用无头浏览器给一件可交互物截一张 4:3 的透明 PNG。
  *
  * 只在 seed 这条路上用，不进 Fastify 请求路径——生产镜像没有 Chromium，
  * 请求里启动浏览器会把保存接口拖垮。
@@ -65,8 +65,8 @@ export async function captureEmbedThumbnails(
           await page.waitForFunction("typeof window.__pump === 'function'");
           await page.evaluate(`window.__pump(${THUMBNAIL_PUMP_FRAMES})`);
           const buffer = await page.locator(".useless-thing").screenshot({
-            type: "jpeg",
-            quality: 82,
+            type: "png",
+            omitBackground: true,
           });
           out.set(item.title, buffer);
         } catch (error) {

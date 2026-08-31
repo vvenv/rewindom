@@ -48,10 +48,10 @@ function pumpScript(mode: "always" | "query"): string {
   return `<script>if(location.search.indexOf('pump')>=0){(function(){${PUMP_BODY}})();}</script>`;
 }
 
-const PAGE_CSS = `:root{--fg:#1c1c1e;--bg:#fbfbf9;--muted-fg:#77777c;--border:rgba(128,128,128,.28);
---surface:#fff;--radius:4px;--accent:#36c}
+const PAGE_CSS = `:root{--fg:#6e6e73;--bg:transparent;--muted-fg:#6e6e73;--border:rgba(128,128,128,.28);
+--surface:transparent;--radius:4px;--accent:#36c}
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);
+html,body{margin:0;height:100%;background:transparent;color:var(--fg);
 font:14px/1.6 system-ui,sans-serif}
 .marketing-site-root{height:100%;display:flex;flex-direction:column}
 .useless-stage{display:flex;flex-direction:column;align-items:center;gap:1rem;

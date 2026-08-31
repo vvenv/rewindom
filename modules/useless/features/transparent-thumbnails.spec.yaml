@@ -1,0 +1,31 @@
+# 缩略图底色透明，亮暗色模式都能用
+module: useless
+surfaces: [ssr, tenant]
+goal: >-
+  可交互物缩略图不再烤浅色或深色实心底：截图改 PNG 透明通道，舞台与画布
+  也不铺 #hex 底。目录卡片的 --surface 会透出来，亮暗色都看得清。
+gold: modules/useless/server/capture-thumbnail.ts
+touch:
+  - modules/useless/features/transparent-thumbnails.spec.yaml
+  - modules/useless/MODULE.md
+  - modules/useless/server/thumbnail-page.ts
+  - modules/useless/server/thumbnail-page.test.ts
+  - modules/useless/server/capture-thumbnail.ts
+  - modules/useless/server/save-thumbnail.ts
+  - modules/useless/server/save-thumbnail.test.ts
+  - modules/useless/server/seed-demo.ts
+  - modules/useless/server/seed-embeds/shell.ts
+  - modules/useless/server/seed-embeds/tap.ts
+  - modules/useless/server/seed-embeds/auto.ts
+  - modules/useless/server/seed-embeds.test.ts
+  - modules/useless/scripts/_shot.ts
+out_of_scope:
+  - 改 ImageData 场本身的配色编码（反应扩散等每个格子都是画面内容）
+  - 「燃烧的纸」那张纸的颜色（纸是主体，不是底）
+  - 把粒子/轨迹的着色改成 INK()（那是玩笑的用色，不是底）
+  - 给 kind=text 画图
+  - 把 Chromium 打进生产镜像
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/useless test
+  - node scripts/verify-module.mjs useless

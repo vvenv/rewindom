@@ -41,7 +41,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "洞穴",
     html: play(
-      stageCss("ut-dark", ";background:#05060a;cursor:none"),
+      stageCss("ut-dark", ";cursor:none"),
       stageBody("ut-dark"),
       MEM +
         FIT +
@@ -63,7 +63,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "if(idle>150){var k=t*0.0016;" +
         "mx=W*(0.5+0.33*Math.sin(k)*Math.cos(k*0.41));" +
         "my=H*(0.5+0.31*Math.cos(k*0.77));reveal(mx,my);}" +
-        "G.fillStyle='#05060a';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "Rr=Math.min(W,H)*0.19;" +
         "for(var i=0;i<S.length;i++){var s=S[i],x=s.x*W,y=s.y*H;" +
         "var seen=MASK[((y/H*MR)|0)*MC+((x/W*MC)|0)]?0.17:0;" +
@@ -111,7 +111,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "烟",
     html: play(
-      stageCss("ut-blow", ";touch-action:none;cursor:crosshair;background:#07070c"),
+      stageCss("ut-blow", ";touch-action:none;cursor:crosshair"),
       stageBody("ut-blow"),
       FIT +
         // 真解一遍不可压缩流：平流把颗粒和速度一起带走，压力投影把速度场压回
@@ -179,16 +179,28 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "og.putImageData(im,0,0);G.clearRect(0,0,W,H);" +
         "G.imageSmoothingEnabled=true;G.drawImage(off,0,0,W,H);}" +
         // 没人碰的时候有一股自己在游的细流，所以一进来就有东西在动
-        "var mx=null,my=null,lx=0,ly=0,idle=0,t=0,hue=0;" +
+        "var mx=null,my=null,lx=0,ly=0,idle=0,t=0,hue=0,fed=0;" +
+        // 墨水是有数的：自动注满 3400 次就不再给了。之后粘性和耗散接着做它们的事，
+        // 卷须一层层摊开、变淡，最后稀到什么都看不见——不是混成一片灰，
+        // 是散进整缸水里没有了。这缸水没有变脏，只是再也没有形状。
+        // 原先这里是无限供墨，所以它永远漂亮下去——那是我在拦着它结束。
+        // （你自己划还能加，但每划一笔也在花额度）
         "function tick(){t++;idle++;hue+=0.7;" +
-        "if(idle>90){var k=t*0.011;" +
+        "if(idle>90&&fed<3400){fed++;var k=t*0.011;" +
         "var ax=W*(0.5+0.32*Math.sin(k*0.61)),ay=H*(0.5+0.3*Math.cos(k*0.43));" +
         "inject(ax,ay,Math.cos(k)*0.14,Math.sin(k*1.7)*0.14,hue);}" +
+        // 全混匀了就换一缸新的。这个 1500 是量出来的，不是拍的：停供之后
+        // 卷须约 1400 帧散尽，再往后画布上一个亮点都没有。原先写 3200，
+        // 等于每两分钟给读者看二十五到四十秒的纯黑——落在那一段的人
+        // 会以为这条东西坏了，缩略图也可能正好截在那儿。
+        // **跑到尽头**和**跑完之后干晾着**是两回事，只有前一件是这条东西要说的
+        "if(fed>=3400){fed++;if(fed>3400+1500){fed=0;" +
+        "for(var z=0;z<SZ;z++){dr[z]=0;dg[z]=0;db[z]=0;u[z]=0;v[z]=0;}}}" +
         "step(0.14);draw();requestAnimationFrame(tick);}tick();" +
         "CV.addEventListener('pointermove',function(e){var p=at(e);" +
         "if(mx!==null){var fx=(p[0]-lx)/W*4.5,fy=(p[1]-ly)/H*4.5;" +
         "var sp=Math.sqrt(fx*fx+fy*fy);if(sp>0.6){fx*=0.6/sp;fy*=0.6/sp;}" +
-        "inject(p[0],p[1],fx,fy,hue);}" +
+        "if(fed<3400){fed++;inject(p[0],p[1],fx,fy,hue);}}" +
         "mx=p[0];my=p[1];lx=p[0];ly=p[1];idle=0;});" +
         "CV.addEventListener('pointerleave',function(){mx=null;});",
     ),
@@ -200,6 +212,9 @@ export const TAP_EMBEDS: SeedEmbed[] = [
       stageBody("ut-teth"),
       FIT +
         // 双摆。它对初值极敏感，所以你每甩一次拖出来的曲线都不重样，
+        // 但它也有摩擦：不去动它，它会慢慢停下来，垂在那儿。
+        // 停住之后"对初值极敏感"这句话就失效了——所有起手最后都落在同一处。
+        // 混沌是能量的一种花法，能量花完就没有了。
         // 也没有哪一次能被复现——抓住末端甩出去，剩下的它自己走，不会停
         "var a1=2.4,a2=1.1,v1=0,v2=0,L1=1,L2=1,cx=0,cy=0,grab=false,T=[];" +
         "function geo(){var k=Math.min(W,H);L1=k*0.21;L2=k*0.19;cx=W/2;cy=H*0.40;}" +
@@ -216,6 +231,9 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "2*s*m2*(v2*v2*l2+v1*v1*l1*c))/(l1*den);" +
         "var ac2=(2*s*(v1*v1*l1*(m1+m2)+gg*(m1+m2)*Math.cos(a1)+" +
         "v2*v2*l2*m2*c))/(l2*den);" +
+        // 有摩擦。真实的双摆会停，停下来之后它对初值就一点都不敏感了：
+        // 所有轨迹都收到同一个位置。原先这里没有阻尼，所以它永远混沌下去
+        "v1*=0.99988;v2*=0.99988;" +
         "v1+=ac1*dt;v2+=ac2*dt;a1+=v1*dt;a2+=v2*dt;}" +
         "function tick(){if(!grab){for(var k2=0;k2<6;k2++)phys(0.006);}" +
         "var P=tip();T.push({x:P[2],y:P[3],v:Math.min(1,Math.abs(v2)*0.075)});" +
@@ -247,15 +265,16 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "热",
     html: play(
-      stageCss("ut-heat", ";touch-action:none;cursor:crosshair;background:#07070b"),
+      stageCss("ut-heat", ";touch-action:none;cursor:crosshair"),
       stageBody("ut-heat"),
       FIT +
         // 热会往四周散，也一直在凉。走过的只留一道暗红，停久了才烧到白。
         // 于是画面上留下的不是你去过哪儿，是你在哪儿待住了
-        "var CELL=7,GW=1,GH=1,F,T2,off,og,im;" +
+        "var CELL=7,GW=1,GH=1,F,T2,SCAR,off,og,im;" +
         "function alloc(){GW=Math.max(16,Math.ceil(W/CELL));" +
         "GH=Math.max(16,Math.ceil(H/CELL));" +
         "F=new Float32Array(GW*GH);T2=new Float32Array(GW*GH);" +
+        "SCAR=new Float32Array(GW*GH);" +
         "off=document.createElement('canvas');off.width=GW;off.height=GH;" +
         "og=off.getContext('2d');im=og.createImageData(GW,GH);}" +
         "onfit=alloc;alloc();" +
@@ -272,11 +291,17 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "for(y=-3;y<=3;y++)for(x=-3;x<=3;x++){" +
         "var gx=cx+x,gy=cy+y;if(gx<0||gy<0||gx>=GW||gy>=GH)continue;" +
         "var w=1-Math.hypot(x,y)/4.2;if(w<=0)continue;" +
-        "i=gy*GW+gx;F[i]=Math.min(1,F[i]+w*0.11);}}" +
+        "i=gy*GW+gx;F[i]=Math.min(1,F[i]+w*0.11*(1-SCAR[i]));}}" +
         // 扩散要弱、冷却要慢，热才攒得住。整条 5 点拉普拉斯每帧全权重下去，
-        // 等于每帧都把画面抹平一次，停多久都烧不起来
+        // 等于每帧都把画面抹平一次，停多久都烧不起来。
+        //
+        // 烧过头的地方会留疤：既不导热，**也再吃不进热**。
+        // 你在同一处反复烤，那块就越来越烧不起来——手上的动作一模一样，
+        // 板子不给你了。疤不会好，换个地方也只是换个地方烧坏。
+        // 一开始"想让哪儿亮就让哪儿亮"，用久了这块板上没剩几处还听你的
         "for(y=1;y<GH-1;y++)for(x=1;x<GW-1;x++){i=y*GW+x;" +
-        "T2[i]=(F[i]+0.10*((F[i-1]+F[i+1]+F[i-GW]+F[i+GW])*0.25-F[i]))*0.9955;}" +
+        "if(F[i]>0.62)SCAR[i]=Math.min(0.97,SCAR[i]+(F[i]-0.62)*0.0075);" +
+        "T2[i]=(F[i]+0.10*(1-SCAR[i])*((F[i-1]+F[i+1]+F[i-GW]+F[i+GW])*0.25-F[i]))*0.9955;}" +
         "var sw=F;F=T2;T2=sw;" +
         "for(x=0;x<GW;x++){F[x]=0;F[(GH-1)*GW+x]=0;}" +
         "for(y=0;y<GH;y++){F[y*GW]=0;F[y*GW+GW-1]=0;}" +
@@ -291,7 +316,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "沙",
     html: play(
-      stageCss("ut-sand", ";touch-action:none;cursor:crosshair;background:#0a0a0d"),
+      stageCss("ut-sand", ";touch-action:none;cursor:crosshair"),
       stageBody("ut-sand"),
       FIT +
         // 每一粒只认一条规矩：脚下空就掉，脚下满就往斜下方挤。
@@ -325,7 +350,14 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "else{var v=SH[i]/255;d[o]=196+v*52;d[o+1]=150+v*62;d[o+2]=96+v*54;}}" +
         "og.putImageData(im,0,0);G.imageSmoothingEnabled=false;" +
         "G.clearRect(0,0,W,H);G.drawImage(off,0,0,W,H);}" +
-        "function tick(){pour();fall();fall();draw();requestAnimationFrame(tick);}tick();" +
+        "var grains=0,rest2=0;" +
+        // 沙有数。倒完 5200 粒就没有了，剩下的自己塌到休止角，然后一动不动——
+        // 沙堆的结局本来就是"再也塌不动"。原先这里是无限倒沙，
+        // 所以它永远在流；那不是沙，那是水龙头
+        "function tick(){if(grains<5200){grains++;pour();}" +
+        "else{rest2++;if(rest2>2600){grains=0;rest2=0;" +
+        "for(var z=0;z<C.length;z++)if(C[z]===1)C[z]=0;}}" +
+        "fall();fall();draw();requestAnimationFrame(tick);}tick();" +
         // 你画的是墙。沙会在墙上堆起来、堆到临界角就从两边淌下去
         "var down=false;" +
         "function wall(e){var p=at(e),cx=(p[0]/CS)|0,cy=(p[1]/CS)|0;" +
@@ -342,12 +374,12 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "群",
     html: play(
-      stageCss("ut-boid", ";touch-action:none;cursor:crosshair;background:#0b0d12"),
+      stageCss("ut-boid", ";touch-action:none;cursor:crosshair"),
       stageBody("ut-boid"),
       FIT +
         // 每只鸟只看身边那几只，做三件事：别撞上、跟上大家的朝向、往中间靠。
         // 没有领队，没有队形表——那团忽聚忽散的东西是这三条自己算出来的
-        "var N=1400,P=new Float32Array(N*4),R2=34,gw=1,gh=1,head,nxt;" +
+        "var N=1400,P=new Float32Array(N*4),R2=34,gw=1,gh=1,head,nxt,pol=0,done2=0,conf=0.05,era2=0;" +
         "function alloc(){for(var i=0;i<N;i++){P[i*4]=Math.random()*W;" +
         "P[i*4+1]=Math.random()*H;var a=Math.random()*6.2832;" +
         "P[i*4+2]=Math.cos(a)*2;P[i*4+3]=Math.sin(a)*2;}" +
@@ -372,7 +404,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "if(d2>R2*R2||d2<0.01)continue;n++;" +
         "ax+=P[j*4+2];ay+=P[j*4+3];mx2+=P[j*4];my2+=P[j*4+1];" +
         "if(d2<170){sx-=dx/d2*9;sy-=dy/d2*9;}}}" +
-        "if(n>0){vx+=(ax/n-vx)*0.05;vy+=(ay/n-vy)*0.05;" +
+        "if(n>0){vx+=(ax/n-vx)*conf;vy+=(ay/n-vy)*conf;" +
         "vx+=(mx2/n-x)*0.0016;vy+=(my2/n-y)*0.0016;}" +
         "vx+=sx*0.06;vy+=sy*0.06;" +
         // 指针是鹰：靠近就炸开，散开之后又慢慢聚回去
@@ -383,7 +415,22 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "x+=vx;y+=vy;" +
         "if(x<0)x+=W;else if(x>=W)x-=W;if(y<0)y+=H;else if(y>=H)y-=H;" +
         "P[i*4]=x;P[i*4+1]=y;P[i*4+2]=vx;P[i*4+3]=vy;}" +
-        "G.fillStyle='rgba(11,13,18,0.32)';G.fillRect(0,0,W,H);" +
+        // 全体朝向的合矢量长度。跟着邻居走的那一项（conf）在一路调大：
+        // 从"看一眼身边"调到"必须跟上"。这个数就一路逼近 1，
+        // 群还在飞，形状却越来越像一块板——彼此不再需要调整，也就不再有花样。
+        //
+        // 原来这一项是常数 0.05，所以它永远在谈、永远好看。实测过：
+        // 那套参数下群占的格子在 250 上下浮动，一万四千帧都没收敛过。
+        // 涌现不是自己会停的，是**从众的力度**决定它停不停
+        "var sx=0,sy=0;" +
+        "for(i=0;i<N;i++){var m2=Math.sqrt(P[i*4+2]*P[i*4+2]+P[i*4+3]*P[i*4+3])||1;" +
+        "sx+=P[i*4+2]/m2;sy+=P[i*4+3]/m2;}" +
+        "pol=Math.sqrt(sx*sx+sy*sy)/N;" +
+        "era2++;" +
+        "conf=era2<1800?0.05:(era2<7200?0.05+(era2-1800)*0.00011:0.65);" +
+        "if(pol>0.985||era2>9800){done2++;" +
+        "if(done2>760){done2=0;era2=0;conf=0.05;alloc();}}else done2=0;" +
+        "G.save();G.globalCompositeOperation='destination-out';G.fillStyle='rgba(0,0,0,0.32)';G.fillRect(0,0,W,H);G.restore();" +
         "G.fillStyle='rgba(214,226,246,0.72)';" +
         "for(i=0;i<N;i++){var bx=P[i*4],by=P[i*4+1];" +
         "var bvx=P[i*4+2],bvy=P[i*4+3];" +
@@ -396,7 +443,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "涟漪槽",
     html: play(
-      stageCss("ut-tank", ";touch-action:none;cursor:crosshair;background:#060a12"),
+      stageCss("ut-tank", ";touch-action:none;cursor:crosshair"),
       stageBody("ut-tank"),
       FIT +
         // 真的解波动方程：u'' = c²∇²u。两个固定波源各按各的周期打，
@@ -425,10 +472,15 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "d[o+2]=bb<0?0:(bb>255?255:bb);}" +
         "og.putImageData(im,0,0);G.imageSmoothingEnabled=true;" +
         "G.clearRect(0,0,W,H);G.drawImage(off,0,0,W,H);}" +
-        "function tick(){t++;" +
+        "var fuel=0;" +
+        // 波源不是永动机。打满 5200 拍就没劲了，之后阻尼把整槽水抹平，
+        // 干涉条纹一层层散掉——那张网全靠有人一直在打
+        "function tick(){t++;fuel++;" +
         "var y0=(GH*0.5)|0,x1=(GW*0.33)|0,x2=(GW*0.67)|0;" +
-        "A[y0*GW+x1]+=Math.sin(t*0.29)*0.42;" +
-        "A[y0*GW+x2]+=Math.sin(t*0.29)*0.42;" +
+        "var amp2=fuel<5200?0.42:(fuel<5600?0.42*(1-(fuel-5200)/400):0);" +
+        "if(fuel>9200){fuel=0;for(var z=0;z<A.length;z++){A[z]=0;B2[z]=0;}}" +
+        "A[y0*GW+x1]+=Math.sin(t*0.29)*amp2;" +
+        "A[y0*GW+x2]+=Math.sin(t*0.29)*amp2;" +
         "step();step();draw();requestAnimationFrame(tick);}tick();" +
         "function drop(e){var p=at(e),cx=(p[0]/CS)|0,cy=(p[1]/CS)|0;" +
         "for(var b=-3;b<=3;b++)for(var a=-3;a<=3;a++){" +
@@ -442,12 +494,16 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "影",
     html: play(
-      stageCss("ut-shadow", ";touch-action:none;cursor:none;background:#08080c"),
+      stageCss("ut-shadow", ";touch-action:none;cursor:none"),
       stageBody("ut-shadow"),
       FIT +
         // 光是一条条射线真投出去的：往每个墙角打两条擦边的，按角度排好连成
-        // 一圈可见多边形。所以影子的边是准的，墙一挪影子立刻跟着改
-        "var SEG=[],LX=0,LY=0,auto=0;" +
+        // 一圈可见多边形。所以影子的边是准的，墙一挪影子立刻跟着改。
+        //
+        // 灯是有油的。油少了照得就近，远处的墙一堵堵从画面里退出去，
+        // 这间屋子看着越来越小——**可什么都没动过**，退掉的墙一直在原地。
+        // 烧到灭，黑一会儿，换个地方点一盏新的。看不见不等于不在
+        "var SEG=[],LX=0,LY=0,auto=0,oil=0,reach=1;" +
         "function build(){SEG=[];var i,k;" +
         "function box(x,y,w2,h2,rot){var c=Math.cos(rot),s=Math.sin(rot);" +
         "var pt=[[-w2,-h2],[w2,-h2],[w2,h2],[-w2,h2]].map(function(p){" +
@@ -456,7 +512,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "for(i=0;i<7;i++)box(W*(0.14+Math.random()*0.72),H*(0.14+Math.random()*0.72)," +
         "W*(0.02+Math.random()*0.05),H*(0.03+Math.random()*0.10),Math.random()*3.14);" +
         "SEG.push([0,0,W,0],[W,0,W,H],[W,H,0,H],[0,H,0,0]);" +
-        "LX=W/2;LY=H/2;}" +
+        "LX=W/2;LY=H/2;oil=0;reach=1;}" +
         "onfit=build;build();" +
         "function cast(ang){var dx=Math.cos(ang),dy=Math.sin(ang),best=1e9,i,s;" +
         "for(i=0;i<SEG.length;i++){s=SEG[i];" +
@@ -467,7 +523,10 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "var u=Math.abs(dx)>Math.abs(dy)?(s[0]+sx*tt-LX)/dx:(s[1]+sy*tt-LY)/dy;" +
         "if(u>0.01&&u<best)best=u;}" +
         "return best;}" +
-        "function tick(){auto++;" +
+        "function tick(){auto++;oil++;" +
+        // 一轮四分多钟：亮着、慢慢暗、灭掉、再点一盏
+        "reach=oil<4200?1:(oil<9600?1-(oil-4200)/5400:0);" +
+        "if(oil>11400)build();" +
         // 没人碰的时候光自己在走，所以一进来影子就在动
         "if(auto>110){var k2=auto*0.006;" +
         "LX=W*(0.5+0.30*Math.sin(k2));LY=H*(0.5+0.28*Math.cos(k2*0.73));}" +
@@ -478,8 +537,9 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "for(i=0;i<A2.length;i++){var a=A2[i];" +
         "pts.push([a-0.0002,cast(a-0.0002)],[a+0.0002,cast(a+0.0002)]);}" +
         "pts.sort(function(p,q){return p[0]-q[0];});" +
-        "G.fillStyle='#08080c';G.fillRect(0,0,W,H);" +
-        "var gr=G.createRadialGradient(LX,LY,0,LX,LY,Math.max(W,H)*0.62);" +
+        "G.clearRect(0,0,W,H);" +
+        "var gr=G.createRadialGradient(LX,LY,0,LX,LY," +
+        "Math.max(2,Math.max(W,H)*0.62*reach));" +
         "gr.addColorStop(0,'rgba(255,238,196,0.92)');" +
         "gr.addColorStop(0.35,'rgba(226,180,110,0.34)');" +
         "gr.addColorStop(1,'rgba(180,130,80,0)');" +
@@ -499,17 +559,21 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "涡街",
     html: play(
-      stageCss("ut-kar", ";touch-action:none;cursor:grab;background:#05070d"),
+      stageCss("ut-kar", ";touch-action:none;cursor:grab"),
       stageBody("ut-kar"),
       FIT +
         // 稳定的水流撞上一个圆柱，后面不会安分地合拢，而是左一个右一个地甩涡
         // ——卡门涡街。这不是编的动画，是同一套不可压缩流解出来的；
-        // 把柱子拖到别处，尾迹立刻跟着重排
+        // 把柱子拖到别处，尾迹立刻跟着重排。
+        //
+        // 但水是会磨的：柱子一直在被它自己造出来的这道流冲小。
+        // 越小甩得越细，细到某个尺寸涡街就散了，再小就只剩一片平顺的水——
+        // 整幅画面全靠那颗障碍物，而它正在被画面本身磨掉
         "var NX=200,NY=112,W2=NX+2,SZ=W2*(NY+2),U0=0.088;" +
         "function A(){return new Float32Array(SZ);}" +
         "var u=A(),v=A(),u0=A(),v0=A(),pp=A(),dvg=A(),dn=A(),dn0=A();" +
-        "var SOL=new Uint8Array(SZ),ox=0.26,oy=0.47;" +
-        "function solids(){SOL.fill(0);var cx=ox*NX,cy=oy*NY,r=NY*0.085;" +
+        "var SOL=new Uint8Array(SZ),ox=0.26,oy=0.47,rad=NY*0.085;" +
+        "function solids(){SOL.fill(0);var cx=ox*NX,cy=oy*NY,r=rad;" +
         "for(var j=1;j<=NY;j++)for(var i=1;i<=NX;i++){" +
         "var dx=i-cx,dy=j-cy;if(dx*dx+dy*dy<r*r)SOL[i+W2*j]=1;}}" +
         "solids();" +
@@ -569,7 +633,12 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "d[o]=10+t2*44;d[o+1]=16+t2*168;d[o+2]=32+t2*212;}" +
         "og.putImageData(im,0,0);G.imageSmoothingEnabled=true;" +
         "G.clearRect(0,0,W,H);G.drawImage(off,0,0,W,H);}" +
-        "function tick(){step(0.14);draw();requestAnimationFrame(tick);}tick();" +
+        "var wear=0;" +
+        "function tick(){wear++;" +
+        // 水一直在磨它。磨到不足一格就没有障碍物了，水面从此平顺
+        "if(wear%14===0&&rad>0.4){rad-=0.008;solids();}" +
+        "if(rad<=0.4){wear++;if(wear>3600){rad=NY*0.085;solids();wear=0;}}" +
+        "step(0.14);draw();requestAnimationFrame(tick);}tick();" +
         "var grab=false;" +
         "function put(e){var p=at(e);" +
         "ox=Math.max(0.10,Math.min(0.62,p[0]/W));" +
@@ -584,12 +653,17 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "布",
     html: play(
-      stageCss("ut-cloth", ";touch-action:none;cursor:grab;background:#0a0b10"),
+      stageCss("ut-cloth", ";touch-action:none;cursor:grab"),
       stageBody("ut-cloth"),
       FIT +
-        // Verlet：不存速度，只存"上一帧在哪"，位置差本身就是速度。约束反复拉几遍
+        // Verlet：不存速度，只存"上一帧在哪"，位置差本身就是速度。约束反复拉几遍。
+        //
+        // 每一根线都有疲劳：被拉过头一次不会断，但会**永久**弱一点，
+        // 而且不会自己长回来。你越是拽它玩，它越经不起下一次寻常的拉扯。
+        // 拽够了它就一根根开线，最后是一堆互不相干的点。
+        // 这块布不会坏在某一次用力上，它坏在你一直在用它
         // 就成了布。抓住一角甩，褶皱是自己出来的；拉过头线会断，断了不会长回来
-        "var CW=38,CH=26,N=CW*CH,X,Y,PX,PY,PIN,ST,rest;" +
+        "var CW=38,CH=26,N=CW*CH,X,Y,PX,PY,PIN,ST,FAT,rest;" +
         "function alloc(){X=new Float32Array(N);Y=new Float32Array(N);" +
         "PX=new Float32Array(N);PY=new Float32Array(N);PIN=new Uint8Array(N);" +
         "var w=Math.min(W*0.72,H*1.25),gap=w/(CW-1);rest=gap;" +
@@ -600,7 +674,8 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "ST=[];" +
         "for(var j2=0;j2<CH;j2++)for(var i3=0;i3<CW;i3++){var q2=j2*CW+i3;" +
         "if(i3<CW-1)ST.push(q2,q2+1,1);" +
-        "if(j2<CH-1)ST.push(q2,q2+CW,1);}}" +
+        "if(j2<CH-1)ST.push(q2,q2+CW,1);}" +
+        "FAT=new Float32Array(ST.length/3);}" +
         "onfit=alloc;alloc();" +
         "var gx=-1,gy=-1,held=-1;" +
         "function tick(){var i,q,a,b,dx,dy,d,diff,k;" +
@@ -612,7 +687,10 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "for(k=0;k<7;k++){for(i=0;i<ST.length;i+=3){if(!ST[i+2])continue;" +
         "a=ST[i];b=ST[i+1];dx=X[b]-X[a];dy=Y[b]-Y[a];" +
         "d=Math.sqrt(dx*dx+dy*dy);if(d<0.0001)continue;" +
-        "if(d>rest*3.1){ST[i+2]=0;continue;}" +
+        // 拉过头一次不会断，但会**永久**弱一点。弱到一定程度，
+        // 下一次很平常的拉扯就够把它扯开了。疲劳不会自己好
+        "if(k===6&&d>rest*1.4){FAT[i/3]+=(d/rest-1.4)*0.010;}" +
+        "if(d>rest*(3.1-(FAT[i/3]<1?FAT[i/3]:1)*1.15)||FAT[i/3]>1.9){ST[i+2]=0;continue;}" +
         "diff=(d-rest)/d*0.5;" +
         "if(!PIN[a]){X[a]+=dx*diff;Y[a]+=dy*diff;}" +
         "if(!PIN[b]){X[b]-=dx*diff;Y[b]-=dy*diff;}}}" +
@@ -637,7 +715,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "河",
     html: play(
-      stageCss("ut-ero", ";touch-action:none;cursor:crosshair;background:#0a0c10"),
+      stageCss("ut-ero", ";touch-action:none;cursor:crosshair"),
       stageBody("ut-ero"),
       FIT +
         // 水力侵蚀：一滴水顺着坡往下跑，跑得快就带走泥沙，慢下来就卸掉。
@@ -728,7 +806,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "档案",
     html: play(
-      stageCss("ut-dos", ";touch-action:none;cursor:crosshair;background:#080a0d"),
+      stageCss("ut-dos", ";touch-action:none;cursor:crosshair"),
       stageBody("ut-dos"),
       MEM +
         FIT +
@@ -763,7 +841,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "save();},1000);" +
         "function fmt(v,dec){var s=v.toFixed(dec);return s;}" +
         "function tick(){" +
-        "G.fillStyle='#080a0d';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "var cols=4,rows=2,pad=Math.min(W,H)*0.05;" +
         "var cw=(W-pad*2)/cols,ch=(H-pad*2)/rows;" +
         "for(var i=0;i<8;i++){" +
@@ -791,7 +869,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "一次",
     html: play(
-      stageCss("ut-once", ";touch-action:none;cursor:pointer;background:#05060a"),
+      stageCss("ut-once", ";touch-action:none;cursor:pointer"),
       stageBody("ut-once"),
       FIT +
         // 按住它才长，按得越久长得越繁。松手的那一瞬间整片立刻消失——不是淡出，
@@ -839,7 +917,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "效率",
     html: play(
-      stageCss("ut-eff", ";touch-action:none;cursor:ew-resize;background:#06080c"),
+      stageCss("ut-eff", ";touch-action:none;cursor:ew-resize"),
       stageBody("ut-eff"),
       MEM +
         FIT +
@@ -860,7 +938,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "AG.push({f:f,t:t,p:Math.random(),o:(Math.random()-0.5),h:Math.random()*40+186});}}" +
         "onfit=build;build();" +
         "function tick(){" +
-        "G.fillStyle='rgba(6,8,12,0.11)';G.fillRect(0,0,W,H);" +
+        "G.save();G.globalCompositeOperation='destination-out';G.fillStyle='rgba(0,0,0,0.11)';G.fillRect(0,0,W,H);G.restore();" +
         "var nn=NODE.length/2;" +
         "G.strokeStyle='rgba(140,170,210,0.22)';G.lineWidth=1;" +
         "for(var i=0;i<nn;i++){G.beginPath();" +
@@ -896,7 +974,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "背着你",
     html: play(
-      stageCss("ut-away", ";touch-action:none;cursor:crosshair;background:#07080c"),
+      stageCss("ut-away", ";touch-action:none;cursor:crosshair"),
       stageBody("ut-away"),
       MEM +
         FIT +
@@ -918,7 +996,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         // 所以你每次回来看到的是它长大了，不是换了一个
         "function draw(){var n=g|0,i,a,r,x,y,t2,rr,gg,bb;" +
         "var S=Math.min(W,H)*0.0092;" +
-        "G.fillStyle='#07080c';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "for(i=0;i<n;i++){a=i*2.39996;r=S*Math.sqrt(i);" +
         "x=W/2+Math.cos(a)*r;y=H/2+Math.sin(a)*r;" +
         "if(x<-4||x>W+4||y<-4||y>H+4)continue;" +
@@ -937,7 +1015,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "两扇门",
     html: play(
-      stageCss("ut-door", ";touch-action:none;cursor:pointer;background:#070809"),
+      stageCss("ut-door", ";touch-action:none;cursor:pointer"),
       stageBody("ut-door"),
       MEM +
         FIT +
@@ -964,7 +1042,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "var x=cx+Math.cos(a)*m,y=cy+Math.sin(a)*m;" +
         "if(i===0)G.moveTo(x,y);else G.lineTo(x,y);}" +
         "G.stroke();}}" +
-        "function tick(){G.fillStyle='#070809';G.fillRect(0,0,W,H);" +
+        "function tick(){G.clearRect(0,0,W,H);" +
         "var B=boxes(),i,open=0;" +
         "if(st===1){open=Math.min(1,(Date.now()-t0)/620);}" +
         "else if(st===2){open=1;}" +
@@ -998,7 +1076,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "看不清",
     html: play(
-      stageCss("ut-blur", ";touch-action:none;cursor:crosshair;background:#080a0e"),
+      stageCss("ut-blur", ";touch-action:none;cursor:crosshair"),
       stageBody("ut-blur"),
       FIT +
         // 一整片有纹理的东西。你的指针停在哪儿，哪儿的纹路就开始乱——
@@ -1022,7 +1100,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "var gx=cx+x,gy=cy+y;if(gx<0||gy<0||gx>=GW||gy>=GH)continue;" +
         "var w=1-Math.sqrt(x*x+y*y)/4.6;if(w<=0)continue;" +
         "i=gy*GW+gx;AT[i]=Math.min(1,AT[i]+w*0.035);}}" +
-        "G.fillStyle='#080a0e';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "G.lineCap='round';" +
         "for(y=0;y<GH;y++)for(x=0;x<GW;x++){i=y*GW+x;" +
         "var at2=AT[i];" +
@@ -1043,7 +1121,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "借来的",
     html: play(
-      stageCss("ut-lend", ";touch-action:none;cursor:pointer;background:#08090d"),
+      stageCss("ut-lend", ";touch-action:none;cursor:pointer"),
       stageBody("ut-lend"),
       FIT +
         // 按住才涨，松手就以**一模一样的速度**退回去。不是慢慢褪，是原样收回：
@@ -1056,7 +1134,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "if(on)h+=0.0024;else h-=0.0024;" +
         "if(h<0)h=0;else if(h>1)h=1;" +
         "if(h>peak)peak=h;else peak-=0.00035;if(peak<h)peak=h;" +
-        "G.fillStyle='#08090d';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "var bw=Math.min(W*0.42,520),x0=(W-bw)/2;" +
         "var y0=H*0.90,hh=H*0.76;" +
         "var lay=Math.floor(h*N);" +
@@ -1081,7 +1159,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "用完了",
     html: play(
-      stageCss("ut-spent", ";touch-action:none;cursor:crosshair;background:#06070b"),
+      stageCss("ut-spent", ";touch-action:none;cursor:crosshair"),
       stageBody("ut-spent"),
       MEM +
         FIT +
@@ -1097,7 +1175,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "onfit=alloc;alloc();" +
         "var fl=[];" +
         "function tick(){" +
-        "G.fillStyle='#06070b';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "if(done){" +
         // 用完之后只剩一道极淡的横线。它记得你来过，也记得没有第二次了
         "G.strokeStyle='rgba(150,164,190,0.10)';G.lineWidth=1;" +
@@ -1129,7 +1207,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "第一次",
     html: play(
-      stageCss("ut-first", ";background:#07080c"),
+      stageCss("ut-first"),
       stageBody("ut-first"),
       MEM +
         FIT +
@@ -1145,7 +1223,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "var rng=seed;" +
         "function rnd(){rng=(rng*1664525+1013904223)>>>0;return rng/4294967296;}" +
         "function tick(){rng=seed;" +
-        "G.fillStyle='#07080c';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "var cx=W/2,cy=H/2,R=Math.min(W,H)*0.40,t=Date.now()*0.00016;" +
         "var lay=7+((rnd()*6)|0),i,j;" +
         "G.lineWidth=1.1;G.lineCap='round';" +
@@ -1168,7 +1246,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "磨损",
     html: play(
-      stageCss("ut-wear", ";touch-action:none;cursor:crosshair;background:#0a0a0d"),
+      stageCss("ut-wear", ";touch-action:none;cursor:crosshair"),
       stageBody("ut-wear"),
       MEM +
         FIT +
@@ -1192,7 +1270,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "if(gy<0)gy=0;else if(gy>=MR)gy=MR-1;" +
         "return WR[gy*MC+gx];}" +
         "function tick(){" +
-        "G.fillStyle='#0a0a0d';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         // 玑镂式的密线：两个不可通约的频率叠出来的花纹，磨掉一点就看得出缺口
         "var cx=W/2,cy=H/2,R=Math.min(W,H)*0.44;" +
         "G.lineWidth=1;" +
@@ -1222,7 +1300,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "捷径",
     html: play(
-      stageCss("ut-braess", ";touch-action:none;cursor:pointer;background:#070810"),
+      stageCss("ut-braess", ";touch-action:none;cursor:pointer"),
       stageBody("ut-braess"),
       MEM +
         FIT +
@@ -1258,7 +1336,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "if(onCut&&costCut<Math.min(costUp,costDn)-0.02)g.cut=true;" +
         "else{g.cut=false;g.up=costUp<costDn;}}}" +
         "avg=sum/N;shown+=(avg-shown)*0.05;" +
-        "G.fillStyle='#070810';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "function seg(p,q,load){" +
         "G.strokeStyle='hsla('+((196-load*150)|0)+',72%,'+((36+load*26)|0)+'%,0.85)';" +
         "G.lineWidth=2+load*7;G.beginPath();G.moveTo(p[0],p[1]);G.lineTo(q[0],q[1]);G.stroke();}" +
@@ -1296,7 +1374,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "增长",
     html: play(
-      stageCss("ut-boom", ";background:#06080a"),
+      stageCss("ut-boom"),
       stageBody("ut-boom"),
       FIT +
         // 草在长，吃草的在推进。规则只有两句：草够厚的地方，消费才传得过去；
@@ -1341,7 +1419,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "同温层",
     html: play(
-      stageCss("ut-echo", ";touch-action:none;cursor:ew-resize;background:#06070c"),
+      stageCss("ut-echo", ";touch-action:none;cursor:ew-resize"),
       stageBody("ut-echo"),
       MEM +
         FIT +
@@ -1367,7 +1445,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "var BN=120,hist=new Float32Array(BN);" +
         "for(i=0;i<N;i++){var b=(O[i]*BN)|0;if(b<0)b=0;else if(b>=BN)b=BN-1;hist[b]++;}" +
         "T.push(hist);if(T.length>Math.max(60,(H/3)|0))T.shift();" +
-        "G.fillStyle='#06070c';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "var rows=T.length,rh=Math.min(3,(H-40)/rows);" +
         "for(var r=0;r<rows;r++){var hh=T[r],mx=1;" +
         "for(i=0;i<BN;i++)if(hh[i]>mx)mx=hh[i];" +
@@ -1397,7 +1475,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "推荐",
     html: play(
-      stageCss("ut-reco", ";touch-action:none;cursor:crosshair;background:#06070b"),
+      stageCss("ut-reco", ";touch-action:none;cursor:crosshair"),
       stageBody("ut-reco"),
       MEM +
         FIT +
@@ -1420,7 +1498,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "d.sort(function(a,b){return a[0]-b[0];});" +
         "for(i=0;i<Math.min(18,d.length);i++)served.push(d[i][1]);}" +
         "pick();" +
-        "function tick(){G.fillStyle='#06070b';G.fillRect(0,0,W,H);" +
+        "function tick(){G.clearRect(0,0,W,H);" +
         "var i;" +
         // 全部：暗的。它们没消失，只是你看不到了
         "for(i=0;i<M2;i++){G.fillStyle='rgba(120,140,175,0.11)';" +
@@ -1448,7 +1526,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "对齐",
     html: play(
-      stageCss("ut-align", ";touch-action:none;cursor:grab;background:#07080c"),
+      stageCss("ut-align", ";touch-action:none;cursor:grab"),
       stageBody("ut-align"),
       MEM +
         FIT +
@@ -1468,7 +1546,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "tgt+=(Math.random()<0.5?-1:1)*(tol*7+0.12);" +
         "M.set('align_t',tol.toFixed(6));M.set('align_h',hit);}" +
         "if(flash>0)flash-=0.022;" +
-        "G.fillStyle='#07080c';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "var cx=W/2,cy=H/2,R=Math.min(W,H)*0.36;" +
         "G.strokeStyle='rgba(140,160,195,0.16)';G.lineWidth=1;" +
         "G.beginPath();G.arc(cx,cy,R,0,7);G.stroke();" +
@@ -1499,7 +1577,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "债",
     html: play(
-      stageCss("ut-debt", ";touch-action:none;cursor:pointer;background:#08070a"),
+      stageCss("ut-debt", ";touch-action:none;cursor:pointer"),
       stageBody("ut-debt"),
       MEM +
         FIT +
@@ -1523,7 +1601,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         // 压得慢、涨得快。你按着的时候也只是让它慢一点
         "if(on)lv-=0.0016;else lv+=0.00052;" +
         "if(lv<0)lv=0;else if(lv>1)lv=1;" +
-        "G.fillStyle='#08070a';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "var t=Date.now()*0.0011,base=H*0.94;" +
         "G.lineCap='round';" +
         "for(var i=0;i<ST.length;i++){var s=ST[i];" +
@@ -1553,7 +1631,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "续订",
     html: play(
-      stageCss("ut-streak", ";background:#07080c"),
+      stageCss("ut-streak"),
       stageBody("ut-streak"),
       MEM +
         FIT +
@@ -1571,7 +1649,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "if(n>best){best=n;M.set('st_best',best);}" +
         "var t0=Date.now();" +
         "function tick(){var el=(Date.now()-t0)/1000;" +
-        "G.fillStyle='#07080c';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "var cx=W/2,cy=H/2,R=Math.min(W,H)*0.40;" +
         // 断了的话，先把上一串碎给你看，再从一环重新开始
         "var shatter=broke?Math.min(1,el/2.2):0;" +
@@ -1607,7 +1685,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "备份",
     html: play(
-      stageCss("ut-copy", ";touch-action:none;cursor:pointer;background:#08080b"),
+      stageCss("ut-copy", ";touch-action:none;cursor:pointer"),
       stageBody("ut-copy"),
       MEM +
         FIT +
@@ -1643,7 +1721,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "off.width=OW;off.height=OH;og=off.getContext('2d');" +
         "origin();for(var i=0;i<Math.min(gen,64);i++)degrade();}" +
         "build();" +
-        "function tick(){G.fillStyle='#08080b';G.fillRect(0,0,W,H);" +
+        "function tick(){G.clearRect(0,0,W,H);" +
         "var s=Math.min(W/OW,H/OH)*0.86;" +
         "G.imageSmoothingEnabled=true;" +
         "G.drawImage(off,(W-OW*s)/2,(H-OH*s)/2,OW*s,OH*s);" +
@@ -1655,7 +1733,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "免费",
     html: play(
-      stageCss("ut-free", ";touch-action:none;cursor:pointer;background:#06070a"),
+      stageCss("ut-free", ";touch-action:none;cursor:pointer"),
       stageBody("ut-free"),
       MEM +
         FIT +
@@ -1674,7 +1752,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "l:1,h:(Math.random()*70+18)|0,s:1+Math.random()*1.8});}" +
         "n++;M.set('free_n',n);}" +
         "function tick(){" +
-        "G.fillStyle='rgba(6,7,10,0.075)';G.fillRect(0,0,W,H);" +
+        "G.save();G.globalCompositeOperation='destination-out';G.fillStyle='rgba(0,0,0,0.075)';G.fillRect(0,0,W,H);G.restore();" +
         "for(var i=P.length-1;i>=0;i--){var p=P[i];" +
         "p.x+=p.vx;p.y+=p.vy;p.vy+=0.045;p.vx*=0.988;p.vy*=0.988;p.l-=0.0105;" +
         "if(p.l<=0||p.y>H+20){P.splice(i,1);continue;}" +
@@ -1687,7 +1765,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "指标",
     html: play(
-      stageCss("ut-good", ";touch-action:none;cursor:ew-resize;background:#06070b"),
+      stageCss("ut-good", ";touch-action:none;cursor:ew-resize"),
       stageBody("ut-good"),
       MEM +
         FIT +
@@ -1718,7 +1796,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "if(q>=0&&q<COV.length)COV[q]=1;" +
         "sum+=sp;}" +
         "met=Math.min(1,(sum/A.length-1.0)/4.6);" +
-        "G.fillStyle='#06070b';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "var cw=W/GW,ch=H/GH;" +
         "for(i=0;i<COV.length;i++){var v=COV[i];if(v<0.05)continue;" +
         "G.fillStyle='rgba(90,180,200,'+(v*0.30).toFixed(3)+')';" +
@@ -1745,7 +1823,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "推送",
     html: play(
-      stageCss("ut-push", ";touch-action:none;cursor:crosshair;background:#07080c"),
+      stageCss("ut-push", ";touch-action:none;cursor:crosshair"),
       stageBody("ut-push"),
       FIT +
         // 按住能画。画着画着会有东西滑进来挡住，得点掉它才能接着画。
@@ -1759,7 +1837,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "if(draw)run++;else run=Math.max(0,run-2);" +
         "var due=Math.max(90,nt-run*1.6);" +
         "if(tim>due){tim=0;card={t:0,y:-1};}}" +
-        "G.fillStyle='#07080c';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "G.lineCap='round';G.lineJoin='round';" +
         "for(var i=1;i<pts.length;i++){var a=pts[i-1],b=pts[i];" +
         "if(b.n)continue;" +
@@ -1801,7 +1879,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "慢化",
     html: play(
-      stageCss("ut-slow", ";touch-action:none;cursor:pointer;background:#07080c"),
+      stageCss("ut-slow", ";touch-action:none;cursor:pointer"),
       stageBody("ut-slow"),
       FIT +
         // 一个球待在坑底。点一下把它推开，它会滚回来——这叫恢复。
@@ -1823,7 +1901,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "rec.push(meas);if(rec.length>30)rec.shift();meas=-1;}" +
         "else if(meas>1800){rec.push(1800);if(rec.length>30)rec.shift();meas=-1;}}}" +
         "else{ft++;v+=0.0016*(x>0?1:-1);x+=v;if(ft>260)reset();}" +
-        "G.fillStyle='#07080c';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "var cx=W/2,cy=H*0.46,sx=Math.min(W,H)*0.34,sy=Math.min(W,H)*0.30;" +
         // 势阱：U = k x² / 2。k 越小越平
         "G.strokeStyle='rgba(140,164,200,0.42)';G.lineWidth=2;G.beginPath();" +
@@ -1846,7 +1924,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "小世界",
     html: play(
-      stageCss("ut-small", ";touch-action:none;cursor:pointer;background:#06070b"),
+      stageCss("ut-small", ";touch-action:none;cursor:pointer"),
       stageBody("ut-small"),
       FIT +
         // 一百二十个点围成一圈，每个只跟左右各两个相邻。消息要传到对面，
@@ -1875,7 +1953,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "avg=cnt?tot/cnt:0;}" +
         "onfit=alloc;alloc();" +
         "function tick(){wt++;if(wt>3){wt=0;wave=(wave+1)%40;}" +
-        "G.fillStyle='#06070b';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "var cx=W/2,cy=H*0.46,R=Math.min(W,H*0.86)*0.38;" +
         "function px(i){return cx+Math.cos(i/N*6.2832-1.5708)*R;}" +
         "function py(i){return cy+Math.sin(i/N*6.2832-1.5708)*R;}" +
@@ -1911,7 +1989,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "越急越慢",
     html: play(
-      stageCss("ut-panic", ";touch-action:none;cursor:ew-resize;background:#07080b"),
+      stageCss("ut-panic", ";touch-action:none;cursor:ew-resize"),
       stageBody("ut-panic"),
       MEM +
         FIT +
@@ -1951,7 +2029,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "q.vx=0;q.vy=0;}}" +
         "acc++;if(acc>26){hist.push(outn);outn=0;acc=0;" +
         "if(hist.length>90)hist.shift();}" +
-        "G.fillStyle='#07080b';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "G.strokeStyle='rgba(150,170,200,0.5)';G.lineWidth=3;" +
         "G.beginPath();G.moveTo(gx,0);G.lineTo(gx,gy-gap*0.5);" +
         "G.moveTo(gx,gy+gap*0.5);G.lineTo(gx,H);G.stroke();" +
@@ -1982,7 +2060,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "版本",
     html: play(
-      stageCss("ut-ver", ";touch-action:none;cursor:pointer;background:#08080c"),
+      stageCss("ut-ver", ";touch-action:none;cursor:pointer"),
       stageBody("ut-ver"),
       MEM +
         FIT +
@@ -2002,7 +2080,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "var live=Math.max(1,EL.length-v);" +
         // 越更新越"精致"：色相收拢、线宽统一、圆角变大
         "var t=Math.min(1,v/24);" +
-        "G.fillStyle='#08080c';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "var S=Math.min(W,H);" +
         "for(var i=0;i<live;i++){var e=EL[i];" +
         "var hue=e.h+(210-e.h)*t;" +
@@ -2030,7 +2108,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "混合",
     html: play(
-      stageCss("ut-mix", ";touch-action:none;cursor:crosshair;background:#06070a"),
+      stageCss("ut-mix", ";touch-action:none;cursor:crosshair"),
       stageBody("ut-mix"),
       FIT +
         // 左边一种颜色，右边一种。你划过去就是在搅。
@@ -2065,7 +2143,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "var a=c0[i]/n;if(a>0&&a<1)e+=-(a*Math.log(a)+(1-a)*Math.log(1-a))*n;tot+=n;}" +
         "ent=tot?e/tot/Math.log(2):0;" +
         "T.push(ent);if(T.length>Math.max(80,(W*0.8)|0))T.shift();" +
-        "G.fillStyle='#06070a';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "var vh=H*0.80;" +
         "for(i=0;i<P.length;i++){" +
         "G.fillStyle=P[i].c?'rgba(240,160,96,0.72)':'rgba(96,176,240,0.72)';" +
@@ -2086,7 +2164,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "免疫",
     html: play(
-      stageCss("ut-herd", ";background:#06070b;touch-action:none"),
+      stageCss("ut-herd", ";touch-action:none"),
       stageBody("ut-herd"),
       FIT +
         // 左右拖，定的是有多少人事先打过（暗蓝的那些）。然后从中心放一次火。
@@ -2122,7 +2200,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "pts.push([cov,burned/(S.length*(1-cov)+1)]);" +
         "if(pts.length>90)pts.shift();}}" +
         "else{hold++;if(hold>150)start();}" +
-        "G.fillStyle='#06070b';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "var cw=W/NX,ch=(H*0.74)/NY,oy=H*0.03;" +
         "for(var y=0;y<NY;y++)for(var x=0;x<NX;x++){var v=S[y*NX+x];" +
         "if(v===0)continue;" +
@@ -2147,7 +2225,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "等位",
     html: play(
-      stageCss("ut-queue", ";background:#07080b;touch-action:none"),
+      stageCss("ut-queue", ";touch-action:none"),
       stageBody("ut-queue"),
       MEM +
         FIT +
@@ -2173,7 +2251,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "for(var q=0;q<3;q++)if(Math.random()<lam/3)me++;" +
         "if(me<0){me=0;done=1;}if(me>N-1)me=N-1;}" +
         "if(bump>0)bump*=0.90;" +
-        "G.fillStyle='#07080b';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "var rows=Math.ceil(N/COLS);" +
         "var top=H*0.06,bh=H*0.66;" +
         "var cw=W/(COLS+1),rh=bh/rows;" +
@@ -2212,7 +2290,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "投放",
     html: play(
-      stageCss("ut-slot", ";background:#07080b;touch-action:none"),
+      stageCss("ut-slot", ";touch-action:none"),
       stageBody("ut-slot"),
       MEM +
         FIT +
@@ -2230,7 +2308,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "cur+=(want-cur)*0.05;" +
         "if(cur>0.86)cur=0.86;" +
         "var top=H*(1-cur);" +
-        "G.fillStyle='#07080b';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "for(var i=0;i<P.length;i++){var p=P[i];" +
         "p[0]+=p[2];p[1]+=p[3];" +
         "if(p[0]<0)p[0]+=W;if(p[0]>W)p[0]-=W;" +
@@ -2277,7 +2355,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "停下",
     html: play(
-      stageCss("ut-stop", ";background:#06070b;touch-action:none"),
+      stageCss("ut-stop", ";touch-action:none"),
       stageBody("ut-stop"),
       MEM +
         FIT +
@@ -2308,7 +2386,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "if(idx>=N){idx=N-1;picked=N-1;settle();}}}" +
         "else{reveal=Math.min(1,reveal+0.02);" +
         "acc++;if(acc>200)alloc();}" +
-        "G.fillStyle='#06070b';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "var top=H*0.10,bh=H*0.52,cw=W*0.86/N,ox=W*0.07;" +
         "for(var i=0;i<N;i++){" +
         "var x=ox+cw*(i+0.5),h=bh*V[i];" +
@@ -2337,7 +2415,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "观察",
     html: play(
-      stageCss("ut-observe", ";background:#06070b;touch-action:none"),
+      stageCss("ut-observe", ";touch-action:none"),
       stageBody("ut-observe"),
       FIT +
         // 底下有一张图。你摸哪儿，哪儿就露出来一小块——
@@ -2366,7 +2444,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "if(w>0)F[i]+=(Math.random()-0.5)*0.85*w;" +
         "if(F[i]<0)F[i]=0;if(F[i]>1)F[i]=1;}}}" +
         "function tick(){acc++;" +
-        "G.fillStyle='#06070b';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "var cw=W/NX,ch=H/NY;" +
         "for(var y=0;y<NY;y++)for(var x=0;x<NX;x++){var i=y*NX+x;" +
         "var k=K[i];if(k<0.02)continue;" +
@@ -2383,7 +2461,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "审核",
     html: play(
-      stageCss("ut-redact", ";background:#07080b;touch-action:none"),
+      stageCss("ut-redact", ";touch-action:none"),
       stageBody("ut-redact"),
       FIT +
         // 一整幅东西。点一下，就按当下这条尺子删掉一批——
@@ -2405,7 +2483,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "for(var i=0;i<N;i++){var p=P[i];" +
         "if(!p.cut&&p.s>thr)p.cut=1;}}" +
         "function tick(){acc++;" +
-        "G.fillStyle='#07080b';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "var cx=W/2,cy=H*0.46,R=Math.min(W*0.44,H*0.40);" +
         "var alive=0;" +
         "for(var i=0;i<N;i++){var p=P[i];" +
@@ -2431,59 +2509,80 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "默认值",
     html: play(
-      stageCss("ut-default", ";background:#06070b;touch-action:none"),
+      stageCss("ut-default", ";touch-action:none"),
       stageBody("ut-default"),
-      FIT +
-        // 六百个人，一个二选一。**只有很少的人真的去选**，其余的照默认走。
-        // 点一下，翻转默认。
+      MEM +
+        FIT +
+        // 六百个人，一个二选一。**只有很少的人真的去选**（外面有白圈的那些），
+        // 其余的照默认走。点一下，翻转默认。
         //
         // 上面那条是结果，会跟着翻过去；下面那条是这些人自己怎么想的，
-        // 一次都没变过。决定结果的那个东西不在任何人的偏好里，
-        // 它在别人写好的那一格里
+        // 一次都没变过。到这儿为止，这只是一张说明预设格子有多好用的图——
+        // 谁都能截下来拿去用。
+        //
+        // 所以再加一件事：**每翻一次，就有一批白圈永远消失**。
+        // 用这根杠杆是要花掉东西的，花掉的正好是唯一能不听它的那部分人。
+        // 翻到最后一个白圈也没有了，结果就等于默认，一分不差。
+        // 那时候你还能接着翻，只是已经没有任何东西在被说服了。
+        // 关掉页面再回来，白圈不会长回来
         "var N=600,PREF=[],ACT=[],OUT=[],def=0,acc=0,tw=0;" +
+        "var burn=M.num('def.burn',0);" +
         "function alloc(){PREF=[];ACT=[];OUT=[];" +
-        "for(var i=0;i<N;i++){" +
         // 认真想的话，六成多的人偏好第二个
-        "PREF.push(Math.random()<0.63?1:0);" +
-        // 但只有 8% 会真的去动那一格
-        "ACT.push(Math.random()<0.08?1:0);" +
-        "OUT.push(ACT[i]?PREF[i]:def);}" +
+        "for(var i=0;i<N;i++){PREF.push(Math.random()<0.63?1:0);" +
+        // 只有 8% 会真的去动那一格；已经被花掉的那些不再算数
+        "ACT.push(Math.random()<0.08?1:0);}" +
+        "var left=[],k;" +
+        "for(k=0;k<N;k++)if(ACT[k])left.push(k);" +
+        "for(k=0;k<burn&&left.length;k++){" +
+        "var j=(Math.random()*left.length)|0;ACT[left[j]]=0;left.splice(j,1);}" +
+        "for(k=0;k<N;k++)OUT.push(ACT[k]?PREF[k]:def);" +
         "acc=0;tw=0;}" +
         "onfit=alloc;alloc();" +
         "function settle(){for(var i=0;i<N;i++)OUT[i]=ACT[i]?PREF[i]:def;}" +
+        // 翻一次，烧掉还剩的自己拿主意的人里的一批
+        "function flip(){def=1-def;" +
+        "var left=[],i;" +
+        "for(i=0;i<N;i++)if(ACT[i])left.push(i);" +
+        "var q=Math.ceil(left.length*0.22);" +
+        "for(i=0;i<q;i++){var j=(Math.random()*left.length)|0;" +
+        "ACT[left[j]]=0;left.splice(j,1);burn++;}" +
+        "M.set('def.burn',burn);settle();}" +
         "function tick(){acc++;if(tw>0)tw*=0.92;" +
-        "G.fillStyle='#06070b';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "var cols=30,rows=Math.ceil(N/cols);" +
         "var top=H*0.06,bh=H*0.62;" +
         "var cw=W*0.88/cols,rh=bh/rows,ox=W*0.06;" +
-        "var so=0,sp=0,i;" +
-        "for(i=0;i<N;i++){so+=OUT[i];sp+=PREF[i];}" +
+        "var so=0,sp=0,sa=0,i;" +
+        "for(i=0;i<N;i++){so+=OUT[i];sp+=PREF[i];sa+=ACT[i];}" +
         "for(i=0;i<N;i++){" +
         "var c=i%cols,r=(i/cols)|0;" +
         "var x=ox+cw*(c+0.5),y=top+rh*(r+0.5);" +
         "var R=Math.min(cw,rh)*0.34;" +
         "G.fillStyle=OUT[i]?'rgba(120,170,230,0.88)':'rgba(224,140,84,0.88)';" +
         "G.beginPath();G.arc(x,y,R,0,7);G.fill();" +
-        // 真去动过那一格的，外面有个圈
+        // 白圈 = 还会自己拿主意的人。只会越来越少
         "if(ACT[i]){G.strokeStyle='rgba(236,240,250,0.85)';G.lineWidth=1.4;" +
         "G.beginPath();G.arc(x,y,R+2.6,0,7);G.stroke();}}" +
         "function bar(y,v,col){G.strokeStyle='rgba(150,170,200,0.14)';G.lineWidth=7;" +
         "G.beginPath();G.moveTo(W*0.06,y);G.lineTo(W*0.94,y);G.stroke();" +
         "G.strokeStyle=col;G.beginPath();G.moveTo(W*0.06,y);" +
         "G.lineTo(W*0.06+W*0.88*v,y);G.stroke();}" +
-        "bar(H-46,so/N,'rgba(120,170,230,0.92)');" +
-        "bar(H-20,sp/N,'rgba(236,240,250,0.55)');" +
+        "bar(H-64,so/N,'rgba(120,170,230,0.92)');" +
+        "bar(H-38,sp/N,'rgba(236,240,250,0.55)');" +
+        // 第三条：还剩多少人会自己拿主意。它只会短下去
+        "bar(H-14,sa/N/0.08,'rgba(236,240,250,0.85)');" +
         "if(tw>0.01){G.strokeStyle='rgba(236,240,250,'+(tw*0.5)+')';G.lineWidth=2;" +
-        "G.beginPath();G.moveTo(0,H-33);G.lineTo(W,H-33);G.stroke();}" +
+        "G.beginPath();G.moveTo(0,H-51);G.lineTo(W,H-51);G.stroke();}" +
         "requestAnimationFrame(tick);}tick();" +
         "CV.addEventListener('pointerdown',function(e){" +
-        "def=1-def;tw=1;settle();e.preventDefault();});",
+        "tw=1;flip();e.preventDefault();});",
     ),
   },
   {
     title: "协调",
     html: play(
-      stageCss("ut-stag", ";background:#07080b;touch-action:none"),
+      stageCss("ut-stag", ";touch-action:none"),
       stageBody("ut-stag"),
       FIT +
         // 所有人都在做暗的那个。亮的那个对每个人都更好，大家也都知道。
@@ -2508,7 +2607,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "nx[y*NX+x]=(5*q>2*(1-q))?1:0;}" +
         "S=nx;}" +
         "function tick(){acc++;if(acc>14){acc=0;step();}" +
-        "G.fillStyle='#07080b';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "var cw=W/NX,ch=(H*0.94)/NY,oy=H*0.03,n=0;" +
         "for(var y=0;y<NY;y++)for(var x=0;x<NX;x++){var v=S[y*NX+x];n+=v;" +
         "G.fillStyle=v?'rgba(150,205,255,0.92)':'rgba(26,32,44,0.95)';" +
@@ -2528,7 +2627,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "遗忘",
     html: play(
-      stageCss("ut-forget", ";background:#06070b;touch-action:none"),
+      stageCss("ut-forget", ";touch-action:none"),
       stageBody("ut-forget"),
       FIT +
         // 每个亮点是一件你记得的事。不去碰它，它会慢慢淡掉，然后没了。
@@ -2550,7 +2649,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "if(p.v>0){p.v-=0.00075;if(p.v<0)p.v=0;}" +
         "if(p.v>0.02)alive++;}" +
         "if(alive<8){acc++;if(acc>320)alloc();}" +
-        "G.fillStyle='#06070b';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "for(i=0;i<N;i++){var p=P[i];" +
         "if(p.v<=0.02&&p.n===0)continue;" +
         // 想起过的，原来的位置留一个淡圈
@@ -2582,7 +2681,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
   {
     title: "代价",
     html: play(
-      stageCss("ut-external", ";background:#07080b;touch-action:none"),
+      stageCss("ut-external", ";touch-action:none"),
       stageBody("ut-external"),
       FIT +
         // 上面那片是你的地方，摸哪儿哪儿就开出来，好看、立刻、确实是你的。
@@ -2598,7 +2697,7 @@ export const TAP_EMBEDS: SeedEmbed[] = [
         "onfit=alloc;alloc();" +
         "function tick(){acc++;" +
         "var mine=H*0.62,gap=H*0.06;" +
-        "G.fillStyle='#07080b';G.fillRect(0,0,W,H);" +
+        "G.clearRect(0,0,W,H);" +
         "var i;" +
         "for(i=0;i<N;i++){var p=P[i];if(p.v<=0)continue;" +
         "p.v=Math.min(1,p.v+0.05);" +

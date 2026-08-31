@@ -23,6 +23,15 @@ describe("parseSiteAssetIdFromThumbnailUrl", () => {
     ).toBe(id);
   });
 
+  it("PNG 扩展名也能认", () => {
+    expect(
+      parseSiteAssetIdFromThumbnailUrl(
+        `/api/public/tenants/rewindom/site-assets/${id}.png`,
+        "rewindom",
+      ),
+    ).toBe(id);
+  });
+
   it("别人家的图不认", () => {
     expect(
       parseSiteAssetIdFromThumbnailUrl(

@@ -3,7 +3,8 @@
  *
  * 幂等：可交互物按标题查重。HTML 有 diff 会同步。
  * 目录里已经拿掉的（句子、靠字成立的 embed）会从库里删掉。
- * 缺缩略图或 HTML 变了就再截一张，写入媒体库。
+ * 缺缩略图、还是 JPEG、或 HTML 变了就再截一张，写入媒体库。
+ * `USELESS_RECAPTURE_THUMBS=1` 则不论现有图是什么格式都重截。
  */
 import { initializeTenantSite } from "@rewindom/builtin/marketing/server/site-init.service.js";
 import {
@@ -167,7 +168,10 @@ export async function seedUselessDemo(
       } else {
         skipped += 1;
       }
-      if (htmlChanged || !existing.thumbnail) {
+      const staleJpeg = /\.jpe?g(\?|#|$)/i.test(existing.thumbnail);
+      const recapture =
+        process.env.USELESS_RECAPTURE_THUMBS === "1";
+      if (htmlChanged || !existing.thumbnail || staleJpeg || recapture) {
         needThumb.push({
           id: existing.id,
           title: embed.title,
@@ -201,12 +205,12 @@ export async function seedUselessDemo(
       needThumb.map((item) => ({ title: item.title, html: item.html })),
     );
     for (const item of needThumb) {
-      const jpeg = shots.get(item.title);
-      if (!jpeg) continue;
+      const png = shots.get(item.title);
+      if (!png) continue;
       const url = await saveThingThumbnail({
         tenant_id: tenantId,
         tenant_slug: tenantSlug,
-        jpeg,
+        png,
         existing_url: item.url,
       });
       await updateThing({

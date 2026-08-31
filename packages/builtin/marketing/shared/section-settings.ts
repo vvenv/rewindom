@@ -63,10 +63,11 @@ function cleanLocalizedText(raw: Record<string, unknown>): LocalizedText {
 }
 
 /**
- * 取某语言的文案：当前语言 → 站点默认语言 → 表里任意非空项。
+ * 取某语言的文案：当前语言（含显式空串）→ 站点默认语言 → 表里任意非空项。
  *
- * 最后那档回落是有意的：租户只填了一种语言时，其它语言页面应该显示那份原文，
- * 而不是留白（同 Shopify 未翻译即回落主语言）。
+ * 槽位上有这个语言的键，就用它——即便是空串。租户清空标题是「这门语言不要
+ * 这句」，不是「还没译，去别的语言借一句」。缺键才回落（同 Shopify 未翻译即
+ * 回落主语言）。
  */
 export function resolveLocalizedText(
   value: LocalizedText,
@@ -75,7 +76,9 @@ export function resolveLocalizedText(
 ): string {
   const table = value.__i18n;
   const current = table[locale];
-  if (typeof current === "string" && current !== "") return current;
+  if (Object.hasOwn(table, locale) && typeof current === "string") {
+    return current;
+  }
   const fallback = table[fallbackLocale];
   if (typeof fallback === "string" && fallback !== "") return fallback;
   for (const text of Object.values(table)) {

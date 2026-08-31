@@ -4,7 +4,10 @@ import { renderUselessListHtml } from "./html.js";
 
 import type { UselessRenderContext } from "../../useless-section-context.js";
 import type { SectionRenderContext } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
-import type { SiteSection } from "@rewindom/builtin/marketing/shared/section-schema.js";
+import {
+  localizeSettingValues,
+  type SiteSection,
+} from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 function section(settings: Record<string, unknown> = {}): SiteSection {
   return {
@@ -90,6 +93,28 @@ describe("无用之物列表", () => {
     );
     const visible = html.replace(/aria-label="[^"]*"/g, "");
     expect(visible).not.toContain("时钟在撒谎");
+  });
+
+  it("有标题才画抬头", () => {
+    const html = renderUselessListHtml(
+      section({ heading: "无用" }),
+      ctxWith({ things: [embed()] }),
+    );
+    expect(html).toContain("<h2>无用</h2>");
+  });
+
+  it("租户清空当前语言标题就不画抬头，不借另一门语言", () => {
+    const settings = localizeSettingValues(
+      { heading: { __i18n: { "zh-CN": "", en: "Useless" } }, columns: 3 },
+      "zh-CN",
+      "zh-CN",
+    );
+    const html = renderUselessListHtml(
+      section(settings),
+      ctxWith({ things: [embed()] }),
+    );
+    expect(html).not.toContain("sec-head");
+    expect(html).not.toContain("Useless");
   });
 
   it("上下文缺失时不崩，只出空态", () => {

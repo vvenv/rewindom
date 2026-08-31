@@ -35,8 +35,10 @@
 | 首页 | `home`（版式 `useless.home`） | `/` | 目录段在版式预设里（首页 kind 本身没有必备段） |
 | 详情 | `useless_thing` | `/:slug` | `useless.thing` |
 
-列表上每一件是一张缩略图：seed 给可交互物截图写入媒体库（`Thing.thumbnail`），
+列表上每一件是一张缩略图：seed 给可交互物截一张透明 PNG 写入媒体库（`Thing.thumbnail`），
 有截图用截图，没有就把可交互物自己缩小放进格子。点进去才是详情舞台。名字不画。
+舞台和画布不铺实心底，卡片的 `--surface` 会透出来，亮暗色都跟主题走。
+目录段的区块标题可空：租户清空后不画抬头，也不借另一门语言的库存句顶上。
 
 | 面 | 登记 | 在哪 |
 | --- | --- | --- |
@@ -83,7 +85,15 @@
   把一条装进无头 Chromium、泵帧、跑一段取样 JS 再把数打出来。收东西前用它核对
   「这条东西到底有没有做到它说的那件事」——光看着像是不够的，好几条都是在这一步
   被发现说的和做的是反的。探针里可以用 `px()` / `pump(n)` / `tap(fx,fy)` / `drag(fx,fy)`。
-- `pnpm --filter server exec tsx scripts/seed-useless-demo.ts` 会给缺图的可交互物截图，写入媒体库。本机需要 Chromium（`pnpm --filter @rewindom/useless exec playwright install chromium`）。生产镜像没有浏览器，那条路径会跳过。
+  探针里**别用颜色阈值数像素**：细的抗锯齿线永远打不到 `r>200` 这种门槛，
+  会得出「什么都没画」的假结论。改成把画面竖切成若干条报平均亮度，或者数某一列上穿过几条线。
+- `pnpm --filter @rewindom/useless exec tsx scripts/_shot.ts <标题> <目录> "名字:帧数[:fx/fy],…"`
+  按计划走一段并逐张截图。**舞台底色是透明的，务必在亮色上也看一眼**——
+  浅奶油、浅蓝在亮色页上等于没有；读者要认领的那个东西一律走 `INK(a)`。
+- `pnpm --filter @rewindom/useless exec tsx scripts/_claims.ts [标题…]`
+  并排打印各条的「说法」（开头那段注释）。收东西前先查重：
+  **机制重复比标题重复更常见，而标题重复有测试挡、机制重复没有。**
+- `pnpm --filter server exec tsx scripts/seed-useless-demo.ts` 会给缺图的可交互物截图，写入媒体库。本机需要 Chromium（`pnpm --filter @rewindom/useless exec playwright install chromium`）。生产镜像没有浏览器，那条路径会跳过。HTML 变了、还是 JPEG、或缺图会再截；`USELESS_RECAPTURE_THUMBS=1` 则全部重截。
 
 ## 依赖
 

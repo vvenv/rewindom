@@ -1,0 +1,20 @@
+# 租户清空区块标题后公开站不再画抬头
+module: useless
+surfaces: [ssr]
+goal: >-
+  无用之物贡献的区块（目录段的 heading）租户清空后不显示标题；
+  显式空串是「这门语言不要这句」，不借另一门语言的库存句顶上。
+gold: packages/builtin/marketing/shared/sections/_common/html.ts
+touch:
+  - modules/useless/features/hide-empty-heading.spec.yaml
+  - modules/useless/shared/sections/list/html.test.ts
+  - modules/useless/MODULE.md
+  - packages/builtin/marketing/shared/section-settings.ts
+  - packages/builtin/marketing/shared/section-schema.test.ts
+out_of_scope:
+  - 改页面 SEO 标题必填规则
+  - 给 heading 加 schema default（空串会被库存句回填）
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/useless test
+  - pnpm --filter @rewindom/builtin exec vitest --run marketing/shared/section-schema.test.ts

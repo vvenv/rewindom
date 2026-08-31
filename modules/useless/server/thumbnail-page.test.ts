@@ -10,6 +10,8 @@ describe("buildUselessThumbnailDocument", () => {
     const html = buildUselessThumbnailDocument("<canvas></canvas>");
     expect(html).toContain('<div class="useless-thing"><canvas></canvas></div>');
     expect(html).toContain("window.__pump");
+    expect(html).toContain("background:transparent");
+    expect(html).not.toContain("--bg:#fbfbf9");
     expect(html).toContain("location.search.indexOf('pump')");
     const capture = buildUselessThumbnailDocument("<canvas></canvas>", {
       pump: "always",

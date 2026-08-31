@@ -724,6 +724,34 @@ describe("resolvePageHeaderText", () => {
   });
 });
 
+describe("localizeSections empty copy", () => {
+  it("显式空串是「这门语言不要这句」，不借另一门语言", () => {
+    const [section] = parseSections([
+      {
+        type: "page-menu",
+        settings: { heading: { __i18n: { "zh-CN": "", en: "Pages" } } },
+        blocks: [],
+      },
+    ]);
+    const [zh] = localizeSections([section!], "zh-CN", "zh-CN");
+    const [en] = localizeSections([section!], "en", "zh-CN");
+    expect(zh!.settings.heading).toBe("");
+    expect(en!.settings.heading).toBe("Pages");
+  });
+
+  it("缺键仍回落已填的原文", () => {
+    const [section] = parseSections([
+      {
+        type: "page-menu",
+        settings: { heading: { __i18n: { "zh-CN": "页面" } } },
+        blocks: [],
+      },
+    ]);
+    const [en] = localizeSections([section!], "en", "zh-CN");
+    expect(en!.settings.heading).toBe("页面");
+  });
+});
+
 describe("relocalizeSections", () => {
   const hero = (settings: Record<string, unknown>) => [
     { type: "hero", settings, blocks: [] },
