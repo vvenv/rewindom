@@ -1,7 +1,7 @@
 import { normalizeLocale } from "@rewindom/module-sdk";
 
 import { buildPreviewContext } from "./sections/context.js";
-import { renderUselessPage } from "./ssr/render-page.js";
+import { renderUselessTemplatePage } from "./ssr/useless-page.js";
 
 import {
   defineRoute,
@@ -19,10 +19,15 @@ import {
   createThing,
   deleteThing,
   getThing,
-  getTodayThing,
   listThings,
   updateThing,
 } from "./thing.service.js";
+
+import {
+  USELESS_THING_PAGE_KIND,
+  USELESS_THING_TEMPLATE_PRESET,
+} from "../shared/useless-page-templates.js";
+import { thingPath } from "../shared/useless-section-context.js";
 
 import type {
   CreateThingBody,
@@ -58,26 +63,14 @@ export async function thingRoutes(app: FastifyInstance): Promise<void> {
     },
   });
 
-  defineRoute(app, {
-    method: "GET",
-    url: "/today",
-    context: "ThingToday",
-    errorCode: "THING_TODAY_FAILED",
-    preHandler: [app.requirePermission("things.read")],
-    handler: async (request) => {
-      const thing = await getTodayThing(request.tenantContext!.tenant_id);
-      return { thing };
-    },
-  });
-
   /*
-   * 中台预览：把这一个东西渲染成**整张站点页面**，连页头页脚一起。
+   * 中台预览：把这一个东西渲染成**整张详情页**，连页头页脚一起。
    *
    * 为什么不直接给公开地址加个 `?preview=`：工作台用的是 Bearer token 而不是
    * cookie（见 `auth.middleware.ts`），浏览器整页跳转带不上会话，那条路要额外
    * 造一套短时预览令牌。这里就是一个普通的工作台接口，不新增任何公开面。
    *
-   * 未排期、已停用的东西根本没有公开地址，只能这样看——而这恰恰是最需要看的：
+   * 未启用的东西没有公开地址，只能这样看——而这恰恰是最需要看的：
    * 可交互的东西是直接注入页面的 HTML/JS，上线前必须眼见为实。
    */
   defineRoute(app, {
@@ -95,21 +88,22 @@ export async function thingRoutes(app: FastifyInstance): Promise<void> {
         const origin =
           requestOriginFromHeaders(request) ?? `http://${tenant.tenant_slug}`;
         const { locale } = request.query as { locale?: string };
+        const pageLocale =
+          typeof locale === "string" ? normalizeLocale(locale) : "zh-CN";
 
-        const html = await renderUselessPage({
+        const html = await renderUselessTemplatePage({
           tenantId: tenant.tenant_id,
           tenantSlug: tenant.tenant_slug,
           origin,
-          locale: typeof locale === "string" ? normalizeLocale(locale) : null,
-          // 只出现在 canonical 上，且整页已经打了 noindex
-          path: `/preview/${thing.id}`,
-          context: buildPreviewContext(thing, locale ?? "zh-CN"),
+          locale: pageLocale,
+          kind: USELESS_THING_PAGE_KIND,
+          path: thing.slug ? thingPath(thing.slug) : `/preview/${thing.id}`,
+          preset: USELESS_THING_TEMPLATE_PRESET,
+          useless: buildPreviewContext(thing, pageLocale),
+          title: thing.title || undefined,
+          noindex: true,
         });
 
-        // 首页没发布、或首页上没摆这个段——预览没有可依附的版式
-        if (!html) {
-          return sendCodedError(reply, 409, "useless.preview_unavailable");
-        }
         return { html };
       } catch (err) {
         if (err instanceof AppError && err.code) {

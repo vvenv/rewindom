@@ -1,8 +1,8 @@
 /**
  * 可交互的无用之物 —— 汇总口。
  *
- * 真正的内容按类分在 `seed-embeds/` 下：一个类一个文件，加东西直接往对应文件的
- * 数组末尾追加。这里只负责拼起来，不放具体的东西。
+ * 真正的内容分在 `seed-embeds/` 下：`tap` 是要你动手的，`auto` 是自己在长的。
+ * 这里只负责拼起来，不放具体的东西。
  *
  * **直接注入页面，不套 iframe**——所以每一个都必须自己守住作用域，否则会把
  * 整个官网一起改掉：
@@ -18,30 +18,12 @@
  *
  * 这三条由 `seed-embeds.test.ts` 逐条把关，违反了测试就红。
  */
-import { DEEP_EMBEDS } from "./seed-embeds/deep.js";
-import { MACHINE_EMBEDS } from "./seed-embeds/machine.js";
-import { MISC_EMBEDS } from "./seed-embeds/misc.js";
-import { PEOPLE_EMBEDS } from "./seed-embeds/people.js";
-import { SELF_EMBEDS } from "./seed-embeds/self.js";
-import { TIME_EMBEDS } from "./seed-embeds/time.js";
-import { WORDS_EMBEDS } from "./seed-embeds/words.js";
-import { WORK_EMBEDS } from "./seed-embeds/work.js";
+import { AUTO_EMBEDS } from "./seed-embeds/auto.js";
+import { TAP_EMBEDS } from "./seed-embeds/tap.js";
 
 import type { SeedEmbed } from "./seed-embeds/shell.js";
 
 export type { SeedEmbed } from "./seed-embeds/shell.js";
 
-/**
- * 顺序 = 未排期时的入库顺序，也就是回看往前补的顺序。先铺最早那批，再按类走。
- * `DEEP_EMBEDS` 在最后：前七类已经上过站，中间插一类只会把已排期的顺序搅乱。
- */
-export const SEED_EMBEDS: SeedEmbed[] = [
-  ...MISC_EMBEDS,
-  ...TIME_EMBEDS,
-  ...PEOPLE_EMBEDS,
-  ...WORK_EMBEDS,
-  ...WORDS_EMBEDS,
-  ...MACHINE_EMBEDS,
-  ...SELF_EMBEDS,
-  ...DEEP_EMBEDS,
-];
+/** 顺序 = 目录上的默认顺序（created_at）。先要动手的，再自己在长的。 */
+export const SEED_EMBEDS: SeedEmbed[] = [...TAP_EMBEDS, ...AUTO_EMBEDS];

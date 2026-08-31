@@ -1,0 +1,29 @@
+# seed / 保存时生成缩略图，列表用落盘的图而不是现场缩小预览
+module: useless
+surfaces: [ssr, tenant]
+goal: >-
+  可交互物在录入（seed）时截一张缩略图写入媒体库，URL 存进 Thing.thumbnail；
+  公开目录用这张图，不再默认把整段 HTML 再跑一遍。
+gold: apps/server/scripts/preview-useless.ts
+touch:
+  - modules/useless/features/generate-thumbnails.spec.yaml
+  - modules/useless/MODULE.md
+  - modules/useless/server/thumbnail-page.ts
+  - modules/useless/server/thumbnail-page.test.ts
+  - modules/useless/server/capture-thumbnail.ts
+  - modules/useless/server/save-thumbnail.ts
+  - modules/useless/server/save-thumbnail.test.ts
+  - modules/useless/server/seed-demo.ts
+  - modules/useless/client/locales/
+  - modules/useless/package.json
+  - apps/server/scripts/preview-useless.ts
+out_of_scope:
+  - 给 kind=text 画图（句子本身就是卡片）
+  - 把 Chromium 打进生产镜像
+  - 工作台每次保存都截图（没有浏览器时会拖垮请求）
+  - 改动各个东西自己的玩笑逻辑
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/useless test
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs useless

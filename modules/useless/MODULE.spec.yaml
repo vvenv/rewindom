@@ -1,11 +1,11 @@
 # ⚠️ 生成后做过手工补全：server/client i18n、稳定错误码、detail_key 审计、
 #    nav 的 ns:key 与 /app 路由前缀。直接 --force 会把这些覆盖掉。
-# 无用句子库：一天一条没有用的话，站点内管理。
+# 无用之物：一件一件没有用的东西，站点内管理。
 # 资源名沿用 thing/things —— 「无用之物」同时盖得住句子与将来的投稿链接，
 # 免得以后把投稿箱并进来时要改 20+ 个文件名。
 id: useless
 label: Useless
-description: 无用句子库——每天一条没有用的话
+description: 无用之物——一件一件，没有用
 kind: business
 placement: modules/useless
 resource:
@@ -17,7 +17,7 @@ requires: [rbac, audit, marketing]
 entitlement:
   key: useless
   label: 无用
-  description: 无用句子库
+  description: 无用之物
   disabled_hint: 该站点未开通无用模块
   default_enabled: false
 
@@ -56,16 +56,15 @@ models:
       - { name: updated_by, type: String, required: false }
     indexes:
       - [tenant_id]
-      # 取「今天那条」只在启用的句子里轮换，enabled 前置
-      - [tenant_id, enabled, updated_at]
+      - [tenant_id, enabled]
 
 api:
   prefix: /api/things
   operations: [list, detail, create, update, delete]
   list:
     search_fields: [text]
-    sort_whitelist: [text, enabled, updated_at, created_at]
-    default_sort: { by: updated_at, dir: desc }
+    sort_whitelist: [title, slug, text, kind, enabled, updated_at, created_at]
+    default_sort: { by: created_at, dir: desc }
 
 client:
   mount: renderRoutes

@@ -103,17 +103,19 @@ export function ThingsTable({
   const columns = useMemo<ColumnDef<DataTableFeatures, ThingListItem>[]>(
     () => [
       {
-        accessorKey: "published_on",
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t("fieldDate")} />
-        ),
-        enableSorting: true,
-        cell: ({ row }) => (
-          <span className="text-muted-foreground font-mono text-xs tabular-nums">
-            {/* 未排期是常态：等着被随机绑上 */}
-            {row.original.published_on ?? t("unscheduled")}
-          </span>
-        ),
+        accessorKey: "thumbnail",
+        header: t("fieldThumbnail"),
+        enableSorting: false,
+        cell: ({ row }) =>
+          row.original.thumbnail ? (
+            <img
+              src={row.original.thumbnail}
+              alt=""
+              className="size-10 object-cover"
+            />
+          ) : (
+            "—"
+          ),
       },
       {
         accessorKey: "kind",
@@ -139,6 +141,11 @@ export function ThingsTable({
             {(row.original.kind === "embed"
               ? row.original.title
               : row.original.text) || "—"}
+            {row.original.slug ? (
+              <div className="text-muted-foreground/70 font-mono text-xs">
+                /{row.original.slug}
+              </div>
+            ) : null}
           </div>
         ),
       },

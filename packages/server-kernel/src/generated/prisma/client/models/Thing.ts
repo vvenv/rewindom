@@ -29,9 +29,10 @@ export type ThingMinAggregateOutputType = {
   tenant_id: string | null
   kind: string | null
   title: string | null
+  slug: string | null
   text: string | null
   html: string | null
-  published_on: Date | null
+  thumbnail: string | null
   enabled: boolean | null
   created_by: string | null
   updated_by: string | null
@@ -44,9 +45,10 @@ export type ThingMaxAggregateOutputType = {
   tenant_id: string | null
   kind: string | null
   title: string | null
+  slug: string | null
   text: string | null
   html: string | null
-  published_on: Date | null
+  thumbnail: string | null
   enabled: boolean | null
   created_by: string | null
   updated_by: string | null
@@ -59,9 +61,10 @@ export type ThingCountAggregateOutputType = {
   tenant_id: number
   kind: number
   title: number
+  slug: number
   text: number
   html: number
-  published_on: number
+  thumbnail: number
   enabled: number
   created_by: number
   updated_by: number
@@ -76,9 +79,10 @@ export type ThingMinAggregateInputType = {
   tenant_id?: true
   kind?: true
   title?: true
+  slug?: true
   text?: true
   html?: true
-  published_on?: true
+  thumbnail?: true
   enabled?: true
   created_by?: true
   updated_by?: true
@@ -91,9 +95,10 @@ export type ThingMaxAggregateInputType = {
   tenant_id?: true
   kind?: true
   title?: true
+  slug?: true
   text?: true
   html?: true
-  published_on?: true
+  thumbnail?: true
   enabled?: true
   created_by?: true
   updated_by?: true
@@ -106,9 +111,10 @@ export type ThingCountAggregateInputType = {
   tenant_id?: true
   kind?: true
   title?: true
+  slug?: true
   text?: true
   html?: true
-  published_on?: true
+  thumbnail?: true
   enabled?: true
   created_by?: true
   updated_by?: true
@@ -194,9 +200,10 @@ export type ThingGroupByOutputType = {
   tenant_id: string
   kind: string
   title: string
+  slug: string
   text: string
   html: string
-  published_on: Date | null
+  thumbnail: string
   enabled: boolean
   created_by: string
   updated_by: string | null
@@ -230,9 +237,10 @@ export type ThingWhereInput = {
   tenant_id?: Prisma.StringFilter<"Thing"> | string
   kind?: Prisma.StringFilter<"Thing"> | string
   title?: Prisma.StringFilter<"Thing"> | string
+  slug?: Prisma.StringFilter<"Thing"> | string
   text?: Prisma.StringFilter<"Thing"> | string
   html?: Prisma.StringFilter<"Thing"> | string
-  published_on?: Prisma.DateTimeNullableFilter<"Thing"> | Date | string | null
+  thumbnail?: Prisma.StringFilter<"Thing"> | string
   enabled?: Prisma.BoolFilter<"Thing"> | boolean
   created_by?: Prisma.StringFilter<"Thing"> | string
   updated_by?: Prisma.StringNullableFilter<"Thing"> | string | null
@@ -245,9 +253,10 @@ export type ThingOrderByWithRelationInput = {
   tenant_id?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   text?: Prisma.SortOrder
   html?: Prisma.SortOrder
-  published_on?: Prisma.SortOrderInput | Prisma.SortOrder
+  thumbnail?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   created_by?: Prisma.SortOrder
   updated_by?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -257,31 +266,33 @@ export type ThingOrderByWithRelationInput = {
 
 export type ThingWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  tenant_id_published_on?: Prisma.ThingTenant_idPublished_onCompoundUniqueInput
+  tenant_id_slug?: Prisma.ThingTenant_idSlugCompoundUniqueInput
   AND?: Prisma.ThingWhereInput | Prisma.ThingWhereInput[]
   OR?: Prisma.ThingWhereInput[]
   NOT?: Prisma.ThingWhereInput | Prisma.ThingWhereInput[]
   tenant_id?: Prisma.StringFilter<"Thing"> | string
   kind?: Prisma.StringFilter<"Thing"> | string
   title?: Prisma.StringFilter<"Thing"> | string
+  slug?: Prisma.StringFilter<"Thing"> | string
   text?: Prisma.StringFilter<"Thing"> | string
   html?: Prisma.StringFilter<"Thing"> | string
-  published_on?: Prisma.DateTimeNullableFilter<"Thing"> | Date | string | null
+  thumbnail?: Prisma.StringFilter<"Thing"> | string
   enabled?: Prisma.BoolFilter<"Thing"> | boolean
   created_by?: Prisma.StringFilter<"Thing"> | string
   updated_by?: Prisma.StringNullableFilter<"Thing"> | string | null
   created_at?: Prisma.DateTimeFilter<"Thing"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Thing"> | Date | string
-}, "id" | "tenant_id_published_on">
+}, "id" | "tenant_id_slug">
 
 export type ThingOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   tenant_id?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   text?: Prisma.SortOrder
   html?: Prisma.SortOrder
-  published_on?: Prisma.SortOrderInput | Prisma.SortOrder
+  thumbnail?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   created_by?: Prisma.SortOrder
   updated_by?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -300,9 +311,10 @@ export type ThingScalarWhereWithAggregatesInput = {
   tenant_id?: Prisma.StringWithAggregatesFilter<"Thing"> | string
   kind?: Prisma.StringWithAggregatesFilter<"Thing"> | string
   title?: Prisma.StringWithAggregatesFilter<"Thing"> | string
+  slug?: Prisma.StringWithAggregatesFilter<"Thing"> | string
   text?: Prisma.StringWithAggregatesFilter<"Thing"> | string
   html?: Prisma.StringWithAggregatesFilter<"Thing"> | string
-  published_on?: Prisma.DateTimeNullableWithAggregatesFilter<"Thing"> | Date | string | null
+  thumbnail?: Prisma.StringWithAggregatesFilter<"Thing"> | string
   enabled?: Prisma.BoolWithAggregatesFilter<"Thing"> | boolean
   created_by?: Prisma.StringWithAggregatesFilter<"Thing"> | string
   updated_by?: Prisma.StringNullableWithAggregatesFilter<"Thing"> | string | null
@@ -315,9 +327,10 @@ export type ThingCreateInput = {
   tenant_id: string
   kind?: string
   title?: string
+  slug?: string
   text?: string
   html?: string
-  published_on?: Date | string | null
+  thumbnail?: string
   enabled?: boolean
   created_by: string
   updated_by?: string | null
@@ -330,9 +343,10 @@ export type ThingUncheckedCreateInput = {
   tenant_id: string
   kind?: string
   title?: string
+  slug?: string
   text?: string
   html?: string
-  published_on?: Date | string | null
+  thumbnail?: string
   enabled?: boolean
   created_by: string
   updated_by?: string | null
@@ -345,9 +359,10 @@ export type ThingUpdateInput = {
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
   text?: Prisma.StringFieldUpdateOperationsInput | string
   html?: Prisma.StringFieldUpdateOperationsInput | string
-  published_on?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  thumbnail?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_by?: Prisma.StringFieldUpdateOperationsInput | string
   updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -360,9 +375,10 @@ export type ThingUncheckedUpdateInput = {
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
   text?: Prisma.StringFieldUpdateOperationsInput | string
   html?: Prisma.StringFieldUpdateOperationsInput | string
-  published_on?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  thumbnail?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_by?: Prisma.StringFieldUpdateOperationsInput | string
   updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -375,9 +391,10 @@ export type ThingCreateManyInput = {
   tenant_id: string
   kind?: string
   title?: string
+  slug?: string
   text?: string
   html?: string
-  published_on?: Date | string | null
+  thumbnail?: string
   enabled?: boolean
   created_by: string
   updated_by?: string | null
@@ -390,9 +407,10 @@ export type ThingUpdateManyMutationInput = {
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
   text?: Prisma.StringFieldUpdateOperationsInput | string
   html?: Prisma.StringFieldUpdateOperationsInput | string
-  published_on?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  thumbnail?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_by?: Prisma.StringFieldUpdateOperationsInput | string
   updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -405,9 +423,10 @@ export type ThingUncheckedUpdateManyInput = {
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
   text?: Prisma.StringFieldUpdateOperationsInput | string
   html?: Prisma.StringFieldUpdateOperationsInput | string
-  published_on?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  thumbnail?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_by?: Prisma.StringFieldUpdateOperationsInput | string
   updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -415,9 +434,9 @@ export type ThingUncheckedUpdateManyInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type ThingTenant_idPublished_onCompoundUniqueInput = {
+export type ThingTenant_idSlugCompoundUniqueInput = {
   tenant_id: string
-  published_on: Date | string
+  slug: string
 }
 
 export type ThingCountOrderByAggregateInput = {
@@ -425,9 +444,10 @@ export type ThingCountOrderByAggregateInput = {
   tenant_id?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   text?: Prisma.SortOrder
   html?: Prisma.SortOrder
-  published_on?: Prisma.SortOrder
+  thumbnail?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   created_by?: Prisma.SortOrder
   updated_by?: Prisma.SortOrder
@@ -440,9 +460,10 @@ export type ThingMaxOrderByAggregateInput = {
   tenant_id?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   text?: Prisma.SortOrder
   html?: Prisma.SortOrder
-  published_on?: Prisma.SortOrder
+  thumbnail?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   created_by?: Prisma.SortOrder
   updated_by?: Prisma.SortOrder
@@ -455,9 +476,10 @@ export type ThingMinOrderByAggregateInput = {
   tenant_id?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   text?: Prisma.SortOrder
   html?: Prisma.SortOrder
-  published_on?: Prisma.SortOrder
+  thumbnail?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   created_by?: Prisma.SortOrder
   updated_by?: Prisma.SortOrder
@@ -472,9 +494,10 @@ export type ThingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   tenant_id?: boolean
   kind?: boolean
   title?: boolean
+  slug?: boolean
   text?: boolean
   html?: boolean
-  published_on?: boolean
+  thumbnail?: boolean
   enabled?: boolean
   created_by?: boolean
   updated_by?: boolean
@@ -487,9 +510,10 @@ export type ThingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   tenant_id?: boolean
   kind?: boolean
   title?: boolean
+  slug?: boolean
   text?: boolean
   html?: boolean
-  published_on?: boolean
+  thumbnail?: boolean
   enabled?: boolean
   created_by?: boolean
   updated_by?: boolean
@@ -502,9 +526,10 @@ export type ThingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   tenant_id?: boolean
   kind?: boolean
   title?: boolean
+  slug?: boolean
   text?: boolean
   html?: boolean
-  published_on?: boolean
+  thumbnail?: boolean
   enabled?: boolean
   created_by?: boolean
   updated_by?: boolean
@@ -517,9 +542,10 @@ export type ThingSelectScalar = {
   tenant_id?: boolean
   kind?: boolean
   title?: boolean
+  slug?: boolean
   text?: boolean
   html?: boolean
-  published_on?: boolean
+  thumbnail?: boolean
   enabled?: boolean
   created_by?: boolean
   updated_by?: boolean
@@ -527,7 +553,7 @@ export type ThingSelectScalar = {
   updated_at?: boolean
 }
 
-export type ThingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "kind" | "title" | "text" | "html" | "published_on" | "enabled" | "created_by" | "updated_by" | "created_at" | "updated_at", ExtArgs["result"]["thing"]>
+export type ThingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "kind" | "title" | "slug" | "text" | "html" | "thumbnail" | "enabled" | "created_by" | "updated_by" | "created_at" | "updated_at", ExtArgs["result"]["thing"]>
 
 export type $ThingPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Thing"
@@ -540,23 +566,25 @@ export type $ThingPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
      */
     kind: string
     /**
-     * 归档与日期选择器上显示的名字。embed 必填；text 可空，正文自己就是标题
+     * 归档与列表上显示的名字。embed 必填；text 可空，正文自己就是标题
      */
     title: string
+    /**
+     * 公开地址 `/things/:slug`。租户内唯一。
+     */
+    slug: string
     /**
      * kind=text 的正文
      */
     text: string
     /**
-     * kind=embed 的 HTML 片段，可含 <style>/<script>。**绝不直接注入页面**
+     * kind=embed 的 HTML 片段，可含 <style>/<script>。详情页直接注入；列表缩略图是它的缩小版
      */
     html: string
     /**
-     * 哪一天发。null = 未排期（草稿）。
-     * 归档要能回看，「哪天是哪条」就必须显式落库——取模轮换一加新条历史就错位。
-     * Postgres 里 NULL 互不相等，所以草稿可以有很多条，同一天只能有一条。
+     * 列表卡片用的截图 URL。空则列表用可交互物自己的缩小预览
      */
-    published_on: Date | null
+    thumbnail: string
     enabled: boolean
     created_by: string
     updated_by: string | null
@@ -989,9 +1017,10 @@ export interface ThingFieldRefs {
   readonly tenant_id: Prisma.FieldRef<"Thing", 'String'>
   readonly kind: Prisma.FieldRef<"Thing", 'String'>
   readonly title: Prisma.FieldRef<"Thing", 'String'>
+  readonly slug: Prisma.FieldRef<"Thing", 'String'>
   readonly text: Prisma.FieldRef<"Thing", 'String'>
   readonly html: Prisma.FieldRef<"Thing", 'String'>
-  readonly published_on: Prisma.FieldRef<"Thing", 'DateTime'>
+  readonly thumbnail: Prisma.FieldRef<"Thing", 'String'>
   readonly enabled: Prisma.FieldRef<"Thing", 'Boolean'>
   readonly created_by: Prisma.FieldRef<"Thing", 'String'>
   readonly updated_by: Prisma.FieldRef<"Thing", 'String'>

@@ -48,9 +48,10 @@ export function ThingEditSheet({ item, children }: ThingEditSheetProps) {
       setForm({
         kind: detail.kind,
         title: detail.title,
+        slug: detail.slug,
         text: detail.text,
         html: detail.html,
-        published_on: detail.published_on ?? "",
+        thumbnail: detail.thumbnail,
         enabled: detail.enabled,
       });
       setError("");

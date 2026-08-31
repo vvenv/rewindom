@@ -21,9 +21,10 @@ const EMBED: Thing = {
   tenant_id: "tenant-1",
   kind: "embed",
   title: "时钟在撒谎",
+  slug: "时钟在撒谎",
   text: "",
   html: "<div>HELLO-EMBED</div>",
-  published_on: "2026-08-16",
+  thumbnail: "",
   enabled: true,
   created_by: "u1",
   updated_by: null,
@@ -45,8 +46,10 @@ function listItem(thing: Thing): ThingListItem {
     id: thing.id,
     kind: thing.kind,
     title: thing.title,
+    slug: thing.slug,
     text: thing.text,
-    published_on: thing.published_on,
+    html: thing.html,
+    thumbnail: thing.thumbnail,
     enabled: thing.enabled,
     created_by: thing.created_by,
     updated_by: thing.updated_by,
@@ -96,7 +99,9 @@ describe("ThingEditSheet 回填", () => {
     await waitFor(() => {
       expect(screen.getByLabelText("类型")).toHaveTextContent("可交互");
     });
-    expect(screen.getByLabelText("HTML")).toHaveValue("<div>HELLO-EMBED</div>");
+    expect(screen.getByLabelText("HTML", { selector: "textarea" })).toHaveValue(
+      "<div>HELLO-EMBED</div>",
+    );
     expect(screen.queryByLabelText("正文")).not.toBeInTheDocument();
   });
 

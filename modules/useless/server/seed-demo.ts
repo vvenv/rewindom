@@ -1,88 +1,61 @@
 /**
- * 给指定站点铺一批无用句子，并开通 useless 模块。
+ * 给指定站点铺一批无用之物，并开通 useless 模块。
  *
- * 幂等：句子按正文查重，可交互物按标题查重。
- * 可交互物的 HTML **会同步**：皮肤和手感改了，再跑一遍就把已入库的换上。
- * 句子入库即停用——公开站只出可交互物。
+ * 幂等：可交互物按标题查重。HTML 有 diff 会同步。
+ * 目录里已经拿掉的（句子、靠字成立的 embed）会从库里删掉。
+ * 缺缩略图或 HTML 变了就再截一张，写入媒体库。
  */
-import { prisma, withTenantScope } from "@rewindom/module-sdk/server";
+import { initializeTenantSite } from "@rewindom/builtin/marketing/server/site-init.service.js";
+import {
+  applyHomeLayout,
+  publishEditorDraft,
+} from "@rewindom/builtin/marketing/server/site.service.js";
+import { HOME_PAGE_KIND } from "@rewindom/builtin/marketing/shared/page-templates.js";
+import { normalizeLocale, prisma, withTenantScope } from "@rewindom/module-sdk/server";
 
+import { slugifyThing } from "../shared/slug.js";
+import {
+  USELESS_HOME_LAYOUT_KEY,
+  USELESS_THING_PAGE_KIND,
+} from "../shared/useless-page-templates.js";
+import { captureEmbedThumbnails } from "./capture-thumbnail.js";
+import { saveThingThumbnail } from "./save-thumbnail.js";
+import { registerUselessSiteContributions } from "./sections/register.js";
 import { SEED_EMBEDS } from "./seed-embeds.js";
-import { createThing } from "./thing.service.js";
-import { localDateKey, parseDateKey } from "./thing.util.js";
+import { createThing, updateThing } from "./thing.service.js";
 
 const TENANT_MODULES_KEY = "tenant_modules";
-
-/**
- * 只陈述，不给道理——句子在事实处停住就是「无用」的全部要求。
- * 想改口径直接改这个数组，重跑 seed 只会补新增的。
- */
-const LINES: string[] = [
-  "写过的代码，大部分已经不在运行了。",
-  "一个标签页被关掉的时候，它占的内存立刻被回收，没有任何提示。",
-  "刚才读这句话，用了大约两秒。",
-  "电脑里有个文件夹叫「新建文件夹」，不敢删。",
-  "地铁报站的那个声音，听了十年，不知道她叫什么。",
-  "有一根头发卡在键盘缝里，已经很久了。",
-  "再也不会打开的软件，正在后台等更新。",
-  "打印机没人用的时候，偶尔会自己响一声。",
-  /*
-   * 下面这些够得着大的东西，但一律**停在事实上**——再多走一步就是鸡汤。
-   * 判断标准很简单：如果一句话在告诉你该怎么感受，它就不该留在这里。
-   */
-  "身上大部分原子来自某颗爆炸过的恒星。它们不认识你。",
-  "出生那天的报纸头条是什么，没有人记得了，包括当时读它的人。",
-  "宇宙微波背景辐射此刻正落在你的皮肤上。你没有感觉。",
-  "这辈子见过的人里，有一些已经见过最后一面了。当时不知道。",
-  "说过的话，绝大部分没有留下任何记录。",
-  "昨天做的梦，今天已经想不起来了。",
-];
 
 export interface SeedUselessResult {
   enabled_module: boolean;
   created: number;
   updated: number;
   skipped: number;
-  backfilled: number;
+  deleted: number;
+  thumbnails: number;
 }
 
-/**
- * 往回补几天，让「回看」上线当天就有东西可翻。
- *
- * 实站上历史是随日子过去自然长出来的（只有今天会绑），本地要演示就得先造一段。
- * 已经绑过的日子不动。
- */
-async function backfillDays(
+async function pruneRemoved(
   tenantId: string,
-  days: number,
-  now: Date,
+  keepTitles: Set<string>,
 ): Promise<number> {
-  let filled = 0;
-  for (let i = 1; i <= days; i += 1) {
-    const key = localDateKey(new Date(now.getTime() - i * 86_400_000));
-    const published_on = parseDateKey(key);
-    if (!published_on) continue;
-
-    const taken = await prisma.thing.findFirst({
-      where: withTenantScope(tenantId, { published_on }),
-      select: { id: true },
-    });
-    if (taken) continue;
-
-    const free = await prisma.thing.findFirst({
-      where: withTenantScope(tenantId, { enabled: true, published_on: null }),
-      orderBy: { created_at: "asc" },
-      select: { id: true },
-    });
-    if (!free) break;
-
-    await prisma.thing.update({
-      where: withTenantScope(tenantId, { id: free.id }),
-      data: { published_on },
-    });
-    filled += 1;
-  }
-  return filled;
+  const texts = await prisma.thing.findMany({
+    where: withTenantScope(tenantId, { kind: "text" }),
+    select: { id: true },
+  });
+  const stale = await prisma.thing.findMany({
+    where: withTenantScope(tenantId, {
+      kind: "embed",
+      NOT: { title: { in: [...keepTitles] } },
+    }),
+    select: { id: true },
+  });
+  const ids = [...texts, ...stale].map((row) => row.id);
+  if (ids.length === 0) return 0;
+  const deleted = await prisma.thing.deleteMany({
+    where: withTenantScope(tenantId, { id: { in: ids } }),
+  });
+  return deleted.count;
 }
 
 async function enableUselessModule(tenantId: string): Promise<boolean> {
@@ -114,67 +87,144 @@ export async function seedUselessDemo(
 ): Promise<SeedUselessResult> {
   const enabled_module = await enableUselessModule(tenantId);
 
+  // 开通后把详情模板快照进库，并把首页套成目录版式。tsx 直跑没有 onBoot，必须先登记。
+  registerUselessSiteContributions();
+  const site = await prisma.marketingSite.findFirst({
+    where: withTenantScope(tenantId),
+  });
+  if (site) {
+    await initializeTenantSite(tenantId, normalizeLocale(site.default_locale), {
+      only_kinds: [USELESS_THING_PAGE_KIND],
+    });
+    await applyHomeLayout(tenantId, USELESS_HOME_LAYOUT_KEY);
+    const homes = await prisma.marketingPage.findMany({
+      where: withTenantScope(tenantId, { kind: HOME_PAGE_KIND }),
+      select: { id: true },
+    });
+    for (const home of homes) {
+      await publishEditorDraft(tenantId, home.id, userId);
+    }
+    const stalePages = await prisma.marketingPage.findMany({
+      where: withTenantScope(tenantId, { kind: "useless_index" }),
+      select: { id: true },
+    });
+    if (stalePages.length) {
+      const ids = stalePages.map((page) => page.id);
+      await prisma.marketingPageVersion.deleteMany({
+        where: withTenantScope(tenantId, { page_id: { in: ids } }),
+      });
+      await prisma.marketingPage.deleteMany({
+        where: withTenantScope(tenantId, { id: { in: ids } }),
+      });
+    }
+  }
+
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: tenantId },
+    select: { slug: true },
+  });
+  const tenantSlug = tenant?.slug ?? "";
+
+  const keepTitles = new Set(SEED_EMBEDS.map((embed) => embed.title));
+  const deleted = await pruneRemoved(tenantId, keepTitles);
+
   let created = 0;
   let updated = 0;
   let skipped = 0;
+  const needThumb: {
+    id: string;
+    title: string;
+    html: string;
+    url: string;
+  }[] = [];
 
   for (const embed of SEED_EMBEDS) {
+    const slug = slugifyThing(embed.title);
     const existing = await prisma.thing.findFirst({
       where: withTenantScope(tenantId, { kind: "embed", title: embed.title }),
-      select: { id: true, html: true },
+      select: {
+        id: true,
+        html: true,
+        enabled: true,
+        slug: true,
+        thumbnail: true,
+      },
     });
     if (existing) {
-      if (existing.html !== embed.html) {
-        await prisma.thing.update({
-          where: withTenantScope(tenantId, { id: existing.id }),
-          data: { html: embed.html },
+      const htmlChanged = existing.html !== embed.html;
+      const patch: { html?: string; enabled?: boolean; slug?: string } = {};
+      if (htmlChanged) patch.html = embed.html;
+      if (!existing.enabled) patch.enabled = true;
+      if (!existing.slug && slug) patch.slug = slug;
+      if (Object.keys(patch).length) {
+        await updateThing({
+          tenant_id: tenantId,
+          user_id: userId,
+          thing_id: existing.id,
+          ...patch,
         });
         updated += 1;
       } else {
         skipped += 1;
       }
+      if (htmlChanged || !existing.thumbnail) {
+        needThumb.push({
+          id: existing.id,
+          title: embed.title,
+          html: embed.html,
+          url: existing.thumbnail,
+        });
+      }
       continue;
     }
-    await createThing({
+    const createdThing = await createThing({
       tenant_id: tenantId,
       user_id: userId,
       kind: "embed",
       title: embed.title,
+      slug,
       html: embed.html,
       enabled: true,
     });
     created += 1;
+    needThumb.push({
+      id: createdThing.id,
+      title: embed.title,
+      html: embed.html,
+      url: createdThing.thumbnail,
+    });
   }
 
-  const disabledTexts = await prisma.thing.updateMany({
-    where: withTenantScope(tenantId, {
-      kind: "text",
-      OR: [{ enabled: true }, { published_on: { not: null } }],
-    }),
-    data: { enabled: false, published_on: null },
-  });
-  updated += disabledTexts.count;
-
-  for (const text of LINES) {
-    const existing = await prisma.thing.findFirst({
-      where: withTenantScope(tenantId, { kind: "text", text }),
-      select: { id: true },
-    });
-    if (existing) {
-      skipped += 1;
-      continue;
+  let thumbnails = 0;
+  if (needThumb.length && tenantSlug) {
+    const shots = await captureEmbedThumbnails(
+      needThumb.map((item) => ({ title: item.title, html: item.html })),
+    );
+    for (const item of needThumb) {
+      const jpeg = shots.get(item.title);
+      if (!jpeg) continue;
+      const url = await saveThingThumbnail({
+        tenant_id: tenantId,
+        tenant_slug: tenantSlug,
+        jpeg,
+        existing_url: item.url,
+      });
+      await updateThing({
+        tenant_id: tenantId,
+        user_id: userId,
+        thing_id: item.id,
+        thumbnail: url,
+      });
+      thumbnails += 1;
     }
-    await createThing({
-      tenant_id: tenantId,
-      user_id: userId,
-      kind: "text",
-      text,
-      enabled: false,
-    });
-    created += 1;
   }
 
-  const backfilled = await backfillDays(tenantId, 10, new Date());
-
-  return { enabled_module, created, updated, skipped, backfilled };
+  return {
+    enabled_module,
+    created,
+    updated,
+    skipped,
+    deleted,
+    thumbnails,
+  };
 }

@@ -25,6 +25,8 @@ import { registerEventsSections } from "../../../modules/events/server/sections/
 import { registerEventsPageTemplates } from "../../../modules/events/shared/events-page-templates.js";
 import { registerShopStorefrontSections } from "../../../modules/shop/server/sections/register.js";
 import { registerShopPageTemplates } from "../../../modules/shop/shared/shop-page-templates.js";
+import { registerUselessSiteContributions } from "../../../modules/useless/server/sections/register.js";
+import { registerUselessPageTemplates } from "../../../modules/useless/shared/useless-page-templates.js";
 import { loadUsageDocs } from "../../../modules/site-docs/server/load-usage-docs.js";
 import { registerDocsSections } from "../../../modules/site-docs/server/register.js";
 import { seedDocsFromFiles } from "../../../modules/site-docs/server/site-doc.service.js";
@@ -59,6 +61,8 @@ function registerContributedSiteSurfaces(): void {
   registerShopStorefrontSections();
   registerEventsPageTemplates();
   registerEventsSections();
+  registerUselessPageTemplates();
+  registerUselessSiteContributions();
 }
 
 async function main(): Promise<void> {

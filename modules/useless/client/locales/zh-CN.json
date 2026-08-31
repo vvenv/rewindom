@@ -1,7 +1,7 @@
 {
   "title": "无用",
-  "description": "每天一个没有用的东西",
-  "pageDescription": "每天随机绑一个。停用的不进池子。",
+  "description": "没有用的东西，一件一件。",
+  "pageDescription": "启用的会出现在公开目录上。",
   "create": "新建",
   "createTitle": "新建一个无用的",
   "createDescription": "一句话，或者一个能点的东西。",
@@ -19,10 +19,11 @@
   "fieldText": "正文",
   "fieldHtml": "HTML",
   "fieldHtmlInfo": "可含 <style> 与 <script>。",
-  "fieldDate": "日期",
-  "fieldDateInfo": "留空即可——系统会在某天第一次被访问时随机绑上。",
+  "fieldSlug": "路径",
+  "fieldSlugInfo": "公开地址是 /这一段。留空则按名字自动生成。",
+  "fieldThumbnail": "截图",
+  "fieldThumbnailInfo": "列表卡片用。seed 会给可交互物自动截一张；也可自己换。留空则把可交互物自己缩小放进格子。",
   "fieldEnabled": "启用",
-  "unscheduled": "未排期",
   "columnContent": "内容",
   "columnActions": "操作",
   "searchPlaceholder": "搜索正文或名字…",
@@ -38,27 +39,46 @@
   "cancel": "取消",
   "save": "保存",
   "nav": {
-    "things": "无用",
-    "prev": "前一天",
-    "next": "后一天",
-    "today": "回到今天",
-    "pick": "挑一天"
+    "things": "无用"
+  },
+  "site": {
+    "index": {
+      "title": "无用",
+      "subtitle": "没有用的东西"
+    },
+    "thing": {
+      "title": "{thing}",
+      "subtitle": ""
+    }
+  },
+  "token": {
+    "thing": "当前这件东西的名字"
+  },
+  "template": {
+    "group": "无用之物",
+    "thing": { "label": "详情" }
+  },
+  "home": {
+    "layout": {
+      "label": "目录",
+      "description": "站点根是无用之物目录"
+    }
   },
   "section": {
     "group": "无用",
-    "today": {
-      "label": "那天那个",
+    "list": {
+      "label": "无用之物目录",
       "group": "内容",
-      "navGroup": "日期导航",
-      "embedHeight": "可交互物高度（px）",
-      "embedHeightInfo": "沙箱 iframe 量不到内容高度，只能在这里给一个固定值。",
-      "prevLabel": "前一天的文案",
-      "nextLabel": "后一天的文案",
-      "todayLabel": "回到今天的文案",
-      "pickLabel": "日期选择器的文案",
-      "emptyText": "那天没有东西时显示",
-      "emptyTextInfo": "池子空了或那天没绑上时显示这句，避免这一段看起来是坏的。",
-      "emptyDefault": "今天没有。"
+      "emptyText": "池子空时显示",
+      "emptyTextInfo": "还没录东西时显示这句，避免这一段看起来是坏的。",
+      "emptyDefault": "还没有。"
+    },
+    "thing": {
+      "label": "无用之物",
+      "group": "内容",
+      "emptyText": "找不到这件时显示",
+      "emptyTextInfo": "地址对不上或已停用时显示这句。",
+      "emptyDefault": "没有这个。"
     }
   },
   "validation": {
@@ -68,7 +88,9 @@
     "htmlRequired": "请输入 HTML",
     "htmlTooLong": "HTML 不能超过 {{max}} 个字符",
     "titleRequired": "可交互的东西必须有名字",
-    "titleTooLong": "名字不能超过 {{max}} 个字符"
+    "titleTooLong": "名字不能超过 {{max}} 个字符",
+    "slugInvalid": "路径只能用字、数字和连字符",
+    "slugReserved": "这个路径被系统占用了"
   },
   "preview": "预览",
   "previewAriaLabel": "预览",

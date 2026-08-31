@@ -14,7 +14,7 @@ export const uselessServerModule: ServerAppModule = {
   version: "1.0.0",
   label: "Useless",
   kind: "business",
-  description: "无用句子库——每天一条没有用的话",
+  description: "无用之物——一件一件，没有用",
   requires: ["rbac", "audit", "marketing"],
   tenantEntitlements: [THING_ENTITLEMENT],
   shared: {

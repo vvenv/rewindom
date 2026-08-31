@@ -1,3 +1,5 @@
+import { isReservedPageSlug } from "@rewindom/builtin/marketing/shared/reserved-slugs.js";
+
 import { isThingKind, type ThingKind } from "../../shared/index.js";
 
 export const THING_TEXT_MAX_LENGTH = 10_000;
@@ -7,23 +9,20 @@ export const THING_TITLE_MAX_LENGTH = 120;
 export interface ThingFormValues {
   kind: ThingKind;
   title: string;
+  slug: string;
   text: string;
   html: string;
-  /** `YYYY-MM-DD`；空串 = 不排期，交给系统随机绑。 */
-  published_on: string;
+  thumbnail: string;
   enabled: boolean;
 }
 
-/*
- * 默认不排期：整个产品的口径是「每天随机绑一个」，手工指定是例外而不是常态。
- * enabled 与 Prisma 的 @default(true) 对齐——新建即停用是反直觉的。
- */
 export const INITIAL_THING_FORM: ThingFormValues = {
   kind: "text",
   title: "",
+  slug: "",
   text: "",
   html: "",
-  published_on: "",
+  thumbnail: "",
   enabled: true,
 };
 
@@ -42,10 +41,14 @@ export function validateThingForm(
   if (values.title.length > THING_TITLE_MAX_LENGTH) {
     return t("validation.titleTooLong", { max: THING_TITLE_MAX_LENGTH });
   }
+  if (values.slug.trim() && /[/#?=]/.test(values.slug.trim())) {
+    return t("validation.slugInvalid");
+  }
+  if (values.slug.trim() && isReservedPageSlug(values.slug.trim())) {
+    return t("validation.slugReserved");
+  }
 
   if (values.kind === "embed") {
-    // 可交互的东西必须有名字：后台列表要靠它认，一段 HTML 当不了名字。
-    // 公开站不画这个名字。
     if (!values.title.trim()) return t("validation.titleRequired");
     if (!values.html.trim()) return t("validation.htmlRequired");
     if (values.html.length > THING_HTML_MAX_LENGTH) {
@@ -65,19 +68,21 @@ export function validateThingForm(
 export function buildThingPayload(values: ThingFormValues): {
   kind: ThingKind;
   title: string;
+  slug: string | undefined;
   text: string;
   html: string;
-  published_on: string | null;
+  thumbnail: string;
   enabled: boolean;
 } {
   const isEmbed = values.kind === "embed";
+  const slug = values.slug.trim();
   return {
     kind: values.kind,
     title: values.title.trim(),
-    // 另一种形态的字段清空，免得切换 kind 之后留着上一次的残留
+    slug: slug || undefined,
     text: isEmbed ? "" : values.text.trim(),
     html: isEmbed ? values.html.trim() : "",
-    published_on: values.published_on.trim() || null,
+    thumbnail: values.thumbnail.trim(),
     enabled: values.enabled,
   };
 }

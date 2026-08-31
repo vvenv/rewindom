@@ -1,0 +1,27 @@
+# 公开站改成首页目录 + 根上详情，不再按日期绑 thing
+module: useless
+surfaces: [ssr, tenant]
+goal: >-
+  公开站贡献首页（/，首页版式）与详情页（/:slug，一张模板页、一段不可删除的必备段），
+  不要 /things 前缀；不再按日期绑定 thing；列表上每一件显示与之对应的截图/缩略图。
+gold: modules/events/shared/events-page-templates.ts
+touch:
+  - modules/useless/features/catalog-pages.spec.yaml
+  - modules/useless/MODULE.md
+  - modules/useless/prisma/schema.prisma
+  - modules/useless/shared/
+  - modules/useless/server/
+  - modules/useless/client/
+  - apps/server/scripts/seed-useless-demo.ts
+  - apps/server/scripts/seed-local-marketing-site.ts
+  - apps/server/prisma/migrations/20260830100000_useless_catalog_pages/migration.sql
+  - apps/server/scripts/preview-useless.ts
+out_of_scope:
+  - 改动各个东西自己的玩笑逻辑
+  - chrome 块
+  - 把 kind=text 从后台拿掉
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/useless test
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs useless

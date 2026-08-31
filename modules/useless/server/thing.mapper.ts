@@ -12,18 +12,15 @@ function toKind(value: string): Thing["kind"] {
   return isThingKind(value) ? value : "text";
 }
 
-/** 存的是 UTC 零点，对外一律是 `YYYY-MM-DD`——别把时区泄进 API。 */
-function toDateKey(value: Date | null): string | null {
-  return value ? value.toISOString().slice(0, 10) : null;
-}
-
 export function toThingListItem(record: ThingRecord): ThingListItem {
   return {
     id: record.id,
     kind: toKind(record.kind),
     title: record.title,
+    slug: record.slug,
     text: record.text,
-    published_on: toDateKey(record.published_on),
+    html: record.html,
+    thumbnail: record.thumbnail,
     enabled: record.enabled,
     created_by: record.created_by,
     updated_by: record.updated_by,
@@ -38,9 +35,10 @@ export function toThing(record: ThingRecord): Thing {
     tenant_id: record.tenant_id,
     kind: toKind(record.kind),
     title: record.title,
+    slug: record.slug,
     text: record.text,
     html: record.html,
-    published_on: toDateKey(record.published_on),
+    thumbnail: record.thumbnail,
     enabled: record.enabled,
     created_by: record.created_by,
     updated_by: record.updated_by,

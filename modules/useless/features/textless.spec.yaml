@@ -1,0 +1,34 @@
+# 公开站只留能自己说话的机制：纯图形 / 动画 / 交互，且每条都得能玩、有话说或有转折
+module: useless
+surfaces: [ssr]
+goal: >-
+  seed 换成无文字、无解释的图形化东西，两类：`tap` 要你动手，`auto` 自己在长；
+  收的标准只有一句——翻到这一天你会想动手，或者愿意让它开着。
+  一句话的笑话、循环播放的花纹、把输入映射成一个标量的演示，一律不留；
+  旧玩笑标题从目录和库里删掉；kind=text 不再入库
+gold: modules/useless/server/seed-embeds/shell.ts
+touch:
+  - modules/useless/features/textless.spec.yaml
+  - modules/useless/server/seed-embeds.ts
+  - modules/useless/server/seed-embeds.test.ts
+  - modules/useless/server/seed-embeds/shell.ts
+  - modules/useless/server/seed-embeds/tap.ts
+  - modules/useless/server/seed-embeds/auto.ts
+  - modules/useless/server/seed-embeds/misc.ts
+  - modules/useless/server/seed-embeds/time.ts
+  - modules/useless/server/seed-embeds/people.ts
+  - modules/useless/server/seed-embeds/work.ts
+  - modules/useless/server/seed-embeds/words.ts
+  - modules/useless/server/seed-embeds/machine.ts
+  - modules/useless/server/seed-embeds/self.ts
+  - modules/useless/server/seed-embeds/deep.ts
+  - modules/useless/server/seed-demo.ts
+  - modules/useless/MODULE.md
+  - apps/server/scripts/seed-useless-demo.ts
+out_of_scope:
+  - 删掉 kind=text 这个形态（后台仍可手建句子）
+  - 公开站日期导航文案
+  - 改动工作台表单
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/useless test

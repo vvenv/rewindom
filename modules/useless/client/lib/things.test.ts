@@ -7,7 +7,6 @@ import {
   validateThingForm,
 } from "./things.js";
 
-/** 校验只负责挑 key，文案由 i18n 提供——测试用恒等 t 断言 key 本身。 */
 const t = (key: string) => key;
 
 describe("validateThingForm", () => {
@@ -38,6 +37,12 @@ describe("validateThingForm", () => {
       validateThingForm({ ...embed, title: "按钮", html: "<button>" }, t),
     ).toBeNull();
   });
+
+  it("系统占用的一级路径不能当 slug", () => {
+    expect(
+      validateThingForm({ ...INITIAL_THING_FORM, text: "有", slug: "login" }, t),
+    ).toBe("validation.slugReserved");
+  });
 });
 
 describe("buildThingPayload", () => {
@@ -53,17 +58,17 @@ describe("buildThingPayload", () => {
     ).toEqual({
       kind: "embed",
       title: "按钮",
+      slug: undefined,
       text: "",
       html: "<button>x</button>",
-      published_on: null,
+      thumbnail: "",
       enabled: true,
     });
   });
 
-  it("日期留空 = 不排期，交给系统随机绑", () => {
+  it("路径留空交给服务端起", () => {
     expect(
-      buildThingPayload({ ...INITIAL_THING_FORM, text: "有", published_on: "  " })
-        .published_on,
-    ).toBeNull();
+      buildThingPayload({ ...INITIAL_THING_FORM, text: "有", slug: "  " }).slug,
+    ).toBeUndefined();
   });
 });

@@ -1,57 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  localDateKey,
-  parseDateKey,
-  shiftDateKey,
-  validateThingInput,
-} from "./thing.util.js";
-
-describe("localDateKey", () => {
-  it("按站点挂钟切日，不是 UTC", () => {
-    // 北京时间早上八点正是 UTC 切日的时刻——这时候换东西对读者是错的
-    const seven = new Date("2026-08-27T07:00:00+08:00");
-    const nine = new Date("2026-08-27T09:00:00+08:00");
-    expect(localDateKey(nine)).toBe(localDateKey(seven));
-    expect(localDateKey(seven)).toBe("2026-08-27");
-  });
-
-  it("跨当地零点换一天", () => {
-    expect(localDateKey(new Date("2026-08-27T23:59:59+08:00"))).toBe("2026-08-27");
-    expect(localDateKey(new Date("2026-08-28T00:00:01+08:00"))).toBe("2026-08-28");
-  });
-});
-
-describe("parseDateKey", () => {
-  it("认合法日期", () => {
-    expect(parseDateKey("2026-08-27")?.toISOString()).toBe(
-      "2026-08-27T00:00:00.000Z",
-    );
-  });
-
-  it("挡住访客乱填的东西", () => {
-    // `?d=` 来自地址栏，绝不能原样带进查询
-    for (const bad of [
-      "2026-02-30",
-      "26-08-27",
-      "2026/08/27",
-      "2026-08-27T00:00:00Z",
-      "'; DROP TABLE",
-      "",
-      null,
-      42,
-    ]) {
-      expect(parseDateKey(bad)).toBeNull();
-    }
-  });
-});
-
-describe("shiftDateKey", () => {
-  it("跨月跨年都对", () => {
-    expect(shiftDateKey("2026-08-31", 1)).toBe("2026-09-01");
-    expect(shiftDateKey("2026-01-01", -1)).toBe("2025-12-31");
-  });
-});
+import { validateThingInput } from "./thing.util.js";
 
 describe("validateThingInput", () => {
   it("句子要正文", () => {
@@ -85,13 +34,21 @@ describe("validateThingInput", () => {
     );
   });
 
-  it("日期不合法就挡掉", () => {
+  it("slug 不合法就挡掉", () => {
     expect(
-      validateThingInput({ kind: "text", text: "有", published_on: "2026-13-01" })
-        ?.code,
-    ).toBe("useless.date_invalid");
+      validateThingInput({ kind: "text", text: "有", slug: "a/b" })?.code,
+    ).toBe("useless.slug_invalid");
     expect(
-      validateThingInput({ kind: "text", text: "有", published_on: null }),
+      validateThingInput({ kind: "text", text: "有", slug: "hello" }),
     ).toBeNull();
+  });
+
+  it("系统占用的一级路径不能当 slug", () => {
+    expect(
+      validateThingInput({ kind: "text", text: "有", slug: "login" })?.code,
+    ).toBe("useless.slug_reserved");
+    expect(
+      validateThingInput({ kind: "text", text: "有", slug: "app" })?.code,
+    ).toBe("useless.slug_reserved");
   });
 });

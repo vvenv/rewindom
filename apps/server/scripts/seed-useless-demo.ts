@@ -1,8 +1,9 @@
 /* eslint-disable no-console */
 /**
- * 给指定站点铺一批无用句子，并开通 useless 模块。
+ * 给指定站点铺一批无用之物，并开通 useless 模块。
  *
  * 幂等，可重复执行。可交互物按标题查重，HTML 有 diff 会同步。
+ * 已经移出目录的（句子、靠字成立的 embed）会从库里删掉。
  *
  *   pnpm --filter server exec tsx scripts/seed-useless-demo.ts [tenantSlug]
  */
@@ -37,9 +38,9 @@ async function main(): Promise<void> {
 
   const result = await seedUselessDemo(tenant.id, user.id);
   console.log(
-    `[seed-useless-demo] tenant=${slug} user=${user.username} enabled_useless=${result.enabled_module} created=+${result.created} updated=${result.updated} skipped=${result.skipped} backfilled=${result.backfilled}`,
+    `[seed-useless-demo] tenant=${slug} user=${user.username} enabled_useless=${result.enabled_module} created=+${result.created} updated=${result.updated} skipped=${result.skipped} deleted=${result.deleted} thumbnails=${result.thumbnails}`,
   );
-  console.log("[seed-useless-demo] workspace /app/things");
+  console.log("[seed-useless-demo] workspace /app/things · public /  /:slug");
 }
 
 main()

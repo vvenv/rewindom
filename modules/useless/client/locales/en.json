@@ -1,7 +1,7 @@
 {
   "title": "Useless",
-  "description": "One useless thing a day",
-  "pageDescription": "One is bound at random each day. Disabled ones stay out of the pool.",
+  "description": "Useless things, one by one.",
+  "pageDescription": "Enabled ones appear in the public catalog.",
   "create": "New",
   "createTitle": "New useless thing",
   "createDescription": "A line, or something you can click.",
@@ -19,10 +19,11 @@
   "fieldText": "Text",
   "fieldHtml": "HTML",
   "fieldHtmlInfo": "May include <style> and <script>.",
-  "fieldDate": "Date",
-  "fieldDateInfo": "Leave empty — one gets bound at random the first time a day is visited.",
+  "fieldSlug": "Slug",
+  "fieldSlugInfo": "Public URL is /this. Leave empty to generate from the name.",
+  "fieldThumbnail": "Screenshot",
+  "fieldThumbnailInfo": "Used on the catalog card. Seed captures one for interactive things; you can replace it. Leave empty to show a live miniature.",
   "fieldEnabled": "Enabled",
-  "unscheduled": "Unscheduled",
   "columnContent": "Content",
   "columnActions": "Actions",
   "searchPlaceholder": "Search text or name…",
@@ -38,27 +39,46 @@
   "cancel": "Cancel",
   "save": "Save",
   "nav": {
-    "things": "Useless",
-    "prev": "Previous day",
-    "next": "Next day",
-    "today": "Back to today",
-    "pick": "Pick a day"
+    "things": "Useless"
+  },
+  "site": {
+    "index": {
+      "title": "Useless",
+      "subtitle": "Things that do nothing"
+    },
+    "thing": {
+      "title": "{thing}",
+      "subtitle": ""
+    }
+  },
+  "token": {
+    "thing": "The current thing's name"
+  },
+  "template": {
+    "group": "Useless things",
+    "thing": { "label": "Detail" }
+  },
+  "home": {
+    "layout": {
+      "label": "Catalog",
+      "description": "The site root is the catalog of useless things"
+    }
   },
   "section": {
     "group": "Useless",
-    "today": {
-      "label": "That day's thing",
+    "list": {
+      "label": "Useless catalog",
       "group": "Content",
-      "navGroup": "Date navigation",
-      "embedHeight": "Interactive height (px)",
-      "embedHeightInfo": "A sandboxed iframe can't measure its content, so set a fixed value here.",
-      "prevLabel": "Previous-day label",
-      "nextLabel": "Next-day label",
-      "todayLabel": "Back-to-today label",
-      "pickLabel": "Date picker label",
-      "emptyText": "Shown when that day has nothing",
-      "emptyTextInfo": "Shown when the pool is empty or that day never got bound, so the section doesn't look broken.",
-      "emptyDefault": "Nothing today."
+      "emptyText": "Shown when the catalog is empty",
+      "emptyTextInfo": "Shown when nothing has been added yet, so the section doesn't look broken.",
+      "emptyDefault": "Nothing here."
+    },
+    "thing": {
+      "label": "Useless thing",
+      "group": "Content",
+      "emptyText": "Shown when this thing is missing",
+      "emptyTextInfo": "Shown when the address doesn't match or the thing is disabled.",
+      "emptyDefault": "Nothing here."
     }
   },
   "validation": {
@@ -68,7 +88,9 @@
     "htmlRequired": "HTML is required",
     "htmlTooLong": "HTML must be at most {{max}} characters",
     "titleRequired": "An interactive thing needs a name",
-    "titleTooLong": "Name must be at most {{max}} characters"
+    "titleTooLong": "Name must be at most {{max}} characters",
+    "slugInvalid": "Slug may only contain letters, numbers, and hyphens",
+    "slugReserved": "That slug is reserved"
   },
   "preview": "Preview",
   "previewAriaLabel": "Preview",
