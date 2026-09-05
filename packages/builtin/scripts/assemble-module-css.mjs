@@ -80,7 +80,13 @@ function constNameOf(fileName) {
   return `${path.basename(fileName, ".css").replaceAll("-", "_").toUpperCase()}_CSS`;
 }
 
-/** bundle 是为了内联 `@import`；minify 剥注释、压体积。 */
+/**
+ * bundle 是为了内联 `@import`；minify 剥注释、压体积。
+ *
+ * `/assets/*` 标成 external：模块 CSS 里引应用静态资源（自托管 webfont、贴图）写的是
+ * 同源绝对路径，bundle 模式默认会拿它去磁盘上找文件然后报 `Could not resolve`。
+ * 那些路径由 nginx / Vite 从 `apps/client/public/assets/` 发，不该也不能被打进 CSS。
+ */
 function buildCss(entryPath) {
   const result = esbuild.buildSync({
     entryPoints: [entryPath],
@@ -88,6 +94,7 @@ function buildCss(entryPath) {
     minify: true,
     write: false,
     logLevel: "silent",
+    external: ["/assets/*"],
   });
   return result.outputFiles[0].text.trim();
 }
