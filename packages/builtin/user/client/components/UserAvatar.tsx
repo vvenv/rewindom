@@ -20,17 +20,13 @@ import {
 } from "@rewindom/shared";
 import { Avatar, AvatarFallback } from "@rewindom/ui/avatar";
 import { Button } from "@rewindom/ui/button";
+import { ButtonGroup } from "@rewindom/ui/button-group";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@rewindom/ui/dropdown-menu";
 import { cn } from "@rewindom/ui/utils";
@@ -68,7 +64,7 @@ interface UserAvatarProps {
   showShellPreferences?: boolean;
 }
 
-function PreferenceSubmenu({
+function PreferenceToggleRow({
   icon,
   label,
   value,
@@ -84,21 +80,35 @@ function PreferenceSubmenu({
   className?: string;
 }): ReactNode {
   return (
-    <DropdownMenuSub>
-      <DropdownMenuSubTrigger className={className}>
+    <div
+      className={cn(
+        "flex flex-wrap items-center justify-between gap-1.5 px-1.5 py-1",
+        className,
+      )}
+    >
+      <div className="flex min-w-0 items-center gap-1.5 text-sm">
         {icon}
-        <span>{label}</span>
-      </DropdownMenuSubTrigger>
-      <DropdownMenuSubContent className="w-max">
-        <DropdownMenuRadioGroup value={value} onValueChange={onValueChange}>
-          {options.map((option) => (
-            <DropdownMenuRadioItem key={option.slug} value={option.slug}>
+        <span className="truncate">{label}</span>
+      </div>
+      <ButtonGroup aria-label={label}>
+        {options.map((option) => {
+          const selected = option.slug === value;
+          return (
+            <Button
+              key={option.slug}
+              type="button"
+              size="xs"
+              variant={selected ? "default" : "outline"}
+              aria-pressed={selected}
+              onPointerDown={(event) => event.preventDefault()}
+              onClick={() => onValueChange(option.slug)}
+            >
               {option.label}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuSubContent>
-    </DropdownMenuSub>
+            </Button>
+          );
+        })}
+      </ButtonGroup>
+    </div>
   );
 }
 
@@ -107,7 +117,7 @@ export function UserAvatar({
   menuAlign = "end",
   showShellPreferences = false,
 }: UserAvatarProps) {
-  const { t: tShell, i18n } = useTranslation("shell");
+  const { t: tShell } = useTranslation("shell");
   const { t: tCommon } = useTranslation("common");
   const { t: tUser } = useTranslation("user");
   const { user, logout } = useAuth();
@@ -237,7 +247,7 @@ export function UserAvatar({
           </>
         )}
         <DropdownMenuSeparator />
-        <PreferenceSubmenu
+        <PreferenceToggleRow
           icon={<Languages className="size-4" />}
           label={tCommon("language")}
           value={locale}
@@ -249,8 +259,7 @@ export function UserAvatar({
         />
         {showShellPreferences ? (
           <>
-            <PreferenceSubmenu
-              key={`palette-${i18n.language}`}
+            <PreferenceToggleRow
               icon={<Palette className="size-4" />}
               label={tShell("theme")}
               value={palette}
@@ -259,8 +268,7 @@ export function UserAvatar({
                 setPalette(normalizeThemePalette(value))
               }
             />
-            <PreferenceSubmenu
-              key={`layout-${i18n.language}`}
+            <PreferenceToggleRow
               icon={<PanelsTopLeft className="size-4" />}
               label={tShell("layout")}
               value={layout}
@@ -270,7 +278,7 @@ export function UserAvatar({
             />
           </>
         ) : null}
-        <PreferenceSubmenu
+        <PreferenceToggleRow
           icon={<SunMoon className="size-4" />}
           label={tShell("colorMode")}
           value={colorMode}

@@ -214,4 +214,38 @@ describe("UserAvatar", () => {
     );
     expect(avatarButton).toBeInTheDocument();
   });
+
+  it("语言与明暗应直接显示为按钮组", () => {
+    renderAvatar();
+    openMenu();
+
+    expect(screen.getByRole("button", { name: "中文" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "English" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+    expect(screen.getByRole("button", { name: "浅色" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "深色" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "跟随系统" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+
+  it("开启外壳偏好时应直接显示主题与布局按钮组", () => {
+    render(
+      <MemoryRouter>
+        <UserAvatar showShellPreferences />
+      </MemoryRouter>,
+    );
+    openMenu();
+
+    expect(screen.getByRole("button", { name: "青蓝" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "石墨" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "左右" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "上下" })).toBeInTheDocument();
+  });
 });
