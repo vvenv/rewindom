@@ -17,6 +17,7 @@ import {
 import { Button } from "@rewindom/ui/button";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetFooter,
@@ -75,7 +76,7 @@ export function DashboardSettingsSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex w-full flex-col sm:max-w-md">
+      <SheetContent className="sm:max-w-md">
         <SheetHeader>
           <SheetTitle>{t("settings.title")}</SheetTitle>
           <SheetDescription>
@@ -115,24 +116,29 @@ export function DashboardSettingsSheet({
           )}
         </div>
 
-        <SheetFooter className="@xl/sheet-content:justify-between">
+        <SheetFooter>
           <Button
-            variant="ghost"
-            onClick={restoreDefaults}
+            type="button"
+            variant="outline"
+            onClick={() => void restoreDefaults()}
             disabled={isRestoring || isSaving}
           >
-            {isRestoring ? <Spinner /> : null}
+            {isRestoring ? <Spinner className="size-4" /> : null}
             {t("settings.restoreDefaults")}
           </Button>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <SheetClose asChild>
+            <Button type="button" variant="outline" disabled={isRestoring || isSaving}>
               {t("settings.cancel")}
             </Button>
-            <Button onClick={save} disabled={!isDirty || isSaving}>
-              {isSaving ? <Spinner /> : null}
-              {t("settings.save")}
-            </Button>
-          </div>
+          </SheetClose>
+          <Button
+            type="button"
+            onClick={() => void save()}
+            disabled={!isDirty || isSaving || isRestoring}
+          >
+            {isSaving ? <Spinner className="size-4" /> : null}
+            {t("settings.save")}
+          </Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>
