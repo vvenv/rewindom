@@ -6,7 +6,7 @@
  */
 import { config } from "@rewindom/server-kernel/lib/config.js";
 
-import { purgeExpiredIpRules } from "./ip-access.service.js";
+import { flushRuleHits, purgeExpiredIpRules } from "./ip-access.service.js";
 import { exportNginxBlocklist } from "./nginx-export.js";
 import { trimTrafficBuckets } from "./traffic-stats.service.js";
 
@@ -57,6 +57,8 @@ export function registerIpAccessJobs(ctx: JobRegistryContext): void {
     stop: () => {
       for (const id of intervals) clearInterval(id);
       intervals.length = 0;
+      // 停机前把攒下的命中数落库，否则最后一个批次直接丢掉
+      void flushRuleHits();
     },
   });
 }

@@ -11,6 +11,7 @@
     "dev": "tsx watch src/index.ts",
     "prebuild": "pnpm --filter @rewindom/builtin assemble",
     "build": "tsc -p tsconfig.build.json --noEmit && node scripts/bundle.mjs",
+    "typecheck": "tsc -p tsconfig.build.json --noEmit",
     "start": "node dist/index.js",
     "lint": "eslint .",
     "validate:module-deps": "tsx scripts/validate-module-dependencies.ts",
