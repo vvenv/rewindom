@@ -38,6 +38,18 @@ export function attachKernelContext(app: FastifyInstance): void {
   }
 }
 
+/**
+ * 认证之前的模块 hook。访问控制要在 JWT 验签、租户查库、权限计算之前就把
+ * 被封的请求拒掉，所以必须与 `registerModuleMiddleware` 分成两次调用。
+ */
+export async function registerEarlyModuleMiddleware(
+  app: FastifyInstance,
+): Promise<void> {
+  attachKernelContext(app);
+  const loader = getModuleLoader();
+  await loader.registerEarlyMiddleware(app);
+}
+
 export async function registerModuleMiddleware(
   app: FastifyInstance,
 ): Promise<void> {

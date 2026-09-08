@@ -29,6 +29,20 @@ export interface ServerRouteRegistration {
 
 export interface ServerAppModule extends ModuleManifestBase {
   server?: {
+    /**
+     * 在**认证之前**挂 hook 的机会。
+     *
+     * `registerMiddleware` 跑在 `authMiddleware` 之后，对「先认人再干活」的模块
+     * 正合适。但访问控制类的模块必须比认证更早：被封的 IP 不该先享受一遍
+     * JWT 验签、租户查库和权限计算再被拒。
+     *
+     * 这里注册的 hook 对**所有**进入 Fastify 的请求生效，包括官网 SSR，
+     * 不只是 `/api`。因此实现必须自己短路掉 `/health` 与 CORS 预检。
+     */
+    registerEarlyMiddleware?: (
+      app: FastifyInstance,
+      ctx: ServerModuleContext,
+    ) => Promise<void>;
     registerMiddleware?: (
       app: FastifyInstance,
       ctx: ServerModuleContext,

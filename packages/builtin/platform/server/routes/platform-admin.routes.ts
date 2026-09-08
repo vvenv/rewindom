@@ -88,7 +88,6 @@ export async function registerPlatformAdminRoutes(
             name: role.name,
             permissions_text: body.permissions.join(", ") || "-",
           },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
 
@@ -126,7 +125,6 @@ export async function registerPlatformAdminRoutes(
             name: role.name,
             permissions_text: body.permissions?.join(", ") || "-",
           },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
 
@@ -153,7 +151,6 @@ export async function registerPlatformAdminRoutes(
           resource: `platform_role:${deletedName}`,
           detail_key: "platform.audit.role_deleted",
           detail_params: { name: deletedName },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
 
@@ -238,7 +235,6 @@ export async function registerPlatformAdminRoutes(
           resource: `platform_admin:${admin.username}`,
           detail_key: "platform.audit.admin_created",
           detail_params: { username: admin.username },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
 
@@ -300,7 +296,6 @@ export async function registerPlatformAdminRoutes(
           resource: `platform_admin:${admin.username}`,
           detail_key: "platform.audit.admin_updated",
           detail_params: { username: admin.username },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
 
@@ -330,7 +325,6 @@ export async function registerPlatformAdminRoutes(
           resource: `platform_admin:${admin.username}`,
           detail_key: "platform.audit.admin_deleted",
           detail_params: { username: admin.username },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
 
@@ -369,7 +363,6 @@ export async function registerPlatformAdminRoutes(
           resource: `platform_admin:${admin.username}`,
           detail_key: "platform.audit.admin_password_reset",
           detail_params: { username: admin.username },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
 
@@ -446,7 +439,6 @@ export async function registerPlatformAdminRoutes(
             username: admin.username,
             roles_text: roles.map((role) => role.name).join(", ") || "-",
           },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
 

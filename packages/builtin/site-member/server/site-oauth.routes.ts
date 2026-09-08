@@ -30,7 +30,6 @@ async function auditOAuthChange(
     resource: "site_oauth",
     detail_key: "site_member.audit.oauth_updated",
     detail_params: { provider, action },
-    ipAddress: request.ip,
     userAgent: request.headers["user-agent"],
   });
 }

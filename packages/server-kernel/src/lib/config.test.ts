@@ -43,6 +43,7 @@ describe("config", () => {
     "S3_SECRET_ACCESS_KEY",
     "S3_PUBLIC_BASE_URL",
     "WORKERS_ENABLED",
+    "TRUSTED_PROXIES",
     "TENANT_SECRET_ENCRYPTION_KEY",
     "OPENAI_BASE_URL",
     "OPENAI_API_KEY",
@@ -83,6 +84,7 @@ describe("config", () => {
     it("生产模式 logLevel 默认 warn", async () => {
       process.env.NODE_ENV = "production";
       process.env.JWT_SECRET = "test-prod-secret";
+      process.env.TRUSTED_PROXIES = "uniquelocal";
       const { config: cfg } = await importConfig();
       expect(cfg.server.isProduction).toBe(true);
       expect(cfg.server.logLevel).toBe("warn");
@@ -105,6 +107,46 @@ describe("config", () => {
     });
   });
 
+  describe("trustedProxies", () => {
+    it("开发模式默认只信任回环", async () => {
+      const { config: cfg } = await importConfig();
+      expect(cfg.server.trustedProxies).toBe("loopback");
+    });
+
+    it("生产模式缺配置直接启动失败", async () => {
+      // 没有可信代理声明就无法判断 XFF 哪一跳可信，宁可起不来也不要
+      // 悄悄退回「信任客户端自报的 IP」。
+      process.env.NODE_ENV = "production";
+      process.env.JWT_SECRET = "test-prod-secret";
+      await expect(importConfig()).rejects.toThrow(/TRUSTED_PROXIES/);
+    });
+
+    it("接受 CIDR 列表与预置名", async () => {
+      process.env.TRUSTED_PROXIES = "10.0.0.0/8,192.168.1.5";
+      const { config: cfg } = await importConfig();
+      expect(cfg.server.trustedProxies).toBe("10.0.0.0/8,192.168.1.5");
+    });
+
+    it("纯数字按跳数解析", async () => {
+      process.env.TRUSTED_PROXIES = "2";
+      const { config: cfg } = await importConfig();
+      expect(cfg.server.trustedProxies).toBe(2);
+    });
+
+    it("跳数为 0 视为非法", async () => {
+      process.env.TRUSTED_PROXIES = "0";
+      await expect(importConfig()).rejects.toThrow(/TRUSTED_PROXIES/);
+    });
+
+    it("拒绝 true / * 这类无条件信任", async () => {
+      // 这正是本配置要消灭的旧行为：采信客户端自带的 X-Forwarded-For。
+      for (const value of ["true", "TRUE", "*"]) {
+        process.env.TRUSTED_PROXIES = value;
+        await expect(importConfig()).rejects.toThrow(/TRUSTED_PROXIES/);
+      }
+    });
+  });
+
   describe("frontend / platform", () => {
     it("开发模式默认 localhost 产品站与 127.0.0.1 控制台", async () => {
       const { config: cfg } = await importConfig();
@@ -115,6 +157,7 @@ describe("config", () => {
     it("生产模式默认空字符串", async () => {
       process.env.NODE_ENV = "production";
       process.env.JWT_SECRET = "test-prod-secret";
+      process.env.TRUSTED_PROXIES = "uniquelocal";
       const { config: cfg } = await importConfig();
       expect(cfg.frontend.url).toBe("");
       expect(cfg.platform.url).toBe("");
@@ -129,6 +172,7 @@ describe("config", () => {
 
     it("生产模式缺少 JWT_SECRET 抛出错误", async () => {
       process.env.NODE_ENV = "production";
+      process.env.TRUSTED_PROXIES = "uniquelocal";
       delete process.env.JWT_SECRET;
       await expect(importConfig()).rejects.toThrow(
         "生产环境必须设置JWT_SECRET",
@@ -138,6 +182,7 @@ describe("config", () => {
     it("生产模式使用自定义 JWT_SECRET", async () => {
       process.env.NODE_ENV = "production";
       process.env.JWT_SECRET = "my-prod-secret";
+      process.env.TRUSTED_PROXIES = "uniquelocal";
       const { config: cfg } = await importConfig();
       expect(cfg.auth.jwtSecret).toBe("my-prod-secret");
     });

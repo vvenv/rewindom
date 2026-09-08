@@ -41,7 +41,12 @@ const WHERE_OPERATIONS = new Set([
 const DATA_OPERATIONS = new Set(["create", "createMany"]);
 
 /** 认可的辅助函数：调用它即视为已做租户隔离。 */
-const SCOPE_HELPERS = ["withTenantScope"];
+const SCOPE_HELPERS = [
+  "withTenantScope",
+  // IpAccessRule 的 tenant_id 可空（null = 平台全局规则），运行时守卫有意不注入。
+  // 隔离全靠 ip-access.service.ts 里这一个函数，所以它等价于 withTenantScope。
+  "withIpRuleScope",
+];
 
 function isPrismaReceiver(node) {
   if (node.type === "Identifier") {

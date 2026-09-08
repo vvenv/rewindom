@@ -146,6 +146,11 @@ export type EventTimelineEntry = Prisma.EventTimelineEntryModel
  */
 export type EventFollow = Prisma.EventFollowModel
 /**
+ * Model IpAccessRule
+ * IP 访问规则。租户级与平台全局共用一张表，靠 tenant_id 是否为 null 区分。
+ */
+export type IpAccessRule = Prisma.IpAccessRuleModel
+/**
  * Model RefreshToken
  * 
  */

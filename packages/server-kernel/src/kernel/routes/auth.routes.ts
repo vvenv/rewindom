@@ -15,7 +15,9 @@ import {
   sendCodedError,
 } from "../../http/route-error-handler.js";
 import { AppError, hasErrorCode } from "../../lib/app-errors.js";
+import { getClientIp } from "../../lib/client-ip.js";
 import { emitAuditLog } from "../../runtime/audit-log-emit.js";
+import { emitDomainEventSafe } from "../../runtime/domain-event-emit.js";
 import { AuthService } from "../auth/auth.service.js";
 import {
   buildGithubAuthorizeUrl,
@@ -96,7 +98,7 @@ export async function authRoutes(app: FastifyInstance) {
           action: KERNEL_AUDIT_ACTIONS.LOGIN,
           resource: "auth",
           detail_key: "auth.audit.login_success",
-          ipAddress: request.ip,
+          ipAddress: getClientIp(request) ?? undefined,
           userAgent: request.headers["user-agent"],
           tenant_slug: result.tenant_slug,
         });
@@ -104,8 +106,22 @@ export async function authRoutes(app: FastifyInstance) {
         app.log.error({ error: auditError }, "记录审计日志失败");
       }
 
+      // 登录成功清掉该 IP 的失败计数：共享出口（公司 NAT、咖啡馆）上，
+      // 若干个人各错一次密码不该慢慢累计到自动封禁阈值。
+      await emitDomainEventSafe(app.events, app.log, "auth.login_succeeded", {
+        ip: getClientIp(request),
+        username: result.user.username,
+      });
+
       return reply.send({ data: result });
     } catch (error) {
+      // 凭证类失败上报给访问控制做爆破计数。内核不认识 ip-access，走事件总线。
+      if (error instanceof AppError || error instanceof InvalidLoginIdentifierError) {
+        await emitDomainEventSafe(app.events, app.log, "auth.login_failed", {
+          ip: getClientIp(request),
+          username: (request.body as LoginBody | undefined)?.username ?? "",
+        });
+      }
       if (error instanceof InvalidLoginIdentifierError) {
         return handleValidationError(reply, "auth.username_invalid");
       }
@@ -163,7 +179,7 @@ export async function authRoutes(app: FastifyInstance) {
             action: KERNEL_AUDIT_ACTIONS.LOGOUT,
             resource: "auth",
             detail_key: "auth.audit.logout_success",
-            ipAddress: request.ip,
+            ipAddress: getClientIp(request) ?? undefined,
             userAgent: request.headers["user-agent"],
             tenant_slug: request.tenantContext?.tenant_slug ?? null,
           });
@@ -205,7 +221,7 @@ export async function authRoutes(app: FastifyInstance) {
             captcha_token,
           },
           app.jwt.sign.bind(app.jwt),
-          request.ip,
+          getClientIp(request) ?? undefined,
           request.headers["user-agent"] ?? "",
           { hostTenant: request.hostTenantContext ?? null },
         );
@@ -278,7 +294,7 @@ export async function authRoutes(app: FastifyInstance) {
             action: KERNEL_AUDIT_ACTIONS.PASSWORD_CHANGE,
             resource: "auth",
             detail_key: "auth.audit.password_changed",
-            ipAddress: request.ip,
+            ipAddress: getClientIp(request) ?? undefined,
             userAgent: request.headers["user-agent"],
             tenant_slug: request.tenantContext?.tenant_slug ?? null,
           });
@@ -488,7 +504,7 @@ export async function authRoutes(app: FastifyInstance) {
           credentials,
           jwtSign: app.jwt.sign.bind(app.jwt),
           registry: app.registry,
-          ip: request.ip,
+          ip: getClientIp(request) ?? undefined,
           userAgent: request.headers["user-agent"] ?? "",
           hostTenant,
         });
@@ -500,7 +516,7 @@ export async function authRoutes(app: FastifyInstance) {
             action: KERNEL_AUDIT_ACTIONS.LOGIN,
             resource: "auth",
             detail_key: provider.auditDetailKey,
-            ipAddress: request.ip,
+            ipAddress: getClientIp(request) ?? undefined,
             userAgent: request.headers["user-agent"],
             tenant_slug: result.tenant_slug,
           });

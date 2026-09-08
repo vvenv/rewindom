@@ -106,7 +106,6 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
                 ? request.params.job_id
                 : result.title || request.params.job_id,
           },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
 

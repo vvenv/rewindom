@@ -3,6 +3,16 @@ upstream app_backend {
     keepalive 8;
 }
 
+# IP 封禁名单（module-ip-access 导出，占位由 20-ip-access-stub.sh 保证存在）。
+#
+# 用 `geo` 而不是堆 `deny`：前者是基数树，查一次与条数无关；后者是线性表，
+# 几千条就会拖慢每个请求。
+#
+# 这一层的意义在于它能拦到**应用层拦不到的东西**：静态资源由 nginx 直出，
+# 根本不进 Node。名单的真相源与实时判定仍在应用层，这里是冗余执行路径，
+# 变更要等下一次 nginx reload 才生效。
+include /etc/nginx/ip-access/blocklist.conf;
+
 # 仅平台控制台 Host 走静态 SPA；产品主域（APP_DOMAIN）与其它 Host 的 HTML 反代 Marketing SSR。
 # PLATFORM_HOST / APP_DOMAIN 由 nginx 镜像 envsubst 注入（见 docker-compose web.environment）。
 map $host $use_tenant_ssr {
@@ -28,6 +38,12 @@ map $http_x_forwarded_proto $forwarded_proto {
 server {
     listen 80;
     server_name _;
+
+    # server 级 `if` + `return` 是官方认可的两种安全用法之一。
+    # 放在最前：命中就不必再走 try_files / 反代。
+    if ($ip_access_blocked) {
+        return 403;
+    }
 
     root /usr/share/nginx/html;
     index index.html;

@@ -570,7 +570,7 @@ export type $ThingPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
      */
     title: string
     /**
-     * 公开地址 `/things/:slug`。租户内唯一。
+     * 公开地址 `/:slug`。租户内唯一。
      */
     slug: string
     /**

@@ -1,0 +1,81 @@
+{
+  "title": "访问控制",
+  "pageDescription": "按 IP 或 IP 段决定谁能访问本站点。新规则默认「仅记录」，观察几天再切「拦截」。",
+  "platformTitle": "IP 访问控制",
+  "platformDescription": "平台全局名单，作用于所有站点。全局规则压过站点自己的放行规则。",
+  "nav": {
+    "label": "访问控制",
+    "title": "访问控制",
+    "platform": "IP 访问控制"
+  },
+  "create": "新增规则",
+  "createTitle": "新增访问规则",
+  "createDescription": "填写 IP 或 IP 段（CIDR）。默认只记录不拦截。",
+  "editTitle": "编辑访问规则",
+  "editDescription": "改动即时生效，最迟在下一次名单刷新后同步到所有实例。",
+  "cancel": "取消",
+  "save": "保存",
+  "delete": "删除",
+  "deleteConfirm": "删除规则 {{cidr}}？该 IP 将不再受此规则影响。",
+  "field": {
+    "cidr": "IP 或 IP 段",
+    "cidrPlaceholder": "203.0.113.7 或 203.0.113.0/24",
+    "action": "处置",
+    "mode": "生效方式",
+    "reason": "原因",
+    "reasonPlaceholder": "为什么加这条？半年后没有它谁也不敢删。",
+    "expiresAt": "过期时间"
+  },
+  "info": {
+    "cidr": "单个地址按满前缀处理。IPv6 建议按 /64 封禁——家宽用户整段拿一个 /64，封单个地址等于没封。",
+    "action": "放行的优先级高于拦截。用它给监控、回调、办公出口开豁免。",
+    "mode": "仅记录：命中只写日志不拦人，用来先看清会伤到谁。确认无误再切拦截。",
+    "expiresAt": "留空表示永不过期。临时处置务必设过期时间，否则半年后没人记得为什么还封着。"
+  },
+  "action": { "allow": "放行", "block": "拦截" },
+  "mode": { "enforce": "拦截生效", "log_only": "仅记录" },
+  "source": { "manual": "手工", "auto": "自动", "feed": "情报源" },
+  "table": {
+    "cidr": "IP / IP 段",
+    "action": "处置",
+    "mode": "生效方式",
+    "reason": "原因",
+    "source": "来源",
+    "hits": "命中",
+    "lastHit": "最近命中",
+    "expiresAt": "过期",
+    "createdAt": "创建时间",
+    "never": "永不",
+    "expired": "已过期",
+    "actions": "操作"
+  },
+  "filters": {
+    "search": "搜索 IP 或原因",
+    "allActions": "全部处置",
+    "allSources": "全部来源"
+  },
+  "empty": "还没有任何访问规则",
+  "emptyFiltered": "没有匹配的规则",
+  "toastCreated": "规则已新增",
+  "toastUpdated": "规则已更新",
+  "toastDeleted": "规则已删除",
+  "createFailed": "新增失败",
+  "updateFailed": "更新失败",
+  "deleteFailed": "删除失败",
+  "loadFailed": "加载失败",
+  "status": {
+    "title": "运行状态",
+    "description": "判定当前的实际配置。排查「规则为什么没生效」从这里看起。",
+    "enabled": "判定已启用",
+    "disabled": "判定已关闭（IP_ACCESS_ENABLED=false）",
+    "alwaysAllow": "配置豁免名单",
+    "alwaysAllowEmpty": "未配置 —— 一条过宽的规则会把你自己也锁在外面",
+    "snapshot": "名单快照",
+    "snapshotLoaded": "已加载 {{count}} 条，{{at}}",
+    "snapshotEmpty": "尚未加载",
+    "autoBan": "自动封禁：{{window}} 分钟内失败 {{threshold}} 次，封禁 {{minutes}} 分钟",
+    "export": "导出边缘名单",
+    "exportDone": "已导出 {{count}} 条到 {{path}}",
+    "exportSkipped": "未配置导出路径，判定全部留在应用层"
+  }
+}

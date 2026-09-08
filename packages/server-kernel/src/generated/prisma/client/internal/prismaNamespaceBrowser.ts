@@ -70,6 +70,7 @@ export const ModelName = {
   EventRevision: 'EventRevision',
   EventTimelineEntry: 'EventTimelineEntry',
   EventFollow: 'EventFollow',
+  IpAccessRule: 'IpAccessRule',
   RefreshToken: 'RefreshToken',
   OAuthAccount: 'OAuthAccount',
   Tenant: 'Tenant',
@@ -497,6 +498,26 @@ export const EventFollowScalarFieldEnum = {
 } as const
 
 export type EventFollowScalarFieldEnum = (typeof EventFollowScalarFieldEnum)[keyof typeof EventFollowScalarFieldEnum]
+
+
+export const IpAccessRuleScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  cidr: 'cidr',
+  ip_version: 'ip_version',
+  action: 'action',
+  mode: 'mode',
+  reason: 'reason',
+  source: 'source',
+  created_by: 'created_by',
+  expires_at: 'expires_at',
+  hit_count: 'hit_count',
+  last_hit_at: 'last_hit_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type IpAccessRuleScalarFieldEnum = (typeof IpAccessRuleScalarFieldEnum)[keyof typeof IpAccessRuleScalarFieldEnum]
 
 
 export const RefreshTokenScalarFieldEnum = {

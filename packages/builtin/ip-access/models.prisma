@@ -1,0 +1,43 @@
+// packages/builtin/ip-access/models.prisma
+// 由 apps/server/prisma/models/ip-access.prisma 符号链接汇入
+
+/// IP 访问规则。租户级与平台全局共用一张表，靠 tenant_id 是否为 null 区分。
+model IpAccessRule {
+  id String @id @default(uuid())
+
+  /// null = 平台全局规则，作用于所有 Host；非 null = 只作用于该租户站点。
+  /// 因此 tenant-guard 的 policy 是 service_enforced 而不是 tenant_id：
+  /// 盲注租户谓词会让全局规则在租户上下文里凭空消失。
+  tenant_id String?
+
+  /// 归一化后的 CIDR（主机位已清零，IPv6 小写压缩，IPv4-mapped 已折叠成 IPv4）
+  cidr       String
+  ip_version Int
+
+  /// allow | block —— allow 优先级最高，压过一切 block
+  action String @default("block")
+  /// enforce | log_only —— 新规则默认只记录不拦截，先观察再收紧
+  mode   String @default("log_only")
+
+  reason String
+  /// manual | auto | feed
+  source String @default("manual")
+  /// 平台全局规则记平台管理员 username，租户规则记 user id
+  created_by String
+
+  /// null = 永不过期。自动封禁必须带过期时间。
+  expires_at DateTime?
+
+  hit_count   Int       @default(0)
+  last_hit_at DateTime?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  /// 租户内 cidr 唯一。全局规则（tenant_id = null）在 Postgres 下 NULL 互不相等，
+  /// 约束管不住，由 service 层的重复检查兜底。
+  @@unique([tenant_id, cidr])
+  @@index([tenant_id, action])
+  @@index([expires_at])
+  @@index([source])
+}

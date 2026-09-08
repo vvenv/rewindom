@@ -416,6 +416,7 @@ export const ModelName = {
   EventRevision: 'EventRevision',
   EventTimelineEntry: 'EventTimelineEntry',
   EventFollow: 'EventFollow',
+  IpAccessRule: 'IpAccessRule',
   RefreshToken: 'RefreshToken',
   OAuthAccount: 'OAuthAccount',
   Tenant: 'Tenant',
@@ -484,7 +485,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "content" | "contentTemplate" | "contentAsset" | "dashboardPreference" | "errorLog" | "eventFeed" | "eventSignal" | "newsEvent" | "eventEntity" | "eventEntityLink" | "eventEntityFollow" | "eventRevision" | "eventTimelineEntry" | "eventFollow" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "mailDelivery" | "marketingSite" | "marketingPage" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "newsletterSubscriber" | "newsletterSubscription" | "newsletterDigestRun" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "shopSetting" | "shopProduct" | "shopCollection" | "shopCollectionProduct" | "shopDiscount" | "shopVariant" | "shopCart" | "shopCartItem" | "shopShippingZone" | "shopShippingRate" | "shopOrder" | "shopOrderLine" | "shopShipment" | "shopPayment" | "memberPlan" | "memberSubscription" | "memberPayment" | "siteDocCategory" | "siteDoc" | "siteFormSubmission" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "slowRequestLog" | "todo" | "thing"
+    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "content" | "contentTemplate" | "contentAsset" | "dashboardPreference" | "errorLog" | "eventFeed" | "eventSignal" | "newsEvent" | "eventEntity" | "eventEntityLink" | "eventEntityFollow" | "eventRevision" | "eventTimelineEntry" | "eventFollow" | "ipAccessRule" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "mailDelivery" | "marketingSite" | "marketingPage" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "newsletterSubscriber" | "newsletterSubscription" | "newsletterDigestRun" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "shopSetting" | "shopProduct" | "shopCollection" | "shopCollectionProduct" | "shopDiscount" | "shopVariant" | "shopCart" | "shopCartItem" | "shopShippingZone" | "shopShippingRate" | "shopOrder" | "shopOrderLine" | "shopShipment" | "shopPayment" | "memberPlan" | "memberSubscription" | "memberPayment" | "siteDocCategory" | "siteDoc" | "siteFormSubmission" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "slowRequestLog" | "todo" | "thing"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1891,6 +1892,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.EventFollowCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.EventFollowCountAggregateOutputType> | number
+        }
+      }
+    }
+    IpAccessRule: {
+      payload: Prisma.$IpAccessRulePayload<ExtArgs>
+      fields: Prisma.IpAccessRuleFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.IpAccessRuleFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpAccessRulePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.IpAccessRuleFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpAccessRulePayload>
+        }
+        findFirst: {
+          args: Prisma.IpAccessRuleFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpAccessRulePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.IpAccessRuleFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpAccessRulePayload>
+        }
+        findMany: {
+          args: Prisma.IpAccessRuleFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpAccessRulePayload>[]
+        }
+        create: {
+          args: Prisma.IpAccessRuleCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpAccessRulePayload>
+        }
+        createMany: {
+          args: Prisma.IpAccessRuleCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.IpAccessRuleCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpAccessRulePayload>[]
+        }
+        delete: {
+          args: Prisma.IpAccessRuleDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpAccessRulePayload>
+        }
+        update: {
+          args: Prisma.IpAccessRuleUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpAccessRulePayload>
+        }
+        deleteMany: {
+          args: Prisma.IpAccessRuleDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.IpAccessRuleUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.IpAccessRuleUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpAccessRulePayload>[]
+        }
+        upsert: {
+          args: Prisma.IpAccessRuleUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpAccessRulePayload>
+        }
+        aggregate: {
+          args: Prisma.IpAccessRuleAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateIpAccessRule>
+        }
+        groupBy: {
+          args: Prisma.IpAccessRuleGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IpAccessRuleGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.IpAccessRuleCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IpAccessRuleCountAggregateOutputType> | number
         }
       }
     }
@@ -6213,6 +6288,26 @@ export const EventFollowScalarFieldEnum = {
 export type EventFollowScalarFieldEnum = (typeof EventFollowScalarFieldEnum)[keyof typeof EventFollowScalarFieldEnum]
 
 
+export const IpAccessRuleScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  cidr: 'cidr',
+  ip_version: 'ip_version',
+  action: 'action',
+  mode: 'mode',
+  reason: 'reason',
+  source: 'source',
+  created_by: 'created_by',
+  expires_at: 'expires_at',
+  hit_count: 'hit_count',
+  last_hit_at: 'last_hit_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type IpAccessRuleScalarFieldEnum = (typeof IpAccessRuleScalarFieldEnum)[keyof typeof IpAccessRuleScalarFieldEnum]
+
+
 export const RefreshTokenScalarFieldEnum = {
   id: 'id',
   user_id: 'user_id',
@@ -7399,6 +7494,7 @@ export type GlobalOmitConfig = {
   eventRevision?: Prisma.EventRevisionOmit
   eventTimelineEntry?: Prisma.EventTimelineEntryOmit
   eventFollow?: Prisma.EventFollowOmit
+  ipAccessRule?: Prisma.IpAccessRuleOmit
   refreshToken?: Prisma.RefreshTokenOmit
   oAuthAccount?: Prisma.OAuthAccountOmit
   tenant?: Prisma.TenantOmit

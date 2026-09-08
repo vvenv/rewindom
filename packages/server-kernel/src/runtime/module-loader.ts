@@ -69,6 +69,17 @@ export class ModuleLoader {
     }
   }
 
+  /** 认证之前的 hook —— 组装层必须在 `authMiddleware` 之前调用。 */
+  async registerEarlyMiddleware(app: FastifyInstance): Promise<void> {
+    const ctx = this.createServerContext(app);
+    for (const module of this.modules) {
+      if (module.server?.registerEarlyMiddleware) {
+        app.log.debug({ moduleId: module.id }, "[module] registerEarlyMiddleware");
+        await module.server.registerEarlyMiddleware(app, ctx);
+      }
+    }
+  }
+
   async registerMiddleware(app: FastifyInstance): Promise<void> {
     const ctx = this.createServerContext(app);
     for (const module of this.modules) {

@@ -9,6 +9,7 @@
  */
 
 import { defineRoute } from "@rewindom/server-kernel/http/define-route.js";
+import { getClientIp } from "@rewindom/server-kernel/lib/client-ip.js";
 
 import {
   TRANSLATION_MAX_BATCH,
@@ -41,7 +42,7 @@ function parseTexts(raw: unknown): string[] | null {
 }
 
 function clientKey(request: FastifyRequest, tenantId: string): string {
-  return `${tenantId}:${request.ip}`;
+  return `${tenantId}:${getClientIp(request) ?? "unknown"}`;
 }
 
 /**

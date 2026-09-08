@@ -7,6 +7,7 @@ import { sendCodedError } from "@rewindom/server-kernel/http/route-error-handler
 import {
   AppError,
 } from "@rewindom/server-kernel/lib/app-errors.js";
+import { getClientIp } from "@rewindom/server-kernel/lib/client-ip.js";
 import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
 
 import { AuditAction } from "../../audit/shared/index.js";
@@ -193,7 +194,7 @@ export async function billingWebhookRoutes(
           resource: event.id ?? event.type,
           detail_key: "billing.audit.webhook_synced",
           detail_params: { event_type: event.type, detail: result.detail },
-          ipAddress: request.ip,
+          ipAddress: getClientIp(request) ?? undefined,
           userAgent:
             typeof request.headers["user-agent"] === "string"
               ? request.headers["user-agent"]

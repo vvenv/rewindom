@@ -35,11 +35,30 @@ type ModelPolicy =
    * （如登录失败时还没有租户上下文的审计行）。盲目注入会让这些行消失，
    * 因此只在 audit 模式下报告，不注入 —— 过滤仍由 service 层负责。
    */
-  | { kind: "service_enforced"; reason: string }
+  | {
+      kind: "service_enforced";
+      /**
+       * 该模型的租户字段。曾经写死成 `tenant_slug`——前三个 service_enforced 模型
+       * 恰好都用它，于是那个巧合被当成了规律。IpAccessRule 用的是 `tenant_id`，
+       * 硬编码会让它在 ESLint 表里登记成不存在的列，规则从此形同虚设。
+       */
+      field: "tenant_id" | "tenant_slug";
+      reason: string;
+    }
   /** 非租户态：平台级表，或仅通过 user_id/role_id 间接归属。 */
   | { kind: "global"; reason: string };
 
 const MODEL_POLICIES: Record<string, ModelPolicy> = {
+  /*
+   * tenant_id 可空，null 表示「平台全局规则」。盲注租户谓词会让全局规则在租户
+   * 上下文里整片消失——那正是平台用来兜底封禁的那一批，静默失效比越权更危险。
+   * 作用域由 ip-access.service 的 scopeWhere 显式给出。
+   */
+  IpAccessRule: {
+    kind: "service_enforced",
+    field: "tenant_id",
+    reason: "tenant_id = null 表示平台全局规则，作用域由 service 显式指定",
+  },
   Thing: { kind: "tenant_id" },
   ContentAsset: { kind: "tenant_id" },
   ContentTemplate: { kind: "tenant_id" },
@@ -102,19 +121,23 @@ const MODEL_POLICIES: Record<string, ModelPolicy> = {
 
   AuditLog: {
     kind: "service_enforced",
+    field: "tenant_slug",
     reason:
       "tenant_slug 可为 null（平台会话 / 尚无租户上下文的行）；过滤由 AuditService 按精确 slug 强制",
   },
   ErrorLog: {
     kind: "service_enforced",
+    field: "tenant_slug",
     reason: "tenant_slug 可为 null，未归属错误对同租户可见",
   },
   SlowQueryLog: {
     kind: "service_enforced",
+    field: "tenant_slug",
     reason: "tenant_slug 可为 null，慢查询可能发生在租户上下文建立之前",
   },
   SlowRequestLog: {
     kind: "service_enforced",
+    field: "tenant_slug",
     reason: "tenant_slug 可为 null，慢请求可能发生在租户上下文建立之前",
   },
 
@@ -214,7 +237,7 @@ export function tenantScopedModelFields(): Record<string, string> {
   for (const [model, policy] of Object.entries(MODEL_POLICIES)) {
     if (policy.kind === "tenant_id") out[model] = "tenant_id";
     else if (policy.kind === "own_id") out[model] = "id";
-    else if (policy.kind === "service_enforced") out[model] = "tenant_slug";
+    else if (policy.kind === "service_enforced") out[model] = policy.field;
   }
   return out;
 }

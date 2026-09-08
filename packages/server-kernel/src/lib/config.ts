@@ -115,6 +115,56 @@ function resolveJwtSecret(): string {
   return "dev-secret-key-change-in-production";
 }
 
+/**
+ * 可信反向代理，交给 Fastify 的 `trustProxy`（内部走 proxy-addr）。
+ * 它决定 `X-Forwarded-For` 里哪几跳可信，也就决定了 `request.ip` 是什么。
+ *
+ * 取值三选一，**优先用前两种**：
+ * - CIDR / IP 列表，逗号分隔（`10.0.0.0/8,192.168.1.5`）
+ * - proxy-addr 预置名：`loopback` / `linklocal` / `uniquelocal`
+ * - 纯数字 = 信任最靠近本进程的 N 跳
+ *
+ * 跳数模式只数跳数、**不校验对端是谁**：只要有人能绕过反代直连本进程，
+ * 他自带的 XFF 就会被采信（实测 `trustProxy: 1` + 伪造 XFF 即可改写 client IP）。
+ * 只有在应用绝对不可直连时才用它，否则一律写网段。
+ *
+ * **生产必须显式配置。** 这里曾经是写死的 `trustProxy: true`，即无条件采信 XFF
+ * 最左值。那等于把 client IP 的决定权交给客户端自己：加一行请求头就能绕过按 IP
+ * 的封禁与限流，还能填别人的 IP 去触发自动封禁（拿封禁系统当放大器打无辜用户）。
+ * 审计日志 `ip_address` 的可信度也一并没了。
+ *
+ * dev 默认 `loopback`（vite 代理与直连都来自回环）。注意它同时意味着「从本机发起的
+ * 请求可以自报 IP」——本地开发无所谓，拿来手工验证 IP 规则还方便，但别带到任何
+ * 可被外部访问的环境。生产 compose 默认 `uniquelocal`（容器网桥是私网），
+ * 见 docker-compose.prod.yml；外层若是公网出口的云 LB，必须改成该 LB 的实际网段。
+ */
+function resolveTrustedProxies(): string | number {
+  const raw = optionalStrEnv("TRUSTED_PROXIES");
+  if (raw === undefined) {
+    if (isProduction) {
+      throw new Error(
+        "生产环境必须设置 TRUSTED_PROXIES（可信代理 CIDR 列表 / loopback / linklocal / uniquelocal / 跳数）",
+      );
+    }
+    return "loopback";
+  }
+  const trimmed = raw.trim();
+  if (/^\d+$/.test(trimmed)) {
+    const hops = Number(trimmed);
+    if (hops < 1) {
+      throw new Error("TRUSTED_PROXIES 作为跳数时必须 >= 1");
+    }
+    return hops;
+  }
+  if (trimmed.toLowerCase() === "true" || trimmed === "*") {
+    // 显式写 true 也不放行：这正是本函数要消灭的配置。
+    throw new Error(
+      'TRUSTED_PROXIES 不接受 "true" / "*"（无条件信任 XFF 等于允许伪造 client IP）',
+    );
+  }
+  return trimmed;
+}
+
 function buildServerConfig() {
   return {
     isProduction,
@@ -124,6 +174,7 @@ function buildServerConfig() {
     host: strEnv("HOST", "0.0.0.0"),
     logLevel: strEnv("LOG_LEVEL", isProduction ? "warn" : "info"),
     workersEnabled: boolEnv("WORKERS_ENABLED", true),
+    trustedProxies: resolveTrustedProxies(),
   };
 }
 
@@ -277,6 +328,46 @@ function buildObservabilityConfig() {
       ),
       retentionDays: intEnv("SLOW_REQUEST_RETENTION_DAYS", 14),
     },
+  };
+}
+
+/**
+ * IP 访问控制（module-ip-access）。
+ *
+ * `alwaysAllow` 是**永远压过一切封禁规则**的豁免名单，给的是那些「被误封就没人能
+ * 修」的地址：监控探针、健康检查、CDN 回源段、支付回调源、自己的办公出口。
+ * 没有它，一条过宽的规则就能把你自己锁在后台外面——而那时你已经改不了规则了。
+ */
+function buildIpAccessConfig() {
+  return {
+    enabled: boolEnv("IP_ACCESS_ENABLED", true),
+    /** 名单快照刷新间隔；跨实例的 Redis 失效广播是它的快路径，这里是兜底 */
+    refreshIntervalMs: clampIntEnv(
+      "IP_ACCESS_REFRESH_INTERVAL_MS",
+      15_000,
+      1_000,
+      300_000,
+    ),
+    /** CIDR 列表，逗号分隔。语法非法的条目在启动日志里报警并跳过 */
+    alwaysAllow: csvEnv("IP_ACCESS_ALWAYS_ALLOW", ""),
+    /** 自动封禁默认 TTL（分钟）；0 不允许——自动规则必须会过期 */
+    autoBanMinutes: clampIntEnv("IP_ACCESS_AUTO_BAN_MINUTES", 60, 1, 43_200),
+    /** 登录失败多少次触发自动封禁 */
+    loginFailureThreshold: clampIntEnv(
+      "IP_ACCESS_LOGIN_FAILURE_THRESHOLD",
+      10,
+      3,
+      1_000,
+    ),
+    /** 登录失败计数窗口（分钟） */
+    loginFailureWindowMinutes: clampIntEnv(
+      "IP_ACCESS_LOGIN_FAILURE_WINDOW_MINUTES",
+      15,
+      1,
+      1_440,
+    ),
+    /** nginx geo 片段导出路径；空则不导出 */
+    nginxExportPath: strEnv("IP_ACCESS_NGINX_EXPORT_PATH", ""),
   };
 }
 
@@ -568,6 +659,7 @@ export const config = {
   database: buildDatabaseConfig(),
   storage: buildStorageConfig(),
   observability: buildObservabilityConfig(),
+  ipAccess: buildIpAccessConfig(),
   infra: buildInfraConfig(),
   openai: buildOpenAiConfig(),
   embeddings: buildEmbeddingsConfig(),

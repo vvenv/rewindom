@@ -142,7 +142,7 @@ export async function completeOAuthLogin(params: {
   profile: OAuthProfile;
   jwtSign: (payload: JwtSignPayload) => string;
   registry: ProviderRegistry;
-  ip: string;
+  ip: string | undefined;
   userAgent: string;
   hostTenant?: HostTenantContext | null;
 }): Promise<OAuthLoginResult> {

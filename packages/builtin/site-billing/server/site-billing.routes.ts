@@ -5,6 +5,7 @@ import { parseSortDir } from "@rewindom/server-kernel/http/list-sort.js";
 import { parsePagination } from "@rewindom/server-kernel/http/pagination.js";
 import { sendCodedError } from "@rewindom/server-kernel/http/route-error-handler.js";
 import { AppError } from "@rewindom/server-kernel/lib/app-errors.js";
+import { getClientIp } from "@rewindom/server-kernel/lib/client-ip.js";
 import { config } from "@rewindom/server-kernel/lib/config.js";
 import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
 
@@ -308,7 +309,7 @@ export async function siteBillingWebhookRoutes(
           resource: event.id ?? event.type,
           detail_key: "site_billing.audit.webhook_synced",
           detail_params: { event_type: event.type, detail: result.detail },
-          ipAddress: request.ip,
+          ipAddress: getClientIp(request) ?? undefined,
           userAgent:
             typeof request.headers["user-agent"] === "string"
               ? request.headers["user-agent"]

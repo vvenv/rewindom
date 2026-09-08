@@ -1,0 +1,91 @@
+{
+  "title": "Access control",
+  "pageDescription": "Decide who can reach this site by IP or IP range. New rules start in log-only mode — watch for a few days before enforcing.",
+  "platformTitle": "IP access control",
+  "platformDescription": "Platform-wide list applied to every site. Global rules override a site's own allow rules.",
+  "nav": {
+    "label": "Access control",
+    "title": "Access control",
+    "platform": "IP access control"
+  },
+  "create": "Add rule",
+  "createTitle": "Add access rule",
+  "createDescription": "Enter an IP or range (CIDR). Log-only by default.",
+  "editTitle": "Edit access rule",
+  "editDescription": "Changes take effect immediately, and reach every instance by the next list refresh at the latest.",
+  "cancel": "Cancel",
+  "save": "Save",
+  "delete": "Delete",
+  "deleteConfirm": "Delete rule {{cidr}}? This IP will no longer be affected by it.",
+  "field": {
+    "cidr": "IP or range",
+    "cidrPlaceholder": "203.0.113.7 or 203.0.113.0/24",
+    "action": "Action",
+    "mode": "Mode",
+    "reason": "Reason",
+    "reasonPlaceholder": "Why is this here? Without it nobody will dare delete it in six months.",
+    "expiresAt": "Expires"
+  },
+  "info": {
+    "cidr": "A bare address is treated as a full-length prefix. Block IPv6 at /64 — a home connection gets a whole /64, so blocking one address blocks nothing.",
+    "action": "Allow outranks block. Use it to exempt monitoring, callbacks and your own office egress.",
+    "mode": "Log-only records hits without blocking, so you can see who a rule would actually hit. Switch to enforce once you are sure.",
+    "expiresAt": "Empty means never. Always set an expiry on temporary measures, or in six months nobody will remember why it is still there."
+  },
+  "action": {
+    "allow": "Allow",
+    "block": "Block"
+  },
+  "mode": {
+    "enforce": "Enforcing",
+    "log_only": "Log only"
+  },
+  "source": {
+    "manual": "Manual",
+    "auto": "Automatic",
+    "feed": "Feed"
+  },
+  "table": {
+    "cidr": "IP / range",
+    "action": "Action",
+    "mode": "Mode",
+    "reason": "Reason",
+    "source": "Source",
+    "hits": "Hits",
+    "lastHit": "Last hit",
+    "expiresAt": "Expires",
+    "createdAt": "Created",
+    "never": "Never",
+    "expired": "Expired",
+    "actions": "Actions"
+  },
+  "filters": {
+    "search": "Search IP or reason",
+    "allActions": "All actions",
+    "allSources": "All sources"
+  },
+  "empty": "No access rules yet",
+  "emptyFiltered": "No rules match these filters",
+  "toastCreated": "Rule added",
+  "toastUpdated": "Rule updated",
+  "toastDeleted": "Rule deleted",
+  "createFailed": "Could not add the rule",
+  "updateFailed": "Could not update the rule",
+  "deleteFailed": "Could not delete the rule",
+  "loadFailed": "Could not load rules",
+  "status": {
+    "title": "Runtime status",
+    "description": "What the checker is actually configured with. Start here when a rule seems not to apply.",
+    "enabled": "Checking is on",
+    "disabled": "Checking is off (IP_ACCESS_ENABLED=false)",
+    "alwaysAllow": "Config exemption list",
+    "alwaysAllowEmpty": "Not configured — one overly broad rule will lock you out too",
+    "snapshot": "List snapshot",
+    "snapshotLoaded": "{{count}} rules loaded, {{at}}",
+    "snapshotEmpty": "Not loaded yet",
+    "autoBan": "Auto-ban: {{threshold}} failures within {{window}} min, banned for {{minutes}} min",
+    "export": "Export edge list",
+    "exportDone": "Exported {{count}} rules to {{path}}",
+    "exportSkipped": "No export path configured; all checking stays in the app layer"
+  }
+}
