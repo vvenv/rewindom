@@ -450,6 +450,24 @@ export async function purgeExpiredIpRules(): Promise<number> {
   return result.count;
 }
 
+/**
+ * 还在观察期的自动封禁规则数。
+ *
+ * 自动规则一律 log_only 起步，需要人来决定要不要转 enforce。没有这个计数，
+ * 它们会静静躺在库里直到过期——自动封禁等于白做。
+ */
+export async function countPendingAutoRules(): Promise<number> {
+  // eslint-disable-next-line tenant-scope/require-tenant-scope
+  return prisma.ipAccessRule.count({
+    where: {
+      tenant_id: null,
+      source: "auto",
+      mode: "log_only",
+      OR: [{ expires_at: null }, { expires_at: { gt: new Date() } }],
+    },
+  });
+}
+
 export function getIpAccessRuntimeConfig(): {
   enabled: boolean;
   always_allow: string[];

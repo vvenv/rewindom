@@ -99,5 +99,11 @@
     "refresh": "Refresh",
     "empty": "No traffic recorded in this window yet",
     "prefillReason": "Unusual traffic source: {{requests}} requests in {{minutes}} min"
+  },
+  "monitor": {
+    "proxyMisconfigTitle": "The proxy chain looks misconfigured",
+    "proxyMisconfigBody": "In the last day, {{count}} checks resolved a client IP inside a proxy/CDN range ({{range}}). IP blocking and rate limiting are currently meaningless, and automatic bans have been refused. Set CLOUDFLARE_PROXY=true if the site sits behind Cloudflare.",
+    "pendingAutoRules": "Automatic rules awaiting review (still log-only)",
+    "review": "Review"
   }
 }

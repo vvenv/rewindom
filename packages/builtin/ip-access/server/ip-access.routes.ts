@@ -18,6 +18,10 @@ import {
   updateIpRule,
   type RuleScopeSelector,
 } from "./ip-access.service.js";
+import {
+  getTopTrafficSources,
+  getTrafficWindowMinutes,
+} from "./traffic-stats.service.js";
 
 import type { IpAccessRuleWriteBody } from "../shared/index.js";
 import type { FastifyInstance, FastifyRequest } from "fastify";
@@ -54,6 +58,35 @@ export async function ipAccessRoutes(app: FastifyInstance): Promise<void> {
         sort_by,
         sort_dir: parseSortDir(sort_dir),
       });
+    },
+  });
+
+  /**
+   * 本站点的访问来源。租户面临与平台一样的发现问题——不给这个视图，
+   * 他只能凭感觉决定封谁。
+   *
+   * 作用域强制取自 `tenantContext`，前端传什么都无关：
+   * 这是「别人站点的流量」与「我的流量」之间唯一的那道门。
+   */
+  defineRoute(app, {
+    method: "GET",
+    url: "/traffic",
+    context: "IpRuleTraffic",
+    errorCode: "IP_RULE_TRAFFIC_FAILED",
+    preHandler: [app.requirePermission("ip_access.read")],
+    handler: async (request) => {
+      const { limit } = request.query as { limit?: string };
+      const parsed = Number(limit);
+      const take = Number.isFinite(parsed)
+        ? Math.min(200, Math.max(1, parsed))
+        : 50;
+      return {
+        window_minutes: getTrafficWindowMinutes(),
+        items: await getTopTrafficSources(
+          take,
+          request.tenantContext!.tenant_id,
+        ),
+      };
     },
   });
 

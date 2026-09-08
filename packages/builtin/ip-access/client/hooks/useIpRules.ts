@@ -79,6 +79,8 @@ export interface IpAccessStatus {
   login_failure_threshold: number;
   login_failure_window_minutes: number;
   cache: { loaded: boolean; rule_count: number; loaded_at: string | null };
+  proxy_misconfig: { count: number; range: string | null; at: string | null };
+  pending_auto_rules: number;
 }
 
 /** 平台专用：判定的实际运行配置，排查「规则为什么没生效」的第一站。 */
@@ -100,12 +102,12 @@ export interface TrafficSource {
  * 「谁在打我」。轮询而不是等用户手点刷新——这个面板是在出事时看的，
  * 数字停在两分钟前会让人误判。
  */
-export function useTrafficSources(limit: number) {
+export function useTrafficSources(scope: IpRuleScope, limit: number) {
   return useQuery({
-    queryKey: ["ip-rules", "traffic", limit],
+    queryKey: ["ip-rules", "traffic", scope, limit],
     queryFn: () =>
       api.get<{ window_minutes: number; items: TrafficSource[] }>(
-        "/platform/ip-rules/traffic",
+        `${basePath(scope)}/traffic`,
         { limit },
       ),
     refetchInterval: 30_000,

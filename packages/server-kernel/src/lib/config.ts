@@ -416,6 +416,43 @@ function buildIpAccessConfig() {
       100,
       50_000,
     ),
+
+    /**
+     * 按 IP 限流。封禁只对少数固定 IP 有效，限流才是对付「很多 IP 各来一点」
+     * 的工具——它不关心对方是谁，只关心要得太多了。
+     */
+    rateLimitEnabled: boolEnv("IP_ACCESS_RATE_LIMIT_ENABLED", true),
+    /**
+     * `log_only`（默认）只记录不拒绝。
+     *
+     * 阈值定错的代价是把真实用户挡在门外，比它要防的滥用严重得多。
+     * 先看几天日志里谁会被挡，再切 `enforce`。
+     */
+    rateLimitMode: strEnv("IP_ACCESS_RATE_LIMIT_MODE", "log_only"),
+    /** 登录 / 注册 / 改密：爆破的目标，最严。0 = 该档不限 */
+    rateLimitAuthPerMinute: clampIntEnv(
+      "IP_ACCESS_RATE_LIMIT_AUTH_PER_MINUTE",
+      20,
+      0,
+      100_000,
+    ),
+    /** 匿名可写的公开接口（留言、订阅、表单）：垃圾内容的入口 */
+    rateLimitPublicPerMinute: clampIntEnv(
+      "IP_ACCESS_RATE_LIMIT_PUBLIC_PER_MINUTE",
+      30,
+      0,
+      100_000,
+    ),
+    /**
+     * 其余请求。刻意定得宽——一个共享出口（公司 NAT、咖啡馆）后面可能有几十个
+     * 真实用户，定严了先挡住的是他们。这一档只用来挡明显异常。
+     */
+    rateLimitDefaultPerMinute: clampIntEnv(
+      "IP_ACCESS_RATE_LIMIT_DEFAULT_PER_MINUTE",
+      600,
+      0,
+      100_000,
+    ),
   };
 }
 

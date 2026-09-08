@@ -46,12 +46,32 @@ function bucketId(at: number, bucketSeconds: number): number {
   return Math.floor(at / 1000 / bucketSeconds);
 }
 
-function totalKey(bucket: number): string {
-  return `${KEY_PREFIX}:total:${bucket}`;
+/**
+ * 作用域：平台看全站，租户只看打到自己站点的流量。
+ *
+ * 分开计数而不是查询时过滤——Redis 的 zset 里只有 IP，没地方挂租户标签。
+ * 代价是同一个请求记两份（全站一份、租户一份），换来两边都是 O(1) 查询。
+ */
+function scopeSegment(tenantId: string | null): string {
+  return tenantId ?? "all";
 }
 
-function errorKey(bucket: number): string {
-  return `${KEY_PREFIX}:error:${bucket}`;
+function totalKey(bucket: number, tenantId: string | null): string {
+  return `${KEY_PREFIX}:total:${scopeSegment(tenantId)}:${bucket}`;
+}
+
+function errorKey(bucket: number, tenantId: string | null): string {
+  return `${KEY_PREFIX}:error:${scopeSegment(tenantId)}:${bucket}`;
+}
+
+/**
+ * 这一轮里实际写过哪些作用域。
+ *
+ * 裁剪需要知道要清哪些 key。从数据库枚举全部租户既慢又会漏掉「刚建的租户」；
+ * 记下真正产生过流量的作用域，裁剪的范围就永远与写入一致。
+ */
+function scopeIndexKey(bucket: number): string {
+  return `${KEY_PREFIX}:scopes:${bucket}`;
 }
 
 /**
@@ -71,16 +91,24 @@ export function recordTrafficSample(sample: RequestTimingSample): void {
   // 桶 TTL 给足窗口长度的两倍，避免边界上刚好被剔掉
   const ttl = config.ipAccess.trafficBucketSeconds * config.ipAccess.trafficBuckets * 2;
 
+  // 记两份：全站（平台看）与本站点（租户看）。
+  const scopes: (string | null)[] = [null];
+  if (sample.tenant_id) scopes.push(sample.tenant_id);
+
   void (async () => {
     try {
       const redis = getRedisClient();
       const pipeline = redis.pipeline();
-      pipeline.zincrby(totalKey(bucket), 1, ip);
-      pipeline.expire(totalKey(bucket), ttl);
-      if (sample.status_code >= 400) {
-        pipeline.zincrby(errorKey(bucket), 1, ip);
-        pipeline.expire(errorKey(bucket), ttl);
+      for (const scope of scopes) {
+        pipeline.zincrby(totalKey(bucket, scope), 1, ip);
+        pipeline.expire(totalKey(bucket, scope), ttl);
+        if (sample.status_code >= 400) {
+          pipeline.zincrby(errorKey(bucket, scope), 1, ip);
+          pipeline.expire(errorKey(bucket, scope), ttl);
+        }
       }
+      pipeline.sadd(scopeIndexKey(bucket), ...scopes.map(scopeSegment));
+      pipeline.expire(scopeIndexKey(bucket), ttl);
       await pipeline.exec();
     } catch {
       // 观测数据丢几条无所谓，绝不能因此影响服务
@@ -89,11 +117,18 @@ export function recordTrafficSample(sample: RequestTimingSample): void {
 }
 
 /** 最近 N 个桶的 key（含当前这个不完整的桶）。 */
-function recentKeys(kind: "total" | "error"): string[] {
+function recentKeys(
+  kind: "total" | "error",
+  tenantId: string | null,
+): string[] {
   const current = bucketId(Date.now(), config.ipAccess.trafficBucketSeconds);
   const keys: string[] = [];
   for (let i = 0; i < config.ipAccess.trafficBuckets; i += 1) {
-    keys.push(kind === "total" ? totalKey(current - i) : errorKey(current - i));
+    keys.push(
+      kind === "total"
+        ? totalKey(current - i, tenantId)
+        : errorKey(current - i, tenantId),
+    );
   }
   return keys;
 }
@@ -106,6 +141,7 @@ function recentKeys(kind: "total" | "error"): string[] {
  */
 export async function getTopTrafficSources(
   limit: number,
+  tenantId: string | null = null,
 ): Promise<TrafficSource[]> {
   if (!config.ipAccess.trafficStats) return [];
 
@@ -114,8 +150,8 @@ export async function getTopTrafficSources(
     const mergedTotal = `${KEY_PREFIX}:merged:total:${Date.now()}`;
     const mergedError = `${KEY_PREFIX}:merged:error:${Date.now()}`;
 
-    const totalKeys = recentKeys("total");
-    const errorKeys = recentKeys("error");
+    const totalKeys = recentKeys("total", tenantId);
+    const errorKeys = recentKeys("error", tenantId);
 
     const pipeline = redis.pipeline();
     pipeline.zunionstore(mergedTotal, totalKeys.length, ...totalKeys);
@@ -169,8 +205,21 @@ export async function trimTrafficBuckets(): Promise<void> {
   const keep = config.ipAccess.trafficMaxTracked;
   try {
     const redis = getRedisClient();
+    const current = bucketId(Date.now(), config.ipAccess.trafficBucketSeconds);
+
+    // 只裁真正写过的作用域：从库里枚举全部租户既慢，又会漏掉刚建的那个
+    const keys: string[] = [];
+    for (let i = 0; i < config.ipAccess.trafficBuckets; i += 1) {
+      const bucket = current - i;
+      const scopes = await redis.smembers(scopeIndexKey(bucket));
+      for (const scope of scopes) {
+        keys.push(`${KEY_PREFIX}:total:${scope}:${bucket}`);
+        keys.push(`${KEY_PREFIX}:error:${scope}:${bucket}`);
+      }
+    }
+
     const pipeline = redis.pipeline();
-    for (const key of [...recentKeys("total"), ...recentKeys("error")]) {
+    for (const key of keys) {
       // 保留分数最高的 keep 个：按 rank 删掉 [0, -keep-1]
       pipeline.zremrangebyrank(key, 0, -keep - 1);
     }

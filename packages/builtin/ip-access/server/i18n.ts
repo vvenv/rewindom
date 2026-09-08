@@ -12,6 +12,7 @@ export const IP_ACCESS_SERVER_I18N: ServerI18nBundle = {
   messages: {
     "zh-CN": {
       "ip_access.forbidden": "拒绝访问",
+      "ip_access.rate_limited": "请求过于频繁，请稍后再试",
       "ip_access.not_found": "访问规则不存在",
       "ip_access.invalid_cidr": "不是合法的 IP 或 IP 段",
       "ip_access.invalid_action": "处置方式无效",
@@ -34,6 +35,7 @@ export const IP_ACCESS_SERVER_I18N: ServerI18nBundle = {
     },
     en: {
       "ip_access.forbidden": "Access denied",
+      "ip_access.rate_limited": "Too many requests — please slow down and try again",
       "ip_access.not_found": "Access rule not found",
       "ip_access.invalid_cidr": "Not a valid IP address or range",
       "ip_access.invalid_action": "Invalid action",

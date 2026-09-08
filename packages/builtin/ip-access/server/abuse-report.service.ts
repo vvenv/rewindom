@@ -20,7 +20,7 @@ import { createModuleLogger } from "@rewindom/server-kernel/lib/logger.js";
 import { parseAddress } from "../shared/index.js";
 
 import { createIpRule } from "./ip-access.service.js";
-import { matchProxyRange } from "./proxy-guard.js";
+import { matchProxyRange, recordProxyMisconfig } from "./proxy-guard.js";
 
 const log = createModuleLogger("ip-access");
 
@@ -71,6 +71,7 @@ export async function reportAbuse(
   // 封它等于对无辜者做拒绝服务。这里连计数都不做：继续累计只会让告警更晚出现。
   const proxyRange = matchProxyRange(ip);
   if (proxyRange) {
+    recordProxyMisconfig(proxyRange);
     log.error(
       { ip, range: proxyRange, kind: params.kind },
       "[ip-access] client IP 落在已知代理 / CDN 段内，已拒绝自动封禁。" +

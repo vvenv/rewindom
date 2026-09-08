@@ -15,6 +15,7 @@ export interface RequestTimingSample {
   route: string;
   path: string;
   method: string;
+  tenant_id: string | null;
   tenant_slug: string | null;
   user_id: string | null;
   username: string | null;
@@ -86,6 +87,7 @@ function emitSample(request: FastifyRequest, reply: FastifyReply): void {
     route: requestRoute(request, path),
     path,
     method: request.method,
+    tenant_id: ctx?.tenant_id ?? request.tenantContext?.tenant_id ?? null,
     tenant_slug: ctx?.tenant_slug ?? request.tenantContext?.tenant_slug ?? null,
     user_id: ctx?.user_id ?? request.authUser?.userId ?? null,
     username: ctx?.username ?? request.authUser?.username ?? null,

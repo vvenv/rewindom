@@ -16,6 +16,7 @@ import { success } from "@rewindom/shared";
 
 import { getIpAccessCacheStatus } from "./ip-access.cache.js";
 import {
+  countPendingAutoRules,
   createIpRule,
   deleteIpRule,
   getIpAccessRuntimeConfig,
@@ -24,6 +25,7 @@ import {
   type RuleScopeSelector,
 } from "./ip-access.service.js";
 import { exportNginxBlocklist } from "./nginx-export.js";
+import { getProxyMisconfigStatus } from "./proxy-guard.js";
 import {
   getTopTrafficSources,
   getTrafficWindowMinutes,
@@ -82,10 +84,16 @@ export async function registerPlatformIpAccessRoutes(
 
   /** 运行时状态：豁免名单、自动封禁参数、快照是否加载成功。排障第一站。 */
   app.get("/ip-rules/status", async (_request, reply) => {
+    const [proxyMisconfig, pendingAutoRules] = await Promise.all([
+      getProxyMisconfigStatus(),
+      countPendingAutoRules(),
+    ]);
     return reply.send(
       success({
         ...getIpAccessRuntimeConfig(),
         cache: getIpAccessCacheStatus(),
+        proxy_misconfig: proxyMisconfig,
+        pending_auto_rules: pendingAutoRules,
       }),
     );
   });
@@ -102,7 +110,8 @@ export async function registerPlatformIpAccessRoutes(
     const take = Number.isFinite(parsed)
       ? Math.min(200, Math.max(1, parsed))
       : 50;
-    const sources = await getTopTrafficSources(take);
+    // 平台看全站
+    const sources = await getTopTrafficSources(take, null);
     return reply.send(
       success({
         window_minutes: getTrafficWindowMinutes(),

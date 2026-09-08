@@ -18,7 +18,8 @@ import {
 import { matchRules } from "./ip-access.cache.js";
 import { decideIpAccess } from "./ip-access.decision.js";
 import { recordRuleHits } from "./ip-access.service.js";
-import { matchProxyRange } from "./proxy-guard.js";
+import { matchProxyRange, recordProxyMisconfig } from "./proxy-guard.js";
+import { consumeRateLimit } from "./rate-limit.service.js";
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
@@ -46,6 +47,7 @@ function warnOnProxyClientIp(app: FastifyInstance, ip: string): void {
   const range = matchProxyRange(ip);
   if (!range) return;
   proxyIpWarned = true;
+  recordProxyMisconfig(range);
   app.log.error(
     { ip, range },
     "[ip-access] 解析出的 client IP 落在已知代理 / CDN 段内，说明 TRUSTED_PROXIES " +
@@ -57,6 +59,48 @@ function warnOnProxyClientIp(app: FastifyInstance, ip: string): void {
 /** 仅供测试。 */
 export function resetProxyWarningForTest(): void {
   proxyIpWarned = false;
+}
+
+/**
+ * 限流判定。超限且处于 `enforce` 时返回已写好的 reply，否则返回 null。
+ *
+ * 回 429 而不是 403：它们语义不同，前者是「等一会儿再来」，后者是「你不该来」。
+ * 客户端与爬虫都按这个区分决定要不要重试，混用会让正常客户端要么放弃、
+ * 要么立刻重试打得更凶。
+ */
+async function enforceRateLimit(
+  app: FastifyInstance,
+  request: FastifyRequest,
+  reply: FastifyReply,
+  ip: string,
+): Promise<FastifyReply | null> {
+  const path = request.url.split("?")[0] ?? "";
+  const decision = await consumeRateLimit({
+    ip,
+    method: request.method,
+    path,
+  });
+  if (!decision?.exceeded) return null;
+
+  const enforcing = config.ipAccess.rateLimitMode === "enforce";
+  app.log.warn(
+    {
+      ip,
+      tier: decision.tier,
+      count: decision.count,
+      limit: decision.limit,
+      path,
+      enforcing,
+    },
+    enforcing
+      ? "[ip-access] 限流已拦截"
+      : "[ip-access] 限流命中：切 enforce 后此请求会被拦",
+  );
+  if (!enforcing) return null;
+
+  reply.header("Retry-After", String(decision.retryAfterSeconds));
+  sendCodedError(reply, 429, "ip_access.rate_limited");
+  return reply;
 }
 
 export async function ipAccessMiddleware(app: FastifyInstance): Promise<void> {
@@ -95,6 +139,14 @@ export async function ipAccessMiddleware(app: FastifyInstance): Promise<void> {
       recordRuleHits(decision.matched.map((rule) => rule.id));
 
       if (decision.outcome === "allow") {
+        // 顺序是「豁免 → 封禁 → 限流」。
+        // 豁免名单必须连限流一起豁免：监控探针的轮询频率本来就高，
+        // 把它限掉等于自己把健康检查掐了。
+        if (!exempt) {
+          const limited = await enforceRateLimit(app, request, reply, ip);
+          if (limited) return limited;
+        }
+
         if (decision.shadowRule) {
           // dry-run 的全部价值就在这条日志：切 enforce 会拦下谁
           app.log.warn(

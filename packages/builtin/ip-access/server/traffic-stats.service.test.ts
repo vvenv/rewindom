@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { mockPipeline, mockZmscore, mockDel, pipelineCalls } = vi.hoisted(() => {
+const { mockPipeline, mockZmscore, mockDel, mockSmembers, pipelineCalls } =
+  vi.hoisted(() => {
   const calls: { cmd: string; args: unknown[] }[] = [];
   const chain = {
     zincrby: (...args: unknown[]) => {
@@ -23,12 +24,17 @@ const { mockPipeline, mockZmscore, mockDel, pipelineCalls } = vi.hoisted(() => {
       calls.push({ cmd: "zremrangebyrank", args });
       return chain;
     },
+    sadd: (...args: unknown[]) => {
+      calls.push({ cmd: "sadd", args });
+      return chain;
+    },
     exec: vi.fn(),
   };
   return {
     mockPipeline: vi.fn(() => chain),
     mockZmscore: vi.fn(),
     mockDel: vi.fn(),
+    mockSmembers: vi.fn(),
     pipelineCalls: calls,
   };
 });
@@ -54,6 +60,7 @@ vi.mock("@rewindom/server-kernel/infra/redis.service.js", () => ({
     pipeline: mockPipeline,
     zmscore: mockZmscore,
     del: mockDel,
+    smembers: mockSmembers,
   }),
 }));
 
@@ -71,6 +78,7 @@ function sample(overrides: Record<string, unknown> = {}) {
     route: "/api/thing",
     path: "/api/thing",
     method: "GET",
+    tenant_id: null,
     tenant_slug: null,
     user_id: null,
     username: null,
@@ -88,6 +96,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   pipelineCalls.length = 0;
   ipAccessConfig.trafficStats = true;
+  mockSmembers.mockResolvedValue(["all"]);
 });
 
 describe("recordTrafficSample", () => {
@@ -96,8 +105,27 @@ describe("recordTrafficSample", () => {
     await flush();
     const zincrby = pipelineCalls.filter((c) => c.cmd === "zincrby");
     expect(zincrby).toHaveLength(1);
-    expect(String(zincrby[0]?.args[0])).toContain(":total:");
+    expect(String(zincrby[0]?.args[0])).toContain(":total:all:");
     expect(zincrby[0]?.args[2]).toBe("203.0.113.9");
+  });
+
+  it("counts a tenant request into both the global and the site scope", async () => {
+    // 平台看全站，租户只看打到自己站点的流量；zset 里只有 IP，
+    // 没地方挂租户标签，所以分开计数而不是查询时过滤
+    recordTrafficSample(sample({ tenant_id: "t1" }));
+    await flush();
+    const keys = pipelineCalls
+      .filter((c) => c.cmd === "zincrby")
+      .map((c) => String(c.args[0]));
+    expect(keys.some((k) => k.includes(":total:all:"))).toBe(true);
+    expect(keys.some((k) => k.includes(":total:t1:"))).toBe(true);
+  });
+
+  it("records which scopes were written so trimming knows what to clean", async () => {
+    recordTrafficSample(sample({ tenant_id: "t1" }));
+    await flush();
+    const sadd = pipelineCalls.find((c) => c.cmd === "sadd");
+    expect(sadd?.args.slice(1)).toEqual(["all", "t1"]);
   });
 
   it("counts a 4xx into both total and error buckets", async () => {
@@ -198,6 +226,21 @@ describe("getTopTrafficSources", () => {
     expect(mockDel).toHaveBeenCalled();
   });
 
+  it("reads the site scope when a tenant id is given", async () => {
+    const chain = mockPipeline();
+    pipelineCalls.length = 0;
+    (chain.exec as ReturnType<typeof vi.fn>).mockResolvedValue([
+      [null, "OK"],
+      [null, 1],
+      [null, "OK"],
+      [null, 1],
+      [null, []],
+    ]);
+    await getTopTrafficSources(10, "t1");
+    const union = pipelineCalls.find((c) => c.cmd === "zunionstore");
+    expect(String(union?.args[2])).toContain(":total:t1:");
+  });
+
   it("returns an empty list instead of throwing when Redis fails", async () => {
     mockPipeline.mockImplementationOnce(() => {
       throw new Error("redis down");
@@ -222,6 +265,21 @@ describe("trimTrafficBuckets", () => {
     expect(trims).toHaveLength(24); // total + error，各 12 个桶
     expect(trims[0]?.args[1]).toBe(0);
     expect(trims[0]?.args[2]).toBe(-2001);
+  });
+
+  it("trims every scope that actually received traffic", async () => {
+    // 从库里枚举全部租户既慢，又会漏掉刚建的那个；
+    // 按「真正写过的作用域」裁，范围就永远与写入一致
+    mockSmembers.mockResolvedValue(["all", "t1"]);
+    const chain = mockPipeline();
+    pipelineCalls.length = 0;
+    (chain.exec as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    await trimTrafficBuckets();
+    const keys = pipelineCalls
+      .filter((c) => c.cmd === "zremrangebyrank")
+      .map((c) => String(c.args[0]));
+    expect(keys.some((k) => k.includes(":total:t1:"))).toBe(true);
+    expect(keys.some((k) => k.includes(":total:all:"))).toBe(true);
   });
 });
 

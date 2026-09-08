@@ -12,7 +12,7 @@ import { Spinner } from "@rewindom/ui/spinner";
 import { RefreshCw, ShieldBan } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { useTrafficSources } from "../hooks/useIpRules.js";
+import { useTrafficSources, type IpRuleScope } from "../hooks/useIpRules.js";
 
 import { IpRuleSheet } from "./IpRuleSheet.js";
 
@@ -31,9 +31,15 @@ function ErrorRateBadge({ rate }: { rate: number }) {
   );
 }
 
-export function TrafficSourcesPanel() {
+export function TrafficSourcesPanel({
+  scope,
+  canWrite = true,
+}: {
+  scope: IpRuleScope;
+  canWrite?: boolean;
+}) {
   const { t } = useTranslation("ip-access");
-  const { data, isLoading, isFetching, refetch } = useTrafficSources(50);
+  const { data, isLoading, isFetching, refetch } = useTrafficSources(scope, 50);
 
   const items = data?.items ?? [];
 
@@ -105,8 +111,9 @@ export function TrafficSourcesPanel() {
                       预填 IP 与来源说明，但**不预填 enforce**：
                       从这里点进来的判断多半只看了一眼数字，先观察再拦。
                     */}
+                    {canWrite ? (
                     <IpRuleSheet
-                      scope="platform"
+                      scope={scope}
                       prefill={{
                         cidr: source.ip,
                         reason: t("traffic.prefillReason", {
@@ -120,6 +127,7 @@ export function TrafficSourcesPanel() {
                         {t("traffic.block")}
                       </Button>
                     </IpRuleSheet>
+                    ) : null}
                   </td>
                 </tr>
               ))}

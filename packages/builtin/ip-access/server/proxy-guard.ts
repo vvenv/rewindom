@@ -20,9 +20,11 @@
  * 租户会换用别的 CDN、云 LB 也会换出口。护栏不依赖名单是否最新——它只问一句
  * 「这个地址看起来像基础设施吗」，像就拒绝自动封禁并告警。
  */
+import { getRedisClient } from "@rewindom/server-kernel/infra/redis.service.js";
 import { config } from "@rewindom/server-kernel/lib/config.js";
 import { createModuleLogger } from "@rewindom/server-kernel/lib/logger.js";
 import { CLOUDFLARE_PROXY_RANGES } from "@rewindom/server-kernel/lib/proxy-ranges.js";
+
 
 import { CidrMatcher, parseAddress, parseCidr } from "../shared/index.js";
 
@@ -103,4 +105,51 @@ export function isKnownProxyIp(ip: string): boolean {
 /** 仅供测试：配置变了要重建。 */
 export function resetProxyGuardForTest(): void {
   matcher = null;
+}
+
+const MISCONFIG_KEY = "ip-access:proxy-misconfig";
+/** 保留一天：够运维隔天上班时还看得见，又不会长期挂着一条陈年告警 */
+const MISCONFIG_TTL_SECONDS = 24 * 60 * 60;
+
+/**
+ * 记一次「client IP 看起来像代理」。
+ *
+ * 只写日志是不够的——**没人会盯着日志**。计到 Redis 里，平台首页据此挂一条
+ * 红色告警，那才是运维真会看到的地方。
+ */
+export function recordProxyMisconfig(range: string): void {
+  void (async () => {
+    try {
+      const redis = getRedisClient();
+      await redis
+        .pipeline()
+        .hincrby(MISCONFIG_KEY, "count", 1)
+        .hset(MISCONFIG_KEY, "range", range, "at", new Date().toISOString())
+        .expire(MISCONFIG_KEY, MISCONFIG_TTL_SECONDS)
+        .exec();
+    } catch {
+      // 告警计数本身失败时，日志那条还在
+    }
+  })();
+}
+
+export interface ProxyMisconfigStatus {
+  count: number;
+  /** 最近一次命中的网段，告诉运维「像什么」，才知道该改哪段配置 */
+  range: string | null;
+  at: string | null;
+}
+
+export async function getProxyMisconfigStatus(): Promise<ProxyMisconfigStatus> {
+  try {
+    const raw = await getRedisClient().hgetall(MISCONFIG_KEY);
+    const count = Number(raw?.count ?? 0);
+    return {
+      count: Number.isFinite(count) ? count : 0,
+      range: raw?.range ?? null,
+      at: raw?.at ?? null,
+    };
+  } catch {
+    return { count: 0, range: null, at: null };
+  }
 }
