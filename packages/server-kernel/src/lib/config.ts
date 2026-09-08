@@ -388,6 +388,34 @@ function buildIpAccessConfig() {
      * 落在这些段里的地址永远不会被自动封禁：那不是访客，是基础设施。
      */
     extraProxyRanges: csvEnv("IP_ACCESS_PROXY_RANGES", ""),
+    /**
+     * 访问来源统计（「谁在打我」观测面）。
+     *
+     * 数据在 Redis 里滚动，进程重启即归零——它的用途是「此刻发生了什么」，
+     * 不是审计。长期留存看 nginx access log。
+     */
+    trafficStats: boolEnv("IP_ACCESS_TRAFFIC_STATS", true),
+    /** 每个统计桶的时长 */
+    trafficBucketSeconds: clampIntEnv(
+      "IP_ACCESS_TRAFFIC_BUCKET_SECONDS",
+      300,
+      60,
+      3_600,
+    ),
+    /** 观察窗口 = bucketSeconds × buckets（默认 12 × 5min = 1 小时） */
+    trafficBuckets: clampIntEnv("IP_ACCESS_TRAFFIC_BUCKETS", 12, 1, 288),
+    /**
+     * 每桶最多跟踪多少个来源。
+     *
+     * 一次 /16 范围的扫描能塞进上万个只出现过一次的 IP；不设上限，
+     * Redis 内存会被观测数据吃掉——那比不做观测更糟。
+     */
+    trafficMaxTracked: clampIntEnv(
+      "IP_ACCESS_TRAFFIC_MAX_TRACKED",
+      2_000,
+      100,
+      50_000,
+    ),
   };
 }
 

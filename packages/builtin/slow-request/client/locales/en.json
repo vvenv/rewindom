@@ -39,7 +39,8 @@
     "loading": "Loading…",
     "emptyHint": "HTTP requests slower than the threshold are recorded here automatically.",
     "emptyFiltered": "No matching slow request logs",
-    "emptyFilteredHint": "Try a different time range or filter."
+    "emptyFilteredHint": "Try a different time range or filter.",
+    "ip": "Source IP"
   },
   "chart": {
     "loading": "Loading…",

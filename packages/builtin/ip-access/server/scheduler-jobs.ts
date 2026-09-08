@@ -8,10 +8,13 @@ import { config } from "@rewindom/server-kernel/lib/config.js";
 
 import { purgeExpiredIpRules } from "./ip-access.service.js";
 import { exportNginxBlocklist } from "./nginx-export.js";
+import { trimTrafficBuckets } from "./traffic-stats.service.js";
 
 import type { JobRegistryContext } from "@rewindom/server-kernel/runtime/job-registry.js";
 
 const PURGE_INTERVAL_MS = 10 * 60 * 1000;
+/** 裁剪要比桶的生成快得多，否则单个桶在被裁之前就能涨到几十万成员 */
+const TRIM_INTERVAL_MS = 60 * 1000;
 /** 边缘层名单靠写操作即时刷新，这里只是防止某次导出失败后一直不一致 */
 const EXPORT_INTERVAL_MS = 30 * 60 * 1000;
 
@@ -30,6 +33,16 @@ export function registerIpAccessJobs(ctx: JobRegistryContext): void {
           });
         }, PURGE_INTERVAL_MS),
       );
+
+      if (config.ipAccess.trafficStats) {
+        intervals.push(
+          setInterval(() => {
+            void trimTrafficBuckets().catch((err: unknown) => {
+              ctx.app.log.error({ err }, "[scheduler] 访问来源统计裁剪失败");
+            });
+          }, TRIM_INTERVAL_MS),
+        );
+      }
 
       if (config.ipAccess.nginxExportPath.trim() !== "") {
         intervals.push(

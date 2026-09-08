@@ -78,6 +78,7 @@ describe("platform slow-request routes", () => {
           user_id: null,
           username: null,
           request_id: null,
+        ip_address: "203.0.113.9",
           source: "http",
           created_at: "2026-01-01T00:00:00.000Z",
         },

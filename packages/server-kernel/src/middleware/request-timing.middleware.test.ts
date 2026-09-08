@@ -3,8 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   requestTimingMiddleware,
-  resetRequestTimingRecorder,
-  setRequestTimingRecorder,
+  resetRequestTimingRecorders,
+  addRequestTimingRecorder,
   type RequestTimingSample,
 } from "./request-timing.middleware.js";
 
@@ -27,7 +27,7 @@ describe("request-timing.middleware", () => {
 
   beforeEach(async () => {
     recorder.mockReset();
-    setRequestTimingRecorder(recorder);
+    addRequestTimingRecorder(recorder);
     app = Fastify({ logger: false });
     await requestTimingMiddleware(app);
     app.get("/api/notes/:noteId", async () => ({ ok: true }));
@@ -36,7 +36,7 @@ describe("request-timing.middleware", () => {
   });
 
   afterEach(async () => {
-    resetRequestTimingRecorder();
+    resetRequestTimingRecorders();
     await app.close();
   });
 

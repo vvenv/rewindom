@@ -56,6 +56,12 @@ interface IpRuleSheetProps {
   scope: IpRuleScope;
   /** 传入即为编辑模式 */
   rule?: IpAccessRuleDto;
+  /**
+   * 新建时的预填值（从「访问来源」一键封禁进来时用）。
+   * 刻意只填 cidr 与 reason，**不填 mode**——从那里点进来的判断多半只看了
+   * 一眼数字，仍然应该先 log_only 观察。
+   */
+  prefill?: { cidr?: string; reason?: string };
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   children?: ReactNode;
@@ -64,6 +70,7 @@ interface IpRuleSheetProps {
 export function IpRuleSheet({
   scope,
   rule,
+  prefill,
   open: controlledOpen,
   onOpenChange,
   children,
@@ -75,7 +82,7 @@ export function IpRuleSheet({
   const setOpen = onOpenChange ?? setUncontrolledOpen;
 
   const [form, setForm] = useState<IpRuleFormValues>(
-    rule ? toIpRuleForm(rule) : INITIAL_IP_RULE_FORM,
+    rule ? toIpRuleForm(rule) : { ...INITIAL_IP_RULE_FORM, ...prefill },
   );
   const [error, setError] = useState("");
 
@@ -85,10 +92,12 @@ export function IpRuleSheet({
 
   useEffect(() => {
     if (open) {
-      setForm(rule ? toIpRuleForm(rule) : INITIAL_IP_RULE_FORM);
+      setForm(
+        rule ? toIpRuleForm(rule) : { ...INITIAL_IP_RULE_FORM, ...prefill },
+      );
       setError("");
     }
-  }, [open, rule]);
+  }, [open, rule, prefill]);
 
   const handleSubmit = async (event: SubmitEvent) => {
     event.preventDefault();

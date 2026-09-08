@@ -7154,6 +7154,7 @@ export const SlowRequestLogScalarFieldEnum = {
   user_id: 'user_id',
   username: 'username',
   request_id: 'request_id',
+  ip_address: 'ip_address',
   source: 'source',
   created_at: 'created_at'
 } as const

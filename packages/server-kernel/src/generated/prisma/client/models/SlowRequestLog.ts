@@ -47,6 +47,7 @@ export type SlowRequestLogMinAggregateOutputType = {
   user_id: string | null
   username: string | null
   request_id: string | null
+  ip_address: string | null
   source: string | null
   created_at: Date | null
 }
@@ -62,6 +63,7 @@ export type SlowRequestLogMaxAggregateOutputType = {
   user_id: string | null
   username: string | null
   request_id: string | null
+  ip_address: string | null
   source: string | null
   created_at: Date | null
 }
@@ -77,6 +79,7 @@ export type SlowRequestLogCountAggregateOutputType = {
   user_id: number
   username: number
   request_id: number
+  ip_address: number
   source: number
   created_at: number
   _all: number
@@ -104,6 +107,7 @@ export type SlowRequestLogMinAggregateInputType = {
   user_id?: true
   username?: true
   request_id?: true
+  ip_address?: true
   source?: true
   created_at?: true
 }
@@ -119,6 +123,7 @@ export type SlowRequestLogMaxAggregateInputType = {
   user_id?: true
   username?: true
   request_id?: true
+  ip_address?: true
   source?: true
   created_at?: true
 }
@@ -134,6 +139,7 @@ export type SlowRequestLogCountAggregateInputType = {
   user_id?: true
   username?: true
   request_id?: true
+  ip_address?: true
   source?: true
   created_at?: true
   _all?: true
@@ -236,6 +242,7 @@ export type SlowRequestLogGroupByOutputType = {
   user_id: string | null
   username: string | null
   request_id: string | null
+  ip_address: string | null
   source: string
   created_at: Date
   _count: SlowRequestLogCountAggregateOutputType | null
@@ -274,6 +281,7 @@ export type SlowRequestLogWhereInput = {
   user_id?: Prisma.StringNullableFilter<"SlowRequestLog"> | string | null
   username?: Prisma.StringNullableFilter<"SlowRequestLog"> | string | null
   request_id?: Prisma.StringNullableFilter<"SlowRequestLog"> | string | null
+  ip_address?: Prisma.StringNullableFilter<"SlowRequestLog"> | string | null
   source?: Prisma.StringFilter<"SlowRequestLog"> | string
   created_at?: Prisma.DateTimeFilter<"SlowRequestLog"> | Date | string
 }
@@ -289,6 +297,7 @@ export type SlowRequestLogOrderByWithRelationInput = {
   user_id?: Prisma.SortOrderInput | Prisma.SortOrder
   username?: Prisma.SortOrderInput | Prisma.SortOrder
   request_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  ip_address?: Prisma.SortOrderInput | Prisma.SortOrder
   source?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
@@ -307,6 +316,7 @@ export type SlowRequestLogWhereUniqueInput = Prisma.AtLeast<{
   user_id?: Prisma.StringNullableFilter<"SlowRequestLog"> | string | null
   username?: Prisma.StringNullableFilter<"SlowRequestLog"> | string | null
   request_id?: Prisma.StringNullableFilter<"SlowRequestLog"> | string | null
+  ip_address?: Prisma.StringNullableFilter<"SlowRequestLog"> | string | null
   source?: Prisma.StringFilter<"SlowRequestLog"> | string
   created_at?: Prisma.DateTimeFilter<"SlowRequestLog"> | Date | string
 }, "id">
@@ -322,6 +332,7 @@ export type SlowRequestLogOrderByWithAggregationInput = {
   user_id?: Prisma.SortOrderInput | Prisma.SortOrder
   username?: Prisma.SortOrderInput | Prisma.SortOrder
   request_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  ip_address?: Prisma.SortOrderInput | Prisma.SortOrder
   source?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   _count?: Prisma.SlowRequestLogCountOrderByAggregateInput
@@ -345,6 +356,7 @@ export type SlowRequestLogScalarWhereWithAggregatesInput = {
   user_id?: Prisma.StringNullableWithAggregatesFilter<"SlowRequestLog"> | string | null
   username?: Prisma.StringNullableWithAggregatesFilter<"SlowRequestLog"> | string | null
   request_id?: Prisma.StringNullableWithAggregatesFilter<"SlowRequestLog"> | string | null
+  ip_address?: Prisma.StringNullableWithAggregatesFilter<"SlowRequestLog"> | string | null
   source?: Prisma.StringWithAggregatesFilter<"SlowRequestLog"> | string
   created_at?: Prisma.DateTimeWithAggregatesFilter<"SlowRequestLog"> | Date | string
 }
@@ -360,6 +372,7 @@ export type SlowRequestLogCreateInput = {
   user_id?: string | null
   username?: string | null
   request_id?: string | null
+  ip_address?: string | null
   source?: string
   created_at?: Date | string
 }
@@ -375,6 +388,7 @@ export type SlowRequestLogUncheckedCreateInput = {
   user_id?: string | null
   username?: string | null
   request_id?: string | null
+  ip_address?: string | null
   source?: string
   created_at?: Date | string
 }
@@ -390,6 +404,7 @@ export type SlowRequestLogUpdateInput = {
   user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   request_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -405,6 +420,7 @@ export type SlowRequestLogUncheckedUpdateInput = {
   user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   request_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -420,6 +436,7 @@ export type SlowRequestLogCreateManyInput = {
   user_id?: string | null
   username?: string | null
   request_id?: string | null
+  ip_address?: string | null
   source?: string
   created_at?: Date | string
 }
@@ -435,6 +452,7 @@ export type SlowRequestLogUpdateManyMutationInput = {
   user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   request_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -450,6 +468,7 @@ export type SlowRequestLogUncheckedUpdateManyInput = {
   user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   request_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -465,6 +484,7 @@ export type SlowRequestLogCountOrderByAggregateInput = {
   user_id?: Prisma.SortOrder
   username?: Prisma.SortOrder
   request_id?: Prisma.SortOrder
+  ip_address?: Prisma.SortOrder
   source?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
@@ -485,6 +505,7 @@ export type SlowRequestLogMaxOrderByAggregateInput = {
   user_id?: Prisma.SortOrder
   username?: Prisma.SortOrder
   request_id?: Prisma.SortOrder
+  ip_address?: Prisma.SortOrder
   source?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
@@ -500,6 +521,7 @@ export type SlowRequestLogMinOrderByAggregateInput = {
   user_id?: Prisma.SortOrder
   username?: Prisma.SortOrder
   request_id?: Prisma.SortOrder
+  ip_address?: Prisma.SortOrder
   source?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
@@ -522,6 +544,7 @@ export type SlowRequestLogSelect<ExtArgs extends runtime.Types.Extensions.Intern
   user_id?: boolean
   username?: boolean
   request_id?: boolean
+  ip_address?: boolean
   source?: boolean
   created_at?: boolean
 }, ExtArgs["result"]["slowRequestLog"]>
@@ -537,6 +560,7 @@ export type SlowRequestLogSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   user_id?: boolean
   username?: boolean
   request_id?: boolean
+  ip_address?: boolean
   source?: boolean
   created_at?: boolean
 }, ExtArgs["result"]["slowRequestLog"]>
@@ -552,6 +576,7 @@ export type SlowRequestLogSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   user_id?: boolean
   username?: boolean
   request_id?: boolean
+  ip_address?: boolean
   source?: boolean
   created_at?: boolean
 }, ExtArgs["result"]["slowRequestLog"]>
@@ -567,11 +592,12 @@ export type SlowRequestLogSelectScalar = {
   user_id?: boolean
   username?: boolean
   request_id?: boolean
+  ip_address?: boolean
   source?: boolean
   created_at?: boolean
 }
 
-export type SlowRequestLogOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "duration_ms" | "status_code" | "route" | "path" | "method" | "tenant_slug" | "user_id" | "username" | "request_id" | "source" | "created_at", ExtArgs["result"]["slowRequestLog"]>
+export type SlowRequestLogOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "duration_ms" | "status_code" | "route" | "path" | "method" | "tenant_slug" | "user_id" | "username" | "request_id" | "ip_address" | "source" | "created_at", ExtArgs["result"]["slowRequestLog"]>
 
 export type $SlowRequestLogPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "SlowRequestLog"
@@ -587,6 +613,11 @@ export type $SlowRequestLogPayload<ExtArgs extends runtime.Types.Extensions.Inte
     user_id: string | null
     username: string | null
     request_id: string | null
+    /**
+     * 归一化后的客户端 IP。排查「这个慢请求是谁打的」要靠它——
+     * 慢请求日志里没有来源，就只能看到有人在拖垮系统而找不到是谁。
+     */
+    ip_address: string | null
     source: string
     created_at: Date
   }, ExtArgs["result"]["slowRequestLog"]>
@@ -1022,6 +1053,7 @@ export interface SlowRequestLogFieldRefs {
   readonly user_id: Prisma.FieldRef<"SlowRequestLog", 'String'>
   readonly username: Prisma.FieldRef<"SlowRequestLog", 'String'>
   readonly request_id: Prisma.FieldRef<"SlowRequestLog", 'String'>
+  readonly ip_address: Prisma.FieldRef<"SlowRequestLog", 'String'>
   readonly source: Prisma.FieldRef<"SlowRequestLog", 'String'>
   readonly created_at: Prisma.FieldRef<"SlowRequestLog", 'DateTime'>
 }

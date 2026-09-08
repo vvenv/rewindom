@@ -11,6 +11,8 @@ export interface SlowRequestLogItem {
   user_id: string | null;
   username: string | null;
   request_id: string | null;
+  /** 归一化后的客户端 IP；拿不到可信来源时为 null */
+  ip_address: string | null;
   source: string;
   created_at: string;
 }
