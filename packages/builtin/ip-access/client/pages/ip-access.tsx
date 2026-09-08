@@ -58,13 +58,14 @@ export function IpAccess() {
         <TrafficSourcesPanel scope="tenant" canWrite={canWrite} />
 
         <IpRuleFilters
+          layout="stacked"
           filters={{ q, action, source }}
           onFiltersChange={updateFilters}
         />
         <IpRulesTable
           scope="tenant"
           rules={data?.items ?? []}
-          isLoading={isLoading && !data}
+          isLoading={isLoading && (data?.items.length ?? 0) === 0}
           error={error}
           page={page}
           pageSize={pageSize}

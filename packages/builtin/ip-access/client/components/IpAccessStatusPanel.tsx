@@ -1,21 +1,25 @@
 /**
- * 判定的实际运行配置。
- *
- * 存在的理由很具体：这类系统最常见的问题是「我加了规则，为什么没生效」，
- * 而答案往往不在规则本身——判定被 env 关掉了、这个 IP 在配置豁免名单里、
- * 或者规则还是 log_only。把这三件事摆在名单上方，比翻日志快得多。
+ * 判定的实际运行配置。形状抄邮件页 `MailerStatusPanel`：
+ * 一张 SettingsPanel，徽章留在卡上，告警只在失真时出现。
+ * 访问来源收在卡内可展开区，不另占一张卡挡住规则表。
  */
 import { SettingsPanel } from "@rewindom/client-kit";
 import { formatBusinessDate } from "@rewindom/shared";
+import { Alert, AlertDescription, AlertTitle } from "@rewindom/ui/alert";
 import { Badge } from "@rewindom/ui/badge";
 import { Button } from "@rewindom/ui/button";
 import { toast } from "@rewindom/ui/toast";
+import { AlertTriangle, ShieldBan } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 
+import { collectIpAccessAlerts } from "../lib/ip-access-status.js";
 import {
   useExportEdgeBlocklist,
   useIpAccessStatus,
 } from "../hooks/useIpRules.js";
+
+import { TrafficSourcesSection } from "./TrafficSourcesPanel.js";
 
 export function IpAccessStatusPanel() {
   const { t } = useTranslation("ip-access");
@@ -23,6 +27,8 @@ export function IpAccessStatusPanel() {
   const exportMutation = useExportEdgeBlocklist();
 
   if (!data) return null;
+
+  const alerts = collectIpAccessAlerts(data);
 
   const handleExport = () => {
     exportMutation.mutate(undefined, {
@@ -36,17 +42,20 @@ export function IpAccessStatusPanel() {
               }),
         );
       },
+      onError: () => toast.error(t("status.exportFailed")),
     });
   };
 
   return (
     <SettingsPanel
+      icon={ShieldBan}
       title={t("status.title")}
       description={t("status.description")}
-      footer={
+      action={
         <Button
           type="button"
           variant="outline"
+          size="sm"
           onClick={handleExport}
           disabled={exportMutation.isPending}
         >
@@ -54,49 +63,74 @@ export function IpAccessStatusPanel() {
         </Button>
       }
     >
-      <dl className="grid gap-3 text-sm sm:grid-cols-2">
-        <div className="flex items-center gap-2">
-          <Badge variant={data.enabled ? "secondary" : "destructive"}>
-            {t(data.enabled ? "status.enabled" : "status.disabled")}
-          </Badge>
-        </div>
+      <div className="flex flex-col gap-4">
+        {alerts.includes("disabled") ? (
+          <Alert variant="destructive">
+            <AlertTriangle className="size-4" />
+            <AlertTitle>{t("status.disabled")}</AlertTitle>
+          </Alert>
+        ) : null}
 
-        <div>
-          <dt className="text-muted-foreground">{t("status.snapshot")}</dt>
-          <dd className="tabular-nums">
+        {alerts.includes("proxy_misconfig") ? (
+          <Alert variant="destructive">
+            <AlertTriangle className="size-4" />
+            <AlertTitle>{t("monitor.proxyMisconfigTitle")}</AlertTitle>
+            <AlertDescription>
+              {t("monitor.proxyMisconfigBody", {
+                count: data.proxy_misconfig.count,
+                range: data.proxy_misconfig.range ?? "—",
+              })}
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          {alerts.includes("disabled") ? null : (
+            <Badge variant="secondary">{t("status.enabled")}</Badge>
+          )}
+          <span className="text-muted-foreground tabular-nums">
             {data.cache.loaded && data.cache.loaded_at
               ? t("status.snapshotLoaded", {
                   count: data.cache.rule_count,
                   at: formatBusinessDate(data.cache.loaded_at),
                 })
               : t("status.snapshotEmpty")}
-          </dd>
-        </div>
-
-        <div className="sm:col-span-2">
-          <dt className="text-muted-foreground">{t("status.alwaysAllow")}</dt>
-          <dd className="font-mono">
-            {data.always_allow.length > 0 ? (
-              data.always_allow.join(", ")
-            ) : (
-              // 空豁免名单是个真实隐患：一条过宽的规则就能把运维自己锁在外面
-              <span className="font-sans text-destructive">
-                {t("status.alwaysAllowEmpty")}
-              </span>
-            )}
-          </dd>
-        </div>
-
-        <div className="sm:col-span-2">
-          <dd className="text-muted-foreground">
+          </span>
+          <span className="text-muted-foreground">
             {t("status.autoBan", {
               threshold: data.login_failure_threshold,
               window: data.login_failure_window_minutes,
               minutes: data.auto_ban_minutes,
             })}
-          </dd>
+          </span>
+          {data.always_allow.length > 0 ? (
+            <span
+              className="truncate font-mono"
+              title={data.always_allow.join(", ")}
+            >
+              {data.always_allow.join(", ")}
+            </span>
+          ) : (
+            <Badge variant="destructive" title={t("status.alwaysAllowEmpty")}>
+              {t("status.alwaysAllow")}
+            </Badge>
+          )}
+          {alerts.includes("pending_auto") ? (
+            <>
+              <Badge variant="secondary" className="tabular-nums">
+                {data.pending_auto_rules}
+              </Badge>
+              <Button asChild variant="outline" size="sm">
+                <Link to="/platform/ip-rules?source=auto">
+                  {t("monitor.review")}
+                </Link>
+              </Button>
+            </>
+          ) : null}
         </div>
-      </dl>
+
+        <TrafficSourcesSection scope="platform" heading showRefresh />
+      </div>
     </SettingsPanel>
   );
 }

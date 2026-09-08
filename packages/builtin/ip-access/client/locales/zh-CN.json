@@ -16,7 +16,8 @@
   "cancel": "取消",
   "save": "保存",
   "delete": "删除",
-  "deleteConfirm": "删除规则 {{cidr}}？该 IP 将不再受此规则影响。",
+  "deleteConfirmTitle": "删除这条规则？",
+  "deleteConfirm": "删除 {{cidr}} 后，该 IP 将不再受此规则影响。",
   "field": {
     "cidr": "IP 或 IP 段",
     "cidrPlaceholder": "203.0.113.7 或 203.0.113.0/24",
@@ -66,6 +67,14 @@
   },
   "empty": "还没有任何访问规则",
   "emptyFiltered": "没有匹配的规则",
+  "validation": {
+    "cidr": "请填写有效的 IP 或 CIDR",
+    "reason": "请填写原因，方便以后判断能不能删",
+    "expiresAt": "过期时间无效"
+  },
+  "warn": {
+    "ipv6TooSpecific": "IPv6 封单个地址基本无效：家宽用户整段拿一个 /64，建议改成 /64。"
+  },
   "toastCreated": "规则已新增",
   "toastUpdated": "规则已更新",
   "toastDeleted": "规则已删除",
@@ -86,7 +95,8 @@
     "autoBan": "自动封禁：{{window}} 分钟内失败 {{threshold}} 次，封禁 {{minutes}} 分钟",
     "export": "导出边缘名单",
     "exportDone": "已导出 {{count}} 条到 {{path}}",
-    "exportSkipped": "未配置导出路径，判定全部留在应用层"
+    "exportSkipped": "未配置导出路径，判定全部留在应用层",
+    "exportFailed": "导出失败"
   },
   "traffic": {
     "title": "访问来源",
@@ -95,9 +105,11 @@
     "requests": "请求数",
     "errors": "错误数",
     "errorRate": "错误率",
+    "errorsHint": "{{count}} 个错误响应",
     "block": "建规则",
     "refresh": "刷新",
     "empty": "窗口内还没有记录到流量",
+    "summary": "{{count}} 个来源，最高 {{requests}} 次",
     "prefillReason": "访问来源异常：{{minutes}} 分钟内 {{requests}} 次请求"
   },
   "monitor": {

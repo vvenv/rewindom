@@ -4,7 +4,6 @@ import {
   buildIpRulePayload,
   INITIAL_IP_RULE_FORM,
   ipv6TooSpecific,
-  toDatetimeLocal,
   toIpRuleForm,
   validateIpRuleForm,
   type IpRuleFormValues,
@@ -32,16 +31,24 @@ describe("validateIpRuleForm", () => {
   });
 
   it("rejects a malformed CIDR", () => {
-    expect(validateIpRuleForm(form({ cidr: "not-an-ip" }), t)).not.toBeNull();
-    expect(validateIpRuleForm(form({ cidr: "203.0.113.0/33" }), t)).not.toBeNull();
+    expect(validateIpRuleForm(form({ cidr: "not-an-ip" }), t)).toBe(
+      "validation.cidr",
+    );
+    expect(validateIpRuleForm(form({ cidr: "203.0.113.0/33" }), t)).toBe(
+      "validation.cidr",
+    );
   });
 
   it("requires a reason", () => {
-    expect(validateIpRuleForm(form({ reason: "   " }), t)).not.toBeNull();
+    expect(validateIpRuleForm(form({ reason: "   " }), t)).toBe(
+      "validation.reason",
+    );
   });
 
   it("rejects an unparseable expiry", () => {
-    expect(validateIpRuleForm(form({ expires_at: "yesterday" }), t)).not.toBeNull();
+    expect(validateIpRuleForm(form({ expires_at: "yesterday" }), t)).toBe(
+      "validation.expiresAt",
+    );
   });
 
   it("treats an empty expiry as valid (never expires)", () => {
@@ -67,31 +74,34 @@ describe("buildIpRulePayload", () => {
   });
 });
 
-describe("toIpRuleForm / toDatetimeLocal", () => {
-  it("round-trips an expiry through the datetime-local format", () => {
+describe("toIpRuleForm", () => {
+  it("maps a rule onto form values, keeping ISO expiry", () => {
     const iso = new Date("2026-09-09T10:30").toISOString();
-    expect(toDatetimeLocal(iso)).toBe("2026-09-09T10:30");
-  });
-
-  it("maps a rule onto form values", () => {
     const rule = {
       cidr: "2001:db8::/32",
       action: "allow",
       mode: "enforce",
       reason: "办公出口",
-      expires_at: null,
+      expires_at: iso,
     } as IpAccessRuleDto;
     expect(toIpRuleForm(rule)).toEqual({
       cidr: "2001:db8::/32",
       action: "allow",
       mode: "enforce",
       reason: "办公出口",
-      expires_at: "",
+      expires_at: iso,
     });
   });
 
-  it("returns an empty string for an unparseable timestamp", () => {
-    expect(toDatetimeLocal("not-a-date")).toBe("");
+  it("maps a missing expiry to an empty string", () => {
+    const rule = {
+      cidr: "203.0.113.0/24",
+      action: "block",
+      mode: "log_only",
+      reason: "扫描",
+      expires_at: null,
+    } as IpAccessRuleDto;
+    expect(toIpRuleForm(rule).expires_at).toBe("");
   });
 });
 

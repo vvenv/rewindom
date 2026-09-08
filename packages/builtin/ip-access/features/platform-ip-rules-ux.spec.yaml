@@ -1,0 +1,34 @@
+# /platform/ip-rules 对齐系统列表页：说明 + 新建 → 状态卡 → 筛选 → 表。
+
+module: ip-access
+surfaces: [platform, tenant]
+goal: 平台/站点访问控制页与邮件页、平台租户页同一套节奏——状态用 SettingsPanel，访问来源收入状态卡可展开区，新建为 outline，租户筛选用 PageFilterBar
+gold: packages/builtin/mailer/client/pages/mailer.tsx
+touch:
+  - packages/builtin/ip-access/features/platform-ip-rules-ux.spec.yaml
+  - packages/builtin/ip-access/MODULE.md
+  - packages/builtin/ip-access/client/pages/platform-ip-rules.tsx
+  - packages/builtin/ip-access/client/pages/ip-access.tsx
+  - packages/builtin/ip-access/client/components/IpAccessStatusPanel.tsx
+  - packages/builtin/ip-access/client/components/TrafficSourcesPanel.tsx
+  - packages/builtin/ip-access/client/components/IpRuleFilters.tsx
+  - packages/builtin/ip-access/client/components/IpRulesTable.tsx
+  - packages/builtin/ip-access/client/components/IpRuleSheet.tsx
+  - packages/builtin/ip-access/client/lib/ip-rule-form.ts
+  - packages/builtin/ip-access/client/lib/ip-rule-form.test.ts
+  - packages/builtin/ip-access/client/lib/traffic-bar.ts
+  - packages/builtin/ip-access/client/lib/traffic-bar.test.ts
+  - packages/builtin/ip-access/client/lib/ip-access-status.ts
+  - packages/builtin/ip-access/client/lib/ip-access-status.test.ts
+  - packages/builtin/ip-access/client/locales/zh-CN.json
+  - packages/builtin/ip-access/client/locales/en.json
+out_of_scope:
+  - ip-access.decision
+  - nginx-export
+  - rate-limit
+  - tenant entitlement
+  - list API 新筛选项
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'ip-access/*'
+  - pnpm check:i18n

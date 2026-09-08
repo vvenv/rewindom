@@ -16,7 +16,8 @@
   "cancel": "Cancel",
   "save": "Save",
   "delete": "Delete",
-  "deleteConfirm": "Delete rule {{cidr}}? This IP will no longer be affected by it.",
+  "deleteConfirmTitle": "Delete this rule?",
+  "deleteConfirm": "After deleting {{cidr}}, this IP will no longer be affected by it.",
   "field": {
     "cidr": "IP or range",
     "cidrPlaceholder": "203.0.113.7 or 203.0.113.0/24",
@@ -66,6 +67,14 @@
   },
   "empty": "No access rules yet",
   "emptyFiltered": "No rules match these filters",
+  "validation": {
+    "cidr": "Enter a valid IP or CIDR",
+    "reason": "Add a reason so someone can tell whether to keep this later",
+    "expiresAt": "That expiry is not a valid date"
+  },
+  "warn": {
+    "ipv6TooSpecific": "Blocking a single IPv6 address usually does nothing — a home connection gets a whole /64. Prefer /64."
+  },
   "toastCreated": "Rule added",
   "toastUpdated": "Rule updated",
   "toastDeleted": "Rule deleted",
@@ -86,7 +95,8 @@
     "autoBan": "Auto-ban: {{threshold}} failures within {{window}} min, banned for {{minutes}} min",
     "export": "Export edge list",
     "exportDone": "Exported {{count}} rules to {{path}}",
-    "exportSkipped": "No export path configured; all checking stays in the app layer"
+    "exportSkipped": "No export path configured; all checking stays in the app layer",
+    "exportFailed": "Could not export the edge list"
   },
   "traffic": {
     "title": "Traffic sources",
@@ -95,9 +105,11 @@
     "requests": "Requests",
     "errors": "Errors",
     "errorRate": "Error rate",
+    "errorsHint": "{{count}} error responses",
     "block": "Add rule",
     "refresh": "Refresh",
     "empty": "No traffic recorded in this window yet",
+    "summary": "{{count}} sources, top {{requests}} requests",
     "prefillReason": "Unusual traffic source: {{requests}} requests in {{minutes}} min"
   },
   "monitor": {

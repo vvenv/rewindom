@@ -1,6 +1,8 @@
 /**
  * 平台面页面：**不套** `PageLayout`——`PlatformLayout` 自带标题，
  * 再套一层会出现两个标题。
+ *
+ * 节奏对齐邮件页 / 平台租户页：说明 + 新建 → 状态卡 → 筛选 → 表。
  */
 import { hasActiveFilters } from "@rewindom/client-kit/lib/list-url-params";
 import { useTranslation } from "react-i18next";
@@ -9,7 +11,6 @@ import { IpAccessStatusPanel } from "../components/IpAccessStatusPanel.js";
 import { IpRuleFilters } from "../components/IpRuleFilters.js";
 import { IpRuleSheet } from "../components/IpRuleSheet.js";
 import { IpRulesTable } from "../components/IpRulesTable.js";
-import { TrafficSourcesPanel } from "../components/TrafficSourcesPanel.js";
 import { useIpRules } from "../hooks/useIpRules.js";
 import { useIpRulesPage } from "../hooks/useIpRulesPage.js";
 
@@ -38,28 +39,29 @@ export function PlatformIpRules() {
     sortDir,
   });
 
+  const rules = data?.items ?? [];
+
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-muted-foreground text-sm">
-        {t("platformDescription")}
-      </p>
-
-      <TrafficSourcesPanel scope="platform" />
-
-      <IpAccessStatusPanel />
-
-      <div className="flex items-center justify-between gap-2">
-        <IpRuleFilters
-          filters={{ q, action, source }}
-          onFiltersChange={updateFilters}
-        />
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p className="hidden text-muted-foreground sm:block">
+          {t("platformDescription")}
+        </p>
         <IpRuleSheet scope="platform" />
       </div>
 
+      <IpAccessStatusPanel />
+
+      <IpRuleFilters
+        layout="inline"
+        filters={{ q, action, source }}
+        onFiltersChange={updateFilters}
+      />
+
       <IpRulesTable
         scope="platform"
-        rules={data?.items ?? []}
-        isLoading={isLoading && !data}
+        rules={rules}
+        isLoading={isLoading && rules.length === 0}
         error={error}
         page={page}
         pageSize={pageSize}

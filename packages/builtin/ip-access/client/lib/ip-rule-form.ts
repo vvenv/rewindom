@@ -18,7 +18,7 @@ export interface IpRuleFormValues {
   action: IpRuleAction;
   mode: IpRuleMode;
   reason: string;
-  /** `datetime-local` 的值，空串表示永不过期 */
+  /** ISO 串；空串表示永不过期 */
   expires_at: string;
 }
 
@@ -37,16 +37,8 @@ export function toIpRuleForm(rule: IpAccessRuleDto): IpRuleFormValues {
     action: rule.action,
     mode: rule.mode,
     reason: rule.reason,
-    expires_at: rule.expires_at ? toDatetimeLocal(rule.expires_at) : "",
+    expires_at: rule.expires_at ?? "",
   };
-}
-
-/** ISO → `datetime-local` 需要的本地时间串（无时区、无秒）。 */
-export function toDatetimeLocal(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 export function validateIpRuleForm(
@@ -54,13 +46,13 @@ export function validateIpRuleForm(
   t: TFunction,
 ): string | null {
   if (!parseCidr(values.cidr)) {
-    return t("createFailed");
+    return t("validation.cidr");
   }
   if (values.reason.trim() === "") {
-    return t("field.reason");
+    return t("validation.reason");
   }
   if (values.expires_at !== "" && Number.isNaN(Date.parse(values.expires_at))) {
-    return t("field.expiresAt");
+    return t("validation.expiresAt");
   }
   return null;
 }

@@ -1,15 +1,21 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 
 import {
   DataTable,
   DataTableColumnHeader,
   type DataTableFeatures,
+  useConfirm,
 } from "@rewindom/client-kit";
-import { formatBusinessDate } from "@rewindom/shared";
+import {
+  displayOrEmpty,
+  EMPTY_DISPLAY,
+  formatBusinessDate,
+  formatBusinessDateOrTimeAgo,
+} from "@rewindom/shared";
 import { Badge } from "@rewindom/ui/badge";
 import { Button } from "@rewindom/ui/button";
 import { toast } from "@rewindom/ui/toast";
-import { Pencil, ShieldBan, Trash2 } from "lucide-react";
+import { ShieldBan, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { useDeleteIpRule, type IpRuleScope } from "../hooks/useIpRules.js";
@@ -50,8 +56,8 @@ function ExpiryCell({ value, t }: { value: string | null; t: TFunction }) {
 
 function buildColumns(
   t: TFunction,
+  scope: IpRuleScope,
   canWrite: boolean,
-  onEdit: (rule: IpAccessRuleDto) => void,
   onDelete: (rule: IpAccessRuleDto) => void,
 ): ColumnDef<DataTableFeatures, IpAccessRuleDto>[] {
   const columns: ColumnDef<DataTableFeatures, IpAccessRuleDto>[] = [
@@ -92,8 +98,11 @@ function buildColumns(
     {
       accessorKey: "reason",
       header: t("table.reason"),
+      enableSorting: false,
       cell: ({ row }) => (
-        <span className="text-muted-foreground">{row.original.reason}</span>
+        <span className="text-muted-foreground line-clamp-2 max-w-xs">
+          {displayOrEmpty(row.original.reason)}
+        </span>
       ),
     },
     {
@@ -102,6 +111,10 @@ function buildColumns(
         <DataTableColumnHeader column={column} title={t("table.source")} />
       ),
       enableSorting: true,
+      meta: {
+        headerClassName: "hidden md:table-cell",
+        cellClassName: "hidden md:table-cell",
+      },
       cell: ({ row }) => (
         <span className="text-muted-foreground">
           {t(`source.${row.original.source}`)}
@@ -119,6 +132,24 @@ function buildColumns(
       ),
     },
     {
+      accessorKey: "last_hit_at",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t("table.lastHit")} />
+      ),
+      enableSorting: true,
+      meta: {
+        headerClassName: "hidden lg:table-cell",
+        cellClassName: "hidden lg:table-cell",
+      },
+      cell: ({ row }) => (
+        <span className="text-muted-foreground tabular-nums">
+          {row.original.last_hit_at
+            ? formatBusinessDateOrTimeAgo(row.original.last_hit_at)
+            : EMPTY_DISPLAY}
+        </span>
+      ),
+    },
+    {
       accessorKey: "expires_at",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t("table.expiresAt")} />
@@ -132,24 +163,20 @@ function buildColumns(
     columns.push({
       id: "actions",
       header: t("table.actions"),
+      enableSorting: false,
       meta: { align: "right" },
       cell: ({ row }) => (
         <div className="flex gap-1">
+          <IpRuleSheet scope={scope} rule={row.original} />
           <Button
+            type="button"
             variant="ghost"
-            size="icon"
-            aria-label={t("editTitle")}
-            onClick={() => onEdit(row.original)}
-          >
-            <Pencil className="size-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
+            size="icon-sm"
             aria-label={t("delete")}
+            className="hover:text-destructive"
             onClick={() => onDelete(row.original)}
           >
-            <Trash2 className="size-4" />
+            <Trash2 className="size-3.5" />
           </Button>
         </div>
       ),
@@ -187,52 +214,46 @@ export function IpRulesTable({
   isFiltered?: boolean;
 }) {
   const { t } = useTranslation("ip-access");
-  const [editing, setEditing] = useState<IpAccessRuleDto | null>(null);
+  const { confirm } = useConfirm();
   const deleteMutation = useDeleteIpRule(scope);
 
   const handleDelete = useCallback(
-    (rule: IpAccessRuleDto) => {
-      if (!window.confirm(t("deleteConfirm", { cidr: rule.cidr }))) return;
+    async (rule: IpAccessRuleDto) => {
+      const ok = await confirm({
+        title: t("deleteConfirmTitle"),
+        description: t("deleteConfirm", { cidr: rule.cidr }),
+        confirmText: t("delete"),
+        destructive: true,
+      });
+      if (!ok) return;
       deleteMutation.mutate(rule.id, {
         onSuccess: () => toast.success(t("toastDeleted")),
         onError: () => toast.error(t("deleteFailed")),
       });
     },
-    [t, deleteMutation],
+    [t, confirm, deleteMutation],
   );
 
   const columns = useMemo(
-    () => buildColumns(t, canWrite, setEditing, handleDelete),
-    [t, canWrite, handleDelete],
+    () => buildColumns(t, scope, canWrite, (rule) => void handleDelete(rule)),
+    [t, scope, canWrite, handleDelete],
   );
 
   return (
-    <>
-      <DataTable
-        columns={columns}
-        data={rules}
-        isLoading={isLoading}
-        isError={Boolean(error)}
-        error={error}
-        emptyIcon={ShieldBan}
-        emptyTitle={isFiltered ? t("emptyFiltered") : t("empty")}
-        pageSize={pageSize}
-        page={page}
-        total={total}
-        pageCount={pageCount}
-        sorting={sorting}
-        onSortingChange={onSortingChange}
-      />
-      {editing ? (
-        <IpRuleSheet
-          scope={scope}
-          rule={editing}
-          open
-          onOpenChange={(next) => {
-            if (!next) setEditing(null);
-          }}
-        />
-      ) : null}
-    </>
+    <DataTable
+      columns={columns}
+      data={rules}
+      isLoading={isLoading}
+      isError={Boolean(error)}
+      error={error}
+      emptyIcon={ShieldBan}
+      emptyTitle={isFiltered ? t("emptyFiltered") : t("empty")}
+      pageSize={pageSize}
+      page={page}
+      total={total}
+      pageCount={pageCount}
+      sorting={sorting}
+      onSortingChange={onSortingChange}
+    />
   );
 }
