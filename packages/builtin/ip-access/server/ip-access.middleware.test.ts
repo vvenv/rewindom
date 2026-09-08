@@ -7,13 +7,17 @@
 import Fastify, { type FastifyInstance } from "fastify";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { mockMatchRules, mockRecordRuleHits, mockResolveHostTenant } = vi.hoisted(
-  () => ({
-    mockMatchRules: vi.fn(),
-    mockRecordRuleHits: vi.fn(),
-    mockResolveHostTenant: vi.fn(),
-  }),
-);
+const {
+  mockMatchRules,
+  mockRecordRuleHits,
+  mockResolveHostTenant,
+  mockConsumeRateLimit,
+} = vi.hoisted(() => ({
+  mockMatchRules: vi.fn(),
+  mockRecordRuleHits: vi.fn(),
+  mockResolveHostTenant: vi.fn(),
+  mockConsumeRateLimit: vi.fn(),
+}));
 
 const ipAccessConfig = {
   enabled: true,
@@ -24,6 +28,11 @@ const ipAccessConfig = {
   loginFailureWindowMinutes: 15,
   nginxExportPath: "",
   extraProxyRanges: [] as string[],
+  rateLimitEnabled: false,
+  rateLimitMode: "log_only",
+  rateLimitAuthPerMinute: 20,
+  rateLimitPublicPerMinute: 30,
+  rateLimitDefaultPerMinute: 600,
 };
 
 vi.mock("@rewindom/server-kernel/lib/config.js", () => ({
@@ -41,6 +50,9 @@ vi.mock("@rewindom/server-kernel/lib/config.js", () => ({
 }));
 
 vi.mock("./ip-access.cache.js", () => ({ matchRules: mockMatchRules }));
+vi.mock("./rate-limit.service.js", () => ({
+  consumeRateLimit: mockConsumeRateLimit,
+}));
 vi.mock("./ip-access.service.js", () => ({
   recordRuleHits: mockRecordRuleHits,
 }));
@@ -80,6 +92,8 @@ beforeEach(() => {
   ipAccessConfig.enabled = true;
   mockResolveHostTenant.mockResolvedValue(null);
   mockMatchRules.mockResolvedValue({ matched: [], exempt: false });
+  mockConsumeRateLimit.mockResolvedValue(null);
+  ipAccessConfig.rateLimitMode = "log_only";
 });
 
 afterEach(async () => {
@@ -208,6 +222,70 @@ describe("ipAccessMiddleware", () => {
     expect(
       (await app.inject({ method: "GET", url: "/api/thing" })).statusCode,
     ).toBe(200);
+  });
+
+  describe("rate limiting", () => {
+    const overLimit = {
+      tier: "auth" as const,
+      count: 21,
+      limit: 20,
+      exceeded: true,
+      retryAfterSeconds: 30,
+    };
+
+    it("returns 429 with Retry-After when enforcing", async () => {
+      // 429 而不是 403：前者是「等一会儿再来」，后者是「你不该来」。
+      // 混用会让正常客户端要么放弃、要么立刻重试打得更凶。
+      ipAccessConfig.rateLimitMode = "enforce";
+      mockConsumeRateLimit.mockResolvedValue(overLimit);
+      app = await buildApp(true);
+
+      const res = await app.inject({ method: "POST", url: "/api/thing" });
+      expect(res.statusCode).toBe(429);
+      expect(res.headers["retry-after"]).toBe("30");
+    });
+
+    it("does not block in log_only mode", async () => {
+      mockConsumeRateLimit.mockResolvedValue(overLimit);
+      app = await buildApp(true);
+
+      expect(
+        (await app.inject({ method: "GET", url: "/api/thing" })).statusCode,
+      ).toBe(200);
+    });
+
+    it("never rate-limits an exempt source", async () => {
+      // 监控探针的轮询频率本来就高，限掉它等于自己把健康检查掐了
+      ipAccessConfig.rateLimitMode = "enforce";
+      mockConsumeRateLimit.mockResolvedValue(overLimit);
+      mockMatchRules.mockResolvedValue({ matched: [], exempt: true });
+      app = await buildApp(true);
+
+      expect(
+        (await app.inject({ method: "GET", url: "/api/thing" })).statusCode,
+      ).toBe(200);
+      expect(mockConsumeRateLimit).not.toHaveBeenCalled();
+    });
+
+    it("blocks before it rate-limits — a banned IP gets 403, not 429", async () => {
+      ipAccessConfig.rateLimitMode = "enforce";
+      mockConsumeRateLimit.mockResolvedValue(overLimit);
+      mockMatchRules.mockResolvedValue({
+        matched: [blockRule()],
+        exempt: false,
+      });
+      app = await buildApp(true);
+
+      expect(
+        (await app.inject({ method: "GET", url: "/api/thing" })).statusCode,
+      ).toBe(403);
+    });
+
+    it("does not count /health against any budget", async () => {
+      app = await buildApp(true);
+      await app.inject({ method: "GET", url: "/health" });
+      expect(mockConsumeRateLimit).not.toHaveBeenCalled();
+    });
   });
 
   it("registers no hook at all when disabled", async () => {

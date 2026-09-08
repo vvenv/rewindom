@@ -99,5 +99,11 @@
     "refresh": "刷新",
     "empty": "窗口内还没有记录到流量",
     "prefillReason": "访问来源异常：{{minutes}} 分钟内 {{requests}} 次请求"
+  },
+  "monitor": {
+    "proxyMisconfigTitle": "代理链可能配错了",
+    "proxyMisconfigBody": "过去一天有 {{count}} 次判定的 client IP 落在代理 / CDN 段（{{range}}）内。这意味着按 IP 的封禁与限流当前全部失真，自动封禁也已被拒绝。站点若在 Cloudflare 后面请设 CLOUDFLARE_PROXY=true。",
+    "pendingAutoRules": "自动封禁规则待复核（仍在仅记录）",
+    "review": "去复核"
   }
 }

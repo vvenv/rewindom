@@ -44,7 +44,7 @@ export function PlatformIpRules() {
         {t("platformDescription")}
       </p>
 
-      <TrafficSourcesPanel />
+      <TrafficSourcesPanel scope="platform" />
 
       <IpAccessStatusPanel />
 

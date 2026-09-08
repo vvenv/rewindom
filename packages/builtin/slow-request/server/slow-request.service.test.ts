@@ -53,6 +53,7 @@ function sample(
     route: "/api/notes/:noteId",
     path: "/api/notes/n-1",
     method: "GET",
+    tenant_id: "t-1",
     tenant_slug: "acme",
     user_id: "u-1",
     username: "ada",

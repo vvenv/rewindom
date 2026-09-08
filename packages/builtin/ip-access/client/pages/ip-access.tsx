@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { IpRuleFilters } from "../components/IpRuleFilters.js";
 import { IpRuleSheet } from "../components/IpRuleSheet.js";
 import { IpRulesTable } from "../components/IpRulesTable.js";
+import { TrafficSourcesPanel } from "../components/TrafficSourcesPanel.js";
 import { useIpRules } from "../hooks/useIpRules.js";
 import { useIpRulesPage } from "../hooks/useIpRulesPage.js";
 
@@ -54,6 +55,8 @@ export function IpAccess() {
       }
     >
       <div className="flex flex-col gap-4">
+        <TrafficSourcesPanel scope="tenant" canWrite={canWrite} />
+
         <IpRuleFilters
           filters={{ q, action, source }}
           onFiltersChange={updateFilters}
