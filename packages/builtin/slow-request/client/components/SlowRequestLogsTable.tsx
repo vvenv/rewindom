@@ -86,6 +86,15 @@ function buildSlowRequestColumns(
       ),
     },
     {
+      accessorKey: "ip_address",
+      header: t("table.ip"),
+      cell: ({ row }) => (
+        <span className="font-mono text-muted-foreground">
+          {displayOrEmpty(row.original.ip_address)}
+        </span>
+      ),
+    },
+    {
       accessorKey: "tenant_slug",
       header: t("table.tenant"),
       cell: ({ row }) => (

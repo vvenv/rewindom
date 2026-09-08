@@ -32,9 +32,19 @@
     "mode": "仅记录：命中只写日志不拦人，用来先看清会伤到谁。确认无误再切拦截。",
     "expiresAt": "留空表示永不过期。临时处置务必设过期时间，否则半年后没人记得为什么还封着。"
   },
-  "action": { "allow": "放行", "block": "拦截" },
-  "mode": { "enforce": "拦截生效", "log_only": "仅记录" },
-  "source": { "manual": "手工", "auto": "自动", "feed": "情报源" },
+  "action": {
+    "allow": "放行",
+    "block": "拦截"
+  },
+  "mode": {
+    "enforce": "拦截生效",
+    "log_only": "仅记录"
+  },
+  "source": {
+    "manual": "手工",
+    "auto": "自动",
+    "feed": "情报源"
+  },
   "table": {
     "cidr": "IP / IP 段",
     "action": "处置",
@@ -77,5 +87,17 @@
     "export": "导出边缘名单",
     "exportDone": "已导出 {{count}} 条到 {{path}}",
     "exportSkipped": "未配置导出路径，判定全部留在应用层"
+  },
+  "traffic": {
+    "title": "访问来源",
+    "description": "最近 {{minutes}} 分钟内请求量最高的来源。数据在内存里滚动，重启归零——长期留存看 nginx access log。",
+    "source": "来源 IP",
+    "requests": "请求数",
+    "errors": "错误数",
+    "errorRate": "错误率",
+    "block": "建规则",
+    "refresh": "刷新",
+    "empty": "窗口内还没有记录到流量",
+    "prefillReason": "访问来源异常：{{minutes}} 分钟内 {{requests}} 次请求"
   }
 }

@@ -89,6 +89,29 @@ export function useIpAccessStatus() {
   });
 }
 
+export interface TrafficSource {
+  ip: string;
+  requests: number;
+  errors: number;
+  error_rate: number;
+}
+
+/**
+ * 「谁在打我」。轮询而不是等用户手点刷新——这个面板是在出事时看的，
+ * 数字停在两分钟前会让人误判。
+ */
+export function useTrafficSources(limit: number) {
+  return useQuery({
+    queryKey: ["ip-rules", "traffic", limit],
+    queryFn: () =>
+      api.get<{ window_minutes: number; items: TrafficSource[] }>(
+        "/platform/ip-rules/traffic",
+        { limit },
+      ),
+    refetchInterval: 30_000,
+  });
+}
+
 export function useCreateIpRule(scope: IpRuleScope) {
   const queryClient = useQueryClient();
   return useMutation({

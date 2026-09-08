@@ -3,6 +3,17 @@ upstream app_backend {
     keepalive 8;
 }
 
+# 默认的 main 格式记的是 $remote_addr —— 在「宿主 nginx → 容器 nginx」的拓扑下
+# 那**永远是宿主 nginx 的地址**，每一条日志的 IP 都一样，等于没记。
+# 排查「谁在打我」时这份日志是第一手材料，必须记真实来源。
+log_format app_access '$http_x_forwarded_for - $remote_user [$time_local] '
+                      '"$request" $status $body_bytes_sent '
+                      '"$http_referer" "$http_user_agent" '
+                      'rt=$request_time uct=$upstream_connect_time '
+                      'uht=$upstream_header_time urt=$upstream_response_time';
+
+access_log /var/log/nginx/access.log app_access;
+
 # IP 封禁名单（module-ip-access 导出，占位由 20-ip-access-stub.sh 保证存在）。
 #
 # 用 `geo` 而不是堆 `deny`：前者是基数树，查一次与条数无关；后者是线性表，

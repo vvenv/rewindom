@@ -1,3 +1,4 @@
+import { getClientIp } from "../lib/client-ip.js";
 import { getRequestContext } from "../lib/request-context.js";
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
@@ -18,24 +19,35 @@ export interface RequestTimingSample {
   user_id: string | null;
   username: string | null;
   request_id: string | null;
+  /** 归一化后的客户端 IP；拿不到可信来源时为 null */
+  ip_address: string | null;
   source: "http";
 }
 
 type RequestTimingRecorder = (sample: RequestTimingSample) => void;
 
-let recorder: RequestTimingRecorder | null = null;
+/**
+ * 多个订阅者。
+ *
+ * 「一次请求跑完了」是个通用信号，不止一个模块关心：slow-request 拿它落慢请求日志，
+ * ip-access 拿它统计访问来源。单槽 recorder 会让后注册的模块把前一个顶掉——
+ * 而且是静默的，日志会毫无征兆地停止产生。
+ */
+const recorders = new Set<RequestTimingRecorder>();
 
 const EXCLUDED_PATHS = new Set(["/health"]);
 const PATH_MAX_LEN = 500;
 
-export function setRequestTimingRecorder(
-  next: RequestTimingRecorder | null,
-): void {
-  recorder = next;
+/** 注册一个订阅者，返回取消函数。 */
+export function addRequestTimingRecorder(
+  next: RequestTimingRecorder,
+): () => void {
+  recorders.add(next);
+  return () => recorders.delete(next);
 }
 
-export function resetRequestTimingRecorder(): void {
-  recorder = null;
+export function resetRequestTimingRecorders(): void {
+  recorders.clear();
 }
 
 function requestPath(request: FastifyRequest): string {
@@ -63,12 +75,12 @@ function shouldSkip(request: FastifyRequest, path: string): boolean {
 }
 
 function emitSample(request: FastifyRequest, reply: FastifyReply): void {
-  if (!recorder) return;
+  if (recorders.size === 0) return;
   const path = requestPath(request);
   if (shouldSkip(request, path)) return;
 
   const ctx = getRequestContext();
-  recorder({
+  const sample: RequestTimingSample = {
     duration_ms: durationMs(request),
     status_code: reply.statusCode,
     route: requestRoute(request, path),
@@ -78,8 +90,17 @@ function emitSample(request: FastifyRequest, reply: FastifyReply): void {
     user_id: ctx?.user_id ?? request.authUser?.userId ?? null,
     username: ctx?.username ?? request.authUser?.username ?? null,
     request_id: ctx?.request_id ?? request.id,
+    ip_address: getClientIp(request),
     source: "http",
-  });
+  };
+
+  for (const recorder of recorders) {
+    try {
+      recorder(sample);
+    } catch {
+      // 一个订阅者出错不该影响其它订阅者，更不该影响响应
+    }
+  }
 }
 
 /**

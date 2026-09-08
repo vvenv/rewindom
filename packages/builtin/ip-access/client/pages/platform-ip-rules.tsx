@@ -9,6 +9,7 @@ import { IpAccessStatusPanel } from "../components/IpAccessStatusPanel.js";
 import { IpRuleFilters } from "../components/IpRuleFilters.js";
 import { IpRuleSheet } from "../components/IpRuleSheet.js";
 import { IpRulesTable } from "../components/IpRulesTable.js";
+import { TrafficSourcesPanel } from "../components/TrafficSourcesPanel.js";
 import { useIpRules } from "../hooks/useIpRules.js";
 import { useIpRulesPage } from "../hooks/useIpRulesPage.js";
 
@@ -42,6 +43,8 @@ export function PlatformIpRules() {
       <p className="text-muted-foreground text-sm">
         {t("platformDescription")}
       </p>
+
+      <TrafficSourcesPanel />
 
       <IpAccessStatusPanel />
 

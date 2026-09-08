@@ -10,6 +10,29 @@
 - kernel（`getClientIp`、`resolveHostTenant`、`registerEarlyMiddleware`）
 - `module-rbac`、`module-audit`、`module-background-job`
 
+## 怎么发现该封谁
+
+封禁回答的是「怎么拦」，但难的一步在前面：**你怎么知道该拦谁**。三个入口，
+按响应速度排：
+
+| 入口 | 覆盖面 | 留存 |
+| --- | --- | --- |
+| 平台页「访问来源」 | 最近 1 小时请求量 Top N，含错误率，**可一键建规则** | Redis 滚动，重启归零 |
+| 平台页慢请求日志（按 IP 筛） | 超阈值的请求，含来源 IP 与路径 | 按 `SLOW_REQUEST_RETENTION_DAYS` |
+| 宿主 nginx access log | **全量请求**，唯一的全景 | 按日志轮转策略 |
+
+```bash
+# 谁在打我 —— Top 20 来源
+awk '{print $1}' /var/log/nginx/access.log | sort | uniq -c | sort -rn | head -20
+# 只看 4xx/5xx（扫描器的典型特征）
+tail -10000 /var/log/nginx/access.log | awk '$9 ~ /^[45]/ {print $1}' | sort | uniq -c | sort -rn | head
+```
+
+「访问来源」用 Redis 滚动计数而不落库：高峰期每秒几千次写入，为一个「看一眼谁在
+打我」的视图不值得。它是**易失**的，这是刻意取舍——这份数据的用途是「此刻发生了
+什么」，不是审计；长期留存看 nginx 日志。桶自带 TTL 且定期裁剪到 Top N，
+否则一次 /16 扫描就能把 Redis 内存吃掉。
+
 ## 判定优先级
 
 从高到低，`decideIpAccess` 把它固定在 `server/ip-access.decision.ts`：
@@ -100,6 +123,10 @@ Cloudflare 账号下、开橙云、回源指向本站——不通知平台，平
 | `IP_ACCESS_NGINX_EXPORT_PATH` | 见 compose | nginx geo 片段导出路径；空则不导出 |
 | `CLOUDFLARE_PROXY` | `false` | 站点在 CF 橙云后面时设 true，把 CF 网段并入可信代理 |
 | `IP_ACCESS_PROXY_RANGES` | 空 | CF 之外的代理 / CDN 出口段；这些地址永不自动封禁 |
+| `IP_ACCESS_TRAFFIC_STATS` | `true` | 「访问来源」观测面 |
+| `IP_ACCESS_TRAFFIC_BUCKET_SECONDS` | `300` | 统计分桶时长 |
+| `IP_ACCESS_TRAFFIC_BUCKETS` | `12` | 窗口 = 桶长 × 桶数（默认 1 小时） |
+| `IP_ACCESS_TRAFFIC_MAX_TRACKED` | `2000` | 每桶最多跟踪多少来源 |
 
 ## 几条不显然的设计
 
@@ -136,6 +163,12 @@ Cloudflare 账号下、开橙云、回源指向本站——不通知平台，平
 `createIpRule` 因此额外查一次重复。
 
 ## 尚未实现
+
+**按国家 / ASN 封禁。** 刻意不做，两个理由。其一，区域级异常如果真是 abuse，
+几乎必然是**很多 IP 各来一点**（代理池 / 僵尸网络）——等你枚举完对方早换了，
+正确的工具是限流而不是封禁，给运维造一把不该用的锤子会诱导错误处置。其二，
+它要往底座塞一个 70MB 的授权 GeoIP 库。真需要按区域拦，那属于边缘层：
+nginx 的 geoip2 模块或 CDN 的规则。
 
 **把名单推到 Cloudflare 边缘。** `nginx-export.ts` 已经把「名单 → 执行层」抽成了
 独立环节，加一个 `cloudflare-sync.ts`（IP Lists + 自定义规则）走同样的触发时机即可，

@@ -24,6 +24,10 @@ import {
   type RuleScopeSelector,
 } from "./ip-access.service.js";
 import { exportNginxBlocklist } from "./nginx-export.js";
+import {
+  getTopTrafficSources,
+  getTrafficWindowMinutes,
+} from "./traffic-stats.service.js";
 
 import type { IpAccessRuleWriteBody } from "../shared/index.js";
 import type { FastifyInstance, FastifyReply } from "fastify";
@@ -82,6 +86,27 @@ export async function registerPlatformIpAccessRoutes(
       success({
         ...getIpAccessRuntimeConfig(),
         cache: getIpAccessCacheStatus(),
+      }),
+    );
+  });
+
+  /**
+   * 「谁在打我」——最近窗口内请求量最高的来源。
+   *
+   * 这是发现问题 IP 的入口：没有它，运维只能 SSH 上去 awk nginx 日志再手抄回来，
+   * 而攻击正在进行时那几分钟很贵。
+   */
+  app.get("/ip-rules/traffic", async (request, reply) => {
+    const { limit } = request.query as { limit?: string };
+    const parsed = Number(limit);
+    const take = Number.isFinite(parsed)
+      ? Math.min(200, Math.max(1, parsed))
+      : 50;
+    const sources = await getTopTrafficSources(take);
+    return reply.send(
+      success({
+        window_minutes: getTrafficWindowMinutes(),
+        items: sources,
       }),
     );
   });

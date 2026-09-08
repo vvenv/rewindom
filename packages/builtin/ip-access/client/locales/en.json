@@ -87,5 +87,17 @@
     "export": "Export edge list",
     "exportDone": "Exported {{count}} rules to {{path}}",
     "exportSkipped": "No export path configured; all checking stays in the app layer"
+  },
+  "traffic": {
+    "title": "Traffic sources",
+    "description": "Busiest sources in the last {{minutes}} minutes. Counted in memory and reset on restart — nginx access log is the durable record.",
+    "source": "Source IP",
+    "requests": "Requests",
+    "errors": "Errors",
+    "errorRate": "Error rate",
+    "block": "Add rule",
+    "refresh": "Refresh",
+    "empty": "No traffic recorded in this window yet",
+    "prefillReason": "Unusual traffic source: {{requests}} requests in {{minutes}} min"
   }
 }

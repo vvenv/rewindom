@@ -57,6 +57,7 @@ function sample(
     user_id: "u-1",
     username: "ada",
     request_id: "req-1",
+    ip_address: "203.0.113.9",
     source: "http",
     ...overrides,
   };

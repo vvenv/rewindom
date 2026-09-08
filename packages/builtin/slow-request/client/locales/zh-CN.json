@@ -39,7 +39,8 @@
     "loading": "加载中...",
     "emptyHint": "超过阈值的 HTTP 请求会自动记录在这里。",
     "emptyFiltered": "没有匹配的慢请求日志",
-    "emptyFilteredHint": "换个时间范围或筛选条件再试。"
+    "emptyFilteredHint": "换个时间范围或筛选条件再试。",
+    "ip": "来源 IP"
   },
   "chart": {
     "loading": "加载中...",
