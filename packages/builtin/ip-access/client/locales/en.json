@@ -1,12 +1,12 @@
 {
   "title": "Access control",
   "pageDescription": "Decide who can reach this site by IP or IP range. New rules start in log-only mode — watch for a few days before enforcing.",
-  "platformTitle": "IP access control",
+  "platformTitle": "Access control",
   "platformDescription": "Platform-wide list applied to every site. Global rules override a site's own allow rules.",
   "nav": {
     "label": "Access control",
     "title": "Access control",
-    "platform": "IP access control"
+    "platform": "Access control"
   },
   "create": "Add rule",
   "createTitle": "Add access rule",

@@ -1,12 +1,12 @@
 {
   "title": "访问控制",
   "pageDescription": "按 IP 或 IP 段决定谁能访问本站点。新规则默认「仅记录」，观察几天再切「拦截」。",
-  "platformTitle": "IP 访问控制",
+  "platformTitle": "访问控制",
   "platformDescription": "平台全局名单，作用于所有站点。全局规则压过站点自己的放行规则。",
   "nav": {
     "label": "访问控制",
     "title": "访问控制",
-    "platform": "IP 访问控制"
+    "platform": "访问控制"
   },
   "create": "新增规则",
   "createTitle": "新增访问规则",
