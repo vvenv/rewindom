@@ -23,11 +23,17 @@ const ipAccessConfig = {
   loginFailureThreshold: 10,
   loginFailureWindowMinutes: 15,
   nginxExportPath: "",
+  extraProxyRanges: [] as string[],
 };
 
 vi.mock("@rewindom/server-kernel/lib/config.js", () => ({
   config: {
-    server: { logLevel: "silent", isProduction: false, isTest: true },
+    server: {
+      logLevel: "silent",
+      isProduction: false,
+      isTest: true,
+      trustedProxies: "uniquelocal",
+    },
     get ipAccess() {
       return ipAccessConfig;
     },

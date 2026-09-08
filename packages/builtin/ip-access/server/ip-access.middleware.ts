@@ -18,6 +18,7 @@ import {
 import { matchRules } from "./ip-access.cache.js";
 import { decideIpAccess } from "./ip-access.decision.js";
 import { recordRuleHits } from "./ip-access.service.js";
+import { matchProxyRange } from "./proxy-guard.js";
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
@@ -31,6 +32,31 @@ function isExemptRequest(request: FastifyRequest): boolean {
   if (request.method === "OPTIONS") return true;
   const path = request.url.split("?")[0] ?? "";
   return path === "/health";
+}
+
+/**
+ * client IP 看起来像代理出口时告警。
+ *
+ * 这是「代理链配错了」的最早信号——比等到有人来报「我被无故封了」早得多。
+ * 只报第一次：配错的话每个请求都会命中，刷满日志反而淹掉别的东西。
+ */
+let proxyIpWarned = false;
+function warnOnProxyClientIp(app: FastifyInstance, ip: string): void {
+  if (proxyIpWarned) return;
+  const range = matchProxyRange(ip);
+  if (!range) return;
+  proxyIpWarned = true;
+  app.log.error(
+    { ip, range },
+    "[ip-access] 解析出的 client IP 落在已知代理 / CDN 段内，说明 TRUSTED_PROXIES " +
+      "没覆盖真实的代理链——按 IP 的封禁与限流当前全部失真。站点若在 Cloudflare " +
+      "后面请设 CLOUDFLARE_PROXY=true。本告警只报一次。",
+  );
+}
+
+/** 仅供测试。 */
+export function resetProxyWarningForTest(): void {
+  proxyIpWarned = false;
 }
 
 export async function ipAccessMiddleware(app: FastifyInstance): Promise<void> {
@@ -57,6 +83,8 @@ export async function ipAccessMiddleware(app: FastifyInstance): Promise<void> {
         resolveRequestHostname(request.headers),
       );
       request.hostTenantContext = hostTenant;
+
+      warnOnProxyClientIp(app, ip);
 
       const { matched, exempt } = await matchRules(
         ip,

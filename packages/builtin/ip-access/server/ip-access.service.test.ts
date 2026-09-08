@@ -12,7 +12,7 @@ const { mockFindFirst, mockCreate, mockUpdate, mockDelete, mockDeleteMany } =
 vi.mock("@rewindom/server-kernel/lib/config.js", () => ({
   config: {
     // nginx-export 会经 createModuleLogger 读 server.logLevel
-    server: { logLevel: "silent", isProduction: false, isTest: true },
+    server: { logLevel: "silent", isProduction: false, isTest: true, trustedProxies: "uniquelocal" },
     ipAccess: {
       enabled: true,
       refreshIntervalMs: 15_000,
@@ -21,6 +21,7 @@ vi.mock("@rewindom/server-kernel/lib/config.js", () => ({
       loginFailureThreshold: 10,
       loginFailureWindowMinutes: 15,
       nginxExportPath: "",
+      extraProxyRanges: [],
     },
   },
 }));

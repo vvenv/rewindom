@@ -23,6 +23,8 @@ export const IP_ACCESS_SERVER_I18N: ServerI18nBundle = {
       "ip_access.auto_requires_expiry": "自动规则必须设置过期时间",
       "ip_access.self_lockout":
         "{{cidr}} 包含你当前的 IP，这条规则一旦生效你自己也会被拦在外面。请先用「仅记录」观察，或改窄范围。",
+      "ip_access.proxy_range":
+        "{{cidr}} 属于已知的代理 / CDN 出口段（{{range}}）。那不是某个访客的地址，背后是一大片真实用户，封它会把他们一起挡在外面。",
       "ip_access.audit.created":
         "新增访问规则 {{cidr}}（{{rule_action}} / {{mode}}）",
       "ip_access.audit.updated":
@@ -44,6 +46,8 @@ export const IP_ACCESS_SERVER_I18N: ServerI18nBundle = {
         "Automatic rules must have an expiry time",
       "ip_access.self_lockout":
         "{{cidr}} covers your current IP — enforcing this rule would lock you out. Use log-only first, or narrow the range.",
+      "ip_access.proxy_range":
+        "{{cidr}} belongs to a known proxy/CDN egress range ({{range}}). That is not one visitor's address — it fronts a large pool of real users, and blocking it would shut them all out.",
       "ip_access.audit.created":
         "Added access rule {{cidr}} ({{rule_action}} / {{mode}})",
       "ip_access.audit.updated":

@@ -41,6 +41,37 @@
 为此给 `ServerAppModule` 加了 `registerEarlyMiddleware` 扩展点，组装层在
 `authMiddleware` 之前调用。
 
+## 代理链错配：本模块最大的失效模式
+
+自定义域名的流程是「客户配 DNS」。**任何一个租户都能把自己的域名挂到他自己的
+Cloudflare 账号下、开橙云、回源指向本站——不通知平台，平台也拦不住。**
+
+那一刻起，该域名上所有请求到达 origin 时 socket 对端都是 CF 边缘节点。若
+`TRUSTED_PROXIES` 不含 CF 段，`request.ip` 就停在那一跳：
+
+- 该域名上十个人各输错一次密码 → 计数全落在同一个边缘 IP 上 → 触发自动封禁
+- 规则写进**平台全局**名单，而那个边缘 IP 服务着 Cloudflare 的一大片流量
+
+一次配置疏忽就能把封禁系统变成打击无辜用户的放大器。
+
+三道防线：
+
+1. **`CLOUDFLARE_PROXY=true`** 把 CF 官方网段并入可信代理。CF 自己会把访客 IP
+   追加进 XFF，所以信任这些段之后标准 XFF 解析就是对的，**不需要读
+   `CF-Connecting-IP`**（少一个可伪造的头）。
+2. **护栏**（`proxy-guard.ts`）：解析出的 client IP 若落在已知代理 / CDN 段内，
+   拒绝自动封禁并告警。它不依赖名单是否最新——CF 会增删网段、租户会换 CDN、
+   云 LB 会换出口，护栏只问「这看起来像基础设施吗」。手工建 `block` 规则打到
+   这些段上同样会被拒（`ip_access.proxy_range`）；`allow` 不拦，把回源段加进
+   豁免名单是正当用法。
+3. **判定路径首次命中时告警一次**，这是「代理链配错了」最早的信号。
+
+内置的 CF 网段是**快照**（见 `lib/proxy-ranges.ts`），会过期。补充段写
+`IP_ACCESS_PROXY_RANGES`，并定期核对 `https://www.cloudflare.com/ips-v4`。
+
+`trustProxy` 是 Fastify 全局设置，做不到「A 域名信 CF、主域不信」——
+`CLOUDFLARE_PROXY` 是**部署级**开关，不是租户级。
+
 ## 前置条件：可信代理
 
 `request.ip` 的取值由 `TRUSTED_PROXIES` 决定（见 `docs/deployment.md`）。**配错了这里，
@@ -67,6 +98,8 @@
 | `IP_ACCESS_LOGIN_FAILURE_THRESHOLD` | `10` | 触发自动封禁的失败次数 |
 | `IP_ACCESS_LOGIN_FAILURE_WINDOW_MINUTES` | `15` | 失败计数窗口 |
 | `IP_ACCESS_NGINX_EXPORT_PATH` | 见 compose | nginx geo 片段导出路径；空则不导出 |
+| `CLOUDFLARE_PROXY` | `false` | 站点在 CF 橙云后面时设 true，把 CF 网段并入可信代理 |
+| `IP_ACCESS_PROXY_RANGES` | 空 | CF 之外的代理 / CDN 出口段；这些地址永不自动封禁 |
 
 ## 几条不显然的设计
 
@@ -103,6 +136,12 @@
 `createIpRule` 因此额外查一次重复。
 
 ## 尚未实现
+
+**把名单推到 Cloudflare 边缘。** `nginx-export.ts` 已经把「名单 → 执行层」抽成了
+独立环节，加一个 `cloudflare-sync.ts`（IP Lists + 自定义规则）走同样的触发时机即可，
+判定层不用改。没做是因为它给底座引入外部 SaaS 依赖（token 存储、失败重试、
+租户能不能各自绑自己的账号），是产品决策而非技术细节。
+
 
 **人机验证（challenge）。** 真正的挑战流程要一个过闸页加一份「这个访客已通过」的会话
 状态，横跨 SSR / SPA / API 三条路径，是独立的一块工作。放一个静默等同于 block 的第三态
