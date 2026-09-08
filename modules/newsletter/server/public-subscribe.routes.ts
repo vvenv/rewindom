@@ -18,6 +18,7 @@ import { resolveLocaleSegment } from "@rewindom/builtin/marketing/shared/site-lo
 import {
   AppError,
   defineRoute,
+  getClientIp,
   sendCodedError,
 } from "@rewindom/module-sdk/server";
 
@@ -31,7 +32,7 @@ function queryLocale(request: FastifyRequest): string {
 }
 
 function clientIp(request: FastifyRequest): string {
-  return request.ip || "unknown";
+  return getClientIp(request) ?? "unknown";
 }
 
 export async function publicNewsletterRoutes(

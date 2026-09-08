@@ -220,6 +220,10 @@ curl http://127.0.0.1:3700/health
 | `TENANT_SECRET_ENCRYPTION_KEY` | 租户密钥加密（32 字节 hex）                                                                                      |
 | `SINGLE_TENANT`                | `true` 时单租户部署（默认关闭）；须同时出现在 `.env.production` 与 `docker-compose.prod.yml` → `app.environment` |
 | `TENANT_BASE_DOMAIN`           | 平台通配子域基域（如 `rewindom.com`）；`{slug}.{base}` 自动锁定租户；空则关闭                                    |
+| `TRUSTED_PROXIES`              | 可信反向代理，决定 `request.ip` 取 XFF 哪一跳；compose 默认 `uniquelocal`；**生产不可留空** |
+| `IP_ACCESS_ENABLED`            | IP 访问控制判定开关（默认开）                                                                    |
+| `IP_ACCESS_ALWAYS_ALLOW`       | 压过一切封禁规则的豁免 CIDR 列表；留空 = 一条过宽的规则能把你自己锁在外面                        |
+| `IP_ACCESS_NGINX_EXPORT_PATH`  | nginx 封禁片段导出路径（容器内），空则判定全留在应用层                                           |
 | `STRIPE_SECRET_KEY`            | 商店收款平台默认 Stripe Secret（站点设置可覆盖）                                                                 |
 | `STRIPE_WEBHOOK_SECRET`        | 商店收款平台默认 Stripe Webhook Secret                                                                           |
 | `STRIPE_PUBLISHABLE_KEY`       | 商店收款平台默认 Stripe Publishable Key                                                                          |
@@ -234,6 +238,49 @@ curl http://127.0.0.1:3700/health
 完整列表见 `scripts/env.production.example`。新增应用运行时变量时，务必同步写入 `docker-compose.prod.yml` 的 `app.environment` 白名单（`docker-compose.dev.yml` 不需要）。
 
 门禁：`pnpm check:prod-app-env`（从 `config.ts` 对照 compose + example；已挂 Architecture CI）。
+
+### 可信代理与 client IP
+
+`request.ip` 的取值由 Fastify `trustProxy` 决定，而它读的是 `TRUSTED_PROXIES`
+（`config.server.trustedProxies`）。取值三选一：CIDR / IP 列表（逗号分隔）、proxy-addr
+预置名 `loopback` / `linklocal` / `uniquelocal`、或纯数字表示信任最靠近本进程的 N 跳。
+
+**不接受 `true` / `*`，配置成那样会直接启动失败。** 无条件信任 `X-Forwarded-For`
+等于把 client IP 的决定权交给客户端：任何人加一行请求头就能伪造自己的 IP，绕过按 IP
+的限流，也能填别人的 IP 去触发自动封禁——把防护系统当成打无辜用户的放大器。审计日志
+`ip_address` 的可信度同样归零。
+
+**优先写网段，不要用跳数。** 跳数模式只数跳数、不校验对端是谁：只要有人能绕过反代
+直连应用端口，他自带的 XFF 就会被采信（实测 `trustProxy: 1` 配伪造 XFF 即可改写
+client IP）。只有在应用绝对不可直连时才考虑跳数。
+
+默认 `uniquelocal` 对应标准拓扑「宿主 nginx → 容器 nginx → app」，三跳都在私网。
+**外层若换成公网出口的云 LB / CDN 回源，必须改成该 LB 的实际网段**，否则最外一跳
+不被信任，`request.ip` 会退回成 LB 的地址，全站 IP 归一。
+
+代码里一律用 `getClientIp(request)`（`@rewindom/server-kernel/lib/client-ip.js`，
+模块侧从 `@rewindom/module-sdk/server` 取），不要直接读 `request.ip`——它还负责把
+IPv4-mapped IPv6（`::ffff:1.2.3.4`）与裸 IPv4 收敛成同一个字符串。拿不到可信地址时
+返回 `null`，调用方要显式处理，不要回退成占位串。
+
+### IP 封禁（module-ip-access）
+
+两级名单：平台全局（`/platform/ip-rules`）与站点级（`/app/ip-access`）。完整口径见
+[`packages/builtin/ip-access/MODULE.md`](../packages/builtin/ip-access/MODULE.md)，
+部署上要注意三件事：
+
+**1. `IP_ACCESS_ALWAYS_ALLOW` 不要留空。** 它是压过一切数据库规则的豁免名单，
+装的是「被误封就没人能修」的地址：监控探针、健康检查来源、CDN 回源段、支付回调源、
+自己的办公出口。留空意味着一条过宽的规则能把运维自己锁在后台外面，而那时你已经改不了规则。
+
+**2. 边缘层名单要等 nginx reload 才生效。** app 容器把平台级 enforce block 规则渲染成
+`geo` 片段写进 `rewindom_ip_access` 卷，web 容器 `include` 它。**app 无法 reload 另一个
+容器的 nginx**，所以边缘层名单实际是在下一次部署 / reload 时对齐的。这不影响封禁本身——
+应用层判定是实时的，边缘层只是额外拦住那些不经过 Node 的流量（静态资源、高频扫描）。
+要立刻生效就 `docker compose exec web nginx -s reload`。
+
+**3. 首次部署不会因为缺文件而 502。** web 镜像的 `/docker-entrypoint.d/20-ip-access-stub.sh`
+会在片段缺失时写一个「谁都不封」的占位，app 起来后覆盖。
 
 ### 租户自定义域名（可选）
 

@@ -1,3 +1,4 @@
+import { getClientIp } from "../lib/client-ip.js";
 import { config } from "../lib/config.js";
 import { translateForRequest } from "../lib/i18n/translate.js";
 
@@ -9,7 +10,8 @@ export interface ErrorLogContext {
   tenantSlug: string | null;
   route: string;
   method: string;
-  ipAddress: string;
+  /** 拿不到可信 client IP 时为 undefined（列本身可空），不要回退成占位字符串 */
+  ipAddress?: string;
   userAgent?: string;
   /** 以下三项是已归一化的 JSON 值（对应 jsonb 列），不是序列化后的字符串 */
   requestBody?: unknown;
@@ -62,7 +64,7 @@ export async function errorHandlerMiddleware(app: FastifyInstance) {
       // Extract request information
       const route = request.url;
       const method = request.method;
-      const ipAddress = request.ip;
+      const ipAddress = getClientIp(request) ?? undefined;
       const userAgent = request.headers["user-agent"];
 
       // Normalize request data based on config

@@ -100,7 +100,6 @@ export async function permissionRoutes(app: FastifyInstance): Promise<void> {
             name: role.name,
             permissions_text: body.permissions.join(", ") || "-",
           },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
 
@@ -152,7 +151,6 @@ export async function permissionRoutes(app: FastifyInstance): Promise<void> {
             name: role.name,
             permissions_text: body.permissions?.join(", ") || "-",
           },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
 
@@ -197,7 +195,6 @@ export async function permissionRoutes(app: FastifyInstance): Promise<void> {
           resource: `role:${deletedName}`,
           detail_key: "rbac.audit.role_deleted",
           detail_params: { name: deletedName },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
 
@@ -303,7 +300,6 @@ export async function permissionRoutes(app: FastifyInstance): Promise<void> {
             username: user.username,
             roles_text: assigned.map((role) => role.name).join(", ") || "-",
           },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
 

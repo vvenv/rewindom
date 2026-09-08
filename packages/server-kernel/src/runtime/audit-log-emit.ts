@@ -1,3 +1,5 @@
+import { getClientIp } from "../lib/client-ip.js";
+
 import type { AuditLogEventPayload } from "./domain-events.js";
 import type { EventBus } from "./event-bus.js";
 import type { FastifyBaseLogger, FastifyRequest } from "fastify";
@@ -38,7 +40,7 @@ export async function emitAuditLogFromRequest(
   await emitAuditLog(events, {
     ...input,
     tenant_slug: input.tenant_slug ?? request.tenantContext?.tenant_slug ?? null,
-    ipAddress: input.ipAddress ?? request.ip,
+    ipAddress: input.ipAddress ?? getClientIp(request) ?? undefined,
     userAgent:
       input.userAgent ??
       (typeof userAgent === "string" ? userAgent : undefined),

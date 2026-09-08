@@ -95,7 +95,6 @@ export async function registerTenantRoutes(
           name: tenant.name,
           admin: tenant.admin.login_identifier,
         },
-        ipAddress: request.ip,
         userAgent: request.headers["user-agent"],
       });
 
@@ -175,7 +174,6 @@ export async function registerTenantRoutes(
             previous_slug: before.slug,
             status: tenant.status,
           },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
 
@@ -211,7 +209,6 @@ export async function registerTenantRoutes(
             slug: issued.slug,
             names: issued.names.join(", "),
           },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
         return reply.send(success(issued));
@@ -250,7 +247,6 @@ export async function registerTenantRoutes(
           admin: credentials.login_identifier,
           recreated: credentials.recreated === true,
         },
-        ipAddress: request.ip,
         userAgent: request.headers["user-agent"],
       });
 
@@ -309,7 +305,6 @@ export async function registerTenantRoutes(
           resource: "tenant",
           detail_key: "platform.audit.tenant_archived",
           detail_params: { slug: tenant.slug },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
 
@@ -370,7 +365,6 @@ export async function registerTenantRoutes(
           resource: "tenant",
           detail_key: "platform.audit.tenant_impersonated",
           detail_params: { slug: tenant.slug, admin: result.login_identifier },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
 
@@ -463,7 +457,6 @@ export async function registerTenantRoutes(
               modules_json: JSON.stringify(request.body.modules ?? {}),
               features_json: JSON.stringify(request.body.features ?? {}),
             },
-            ipAddress: request.ip,
             userAgent: request.headers["user-agent"],
           });
         } catch (auditErr) {
@@ -561,7 +554,6 @@ export async function registerTenantRoutes(
               before_json: JSON.stringify(before),
               after_json: JSON.stringify(saved),
             },
-            ipAddress: request.ip,
             userAgent: request.headers["user-agent"],
           });
         } catch (auditErr) {
@@ -615,7 +607,6 @@ export async function registerTenantRoutes(
                 plan_ends_at: updated.plan_ends_at,
               }),
             },
-            ipAddress: request.ip,
             userAgent: request.headers["user-agent"],
           });
         } catch (auditErr) {

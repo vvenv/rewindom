@@ -20,6 +20,7 @@
 - 文件上传：用 client-kit 的 `FileDropZone` / `FileDropArea` / `FilePickerTrigger`（自带点选 + 拖放 + 粘贴），禁止裸 `<input type="file">`
 - React 组件：具名导出
 - 写操作：记录审计日志
+- 客户端 IP：一律用 `getClientIp(request)`，禁止直接读 `request.ip`（可信度由 `TRUSTED_PROXIES` 决定）
 - Migration：禁止随意 `reset`，优先增量 migration
 - 单租户部署：`SINGLE_TENANT=true`（见 `tenancy-mode` rule）；生产 env 透传门禁：`pnpm check:prod-app-env`
 - 租户无感知：租户侧 / 公开面文案不出现「租户」「Tenant」（见 `tenancy-mode` rule、`tenant-config.md` §5.8）

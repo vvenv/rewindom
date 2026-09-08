@@ -3,6 +3,7 @@ import { backgroundJobClientModule } from "@rewindom/builtin/background-job/clie
 import { billingClientModule } from "@rewindom/builtin/billing/client/module.js";
 import { dashboardClientModule } from "@rewindom/builtin/dashboard/client/module.js";
 import { errorLogClientModule } from "@rewindom/builtin/error-log/client/module.js";
+import { ipAccessClientModule } from "@rewindom/builtin/ip-access/client/module.js";
 import { mailerClientModule } from "@rewindom/builtin/mailer/client/module.js";
 import { marketingClientModule } from "@rewindom/builtin/marketing/client/module.js";
 import { notificationClientModule } from "@rewindom/builtin/notification/client/module.js";
@@ -45,6 +46,7 @@ export const ENABLED_CLIENT_MODULES = [
   billingClientModule,
   platformClientModule,
   mailerClientModule,
+  ipAccessClientModule,
   // 无导航项，只往 platform 的 /app/settings 追加一张翻译设置面板
   translationClientModule,
   auditClientModule,

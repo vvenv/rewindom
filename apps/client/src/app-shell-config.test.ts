@@ -24,6 +24,9 @@ describe("buildAppShellConfig", () => {
 
     expect(outline).toEqual([
       { type: "link", to: "/platform" },
+      // 根级 link 一律排在概览之后、分组之前（见 collect-platform-nav）。
+      // 访问控制既不属于 commerce 也不属于 observability，故走根级。
+      { type: "link", to: "/platform/ip-rules" },
       {
         type: "group",
         key: "tenant-admin",

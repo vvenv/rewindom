@@ -61,7 +61,6 @@ export async function backgroundJobRoutes(app: FastifyInstance): Promise<void> {
         detail_params: {
           job: typeof result === "string" ? job_id : result.title || job_id,
         },
-        ipAddress: request.ip,
         userAgent: request.headers["user-agent"],
       });
 

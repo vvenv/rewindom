@@ -14,6 +14,26 @@ export function getDomainEventBus(): EventBus | null {
 }
 
 /**
+ * 手上有 `app.events` 时发领域事件。
+ *
+ * 失败只记日志：领域事件广播的是「已经发生的事实」，订阅方挂掉不该让发布方
+ * 的主流程跟着失败——登录失败的响应不能因为封禁计数写不进去而变成 500。
+ */
+export async function emitDomainEventSafe<K extends DomainEventName>(
+  events: EventBus | null | undefined,
+  log: FastifyBaseLogger | undefined,
+  event: K,
+  payload: DomainEventPayload<K>,
+): Promise<void> {
+  if (!events) return;
+  try {
+    await events.emit(event, payload);
+  } catch (error) {
+    log?.error({ error, event }, "Failed to emit domain event");
+  }
+}
+
+/**
  * 事务外的 service（没有 Fastify request / app 句柄）发领域事件用。
  *
  * 失败只记日志：领域事件是「已发生事实」的广播，订阅方挂掉不该让发布方的主流程

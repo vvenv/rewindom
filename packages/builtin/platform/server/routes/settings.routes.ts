@@ -95,7 +95,6 @@ export async function registerSettingsRoutes(
             before: JSON.stringify(currentConfig),
             after: JSON.stringify(newConfig),
           },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
       } catch (auditError) {
@@ -144,7 +143,6 @@ export async function registerSettingsRoutes(
             before: JSON.stringify(currentTemplates),
             after: JSON.stringify(saved),
           },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
       } catch (auditError) {

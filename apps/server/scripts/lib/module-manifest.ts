@@ -6,6 +6,11 @@ import type { ModuleManifestEntry } from "./module-dependency-rules.js";
  */
 export const SERVER_MODULE_MANIFEST = [
   {
+    id: "ip-access",
+    kind: "infrastructure",
+    requires: ["rbac", "audit", "background-job"],
+  },
+  {
     id: "rbac",
     kind: "infrastructure",
   },

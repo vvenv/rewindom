@@ -78,7 +78,8 @@ export interface TenantRegistrationProvider {
   registerTenant(
     input: TenantRegistrationInput,
     jwtSign: JwtSignFn,
-    ip: string,
+    /** 拿不到可信 client IP 时为 undefined —— 审计列可空，不要塞占位串 */
+    ip: string | undefined,
     userAgent: string,
     options?: RegistrationOptions,
   ): Promise<TenantRegistrationResult>;
@@ -89,7 +90,7 @@ export interface TenantRegistrationProvider {
   registerOAuthTenant(
     input: OAuthTenantRegistrationInput,
     jwtSign: JwtSignFn,
-    ip: string,
+    ip: string | undefined,
     userAgent: string,
     options?: RegistrationOptions,
   ): Promise<TenantRegistrationResult>;

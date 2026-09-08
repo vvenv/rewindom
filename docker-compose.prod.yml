@@ -58,6 +58,17 @@ services:
       REDIS_DB: "0"
       JWT_SECRET: ${JWT_SECRET}
       TENANT_SECRET_ENCRYPTION_KEY: ${TENANT_SECRET_ENCRYPTION_KEY}
+      # 可信代理：容器网桥 + 宿主 nginx 都是私网，故默认 uniquelocal。
+      # 外层若是公网出口的云 LB，改成该 LB 的实际网段，别放宽成 0.0.0.0/0。
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-uniquelocal}
+      # IP 访问控制。ALWAYS_ALLOW 是压过一切封禁的豁免名单（监控 / 回调 / 办公出口），
+      # 留空意味着任何一条过宽的规则都能把你自己锁在后台外面。
+      IP_ACCESS_ENABLED: ${IP_ACCESS_ENABLED:-true}
+      IP_ACCESS_ALWAYS_ALLOW: ${IP_ACCESS_ALWAYS_ALLOW:-}
+      IP_ACCESS_AUTO_BAN_MINUTES: ${IP_ACCESS_AUTO_BAN_MINUTES:-60}
+      IP_ACCESS_LOGIN_FAILURE_THRESHOLD: ${IP_ACCESS_LOGIN_FAILURE_THRESHOLD:-10}
+      IP_ACCESS_LOGIN_FAILURE_WINDOW_MINUTES: ${IP_ACCESS_LOGIN_FAILURE_WINDOW_MINUTES:-15}
+      IP_ACCESS_NGINX_EXPORT_PATH: ${IP_ACCESS_NGINX_EXPORT_PATH:-/data/ip-access/blocklist.conf}
       SINGLE_TENANT: ${SINGLE_TENANT:-false}
       TENANT_BASE_DOMAIN: ${TENANT_BASE_DOMAIN:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
@@ -124,6 +135,8 @@ services:
       - "host.docker.internal:host-gateway"
     volumes:
       - rewindom_storage:/data
+      # 与 web 共享的 IP 封禁片段（单独一卷，不把整个 storage 暴露给 nginx）
+      - rewindom_ip_access:/data/ip-access
     depends_on:
       postgres:
         condition: service_healthy
@@ -141,6 +154,10 @@ services:
       # nginx map：仅平台控制台 Host 走静态 SPA；产品主域与其它 Host 反代 Marketing SSR
       APP_DOMAIN: ${APP_DOMAIN}
       PLATFORM_HOST: ${PLATFORM_HOST:-admin.${APP_DOMAIN}}
+    volumes:
+      # app 写、nginx 读。stub 脚本会在文件缺失时补一个「谁都不封」的占位，
+      # 否则首次部署时 include 找不到文件，nginx 起不来。
+      - rewindom_ip_access:/etc/nginx/ip-access
     ports:
       - "127.0.0.1:${APP_PORT:-3700}:80"
     depends_on:
@@ -151,3 +168,4 @@ volumes:
   rewindom_pg:
   rewindom_redis:
   rewindom_storage:
+  rewindom_ip_access:

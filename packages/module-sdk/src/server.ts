@@ -28,6 +28,7 @@ export * from "@rewindom/server-kernel/http/pagination.js";
 export * from "@rewindom/server-kernel/http/coded-error.js";
 export { Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
 export * from "@rewindom/server-kernel/lib/app-errors.js";
+export * from "@rewindom/server-kernel/lib/client-ip.js";
 export * from "@rewindom/server-kernel/lib/prisma.js";
 export * from "@rewindom/server-kernel/lib/tenant-scope.js";
 export * from "@rewindom/server-kernel/lib/config.js";

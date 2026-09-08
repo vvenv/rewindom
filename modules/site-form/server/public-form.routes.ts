@@ -10,7 +10,11 @@
  */
 
 import { resolveLocaleSegment } from "@rewindom/builtin/marketing/shared/site-locale.js";
-import { defineRoute, sendCodedError } from "@rewindom/module-sdk/server";
+import {
+  defineRoute,
+  getClientIp,
+  sendCodedError,
+} from "@rewindom/module-sdk/server";
 
 import { submitSiteForm } from "./form-submission.service.js";
 
@@ -60,7 +64,8 @@ export async function publicSiteFormRoutes(
           body.values && typeof body.values === "object"
             ? (body.values as Record<string, unknown>)
             : {},
-        ip: request.ip,
+        // 拿不到可信 IP 时共用一个限流桶——偏严，好过给匿名请求放行
+        ip: getClientIp(request) ?? "unknown",
         user_agent: request.headers["user-agent"] ?? "",
       });
 

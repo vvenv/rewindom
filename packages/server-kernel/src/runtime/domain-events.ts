@@ -104,7 +104,27 @@ export interface MailDeliveredEventPayload {
   delivery_id: string;
 }
 
+/**
+ * 一次登录失败。`ip-access` 订阅它做自动封禁，所以内核不 import 任何业务模块。
+ *
+ * `ip` 已经过 `getClientIp` 归一化；拿不到可信地址时为 null，订阅方必须自己
+ * 处理这种情况，**不要**回退成占位串——那会把所有 IP 未知的失败堆成一条规则。
+ */
+export interface AuthLoginFailedEventPayload {
+  ip: string | null;
+  /** 尝试的登录标识，可能根本不存在这个用户 */
+  username: string;
+}
+
+/** 一次登录成功。订阅方据此清掉该 IP 的失败计数。 */
+export interface AuthLoginSucceededEventPayload {
+  ip: string | null;
+  username: string;
+}
+
 export interface DomainEventMap {
+  "auth.login_failed": AuthLoginFailedEventPayload;
+  "auth.login_succeeded": AuthLoginSucceededEventPayload;
   "audit.log": AuditLogEventPayload;
   "notification.create": NotificationCreateEventPayload;
   "tenant.created": TenantCreatedEventPayload;

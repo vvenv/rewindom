@@ -1,0 +1,98 @@
+# 模块生成契约 —— create-module skill 的输入
+#
+# 注意：本 spec **超出 `scripts/gen-module.mjs` 的支持范围**（surfaces: both、
+# tenant_id 可空、非标准 CRUD），因此按 SKILL.md 的 checklist 手工建，
+# 本文件作为契约留档而不是生成器输入。
+
+# ---------- 必填 · 骨架 ----------
+id: ip-access
+label: IP Access
+description: IP 封禁名单（平台全局 + 租户两级），应用层判定 + 边缘层导出
+kind: infrastructure
+placement: packages/builtin/ip-access
+resource:
+  singular: ip_rule
+  plural: ip-rules
+surfaces: both
+requires: [rbac, audit, background-job]
+
+# ---------- 必填 · 租户开关 ----------
+# 平台全局名单属于基础设施，永远在线、不受开关影响；
+# 这里的开关只管「租户能不能自己维护站点名单」。
+entitlement:
+  key: ip-access
+  label: 访问控制
+  description: 按 IP / IP 段限制谁能访问本站点
+  disabled_hint: 该组织未开通访问控制
+  default_enabled: false
+
+# ---------- 必填 · 权限 ----------
+permissions:
+  - {
+      key: ip_access.read,
+      label: 查看访问规则,
+      group: 访问控制,
+      description: 查看 IP 规则列表与命中统计,
+    }
+  - {
+      key: ip_access.write,
+      label: 管理访问规则,
+      group: 访问控制,
+      description: 新增、编辑、删除 IP 规则,
+    }
+
+# ---------- 必填 · 数据模型 ----------
+models:
+  - name: IpAccessRule
+    # tenant_id 刻意可空：null = 平台全局规则，作用于所有 Host。
+    # 因此 tenant-guard policy 用 service_enforced 而不是 tenant_id
+    #（盲注会让全局规则在租户上下文里凭空消失）。
+    fields:
+      - { name: tenant_id, type: String, required: false }
+      - { name: cidr, type: String, required: true }
+      - { name: ip_version, type: Int, required: true }
+      - { name: action, type: String, required: true, default: block } # allow | block
+      - { name: mode, type: String, required: true, default: log_only } # enforce | log_only
+      - { name: reason, type: String, required: true }
+      - { name: source, type: String, required: true, default: manual } # manual | auto | feed
+      - { name: created_by, type: String, required: true }
+      - { name: expires_at, type: DateTime, required: false }
+      - { name: hit_count, type: Int, required: true, default: 0 }
+      - { name: last_hit_at, type: DateTime, required: false }
+    indexes:
+      - [tenant_id, action]
+      - [expires_at]
+      - [source]
+
+# ---------- 必填 · API ----------
+api:
+  prefix: /api/ip-rules # 租户面；平台面为 /api/platform/ip-rules
+  operations: [list, create, update, delete]
+  list:
+    search_fields: [cidr, reason]
+    sort_whitelist: [cidr, action, mode, source, hit_count, last_hit_at, expires_at, created_at, updated_at]
+    default_sort: { by: created_at, dir: desc }
+
+# ---------- 必填 · 前端 ----------
+client:
+  mount: renderRoutes # 另有 renderPlatformRoutes（平台全局名单）
+  route_path: /app/ip-access
+  nav:
+    section: 设置
+    label: ip-access:nav.label
+    title: ip-access:nav.title
+    icon: ShieldBan
+  page:
+    layout: list-filter-table
+    form_fields: [cidr, action, mode, reason, expires_at]
+
+# ---------- 可选 ----------
+audit:
+  actions:
+    - { action: IP_RULE_CREATE, label: 新增访问规则 }
+    - { action: IP_RULE_UPDATE, label: 更新访问规则 }
+    - { action: IP_RULE_DELETE, label: 删除访问规则 }
+options:
+  soft_delete: false
+  page_size: 20
+  mobile_tab: false

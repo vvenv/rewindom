@@ -16,7 +16,11 @@ import { errorHandlerMiddleware } from "@rewindom/server-kernel/middleware/error
 import { requestTimingMiddleware } from "@rewindom/server-kernel/middleware/request-timing.middleware.js";
 import Fastify, { type FastifyInstance, type FastifyRequest } from "fastify";
 
-import { registerAllRoutes, registerModuleMiddleware } from "./routes/index.js";
+import {
+  registerAllRoutes,
+  registerEarlyModuleMiddleware,
+  registerModuleMiddleware,
+} from "./routes/index.js";
 
 function corsAllowedOrigins(): Set<string> {
   const origins = new Set<string>();
@@ -64,7 +68,9 @@ export async function buildApp(): Promise<FastifyInstance> {
     logger: {
       level: config.server.logLevel,
     },
-    trustProxy: true,
+    // 只信任显式配置的代理跳数/网段。绝不能写 true——那会采信客户端自带的
+    // X-Forwarded-For，client IP 变成可伪造字段。见 config.server.trustedProxies。
+    trustProxy: config.server.trustedProxies,
     bodyLimit: MAX_UPLOAD_BYTES,
   });
 
@@ -146,6 +152,9 @@ export async function buildApp(): Promise<FastifyInstance> {
       done,
     );
   });
+
+  // 访问控制先于认证：被封的 IP 不该先跑一遍验签 + 查库再被拒。
+  await registerEarlyModuleMiddleware(app);
 
   await authMiddleware(app);
   await registerModuleMiddleware(app);

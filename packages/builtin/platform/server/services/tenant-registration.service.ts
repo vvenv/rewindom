@@ -156,7 +156,7 @@ async function registerUserIntoTenant(
     allowUsernameSuffix?: boolean;
   },
   jwtSign: (payload: JwtSignPayload) => string,
-  ipAddress: string,
+  ipAddress: string | undefined,
   userAgent: string,
 ): Promise<RegisterTenantResult> {
   validateUsername(input.username);
@@ -326,7 +326,7 @@ function validateTenantName(name: string): void {
 export async function registerTenant(
   input: RegisterTenantInput,
   jwtSign: (payload: JwtSignPayload) => string,
-  ipAddress: string,
+  ipAddress: string | undefined,
   userAgent: string,
   options?: RegistrationOptions,
 ): Promise<RegisterTenantResult> {
@@ -516,7 +516,7 @@ async function resolveUniqueOAuthTenantSlug(baseUsername: string): Promise<strin
 export async function registerOAuthTenant(
   input: OAuthTenantRegistrationInput,
   jwtSign: (payload: JwtSignPayload) => string,
-  ipAddress: string,
+  ipAddress: string | undefined,
   userAgent: string,
   options?: RegistrationOptions,
 ): Promise<RegisterTenantResult> {

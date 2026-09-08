@@ -155,7 +155,8 @@ export class MicrosoftOAuthService {
     credentials: ResolvedOAuthCredentials;
     jwtSign: (payload: JwtSignPayload) => string;
     registry: ProviderRegistry;
-    ip: string;
+    /** 拿不到可信 client IP 时为 undefined；审计列可空 */
+    ip: string | undefined;
     userAgent: string;
     hostTenant?: HostTenantContext | null;
   }): Promise<OAuthLoginResult> {

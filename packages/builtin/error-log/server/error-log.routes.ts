@@ -120,7 +120,6 @@ export async function errorLogRoutes(app: FastifyInstance) {
           resource: "error_log:tenant",
           detail_key: "error-log.audit.tenant_cleaned",
           detail_params: { days: daysToKeep, deleted_count: deletedCount },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
 
@@ -154,7 +153,6 @@ export async function errorLogRoutes(app: FastifyInstance) {
           resource: `error_log:user:${request.authUser!.userId}`,
           detail_key: "error-log.audit.user_cleaned",
           detail_params: { days: daysToKeep, deleted_count: deletedCount },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
 
@@ -199,7 +197,6 @@ export async function errorLogRoutes(app: FastifyInstance) {
           resource: `error_log:${id}`,
           detail_key: "error-log.audit.deleted",
           detail_params: { id },
-          ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
 
