@@ -368,21 +368,72 @@ export async function deleteIpRule(
 /**
  * 累加命中计数。
  *
- * 判定路径上调用，刻意不 await：统计滞后或丢几条都无所谓，
- * 但绝不能让一次写库失败把请求本身拖垮。
+ * **在内存里攒着批量写，不是每请求一次。** 直接写库看起来更简单，但它有个
+ * 要命的性质：命中越频繁写得越多——一个被封的 IP 以 1000 rps 打进来，就是
+ * 每秒 1000 次数据库写。攻击越猛，你自己压垮数据库越快，等于替对方完成了
+ * 拒绝服务。
+ *
+ * 统计滞后几秒、进程崩溃时丢掉最后一批，都无所谓：`hit_count` 是给人看
+ * 「这条规则拦到东西没有」的，不是账。
  */
+const hitBuffer = new Map<string, number>();
+let hitFlushTimer: ReturnType<typeof setTimeout> | null = null;
+
+const HIT_FLUSH_INTERVAL_MS = 5_000;
+
 export function recordRuleHits(ruleIds: string[]): void {
   if (ruleIds.length === 0) return;
-  // id 来自本次判定命中的规则，可能同时含平台级与站点级；
-  // 按作用域再切一刀既没有意义，也会漏掉其中一半。
+  for (const id of ruleIds) {
+    hitBuffer.set(id, (hitBuffer.get(id) ?? 0) + 1);
+  }
+  if (!hitFlushTimer) {
+    hitFlushTimer = setTimeout(() => {
+      hitFlushTimer = null;
+      void flushRuleHits();
+    }, HIT_FLUSH_INTERVAL_MS);
+    // 这个定时器不该拖住进程退出
+    hitFlushTimer.unref?.();
+  }
+}
+
+/** 单条规则的命中回写。抽成函数是为了让 eslint 的 disable 注释有地方落。 */
+function updateRuleHitCount(
+  id: string,
+  count: number,
+  at: Date,
+): Promise<unknown> {
   // eslint-disable-next-line tenant-scope/require-tenant-scope
-  const update = prisma.ipAccessRule.updateMany({
-    where: { id: { in: ruleIds } },
-    data: { hit_count: { increment: 1 }, last_hit_at: new Date() },
-  });
-  void update.catch(() => {
-    // 命中统计不值得为它失败一个请求
-  });
+  return prisma.ipAccessRule
+    .updateMany({
+      where: { id },
+      data: { hit_count: { increment: count }, last_hit_at: at },
+    })
+    .catch(() => {
+      // 命中统计不值得为它失败任何东西
+    });
+}
+
+/** 把攒下的命中数落库。定时触发，停机时也要调一次。 */
+export async function flushRuleHits(): Promise<void> {
+  if (hitBuffer.size === 0) return;
+  const batch = [...hitBuffer.entries()];
+  hitBuffer.clear();
+
+  const now = new Date();
+  await Promise.all(
+    batch.map(([id, count]) =>
+      updateRuleHitCount(id, count, now),
+    ),
+  );
+}
+
+/** 仅供测试。 */
+export function resetRuleHitBufferForTest(): void {
+  hitBuffer.clear();
+  if (hitFlushTimer) {
+    clearTimeout(hitFlushTimer);
+    hitFlushTimer = null;
+  }
 }
 
 /** 删掉已过期的规则。判定不依赖它（快照本身就过滤 expires_at），它只管清库。 */

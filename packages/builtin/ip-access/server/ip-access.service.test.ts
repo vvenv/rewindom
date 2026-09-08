@@ -1,13 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { mockFindFirst, mockCreate, mockUpdate, mockDelete, mockDeleteMany } =
-  vi.hoisted(() => ({
-    mockFindFirst: vi.fn(),
-    mockCreate: vi.fn(),
-    mockUpdate: vi.fn(),
-    mockDelete: vi.fn(),
-    mockDeleteMany: vi.fn(),
-  }));
+const {
+  mockFindFirst,
+  mockCreate,
+  mockUpdate,
+  mockDelete,
+  mockDeleteMany,
+  mockUpdateMany,
+} = vi.hoisted(() => ({
+  mockFindFirst: vi.fn(),
+  mockCreate: vi.fn(),
+  mockUpdate: vi.fn(),
+  mockDelete: vi.fn(),
+  mockDeleteMany: vi.fn(),
+  mockUpdateMany: vi.fn(),
+}));
 
 vi.mock("@rewindom/server-kernel/lib/config.js", () => ({
   config: {
@@ -36,7 +43,7 @@ vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
       update: mockUpdate,
       delete: mockDelete,
       deleteMany: mockDeleteMany,
-      updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+      updateMany: mockUpdateMany,
     },
   },
 }));
@@ -45,8 +52,15 @@ vi.mock("./ip-access.cache.js", () => ({
   invalidateIpAccessCache: vi.fn().mockResolvedValue(undefined),
 }));
 
-const { createIpRule, deleteIpRule, purgeExpiredIpRules, updateIpRule } =
-  await import("./ip-access.service.js");
+const {
+  createIpRule,
+  deleteIpRule,
+  flushRuleHits,
+  purgeExpiredIpRules,
+  recordRuleHits,
+  resetRuleHitBufferForTest,
+  updateIpRule,
+} = await import("./ip-access.service.js");
 
 function row(overrides: Record<string, unknown> = {}) {
   return {
@@ -73,6 +87,8 @@ const TENANT = { kind: "tenant", tenant_id: "t1" } as const;
 
 beforeEach(() => {
   vi.clearAllMocks();
+  resetRuleHitBufferForTest();
+  mockUpdateMany.mockResolvedValue({ count: 1 });
   mockFindFirst.mockResolvedValue(null);
   mockCreate.mockImplementation(({ data }: { data: Record<string, unknown> }) =>
     Promise.resolve(row(data)),
@@ -352,5 +368,58 @@ describe("purgeExpiredIpRules", () => {
     };
     expect(where.expires_at.not).toBeNull();
     expect(where.expires_at.lt).toBeInstanceOf(Date);
+  });
+});
+
+describe("recordRuleHits", () => {
+  it("does not write to the database on the request path", async () => {
+    // 每请求一次写意味着：命中越频繁写得越多。一个被封的 IP 以 1000 rps
+    // 打进来就是每秒 1000 次数据库写——攻击越猛，你自己压垮数据库越快。
+    for (let i = 0; i < 1000; i += 1) {
+      recordRuleHits(["rule-1"]);
+    }
+    expect(mockUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it("collapses buffered hits into one write per rule", async () => {
+    for (let i = 0; i < 1000; i += 1) {
+      recordRuleHits(["rule-1"]);
+    }
+    await flushRuleHits();
+
+    expect(mockUpdateMany).toHaveBeenCalledTimes(1);
+    expect(mockUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "rule-1" },
+        data: expect.objectContaining({ hit_count: { increment: 1000 } }),
+      }),
+    );
+  });
+
+  it("writes once per distinct rule", async () => {
+    recordRuleHits(["rule-1", "rule-2"]);
+    recordRuleHits(["rule-2"]);
+    await flushRuleHits();
+    expect(mockUpdateMany).toHaveBeenCalledTimes(2);
+  });
+
+  it("clears the buffer so a second flush is a no-op", async () => {
+    recordRuleHits(["rule-1"]);
+    await flushRuleHits();
+    mockUpdateMany.mockClear();
+    await flushRuleHits();
+    expect(mockUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it("ignores an empty batch", () => {
+    recordRuleHits([]);
+    expect(mockUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it("never rejects when the write fails", async () => {
+    // 命中统计不值得为它失败任何东西
+    mockUpdateMany.mockRejectedValue(new Error("db down"));
+    recordRuleHits(["rule-1"]);
+    await expect(flushRuleHits()).resolves.toBeUndefined();
   });
 });
