@@ -7,6 +7,7 @@ import path from "path";
 import { config as dotenvConfig } from "dotenv";
 
 import { findMonorepoRoot } from "./monorepo-root.js";
+import { CLOUDFLARE_PROXY_RANGES } from "./proxy-ranges.js";
 
 const monorepoRoot = findMonorepoRoot();
 dotenvConfig({ path: path.resolve(monorepoRoot, ".env") });
@@ -140,19 +141,33 @@ function resolveJwtSecret(): string {
  */
 function resolveTrustedProxies(): string | number {
   const raw = optionalStrEnv("TRUSTED_PROXIES");
+  // 站点挂在 Cloudflare 橙云后面时，socket 对端恒为 CF 边缘节点。不声明这些段，
+  // XFF 会停在那一跳，所有访客坍缩成几百个边缘 IP——按 IP 的封禁与限流随之失真。
+  // CF 自己会把访客 IP 追加进 XFF，所以只要信任这些段，标准的 XFF 解析就是对的，
+  // 不需要额外去读 CF-Connecting-IP（少一个可伪造的头）。
+  const cloudflare = boolEnv("CLOUDFLARE_PROXY", false)
+    ? CLOUDFLARE_PROXY_RANGES
+    : [];
+
   if (raw === undefined) {
     if (isProduction) {
       throw new Error(
         "生产环境必须设置 TRUSTED_PROXIES（可信代理 CIDR 列表 / loopback / linklocal / uniquelocal / 跳数）",
       );
     }
-    return "loopback";
+    return ["loopback", ...cloudflare].join(",");
   }
   const trimmed = raw.trim();
   if (/^\d+$/.test(trimmed)) {
     const hops = Number(trimmed);
     if (hops < 1) {
       throw new Error("TRUSTED_PROXIES 作为跳数时必须 >= 1");
+    }
+    if (cloudflare.length > 0) {
+      // 跳数与网段是两种互斥的表达；混用会让人以为 CF 段被信任了，其实没有
+      throw new Error(
+        "CLOUDFLARE_PROXY=true 时 TRUSTED_PROXIES 必须是网段列表，不能是跳数",
+      );
     }
     return hops;
   }
@@ -162,7 +177,7 @@ function resolveTrustedProxies(): string | number {
       'TRUSTED_PROXIES 不接受 "true" / "*"（无条件信任 XFF 等于允许伪造 client IP）',
     );
   }
-  return trimmed;
+  return [trimmed, ...cloudflare].join(",");
 }
 
 function buildServerConfig() {
@@ -368,6 +383,11 @@ function buildIpAccessConfig() {
     ),
     /** nginx geo 片段导出路径；空则不导出 */
     nginxExportPath: strEnv("IP_ACCESS_NGINX_EXPORT_PATH", ""),
+    /**
+     * 已知代理 / CDN 出口段，**在内置的 Cloudflare 段之外**再补充。
+     * 落在这些段里的地址永远不会被自动封禁：那不是访客，是基础设施。
+     */
+    extraProxyRanges: csvEnv("IP_ACCESS_PROXY_RANGES", ""),
   };
 }
 

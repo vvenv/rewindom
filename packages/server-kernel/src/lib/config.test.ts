@@ -44,6 +44,8 @@ describe("config", () => {
     "S3_PUBLIC_BASE_URL",
     "WORKERS_ENABLED",
     "TRUSTED_PROXIES",
+    "CLOUDFLARE_PROXY",
+    "IP_ACCESS_PROXY_RANGES",
     "TENANT_SECRET_ENCRYPTION_KEY",
     "OPENAI_BASE_URL",
     "OPENAI_API_KEY",
@@ -136,6 +138,30 @@ describe("config", () => {
     it("跳数为 0 视为非法", async () => {
       process.env.TRUSTED_PROXIES = "0";
       await expect(importConfig()).rejects.toThrow(/TRUSTED_PROXIES/);
+    });
+
+    it("CLOUDFLARE_PROXY=true 时并入 Cloudflare 网段", async () => {
+      // 橙云之后 socket 对端恒为 CF 边缘；不信任这些段，
+      // XFF 会停在那一跳，所有访客坍缩成几百个边缘 IP
+      process.env.TRUSTED_PROXIES = "uniquelocal";
+      process.env.CLOUDFLARE_PROXY = "true";
+      const { config: cfg } = await importConfig();
+      expect(cfg.server.trustedProxies).toContain("uniquelocal");
+      expect(cfg.server.trustedProxies).toContain("104.16.0.0/13");
+      expect(cfg.server.trustedProxies).toContain("2606:4700::/32");
+    });
+
+    it("默认不并入 Cloudflare 网段", async () => {
+      process.env.TRUSTED_PROXIES = "uniquelocal";
+      const { config: cfg } = await importConfig();
+      expect(cfg.server.trustedProxies).toBe("uniquelocal");
+    });
+
+    it("CLOUDFLARE_PROXY 与跳数模式互斥", async () => {
+      // 混用会让人以为 CF 段被信任了，其实没有
+      process.env.TRUSTED_PROXIES = "2";
+      process.env.CLOUDFLARE_PROXY = "true";
+      await expect(importConfig()).rejects.toThrow(/CLOUDFLARE_PROXY/);
     });
 
     it("拒绝 true / * 这类无条件信任", async () => {

@@ -28,6 +28,7 @@ import {
 
 import { invalidateIpAccessCache } from "./ip-access.cache.js";
 import { scheduleNginxExport } from "./nginx-export.js";
+import { matchProxyRange } from "./proxy-guard.js";
 
 /** 平台全局名单 vs 某个租户的名单。 */
 export type RuleScopeSelector =
@@ -240,6 +241,18 @@ export async function createIpRule(
     mode,
     requesterIp: params.requester_ip,
   });
+
+  // 封一个 CDN 出口段等于封掉它背后的所有真实用户。allow 不拦——把回源段
+  // 加进豁免名单是完全正当的用法。
+  if (action === "block") {
+    const proxyRange = matchProxyRange(effective.cidr.split("/")[0] ?? "");
+    if (proxyRange) {
+      throw new ValidationError("ip_access.proxy_range", {
+        cidr: effective.cidr,
+        range: proxyRange,
+      });
+    }
+  }
 
   // Postgres 下 NULL 互不相等，`@@unique([tenant_id, cidr])` 管不住全局规则，
   // 所以这里显式查一次重复。

@@ -20,6 +20,7 @@ import { createModuleLogger } from "@rewindom/server-kernel/lib/logger.js";
 import { parseAddress } from "../shared/index.js";
 
 import { createIpRule } from "./ip-access.service.js";
+import { matchProxyRange } from "./proxy-guard.js";
 
 const log = createModuleLogger("ip-access");
 
@@ -65,6 +66,18 @@ export async function reportAbuse(
   // 拿不到可信 IP 时什么都不做。计到一个占位 key 上会把所有「IP 未知」的
   // 失败堆成一条规则，然后封掉一个不存在的地址。
   if (!ip || !parseAddress(ip)) return { banned: false };
+
+  // 看起来是代理 / CDN 出口，说明代理链配错了——这个地址背后是一大片真实用户，
+  // 封它等于对无辜者做拒绝服务。这里连计数都不做：继续累计只会让告警更晚出现。
+  const proxyRange = matchProxyRange(ip);
+  if (proxyRange) {
+    log.error(
+      { ip, range: proxyRange, kind: params.kind },
+      "[ip-access] client IP 落在已知代理 / CDN 段内，已拒绝自动封禁。" +
+        "请检查 TRUSTED_PROXIES —— 站点若在 Cloudflare 后面需设 CLOUDFLARE_PROXY=true",
+    );
+    return { banned: false };
+  }
 
   const threshold = thresholdFor(params.kind);
   const windowSeconds = windowSecondsFor(params.kind);
