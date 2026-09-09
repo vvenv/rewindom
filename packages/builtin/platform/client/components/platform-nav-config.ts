@@ -35,6 +35,7 @@ export function usePlatformNavConfig() {
     "error-log",
     "slow-query",
     "slow-request",
+    "ip-access",
   ]);
 
   const translatedEntries = useMemo(

@@ -1,6 +1,9 @@
 import { StickyNote } from "lucide-react";
 
-import type { AppNavSection } from "@rewindom/module-sdk/client";
+import {
+  APP_NAV_SECTION_ORDER,
+  type AppNavSection,
+} from "@rewindom/module-sdk/client";
 
 /**
  * label / title 用 `namespace:key`，由侧栏 `translateAppNavSections` 按当前语言解析。
@@ -10,6 +13,7 @@ export const NOTE_NAV_SECTIONS: AppNavSection[] = [
   {
     // 与 todo / bookmark 共用同一 key，collectModuleNav 才能合并为同一分组
     label: "common:nav.examples",
+    order: APP_NAV_SECTION_ORDER.examples,
     items: [
       {
         icon: StickyNote,

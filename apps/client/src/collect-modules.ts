@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import {
+  APP_NAV_SECTION_ORDER,
   type ClientAppModule,
   type AppNavSection,
   type DashboardWidget,
@@ -24,15 +25,18 @@ export interface AppRouteTrees {
   platformRoutes: ReactNode;
 }
 
+const DEFAULT_NAV_ORDER = APP_NAV_SECTION_ORDER.default;
+
 export function collectModuleNav(
   modules: readonly ClientAppModule[],
 ): AppNavSection[] {
-  const sectionOrder: string[] = [];
   const sectionItems = new Map<string, AppNavSection["items"]>();
   const sectionPlacements = new Map<
     string,
     NonNullable<AppNavSection["placement"]>
   >();
+  const sectionOrders = new Map<string, number>();
+  const firstSeenIndex = new Map<string, number>();
 
   for (const module of modules) {
     if (!module.client?.nav) {
@@ -40,25 +44,47 @@ export function collectModuleNav(
     }
     for (const section of module.client.nav) {
       if (!sectionItems.has(section.label)) {
+        firstSeenIndex.set(section.label, firstSeenIndex.size);
         sectionItems.set(section.label, []);
-        sectionOrder.push(section.label);
         sectionPlacements.set(section.label, section.placement ?? "main");
-      } else if (section.placement === "end") {
-        // 任一贡献方声明 end 即沉底（同 label 合并时保持一致）。
-        sectionPlacements.set(section.label, "end");
+        if (section.order !== undefined) {
+          sectionOrders.set(section.label, section.order);
+        }
+      } else {
+        if (section.placement === "end") {
+          // 任一贡献方声明 end 即沉底（同 label 合并时保持一致）。
+          sectionPlacements.set(section.label, "end");
+        }
+        if (section.order !== undefined) {
+          const prev = sectionOrders.get(section.label);
+          if (prev === undefined || section.order < prev) {
+            sectionOrders.set(section.label, section.order);
+          }
+        }
       }
       sectionItems.get(section.label)!.push(...section.items);
     }
   }
 
-  return sectionOrder.map((label) => {
-    const placement = sectionPlacements.get(label) ?? "main";
-    return {
-      label,
-      items: sectionItems.get(label)!,
-      ...(placement === "end" ? { placement: "end" as const } : {}),
-    };
-  });
+  return [...sectionItems.keys()]
+    .sort((left, right) => {
+      const orderDelta =
+        (sectionOrders.get(left) ?? DEFAULT_NAV_ORDER) -
+        (sectionOrders.get(right) ?? DEFAULT_NAV_ORDER);
+      if (orderDelta !== 0) {
+        return orderDelta;
+      }
+      return (firstSeenIndex.get(left) ?? 0) - (firstSeenIndex.get(right) ?? 0);
+    })
+    .map((label) => {
+      const placement = sectionPlacements.get(label) ?? "main";
+      return {
+        label,
+        items: sectionItems.get(label)!,
+        order: sectionOrders.get(label) ?? DEFAULT_NAV_ORDER,
+        ...(placement === "end" ? { placement: "end" as const } : {}),
+      };
+    });
 }
 
 export function collectMobileTabPaths(

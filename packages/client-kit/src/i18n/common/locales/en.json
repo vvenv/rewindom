@@ -40,7 +40,8 @@
   "nav": {
     "systemManagement": "Administration",
     "systemMonitoring": "Monitoring",
-    "examples": "Examples"
+    "examples": "Examples",
+    "audience": "Audience"
   },
   "tasksBadge": "{{count}} pending tasks",
   "dateRangePicker": {

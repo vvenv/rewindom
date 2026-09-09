@@ -32,6 +32,7 @@ export type PlatformNavEntry = PlatformNavLink | PlatformNavGroup;
 
 /**
  * 平台侧边栏的固定分组。模块往这些 key 追加子项；装不进任何组的才用 `kind: "link"`。
+ * 访问控制属于运维（observability），不要再开根级入口。
  * 新增分组要同时改壳层 `collectPlatformNav` 的拼装顺序。
  */
 export type PlatformNavGroupKey = "commerce" | "observability";

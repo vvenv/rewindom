@@ -1,11 +1,12 @@
 import { Users } from "lucide-react";
 
-import type { AppNavSection } from "@rewindom/client-kit";
+import { APP_NAV_SECTION_ORDER, type AppNavSection } from "@rewindom/client-kit";
 
-/** 挂在「官网 CMS」分组下，与 marketing 的 `/site` 同组。 */
+/** 挂在「受众」分组：会员是站点访客，不是站点内容。 */
 export const SITE_MEMBER_NAV_SECTIONS: AppNavSection[] = [
   {
-    label: "marketing:cms.navSection",
+    label: "common:nav.audience",
+    order: APP_NAV_SECTION_ORDER.audience,
     items: [
       {
         icon: Users,

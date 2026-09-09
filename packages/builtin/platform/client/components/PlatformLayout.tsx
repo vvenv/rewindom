@@ -192,7 +192,7 @@ export function PlatformLayout() {
         <aside
           className={cn(
             "hidden sm:flex shrink-0 bg-sidebar border-r border-sidebar-border flex-col transition-all duration-300 ease-in-out",
-            collapsed ? "w-14" : "w-36",
+            collapsed ? "w-14" : "w-60",
           )}
         >
           <Link

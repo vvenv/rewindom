@@ -15,7 +15,7 @@ const platformNavEntries = [
   {
     type: "link" as const,
     to: "/platform",
-    label: "监控",
+    label: "概览",
     icon: () => null,
     end: true,
   },
@@ -73,7 +73,11 @@ describe("PlatformLayout", () => {
       { wrapper },
     );
 
-    expect(screen.getByText("监控面板")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "概览" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "概览" })).toHaveAttribute(
+      "href",
+      "/platform",
+    );
     expect(screen.getByRole("button", { name: "租户" })).toBeInTheDocument();
     expect(screen.getByTestId("outlet")).toBeInTheDocument();
   });

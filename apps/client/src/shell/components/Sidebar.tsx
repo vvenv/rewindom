@@ -199,8 +199,9 @@ function SidebarSectionHeader({
 }
 
 /**
- * 一个分组的渲染：单项分组直接平铺（折叠后只剩标题无法跳转，体验差，与 TopBar
- * 单项不下拉一致）；多项分组的标题可点击折叠，当前路由命中时强制展开。
+ * 一个分组的渲染：多项才画组标题（可折叠）；单项直接平铺——再套一层标题
+ * 等于「概览 / 工作台」叠两行，和顶栏「单项不下拉」同一条理由。
+ * 当前路由命中时强制展开，避免折叠态下迷路。
  *
  * 折叠状态按 `labelKey`（翻译前的 i18n key，跨语言稳定）存取：用户手动操作过的
  * 取持久化值，否则取 `DEFAULT_COLLAPSED_LABEL_KEYS` 的默认值。移动端不传
@@ -218,7 +219,8 @@ function SidebarNavSection({
   onToggleSection?: (label: string) => void;
 }) {
   const sectionKey = section.labelKey ?? section.label;
-  const collapsible = onToggleSection !== undefined && section.items.length > 1;
+  const multi = section.items.length > 1;
+  const collapsible = onToggleSection !== undefined && multi;
   const hasActive = useSectionHasActiveItem(section.items);
   const userOverride = collapsedSections[sectionKey];
   const isCollapsed =
@@ -228,15 +230,17 @@ function SidebarNavSection({
 
   return (
     <div className="flex flex-col gap-0.5">
-      {collapsible ? (
-        <SidebarSectionHeader
-          label={section.label}
-          collapsed={isCollapsed}
-          onToggle={() => onToggleSection?.(sectionKey)}
-        />
-      ) : (
-        <SidebarSectionLabel>{section.label}</SidebarSectionLabel>
-      )}
+      {multi ? (
+        collapsible ? (
+          <SidebarSectionHeader
+            label={section.label}
+            collapsed={isCollapsed}
+            onToggle={() => onToggleSection?.(sectionKey)}
+          />
+        ) : (
+          <SidebarSectionLabel>{section.label}</SidebarSectionLabel>
+        )
+      ) : null}
       {!isCollapsed
         ? section.items.map((item) => (
             <SidebarNavItem
@@ -637,7 +641,7 @@ function DesktopSidebar() {
   }
 
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground md:flex">
+    <aside className="hidden w-60 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground md:flex">
       <div className="flex items-center justify-between p-3">
         <Link to={homePath} title={APP_DISPLAY_NAME}>
           <ShellBrandMark className="size-12 text-primary" />

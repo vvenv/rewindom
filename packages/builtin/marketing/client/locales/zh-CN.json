@@ -252,8 +252,8 @@
   },
   "cms": {
     "navSection": "站点",
-    "nav": "官网",
-    "title": "官网",
+    "nav": "页面",
+    "title": "页面",
     "pageDescription": "编辑绑定域名上的官网内容；发布后搜索引擎可抓取完整正文。",
     "disabledHint": "该组织未开通官网",
     "viewSite": "查看官网",

@@ -23,13 +23,13 @@ import { EXTERNAL_CLIENT_MODULES } from "./external-modules.js";
 import type { ClientAppModule } from "@rewindom/client-kit";
 
 /**
- * 模块顺序决定侧栏 section 顺序与组内 items 顺序（见 collect-modules.ts）。
+ * 内置模块注册顺序仍决定**同一分组内** items 的先后（如系统管理：用户 → 角色 → 账单）。
+ * **分组之间**的顺序由各 `AppNavSection.order` 钉住（见 `APP_NAV_SECTION_ORDER`），
+ * 因为外部模块由 `gen:external-modules` 按目录名字母序汇入，不能靠本数组排侧栏。
  *
- * 租户侧栏心流约定：
- * 1. 主区：概览 → 业务（示例等）
- * 2. 沉底：系统管理（用户 → 角色 → 订阅 → AI 配置）→ 系统监控（审计 → 错误）
- *
- * 新增业务模块插在 dashboard 之后、沉底管理类之前。
+ * 租户侧栏心流：
+ * 1. 主区：概览 → 站点 → 受众 → 商店 → 事件 → 内容 → 示例
+ * 2. 沉底：系统管理（用户 → 角色 → 账单 → AI 配置 → 访问控制）→ 系统监控（审计 → 错误）
  */
 export const ENABLED_CLIENT_MODULES = [
   appShellClientModule,

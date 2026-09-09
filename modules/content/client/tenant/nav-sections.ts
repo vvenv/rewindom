@@ -1,6 +1,9 @@
 import { PenLine } from "lucide-react";
 
-import type { AppNavSection } from "@rewindom/module-sdk/client";
+import {
+  APP_NAV_SECTION_ORDER,
+  type AppNavSection,
+} from "@rewindom/module-sdk/client";
 
 /**
  * label / title 用 `namespace:key`，由侧栏 `translateAppNavSections` 按当前语言解析。
@@ -9,6 +12,7 @@ import type { AppNavSection } from "@rewindom/module-sdk/client";
 export const CONTENT_NAV_SECTIONS: AppNavSection[] = [
   {
     label: "content:nav.section",
+    order: APP_NAV_SECTION_ORDER.content,
     items: [
       {
         icon: PenLine,

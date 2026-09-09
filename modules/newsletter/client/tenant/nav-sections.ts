@@ -1,11 +1,15 @@
 import { Mail } from "lucide-react";
 
-import type { AppNavSection } from "@rewindom/module-sdk/client";
+import {
+  APP_NAV_SECTION_ORDER,
+  type AppNavSection,
+} from "@rewindom/module-sdk/client";
 
-/** 与 /app/site、/app/site-form 同组：订阅名单是站点的一类内容集合。 */
+/** 挂在「受众」分组：订阅者是站点访客，不是站点内容。 */
 export const NEWSLETTER_NAV_SECTIONS: AppNavSection[] = [
   {
-    label: "marketing:cms.navSection",
+    label: "common:nav.audience",
+    order: APP_NAV_SECTION_ORDER.audience,
     items: [
       {
         icon: Mail,

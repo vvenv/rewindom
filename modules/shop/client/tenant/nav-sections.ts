@@ -1,10 +1,14 @@
 import { FolderOpen, Package, Receipt, Settings, Tag, Truck } from "lucide-react";
 
-import type { AppNavSection } from "@rewindom/module-sdk/client";
+import {
+  APP_NAV_SECTION_ORDER,
+  type AppNavSection,
+} from "@rewindom/module-sdk/client";
 
 export const SHOP_NAV_SECTIONS: AppNavSection[] = [
   {
     label: "shop:nav.shop",
+    order: APP_NAV_SECTION_ORDER.shop,
     items: [
       {
         icon: Package,

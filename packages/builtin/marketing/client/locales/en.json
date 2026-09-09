@@ -252,8 +252,8 @@
   },
   "cms": {
     "navSection": "Site",
-    "nav": "Website",
-    "title": "Website",
+    "nav": "Pages",
+    "title": "Pages",
     "pageDescription": "Edit marketing content for your bound host. Published pages are SSR’d for SEO.",
     "disabledHint": "Website is not enabled for this organization",
     "viewSite": "View website",

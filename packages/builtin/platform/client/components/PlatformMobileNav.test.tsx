@@ -11,7 +11,7 @@ const platformNavEntries = [
   {
     type: "link" as const,
     to: "/platform",
-    label: "监控",
+    label: "概览",
     icon: LayoutDashboard,
     end: true,
   },
@@ -21,8 +21,8 @@ const platformNavEntries = [
     label: "租户",
     icon: Building2,
     children: [
-      { to: "/platform/tenants", label: "租户管理", end: true },
-      { to: "/platform/users", label: "用户管理", end: true },
+      { to: "/platform/tenants", label: "租户", end: true },
+      { to: "/platform/users", label: "用户", end: true },
     ],
   },
   {
@@ -48,7 +48,7 @@ describe("PlatformMobileNav", () => {
     renderMobileNav();
 
     expect(screen.getByText("租户")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /监控/ })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /概览/ })).toHaveAttribute(
       "href",
       "/platform",
     );

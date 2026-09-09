@@ -1,13 +1,13 @@
 import { Globe, Image as ImageIcon } from "lucide-react";
 
-import type { AppNavSection } from "@rewindom/client-kit";
+import { APP_NAV_SECTION_ORDER, type AppNavSection } from "@rewindom/client-kit";
 
 /**
- * 「站点」分组：一项一类**内容集合**（页面、媒体）——租户在那里
+ * 「站点」分组：一项一类**内容集合**（页面、媒体、文档、表单提交）——租户在那里
  * 写东西、看东西，会反复回来。媒体库留在这里：图片是内容，会被反复挑选、上传、替换。
  *
- * 表单提交不在这里：它随表单段一起归 `site-form` 模块，由那边往本分组填一项
- *（`marketing:cms.navSection`），与文档库同一条路子。
+ * 表单提交 / 文档库由各自模块往本分组填一项（同一 `marketing:cms.navSection`）。
+ * 会员、套餐、收款、邮件订阅不在这里，见 `common:nav.audience`。
  *
  * **编辑器不在这里，一项都没有。** 页面从列表行进；外观从官网卡片「外观」进
  * （`/app/site/editor?scope=theme`）。曾经占过两项（「外观」与页面列表），但
@@ -21,6 +21,7 @@ import type { AppNavSection } from "@rewindom/client-kit";
 export const SITE_NAV_SECTIONS: AppNavSection[] = [
   {
     label: "marketing:cms.navSection",
+    order: APP_NAV_SECTION_ORDER.site,
     items: [
       {
         icon: Globe,

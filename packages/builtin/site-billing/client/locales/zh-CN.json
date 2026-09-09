@@ -1,7 +1,7 @@
 {
   "nav": {
-    "plans": "会员套餐",
-    "records": "订阅与付款"
+    "plans": "套餐",
+    "records": "收款"
   },
   "page": {
     "plans": {
@@ -9,7 +9,7 @@
       "description": "定义卖给会员的套餐，并指定这笔钱进哪个账号"
     },
     "records": {
-      "title": "订阅与付款",
+      "title": "收款",
       "description": "查看会员的订阅状态与历史付款记录"
     }
   },

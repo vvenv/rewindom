@@ -22,6 +22,20 @@ export interface AppNavItem {
   anyPermission?: readonly Permission[];
 }
 
+/** 侧栏分组 `order`。未写的贡献方不参与合并比较，缺省按 `default` 排。 */
+export const APP_NAV_SECTION_ORDER = {
+  overview: 10,
+  site: 20,
+  audience: 30,
+  shop: 40,
+  events: 50,
+  content: 60,
+  default: 100,
+  examples: 200,
+  systemManagement: 900,
+  systemMonitoring: 910,
+} as const;
+
 export interface AppNavSection {
   label: string;
   items: AppNavItem[];
@@ -30,6 +44,16 @@ export interface AppNavSection {
    * `end` 沉底钉在用户菜单上方（如「系统管理」），顶栏布局则排在主分组之后。
    */
   placement?: "main" | "end";
+  /**
+   * 分组排序，越小越靠前。未写默认 100。
+   *
+   * 外部模块由 `gen:external-modules` 按目录名字母序汇入，不能靠
+   * `ENABLED_CLIENT_MODULES` 排侧栏。用本字段钉心流，见 `APP_NAV_SECTION_ORDER`。
+   *
+   * 同 label 合并时取各贡献方**已声明** order 的最小值；未写的不参与比较。
+   * `placement: "end"` 仍沉底，同为 end 的组之间也按本字段排。
+   */
+  order?: number;
   /**
    * 翻译前的原始 label（通常是 `namespace:key` 形式的 i18n key），由
    * `translateAppNavSections` 在解析文案时回填。用作需要跨语言稳定的分组标识

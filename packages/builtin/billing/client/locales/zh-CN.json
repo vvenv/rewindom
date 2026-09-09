@@ -1,9 +1,9 @@
 {
   "nav": {
-    "billing": "订阅与付款"
+    "billing": "账单"
   },
   "page": {
-    "title": "订阅与付款",
+    "title": "账单",
     "description": "查看当前套餐、升级订阅与付款历史"
   },
   "platform": {

@@ -136,4 +136,49 @@ describe("collectPlatformNav", () => {
       label: "extra",
     });
   });
+
+  it("places ip-access in observability before default-order log viewers", () => {
+    const entries = collectPlatformNav([
+      moduleWithNav("ip-access", [
+        {
+          kind: "group-children",
+          group: "observability",
+          order: 5,
+          children: [
+            { to: "/platform/ip-rules", label: "ip-access:nav.platform" },
+          ],
+        },
+      ]),
+      moduleWithNav("audit", [
+        {
+          kind: "group-children",
+          group: "observability",
+          children: [
+            { to: "/platform/audit-logs", label: "audit:nav.auditLogs" },
+          ],
+        },
+      ]),
+      moduleWithNav("platform", [
+        {
+          kind: "group-children",
+          group: "observability",
+          order: 200,
+          children: [{ to: "/platform/backup", label: "platform:nav.backup" }],
+        },
+      ]),
+    ]);
+
+    const observability = entries.find(
+      (entry) => entry.type === "group" && entry.key === "observability",
+    );
+    expect(observability?.type).toBe("group");
+    if (observability?.type !== "group") {
+      return;
+    }
+    expect(observability.children.map((child) => child.to)).toEqual([
+      "/platform/ip-rules",
+      "/platform/audit-logs",
+      "/platform/backup",
+    ]);
+  });
 });

@@ -1,0 +1,58 @@
+# 租户侧栏：站点与受众拆组、标题去重、分组顺序与宽度。
+
+module: site-member
+surfaces: [tenant]
+goal: 把会员/套餐/收款/邮件订阅从「站点」拆到「受众」；页面/媒体/文档/表单留在站点；用 order 钉住分组顺序；侧栏宽度与平台对齐
+gold: packages/builtin/marketing/client/tenant/nav-sections.ts
+touch:
+  - packages/builtin/site-member/features/audience-nav-section.spec.yaml
+  - packages/client-kit/src/lib/app-nav-types.ts
+  - packages/client-kit/src/i18n/common/locales/zh-CN.json
+  - packages/client-kit/src/i18n/common/locales/en.json
+  - apps/client/src/collect-modules.ts
+  - apps/client/src/collect-modules.test.ts
+  - apps/client/src/shell/components/Sidebar.tsx
+  - apps/client/src/enabled-modules.ts
+  - packages/builtin/marketing/client/tenant/nav-sections.ts
+  - packages/builtin/marketing/client/locales/zh-CN.json
+  - packages/builtin/marketing/client/locales/en.json
+  - packages/builtin/site-member/client/tenant/nav-sections.ts
+  - packages/builtin/site-billing/client/tenant/nav-sections.ts
+  - packages/builtin/site-billing/client/locales/zh-CN.json
+  - packages/builtin/site-billing/client/locales/en.json
+  - packages/builtin/billing/client/locales/zh-CN.json
+  - packages/builtin/billing/client/locales/en.json
+  - packages/builtin/user/client/locales/zh-CN.json
+  - packages/builtin/user/client/locales/en.json
+  - packages/builtin/rbac/client/locales/zh-CN.json
+  - packages/builtin/rbac/client/locales/en.json
+  - packages/builtin/dashboard/client/tenant/nav-sections.ts
+  - packages/builtin/user/client/shell/user-nav.ts
+  - packages/builtin/audit/client/tenant/nav-sections.ts
+  - packages/builtin/ip-access/client/tenant/nav-sections.ts
+  - packages/builtin/rbac/client/shell/rbac-nav.ts
+  - packages/builtin/billing/client/tenant/nav-sections.ts
+  - packages/builtin/mailer/client/tenant/nav-sections.ts
+  - packages/builtin/error-log/client/tenant/nav-sections.ts
+  - packages/builtin/platform/client/tenant/nav-sections.ts
+  - packages/builtin/site-member/MODULE.md
+  - modules/newsletter/client/tenant/nav-sections.ts
+  - modules/newsletter/MODULE.spec.yaml
+  - modules/shop/client/tenant/nav-sections.ts
+  - modules/events/client/tenant/nav-sections.ts
+  - modules/content/client/tenant/nav-sections.ts
+  - modules/useless/client/tenant/nav-sections.ts
+  - modules/note/client/tenant/nav-sections.ts
+  - modules/todo/client/tenant/nav-sections.ts
+  - modules/bookmark/client/tenant/nav-sections.ts
+  - modules/site-form/client/tenant/nav-sections.ts
+  - modules/site-form/MODULE.md
+  - modules/site-docs/client/tenant/nav-sections.ts
+  - modules/site-docs/MODULE.md
+out_of_scope:
+  - 平台控制台侧栏
+  - 路由 path 变更
+i18n: code
+acceptance:
+  - pnpm --filter client exec vitest --run src/collect-modules.test.ts
+  - pnpm check:i18n

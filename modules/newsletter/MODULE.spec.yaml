@@ -133,8 +133,8 @@ client:
   mount: renderRoutes
   route_path: /app/newsletter
   nav:
-    # 与 /app/site、/app/site-form 同组：订阅名单是站点的一类内容集合
-    section: marketing:cms.navSection
+    # 与会员 / 套餐 / 收款同组：订阅者是站点访客
+    section: common:nav.audience
     label: 邮件订阅
     title: 邮件订阅
     icon: Mail

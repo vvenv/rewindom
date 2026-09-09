@@ -37,7 +37,7 @@ function createNavGroup(
  * 壳层固定分组。业务模块通过 `platformNav` 的 `group-children` 往 commerce /
  * observability 追加子项；租户组由壳层写死（单租户过滤只藏这一组里的租户管理）。
  *
- * 顺序：监控 → 租户 → 计费 → 运维 → 设置。
+ * 顺序：概览 → 租户 → 计费 → 运维 → 设置。
  */
 const SHELL_NAV_GROUPS = {
   tenantAdmin: createNavGroup(

@@ -66,7 +66,7 @@ Fastify 先命中；`/member/oauth/callback` 仍落到 SPA。nginx 与 vite dev 
 | 位置 | 收窄方式 |
 | --- | --- |
 | 管理路由 | `requirePermission("site_members.read" / "site_members.write")` |
-| 导航 | `anyPermission: ["site_members.read"]`；挂在「官网 CMS」分组 |
+| 导航 | `anyPermission: ["site_members.read"]`；挂在「受众」分组 |
 | entitlement | `site-member`（`shared/entitlements.ts`），**默认开**——存量站点不受影响；关掉就是「这个站点不做会员」：中台的会员管理与三张会员版式一起消失，公开面的注册 / 登录 / 账户也不可用。会员数据不动，重开即恢复 |
 | 管理路由（`/api/site-members`） | 套 `registerTenantGatedRoutes(SITE_MEMBER_ENTITLEMENT.key)`；nav 随 client manifest 的 `tenantEntitlements` 隐藏 |
 | 会员自助 API | **不**套 `registerTenantGatedRoutes`（未登录时无 tenantContext）；站点归属**与开关**都在 `resolveSiteTenant` 校验，SSR 页面走 `isSiteMemberEnabledForHost` |

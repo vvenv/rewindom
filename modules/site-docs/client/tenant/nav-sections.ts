@@ -1,11 +1,15 @@
 import { FileText } from "lucide-react";
 
-import type { AppNavSection } from "@rewindom/module-sdk/client";
+import {
+  APP_NAV_SECTION_ORDER,
+  type AppNavSection,
+} from "@rewindom/module-sdk/client";
 
-/** 挂在「官网 CMS」分组下，与 marketing 的 `/app/site` 同组。 */
+/** 挂在「站点」分组，与 marketing 的 `/app/site` 同组。 */
 export const SITE_DOCS_NAV_SECTIONS: AppNavSection[] = [
   {
     label: "marketing:cms.navSection",
+    order: APP_NAV_SECTION_ORDER.site,
     items: [
       {
         icon: FileText,

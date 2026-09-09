@@ -40,7 +40,8 @@
   "nav": {
     "systemManagement": "系统管理",
     "systemMonitoring": "系统监控",
-    "examples": "示例"
+    "examples": "示例",
+    "audience": "受众"
   },
   "tasksBadge": "{{count}} 项待办任务",
   "dateRangePicker": {

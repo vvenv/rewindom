@@ -1,7 +1,7 @@
 {
   "nav": {
-    "plans": "Member plans",
-    "records": "Subscriptions & payments"
+    "plans": "Plans",
+    "records": "Payments"
   },
   "page": {
     "plans": {
@@ -9,7 +9,7 @@
       "description": "Define what members can buy, and which account the money lands in"
     },
     "records": {
-      "title": "Subscriptions & payments",
+      "title": "Payments",
       "description": "Member subscription status and payment history"
     }
   },

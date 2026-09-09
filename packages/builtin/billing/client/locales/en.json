@@ -1,9 +1,9 @@
 {
   "nav": {
-    "billing": "Subscription & billing"
+    "billing": "Billing"
   },
   "page": {
-    "title": "Subscription & billing",
+    "title": "Billing",
     "description": "View your current plan, upgrade, and payment history"
   },
   "platform": {

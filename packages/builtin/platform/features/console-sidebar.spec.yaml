@@ -1,0 +1,28 @@
+# 平台控制台侧栏：可读宽度 + 层级/标题对齐操作心流。
+
+module: platform
+surfaces: [platform]
+goal: 平台侧栏加宽到与租户后台同档；首页入口从「监控」改为「概览」；访问控制并入运维分组；缩短过长子项标题
+gold: packages/builtin/platform/client/components/PlatformLayout.tsx
+touch:
+  - packages/builtin/platform/features/console-sidebar.spec.yaml
+  - packages/builtin/platform/client/components/PlatformLayout.tsx
+  - packages/builtin/platform/client/components/PlatformLayout.test.tsx
+  - packages/builtin/platform/client/locales/zh-CN.json
+  - packages/builtin/platform/client/locales/en.json
+  - packages/builtin/platform/client/platform/nav-contributions.ts
+  - packages/builtin/platform/client/components/platform-nav-config.ts
+  - packages/builtin/platform/client/components/PlatformMobileNav.test.tsx
+  - packages/builtin/ip-access/client/platform/nav-contributions.ts
+  - apps/client/src/shell/lib/collect-platform-nav.ts
+  - apps/client/src/shell/lib/collect-platform-nav.test.ts
+  - apps/client/src/app-shell-config.test.ts
+  - packages/client-kit/src/lib/platform-nav-types.ts
+out_of_scope:
+  - 租户 /app 侧栏（见 site-member audience-nav-section）
+  - 单租户过滤逻辑
+i18n: code
+acceptance:
+  - pnpm --filter client exec vitest --run src/shell/lib/collect-platform-nav.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'platform/*'
+  - pnpm check:i18n

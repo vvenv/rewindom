@@ -55,7 +55,7 @@ HTML 渲染器、CSS 都住在本模块，marketing 只提供注册表：
 
 ## 工作台
 
-`/app/site-form` 挂在侧栏「官网 CMS」分组下（`marketing:cms.navSection`），与页面、媒体
+`/app/site-form` 挂在侧栏「站点」分组下（`marketing:cms.navSection`），与页面、媒体
 并列——提交是站点的一类内容集合。列表只有「时间 / 来源 / 内容」三列且不可排序：字段由
 站长自己定义，列固定不了；提交恒按时间倒序，按访客填的内容排没有用途。
 

@@ -1,6 +1,6 @@
 import { ShieldBan } from "lucide-react";
 
-import type { AppNavSection } from "@rewindom/client-kit";
+import { APP_NAV_SECTION_ORDER, type AppNavSection } from "@rewindom/client-kit";
 
 /**
  * label / title 用 `namespace:key`，由侧栏按当前语言解析。
@@ -9,6 +9,8 @@ import type { AppNavSection } from "@rewindom/client-kit";
 export const IP_ACCESS_NAV_SECTIONS: AppNavSection[] = [
   {
     label: "common:nav.systemManagement",
+    placement: "end",
+    order: APP_NAV_SECTION_ORDER.systemManagement,
     items: [
       {
         icon: ShieldBan,

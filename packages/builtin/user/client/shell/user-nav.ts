@@ -1,6 +1,6 @@
 import { Users } from "lucide-react";
 
-import type { AppNavSection } from "@rewindom/client-kit";
+import { APP_NAV_SECTION_ORDER, type AppNavSection } from "@rewindom/client-kit";
 
 /**
  * section label 与 `rbac` / `billing` 的一致，collectModuleNav 会合并为同一分组；
@@ -11,12 +11,13 @@ export const USER_NAV_SECTIONS: AppNavSection[] = [
   {
     label: "common:nav.systemManagement",
     placement: "end",
+    order: APP_NAV_SECTION_ORDER.systemManagement,
     items: [
       {
         icon: Users,
         label: "user:nav.users",
         path: "/app/users",
-        title: "user:nav.users",
+        title: "user:page.title",
         anyPermission: ["users.read"],
       },
     ],

@@ -1,10 +1,11 @@
 import { LayoutDashboard } from "lucide-react";
 
-import type { AppNavSection } from "@rewindom/client-kit";
+import { APP_NAV_SECTION_ORDER, type AppNavSection } from "@rewindom/client-kit";
 
 export const DASHBOARD_NAV_SECTIONS: AppNavSection[] = [
   {
     label: "dashboard:nav.sectionOverview",
+    order: APP_NAV_SECTION_ORDER.overview,
     items: [
       {
         icon: LayoutDashboard,
