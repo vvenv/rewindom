@@ -12,11 +12,13 @@ const {
   mockRecordRuleHits,
   mockResolveHostTenant,
   mockConsumeRateLimit,
+  mockRecordProxyMisconfig,
 } = vi.hoisted(() => ({
   mockMatchRules: vi.fn(),
   mockRecordRuleHits: vi.fn(),
   mockResolveHostTenant: vi.fn(),
   mockConsumeRateLimit: vi.fn(),
+  mockRecordProxyMisconfig: vi.fn(),
 }));
 
 const ipAccessConfig = {
@@ -49,6 +51,13 @@ vi.mock("@rewindom/server-kernel/lib/config.js", () => ({
   },
 }));
 
+vi.mock("./proxy-guard.js", async () => {
+  const actual = await vi.importActual<typeof import("./proxy-guard.js")>(
+    "./proxy-guard.js",
+  );
+  return { ...actual, recordProxyMisconfig: mockRecordProxyMisconfig };
+});
+
 vi.mock("./ip-access.cache.js", () => ({ matchRules: mockMatchRules }));
 vi.mock("./rate-limit.service.js", () => ({
   consumeRateLimit: mockConsumeRateLimit,
@@ -63,7 +72,9 @@ vi.mock("@rewindom/server-kernel/lib/host-tenant.js", async () => {
   return { ...actual, resolveHostTenant: mockResolveHostTenant };
 });
 
-const { ipAccessMiddleware } = await import("./ip-access.middleware.js");
+const { ipAccessMiddleware, resetProxyWarningForTest } = await import(
+  "./ip-access.middleware.js"
+);
 
 function blockRule() {
   return {
@@ -89,6 +100,7 @@ let app: FastifyInstance | null = null;
 
 beforeEach(() => {
   vi.clearAllMocks();
+  resetProxyWarningForTest();
   ipAccessConfig.enabled = true;
   mockResolveHostTenant.mockResolvedValue(null);
   mockMatchRules.mockResolvedValue({ matched: [], exempt: false });
@@ -285,6 +297,30 @@ describe("ipAccessMiddleware", () => {
       app = await buildApp(true);
       await app.inject({ method: "GET", url: "/health" });
       expect(mockConsumeRateLimit).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("proxy misconfig alert", () => {
+    it("does not page when a CF-range client has no visitor header", async () => {
+      // Workers / 扫描器 / WARP：对端自己就在 172.64.0.0/13
+      app = await buildApp(true);
+      await app.inject({
+        method: "GET",
+        url: "/api/thing",
+        remoteAddress: "172.68.1.2",
+      });
+      expect(mockRecordProxyMisconfig).not.toHaveBeenCalled();
+    });
+
+    it("pages when a CF edge IP arrives with a different CF-Connecting-IP", async () => {
+      app = await buildApp(true);
+      await app.inject({
+        method: "GET",
+        url: "/api/thing",
+        remoteAddress: "172.68.1.2",
+        headers: { "cf-connecting-ip": "198.51.100.9" },
+      });
+      expect(mockRecordProxyMisconfig).toHaveBeenCalledWith("172.64.0.0/13");
     });
   });
 

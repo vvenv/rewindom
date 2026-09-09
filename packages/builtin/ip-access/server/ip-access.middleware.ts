@@ -18,7 +18,12 @@ import {
 import { matchRules } from "./ip-access.cache.js";
 import { decideIpAccess } from "./ip-access.decision.js";
 import { recordRuleHits } from "./ip-access.service.js";
-import { matchProxyRange, recordProxyMisconfig } from "./proxy-guard.js";
+import {
+  isUnwrappedProxyHop,
+  matchProxyRange,
+  readClaimedVisitorIp,
+  recordProxyMisconfig,
+} from "./proxy-guard.js";
 import { consumeRateLimit } from "./rate-limit.service.js";
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
@@ -36,23 +41,32 @@ function isExemptRequest(request: FastifyRequest): boolean {
 }
 
 /**
- * client IP 看起来像代理出口时告警。
+ * 真·代理链错配时告警：CDN 已经声明了访客 IP，解析却仍停在边缘段。
  *
- * 这是「代理链配错了」的最早信号——比等到有人来报「我被无故封了」早得多。
+ * 对端自己就在 CF 网段（Workers 出站、扫描器、WARP）也会让 `request.ip`
+ * 落在 172.64.0.0/13，但那不是少信了一跳——把那种请求也拉响「整站失真」
+ * 会逼运维误开 `CLOUDFLARE_PROXY`，把伪造 XFF 的口子敞开。
+ *
  * 只报第一次：配错的话每个请求都会命中，刷满日志反而淹掉别的东西。
  */
 let proxyIpWarned = false;
-function warnOnProxyClientIp(app: FastifyInstance, ip: string): void {
+function warnOnProxyClientIp(
+  app: FastifyInstance,
+  request: FastifyRequest,
+  ip: string,
+): void {
   if (proxyIpWarned) return;
+  if (!isUnwrappedProxyHop(ip, request.headers)) return;
   const range = matchProxyRange(ip);
   if (!range) return;
   proxyIpWarned = true;
   recordProxyMisconfig(range);
   app.log.error(
-    { ip, range },
-    "[ip-access] 解析出的 client IP 落在已知代理 / CDN 段内，说明 TRUSTED_PROXIES " +
-      "没覆盖真实的代理链——按 IP 的封禁与限流当前全部失真。站点若在 Cloudflare " +
-      "后面请设 CLOUDFLARE_PROXY=true。本告警只报一次。",
+    { ip, range, visitor: readClaimedVisitorIp(request.headers) },
+    "[ip-access] 解析出的 client IP 落在已知代理 / CDN 段内，且请求带着不同的 " +
+      "访客头，说明 TRUSTED_PROXIES 没覆盖真实的代理链——按 IP 的封禁与限流 " +
+      "当前全部失真。站点若在 Cloudflare 后面请设 CLOUDFLARE_PROXY=true。" +
+      "本告警只报一次。",
   );
 }
 
@@ -128,7 +142,7 @@ export async function ipAccessMiddleware(app: FastifyInstance): Promise<void> {
       );
       request.hostTenantContext = hostTenant;
 
-      warnOnProxyClientIp(app, ip);
+      warnOnProxyClientIp(app, request, ip);
 
       const { matched, exempt } = await matchRules(
         ip,

@@ -20,7 +20,7 @@ import { createModuleLogger } from "@rewindom/server-kernel/lib/logger.js";
 import { parseAddress } from "../shared/index.js";
 
 import { createIpRule } from "./ip-access.service.js";
-import { matchProxyRange, recordProxyMisconfig } from "./proxy-guard.js";
+import { matchProxyRange } from "./proxy-guard.js";
 
 const log = createModuleLogger("ip-access");
 
@@ -67,15 +67,15 @@ export async function reportAbuse(
   // 失败堆成一条规则，然后封掉一个不存在的地址。
   if (!ip || !parseAddress(ip)) return { banned: false };
 
-  // 看起来是代理 / CDN 出口，说明代理链配错了——这个地址背后是一大片真实用户，
-  // 封它等于对无辜者做拒绝服务。这里连计数都不做：继续累计只会让告警更晚出现。
+  // 看起来是代理 / CDN 出口——封它等于对无辜者做拒绝服务。
+  // 连计数都不做：继续累计只会让告警更晚出现。
+  // 平台红告警不在这里拉：登录失败事件没有请求头，分不清「橙云没拆开」
+  // 和「对端自己就在 CF 网段」。那件事由判定钩子看访客头。
   const proxyRange = matchProxyRange(ip);
   if (proxyRange) {
-    recordProxyMisconfig(proxyRange);
-    log.error(
+    log.warn(
       { ip, range: proxyRange, kind: params.kind },
-      "[ip-access] client IP 落在已知代理 / CDN 段内，已拒绝自动封禁。" +
-        "请检查 TRUSTED_PROXIES —— 站点若在 Cloudflare 后面需设 CLOUDFLARE_PROXY=true",
+      "[ip-access] client IP 落在已知代理 / CDN 段内，已拒绝自动封禁",
     );
     return { banned: false };
   }

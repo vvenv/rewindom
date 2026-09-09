@@ -21,12 +21,15 @@
  * 「这个地址看起来像基础设施吗」，像就拒绝自动封禁并告警。
  */
 import { getRedisClient } from "@rewindom/server-kernel/infra/redis.service.js";
+import { normalizeIp } from "@rewindom/server-kernel/lib/client-ip.js";
 import { config } from "@rewindom/server-kernel/lib/config.js";
 import { createModuleLogger } from "@rewindom/server-kernel/lib/logger.js";
 import { CLOUDFLARE_PROXY_RANGES } from "@rewindom/server-kernel/lib/proxy-ranges.js";
 
-
 import { CidrMatcher, parseAddress, parseCidr } from "../shared/index.js";
+
+/** CDN 回源时声明「这才是访客」的头。CF 橙云用前者，部分企业套餐还有后者。 */
+const VISITOR_IP_HEADERS = ["cf-connecting-ip", "true-client-ip"] as const;
 
 const log = createModuleLogger("ip-access");
 
@@ -100,6 +103,51 @@ export function matchProxyRange(ip: string): string | null {
 
 export function isKnownProxyIp(ip: string): boolean {
   return matchProxyRange(ip) !== null;
+}
+
+function headerFirstValue(
+  value: string | string[] | undefined,
+): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+/**
+ * 读 CDN 声明的访客 IP。没有这颗头就谈不上「少信了一跳」。
+ *
+ * 刻意不读 `X-Forwarded-For`：客户端能随便填，nginx 只是在末尾追加真实对端。
+ * 用 XFF 长度当证据，等于让扫描器加一行头就能拉响平台告警。
+ */
+export function readClaimedVisitorIp(
+  headers: Record<string, string | string[] | undefined> | undefined,
+): string | null {
+  if (!headers) return null;
+  for (const name of VISITOR_IP_HEADERS) {
+    const ip = normalizeIp(headerFirstValue(headers[name]));
+    if (ip) return ip;
+  }
+  return null;
+}
+
+/**
+ * 是不是「前面有一跳 CDN，我们没拆开」。
+ *
+ * `request.ip` 落在代理段有两种完全不同的含义：
+ *
+ * 1. **真·代理链错配**：橙云 / 同类 CDN 回源，头里带着真正的访客 IP，但
+ *    `TRUSTED_PROXIES` 没覆盖那一跳，解析停在边缘节点。
+ * 2. **对端自己就在该网段**：Cloudflare Workers 出站、扫 WordPress 的机器人、
+ *    WARP 出口。这是货真价实的 client IP，开 `CLOUDFLARE_PROXY` 反而让它们
+ *    能借可信跳伪造 XFF。
+ *
+ * 自动封禁两种都要拒（封边缘 IP 会误伤一大片人）。平台红告警只该在 1。
+ */
+export function isUnwrappedProxyHop(
+  ip: string,
+  headers?: Record<string, string | string[] | undefined>,
+): boolean {
+  if (!matchProxyRange(ip)) return false;
+  const visitor = readClaimedVisitorIp(headers);
+  return visitor !== null && visitor !== ip;
 }
 
 /** 仅供测试：配置变了要重建。 */

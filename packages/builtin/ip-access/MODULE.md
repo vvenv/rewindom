@@ -115,11 +115,15 @@ Cloudflare 账号下、开橙云、回源指向本站——不通知平台，平
    追加进 XFF，所以信任这些段之后标准 XFF 解析就是对的，**不需要读
    `CF-Connecting-IP`**（少一个可伪造的头）。
 2. **护栏**（`proxy-guard.ts`）：解析出的 client IP 若落在已知代理 / CDN 段内，
-   拒绝自动封禁并告警。它不依赖名单是否最新——CF 会增删网段、租户会换 CDN、
+   拒绝自动封禁。它不依赖名单是否最新——CF 会增删网段、租户会换 CDN、
    云 LB 会换出口，护栏只问「这看起来像基础设施吗」。手工建 `block` 规则打到
    这些段上同样会被拒（`ip_access.proxy_range`）；`allow` 不拦，把回源段加进
    豁免名单是正当用法。
-3. **判定路径首次命中时告警一次**，这是「代理链配错了」最早的信号。
+3. **平台红告警只在「CDN 已声明访客 IP，解析却仍停在边缘段」时拉响**
+   （请求带着与 `request.ip` 不同的 `CF-Connecting-IP` / `True-Client-IP`）。
+   对端自己就在 CF 网段（Workers 出站、扫 WordPress 的机器人、WARP）也会让
+   client IP 落在 `172.64.0.0/13`，那不是少信了一跳——误开 `CLOUDFLARE_PROXY`
+   会让这些来源能借可信跳伪造 XFF。判定路径对真错配只告警一次。
 
 内置的 CF 网段是**快照**（见 `lib/proxy-ranges.ts`），会过期。补充段写
 `IP_ACCESS_PROXY_RANGES`，并定期核对 `https://www.cloudflare.com/ips-v4`。

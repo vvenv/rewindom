@@ -19,9 +19,13 @@ vi.mock("@rewindom/server-kernel/lib/config.js", () => ({
   },
 }));
 
-const { isKnownProxyIp, matchProxyRange, resetProxyGuardForTest } = await import(
-  "./proxy-guard.js"
-);
+const {
+  isKnownProxyIp,
+  isUnwrappedProxyHop,
+  matchProxyRange,
+  readClaimedVisitorIp,
+  resetProxyGuardForTest,
+} = await import("./proxy-guard.js");
 
 beforeEach(() => {
   serverConfig.trustedProxies = "uniquelocal";
@@ -86,5 +90,56 @@ describe("matchProxyRange", () => {
 
   it("returns null for an unparseable address", () => {
     expect(matchProxyRange("not-an-ip")).toBeNull();
+  });
+});
+
+describe("readClaimedVisitorIp", () => {
+  it("prefers CF-Connecting-IP", () => {
+    expect(
+      readClaimedVisitorIp({ "cf-connecting-ip": "198.51.100.9" }),
+    ).toBe("198.51.100.9");
+  });
+
+  it("falls back to True-Client-IP", () => {
+    expect(readClaimedVisitorIp({ "true-client-ip": "198.51.100.9" })).toBe(
+      "198.51.100.9",
+    );
+  });
+
+  it("ignores X-Forwarded-For — clients can write that themselves", () => {
+    expect(
+      readClaimedVisitorIp({ "x-forwarded-for": "198.51.100.9, 172.68.1.2" }),
+    ).toBeNull();
+  });
+});
+
+describe("isUnwrappedProxyHop", () => {
+  it("is true when a CF edge IP arrives with a different visitor header", () => {
+    // 橙云回源、TRUSTED_PROXIES 没信 CF 段：解析停在边缘，头里却写着访客
+    expect(
+      isUnwrappedProxyHop("172.68.1.2", {
+        "cf-connecting-ip": "198.51.100.9",
+      }),
+    ).toBe(true);
+  });
+
+  it("is false when the peer is in a CF range but there is no visitor header", () => {
+    // Workers 出站 / 扫描器 / WARP：对端自己就在 172.64.0.0/13
+    expect(isUnwrappedProxyHop("172.68.1.2", {})).toBe(false);
+    expect(isUnwrappedProxyHop("172.68.1.2")).toBe(false);
+  });
+
+  it("is false when the visitor header repeats the same CF edge IP", () => {
+    expect(
+      isUnwrappedProxyHop("172.68.1.2", { "cf-connecting-ip": "172.68.1.2" }),
+    ).toBe(false);
+  });
+
+  it("is false for an ordinary public client IP even with a visitor header", () => {
+    expect(
+      isUnwrappedProxyHop("203.0.113.9", {
+        "cf-connecting-ip": "198.51.100.9",
+      }),
+    ).toBe(false);
   });
 });

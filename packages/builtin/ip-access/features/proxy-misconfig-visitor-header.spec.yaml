@@ -1,0 +1,23 @@
+# 平台「代理链配错」告警只在 CDN 已声明访客 IP 却未展开时拉响。
+
+module: ip-access
+surfaces: [platform]
+goal: 解析出的 client IP 落在 CF / CDN 段时，只有请求带着与之不同的访客头（CF-Connecting-IP / True-Client-IP）才记平台红告警；对端自己就在该网段（Workers 出站、扫描器、WARP）只拒绝自动封禁，不宣称整站 IP 失真
+gold: packages/builtin/ip-access/server/proxy-guard.ts
+touch:
+  - packages/builtin/ip-access/features/proxy-misconfig-visitor-header.spec.yaml
+  - packages/builtin/ip-access/MODULE.md
+  - packages/builtin/ip-access/server/proxy-guard.ts
+  - packages/builtin/ip-access/server/proxy-guard.test.ts
+  - packages/builtin/ip-access/server/ip-access.middleware.ts
+  - packages/builtin/ip-access/server/ip-access.middleware.test.ts
+  - packages/builtin/ip-access/server/abuse-report.service.ts
+out_of_scope:
+  - CLOUDFLARE_PROXY 默认值
+  - TRUSTED_PROXIES 默认值
+  - nginx-export
+  - 按路径封 /wp-admin
+  - 内核 domain-events 增字段
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'ip-access/*'
