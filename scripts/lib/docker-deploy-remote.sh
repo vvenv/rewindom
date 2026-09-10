@@ -400,7 +400,7 @@ docker_ensure_ops_scripts() {
   # 或 db-remote.sh 时才会上服务器——于是服务器上跑的常常是几个月前的版本，
   # 而 Ops workflow 的 backup / health-check 任务找的正是这个目录。
   local ops_script failed=0
-  for ops_script in docker-prune.sh docker-prune-cron.sh backup.sh restore.sh healthcheck.sh; do
+  for ops_script in docker-prune.sh docker-prune-cron.sh backup.sh backup-cron.sh restore.sh healthcheck.sh; do
     if ! _run_scp "$ROOT/scripts/${ops_script}" \
       "${DEPLOY_SSH_USER}@${DEPLOY_HOST}:${APP_OPS_DIR}/${ops_script}"; then
       failed=1
