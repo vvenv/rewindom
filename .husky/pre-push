@@ -1,1 +1,11 @@
-pnpm check:deps && pnpm check:i18n && pnpm lint && pnpm test -- --run && pnpm build
+# 快速门禁：只跑「秒级且高信号」的检查。
+#
+# 原来这里还跑 `pnpm test`（约 3 分钟）与 CI 完全重复——改一行 shell 也要在本地
+# 等一遍全量、推上去再等 CI 跑第二遍。测试现在由 CI 的合并门禁真正拦住（PR 上跑
+# 全仓 6000+ 用例），本地就没必要再拦一次。
+#
+# 保留 build：它只要 3 秒，而且是**唯一**能发现打包问题的一步——typecheck 看不到
+# 打包器的问题，出事就要等到部署时的 Docker 构建。CI 里也加了同一步兜底。
+#
+# 想在推之前跑全量：pnpm check
+pnpm check:deps && pnpm check:i18n && pnpm lint && pnpm typecheck && pnpm build
