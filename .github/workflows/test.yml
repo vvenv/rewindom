@@ -90,6 +90,12 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
+        # prisma.config.ts 在 generate 阶段要读 DATABASE_URL。本机能跑是因为
+        # dotenvx 从 .env / .env.local 注入了它，而 CI 里没有这些文件（已 gitignore）——
+        # 这一步因此从来没在 CI 里成功过。占位值与 docker/Dockerfile 同源：
+        # generate 只读连接串的形状，不会真去连。
+        env:
+          DATABASE_URL: postgresql://rewindom:ci@localhost:5432/rewindom
         run: pnpm --filter server exec prisma generate
 
       - name: Kernel
