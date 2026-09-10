@@ -379,8 +379,18 @@ Secrets，工作流会把它装进 runner 的 `~/.ssh` 并固定主机指纹。�
 ```bash
 ./scripts/setup-actions-secrets.sh --dry-run                     # 先看会写哪些
 ./scripts/setup-actions-secrets.sh                               # 导入
-./scripts/setup-actions-secrets.sh --ssh-key ~/.ssh/id_ed25519   # 顺带换成密钥登录
+./scripts/setup-actions-secrets.sh --setup-ssh                   # 顺带换成密钥登录
 ```
+
+`--setup-ssh` 一条龙：生成专用密钥（`~/.ssh/rewindom_deploy`，无口令——CI 里没人能
+输口令）→ 装到服务器 → **验证密钥登录真的通了** → 上传为 `DEPLOY_SSH_KEY`。
+
+用专用密钥而不是你的个人密钥：万一泄露只波及部署，不波及你其它的服务器。
+装完必须验证——「装上了但登不进去」（权限、`AuthorizedKeysFile` 配置）是常见情形，
+不验证就上传等于把一把打不开门的钥匙交给 CI。
+
+密钥可用之后，可以考虑在服务器上关掉密码登录（`PasswordAuthentication no`）；
+但先确认密钥登录稳定，别把自己锁在外面。
 
 脚本从不打印任何值，且经管道交给 `gh`（不进 argv，`ps` 里看不到）。
 
