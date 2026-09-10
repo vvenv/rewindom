@@ -371,6 +371,23 @@ bash /etc/rewindom/scripts/healthcheck.sh --env production
 Secrets，工作流会把它装进 runner 的 `~/.ssh` 并固定主机指纹。两个都配时密钥优先；
 只配密码时行为与从前完全一致。
 
+### 一次性导入（推荐）
+
+仓库长期是从开发机 `pnpm deploy` 部署的，真值都在本地 `.env.production` 里。
+让 CI 也能部署，就把同一套值导进去——**不要重新生成**：
+
+```bash
+./scripts/setup-actions-secrets.sh --dry-run                     # 先看会写哪些
+./scripts/setup-actions-secrets.sh                               # 导入
+./scripts/setup-actions-secrets.sh --ssh-key ~/.ssh/id_ed25519   # 顺带换成密钥登录
+```
+
+脚本从不打印任何值，且经管道交给 `gh`（不进 argv，`ps` 里看不到）。
+
+> **别对已有部署重新生成这三个**：`DB_PASSWORD` 换了就连不上已有的 postgres 卷；
+> `TENANT_SECRET_ENCRYPTION_KEY` 换了已存的租户密文**永久解不开**；
+> `JWT_SECRET` 换了所有人被登出（可接受，但要知情）。
+
 ### Variables（非机密，同样按 environment 配）
 
 | Variable | 说明 |
