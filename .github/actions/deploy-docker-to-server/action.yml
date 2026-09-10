@@ -135,7 +135,19 @@ runs:
           test) env_file=".env.test" ;;
           *) echo "Unsupported environment: $ENVIRONMENT"; exit 1 ;;
         esac
+        # 可选项：为空就不写这一行。
+        #
+        # **不要**写成 `[ -n "$X" ] && printf ...`：那在 `set -e` 下是个位置陷阱——
+        # 条件为假时该行返回 1，如果它恰好是 `{ }` 组里的最后一条命令，整组就以 1
+        # 退出，步骤直接失败。不在最后一行时反而没事，所以这个 bug 会随着「谁排最后」
+        # 悄悄出现和消失。一次真实部署就挂在 LOG_LEVEL 没配上。
+        emit_optional() {
+          [ -n "$2" ] || return 0
+          printf '%s=%s\n' "$1" "$2"
+        }
+
         {
+          # 必需项无条件写；缺了会被 validate-deploy-secrets 提前拦住
           printf 'DEPLOY_HOST=%s\n' "$DEPLOY_HOST"
           printf 'DEPLOY_SSH_USER=%s\n' "$DEPLOY_SSH_USER"
           printf 'DEPLOY_SSH_PASSWORD=%s\n' "$DEPLOY_SSH_PASSWORD"
@@ -143,16 +155,17 @@ runs:
           printf 'JWT_SECRET=%s\n' "$JWT_SECRET"
           printf 'TENANT_SECRET_ENCRYPTION_KEY=%s\n' "$TENANT_SECRET_ENCRYPTION_KEY"
           printf 'APP_DOMAIN=%s\n' "$APP_DOMAIN"
-          [ -n "$APP_PORT" ] && printf 'APP_PORT=%s\n' "$APP_PORT"
-          [ -n "$SSL_EMAIL" ] && printf 'SSL_EMAIL=%s\n' "$SSL_EMAIL"
-          [ -n "$SITE_CSP_MODE" ] && printf 'SITE_CSP_MODE=%s\n' "$SITE_CSP_MODE"
-          [ -n "$OPENAI_API_KEY" ] && printf 'OPENAI_API_KEY=%s\n' "$OPENAI_API_KEY"
-          [ -n "$OPENAI_BASE_URL" ] && printf 'OPENAI_BASE_URL=%s\n' "$OPENAI_BASE_URL"
-          [ -n "$OPENAI_MODEL" ] && printf 'OPENAI_MODEL=%s\n' "$OPENAI_MODEL"
-          [ -n "$REDIS_PASSWORD" ] && printf 'REDIS_PASSWORD=%s\n' "$REDIS_PASSWORD"
-          [ -n "$PLATFORM_ADMIN_USERNAME" ] && printf 'PLATFORM_ADMIN_USERNAME=%s\n' "$PLATFORM_ADMIN_USERNAME"
-          [ -n "$PLATFORM_ADMIN_PASSWORD" ] && printf 'PLATFORM_ADMIN_PASSWORD=%s\n' "$PLATFORM_ADMIN_PASSWORD"
-          [ -n "$LOG_LEVEL" ] && printf 'LOG_LEVEL=%s\n' "$LOG_LEVEL"
+
+          emit_optional APP_PORT "$APP_PORT"
+          emit_optional SSL_EMAIL "$SSL_EMAIL"
+          emit_optional SITE_CSP_MODE "$SITE_CSP_MODE"
+          emit_optional OPENAI_API_KEY "$OPENAI_API_KEY"
+          emit_optional OPENAI_BASE_URL "$OPENAI_BASE_URL"
+          emit_optional OPENAI_MODEL "$OPENAI_MODEL"
+          emit_optional REDIS_PASSWORD "$REDIS_PASSWORD"
+          emit_optional PLATFORM_ADMIN_USERNAME "$PLATFORM_ADMIN_USERNAME"
+          emit_optional PLATFORM_ADMIN_PASSWORD "$PLATFORM_ADMIN_PASSWORD"
+          emit_optional LOG_LEVEL "$LOG_LEVEL"
         } >"$env_file"
 
     - name: Deploy via Docker
