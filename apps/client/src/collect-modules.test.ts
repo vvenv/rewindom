@@ -10,7 +10,6 @@ import {
   collectPlatformDashboardSections,
   collectTenantSettingsPanels,
 } from "./collect-modules";
-
 import { ENABLED_CLIENT_MODULES } from "./enabled-modules";
 
 import type { ClientAppModule } from "@rewindom/client-kit";

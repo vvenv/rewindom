@@ -45,5 +45,38 @@
       "error": "Failed",
       "cancelled": "Cancelled"
     }
+  },
+  "scheduledJobs": {
+    "title": "Scheduled jobs",
+    "description": "Periodic jobs registered by each module. Run state lives in this process only and resets on restart — for history, look up job: entries in the error log.",
+    "total": "Jobs",
+    "failing": "Failing",
+    "failingHint": "Last run failed and has not recovered",
+    "since": "Since {{time}}",
+    "empty": "No periodic jobs registered in this process",
+    "neverRan": "Not run yet",
+    "loadFailed": "Failed to load scheduled jobs: {{message}}",
+    "streak": "{{count}} consecutive failures",
+    "skipped": "Skipped {{count}} times while the previous run was still going",
+    "column": {
+      "job": "Job",
+      "schedule": "Schedule",
+      "lastRun": "Last run",
+      "duration": "Duration",
+      "status": "Status"
+    },
+    "status": {
+      "ok": "Healthy",
+      "recovering": "Retrying",
+      "failing": "Failing",
+      "idle": "Idle"
+    },
+    "schedule": {
+      "everySeconds": "Every {{count}}s",
+      "everyMinutes": "Every {{count}}m",
+      "everyHours": "Every {{count}}h",
+      "daily": "Daily at {{time}}",
+      "separator": ", "
+    }
   }
 }

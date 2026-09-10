@@ -1,0 +1,56 @@
+# 定时任务的每一轮执行落到注册表里，失败进 ErrorLog，平台监控页能看见。
+
+# ---------- 必填 ----------
+module: background-job
+surfaces: [platform]
+goal: JobRegistry 从「只 start/stop」升级为「拥有节奏 + 记录每一轮」：模块声明 schedules + run，注册表负责计时、防重叠、计时长、记成败；失败经订阅落 ErrorLog（route=job:<id>）；平台管理员在 /platform 看到每个任务的上次运行、耗时、连续失败数。
+gold: packages/server-kernel/src/middleware/request-timing.middleware.ts
+touch:
+  - packages/builtin/background-job/features/job-run-observability.spec.yaml
+  - packages/builtin/background-job/MODULE.md
+  - packages/builtin/background-job/shared/scheduled-job.ts
+  - packages/builtin/background-job/shared/index.ts
+  - packages/builtin/background-job/server/module.ts
+  - packages/builtin/background-job/server/platform-scheduled-job.routes.ts
+  - packages/builtin/background-job/server/platform-scheduled-job.routes.test.ts
+  - packages/builtin/background-job/client/module.tsx
+  - packages/builtin/background-job/client/platform/dashboard-sections.ts
+  - packages/builtin/background-job/client/components/ScheduledJobsSection.tsx
+  - packages/builtin/background-job/client/hooks/usePlatformScheduledJobs.ts
+  - packages/builtin/background-job/client/lib/scheduled-job-view.ts
+  - packages/builtin/background-job/client/lib/scheduled-job-view.test.ts
+  - packages/builtin/background-job/client/locales/en.json
+  - packages/builtin/background-job/client/locales/zh-CN.json
+  - packages/server-kernel/src/runtime/job-registry.ts
+  - packages/server-kernel/src/runtime/job-registry.test.ts
+  - packages/server-kernel/src/lib/schedule-time.ts
+  - packages/server-kernel/src/lib/schedule-time.test.ts
+  - packages/server-kernel/src/infra/scheduler.service.ts
+  - packages/server-kernel/src/infra/scheduler.service.test.ts
+  - packages/server-kernel/src/runtime/module-contract.ts
+  - packages/builtin/error-log/server/job-failure-jobs.ts
+  - packages/builtin/error-log/server/job-failure-jobs.test.ts
+  - packages/builtin/error-log/server/module.ts
+  - packages/builtin/error-log/MODULE.md
+  - packages/builtin/error-log/server/scheduler-jobs.ts
+  - packages/builtin/error-log/server/dependency-health-jobs.ts
+  - packages/builtin/error-log/server/dependency-health-jobs.test.ts
+  - packages/builtin/slow-query/server/scheduler-jobs.ts
+  - packages/builtin/slow-request/server/scheduler-jobs.ts
+  - packages/builtin/ip-access/server/scheduler-jobs.ts
+  - packages/builtin/mailer/server/retry.job.ts
+  - docs/design/modular-architecture.md
+  - docs/design/error-logging.md
+out_of_scope:
+  - 新建 Prisma 模型持久化每轮运行（运行态留在进程内存，耐久痕迹走 ErrorLog）
+  - 多实例聚合 / 分布式锁 / leader 选举
+  - 手动「立即执行一次」按钮（写操作，要审计与并发保护，另开一轮）
+  - 任务失败的通知推送（邮件 / 站内信）
+  - 租户面暴露平台定时任务
+  - 改 background-job 现有的用户可见任务（导出 / 备份恢复）列表与 TaskCenter
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/server-kernel exec vitest --run src/runtime/job-registry.test.ts src/lib/schedule-time.test.ts src/infra/scheduler.service.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'background-job/*' --project 'error-log/*' --project 'slow-query/*' --project 'slow-request/*' --project 'ip-access/*' --project 'mailer/*'
+  - pnpm check:i18n
+  - pnpm check:modules

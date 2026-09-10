@@ -1,4 +1,4 @@
-import FastifyJWT from "@fastify/jwt";
+import { registerJwt } from "@rewindom/server-kernel/kernel/auth/jwt.js";
 import { ProviderRegistry } from "@rewindom/server-kernel/runtime/provider-registry.js";
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { authMiddleware } from "@rewindom/server-kernel/middleware/auth.middleware.js";
@@ -28,7 +28,7 @@ installTestPermissionCatalog([
 
 export async function buildApp(): Promise<PlatformTestApp> {
   const app = Fastify({ logger: false });
-  await app.register(FastifyJWT, { secret: "test-secret" });
+  await registerJwt(app, "test-secret");
   await authMiddleware(app);
   const registry = new ProviderRegistry();
   registry.setAuthzProvider(new PbacAuthzProvider(app));

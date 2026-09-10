@@ -1,4 +1,5 @@
 import { getClientIp } from "../lib/client-ip.js";
+import { isOpsProbePath } from "../lib/ops-probe-path.js";
 import { getRequestContext } from "../lib/request-context.js";
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
@@ -36,7 +37,6 @@ type RequestTimingRecorder = (sample: RequestTimingSample) => void;
  */
 const recorders = new Set<RequestTimingRecorder>();
 
-const EXCLUDED_PATHS = new Set(["/health"]);
 const PATH_MAX_LEN = 500;
 
 /** 注册一个订阅者，返回取消函数。 */
@@ -71,7 +71,7 @@ function durationMs(request: FastifyRequest): number {
 
 function shouldSkip(request: FastifyRequest, path: string): boolean {
   if (request.method === "OPTIONS") return true;
-  if (EXCLUDED_PATHS.has(path)) return true;
+  if (isOpsProbePath(path)) return true;
   return false;
 }
 

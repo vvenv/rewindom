@@ -55,3 +55,22 @@ export interface ErrorStats {
   by_route: Record<string, number>;
   by_error_code: Record<string, number>;
 }
+
+export type DependencyName = "postgres" | "redis";
+export type DependencyCheckStatus = "ok" | "error";
+export type DependencyAggregateStatus = "ok" | "degraded" | "error";
+
+export interface DependencyCheck {
+  name: DependencyName;
+  status: DependencyCheckStatus;
+  required: boolean;
+  latency_ms: number;
+  error?: string;
+}
+
+export interface DependencyHealth {
+  status: DependencyAggregateStatus;
+  ready: boolean;
+  checked_at: string;
+  checks: DependencyCheck[];
+}

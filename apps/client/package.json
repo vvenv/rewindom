@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --port 7300 --host",
     "build": "vite build",
+    "postbuild": "node scripts/gen-csp.mjs",
     "typecheck": "tsc -b",
     "lint": "eslint .",
     "test": "vitest --run",

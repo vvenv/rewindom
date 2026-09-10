@@ -56,6 +56,7 @@ async function renderShopPath(
   if (slug === null) {
     const products = await listPublishedProducts(input.tenantId);
     return renderShopTemplatePage({
+    cspNonce: input.cspNonce,
       tenantId: input.tenantId,
       tenantSlug: input.tenantSlug,
       siteName: input.tenantSlug,
@@ -79,6 +80,7 @@ async function renderShopPath(
   try {
     const product = await getPublishedProductBySlug(input.tenantId, slug);
     return renderShopTemplatePage({
+    cspNonce: input.cspNonce,
       tenantId: input.tenantId,
       tenantSlug: input.tenantSlug,
       siteName: input.tenantSlug,

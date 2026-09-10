@@ -3,6 +3,7 @@ import {
   handleValidationError,
   sendCodedError,
 } from "@rewindom/server-kernel/http/route-error-handler.js";
+import { createJwtSigner } from "@rewindom/server-kernel/kernel/auth/jwt.js";
 import { hasErrorCode } from "@rewindom/server-kernel/lib/app-errors.js";
 import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
 import { getServerTenantCatalog } from "@rewindom/server-kernel/runtime/tenant-catalog.js";
@@ -354,7 +355,7 @@ export async function registerTenantRoutes(
         const userId = request.body?.user_id;
         const result = await impersonateTenantAdmin(
           id,
-          (payload) => request.server.jwt.sign(payload),
+          createJwtSigner(request.server),
           userId,
         );
         const { username } = request.authUser!;

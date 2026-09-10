@@ -1,0 +1,75 @@
+# 进程异常与依赖健康落入 ErrorLog，并在平台监控页展示。
+
+# ---------- 必填 ----------
+module: error-log
+surfaces: [platform]
+goal: 按业界探针语义区分存活/就绪/降级：/health 只看进程；/ready 仅在关键依赖（Postgres）失败时 503，Redis 为可选降级；已登录平台管理员看总状态 + 组件明细。游客面不展示依赖。
+gold: packages/builtin/slow-query/client/components/SlowQueryMonitorSection.tsx
+touch:
+  - packages/builtin/error-log/features/process-and-service-health.spec.yaml
+  - packages/builtin/error-log/MODULE.md
+  - packages/builtin/error-log/server/module.ts
+  - packages/builtin/error-log/server/scheduler-jobs.ts
+  - packages/builtin/error-log/server/process-exception.ts
+  - packages/builtin/error-log/server/process-exception.test.ts
+  - packages/builtin/error-log/server/process-exception-jobs.ts
+  - packages/builtin/error-log/server/dependency-health-jobs.ts
+  - packages/builtin/error-log/server/dependency-health-jobs.test.ts
+  - packages/builtin/error-log/server/platform-error-log.routes.ts
+  - packages/builtin/error-log/server/platform-error-log.routes.test.ts
+  - packages/builtin/error-log/shared/error-log.ts
+  - packages/builtin/error-log/client/module.tsx
+  - packages/builtin/error-log/client/platform/dashboard-sections.ts
+  - packages/builtin/error-log/client/components/ErrorLogMonitorSection.tsx
+  - packages/builtin/error-log/client/components/ErrorLogBarChart.tsx
+  - packages/builtin/error-log/client/hooks/usePlatformErrorStats.ts
+  - packages/builtin/error-log/client/hooks/usePlatformSystemHealth.ts
+  - packages/builtin/error-log/client/lib/error-log-dashboard.ts
+  - packages/builtin/error-log/client/lib/error-log-dashboard.test.ts
+  - packages/builtin/error-log/client/components/ErrorLogHealthPanel.tsx
+  - packages/builtin/error-log/client/locales/en.json
+  - packages/builtin/error-log/client/locales/zh-CN.json
+  - packages/server-kernel/src/lib/ops-probe-path.ts
+  - packages/server-kernel/src/lib/ops-probe-path.test.ts
+  - packages/server-kernel/src/lib/dependency-health.ts
+  - packages/server-kernel/src/lib/dependency-health.test.ts
+  - packages/server-kernel/src/kernel/routes/ops-probe.routes.ts
+  - packages/server-kernel/src/kernel/routes/ops-probe.routes.test.ts
+  - packages/server-kernel/src/middleware/auth.middleware.ts
+  - packages/server-kernel/src/middleware/auth.middleware.test.ts
+  - packages/server-kernel/src/middleware/request-timing.middleware.ts
+  - packages/server-kernel/src/middleware/request-timing.middleware.test.ts
+  - packages/server-kernel/src/runtime/module-contract.ts
+  - packages/builtin/ip-access/server/ip-access.middleware.ts
+  - packages/builtin/ip-access/server/ip-access.middleware.test.ts
+  - packages/builtin/ip-access/MODULE.md
+  - packages/builtin/slow-request/MODULE.md
+  - apps/server/src/app.ts
+  - apps/server/scripts/lib/module-manifest.ts
+  - docker/nginx/default.conf.template
+  - docs/design/error-logging.md
+  - docs/design/request-performance.md
+  - docs/design/modular-architecture.md
+  - docs/deployment.md
+  - docs/faq.md
+  - .agents/skills/error-logging/SKILL.md
+out_of_scope:
+  - 接入 Sentry / OpenTelemetry / Prometheus
+  - 前端 window.onerror / React ErrorBoundary 上报
+  - 错误率告警通知（邮件 / 站内信）
+  - 把 Docker healthcheck 从 /health 改成 /ready
+  - 租户工作台新页面
+  - 登录/注册页或任何游客面展示 Postgres/Redis 状态
+  - 未鉴权的 /api/public/ready
+  - 把 Redis（缓存/队列）失败当成 /ready 503
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/server-kernel exec vitest --run src/lib/ops-probe-path.test.ts src/lib/dependency-health.test.ts src/kernel/routes/ops-probe.routes.test.ts src/middleware/auth.middleware.test.ts src/middleware/request-timing.middleware.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'error-log/*' --project 'ip-access/*'
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs error-log
+
+# ---------- 可选 ----------
+entitlement:
+permissions: []
+models: []

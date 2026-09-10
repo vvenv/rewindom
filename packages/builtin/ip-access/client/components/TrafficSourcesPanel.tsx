@@ -13,12 +13,12 @@ import { cn } from "@rewindom/ui/utils";
 import { ChevronDown, RefreshCw, ShieldBan } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { trafficBarPercent } from "../lib/traffic-bar.js";
 import {
   useTrafficSources,
   type IpRuleScope,
   type TrafficSource,
 } from "../hooks/useIpRules.js";
+import { trafficBarPercent } from "../lib/traffic-bar.js";
 
 import { IpRuleSheet } from "./IpRuleSheet.js";
 

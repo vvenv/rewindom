@@ -60,6 +60,7 @@ import {
   formBodyParser,
   requestOrigin,
   sendHtml,
+  sendSiteHtml,
 } from "./member-ssr-common.js";
 import { SiteMemberAuthService } from "./site-member-auth.service.js";
 import { resolveMemberSsrSession } from "./site-member-ssr-session.js";
@@ -222,36 +223,39 @@ async function renderAccountPage(
     homeLayoutKey: home.homeLayoutKey,
   });
 
-  sendHtml(
+  sendSiteHtml(
     reply,
     state.status,
-    renderMarketingHtml({
-      origin: requestOrigin(request),
-      tenant_id: hostTenant.tenant_id,
-      tenant_slug: hostTenant.tenant_slug,
-      site,
-      page: {
-        slug: MEMBER_ACCOUNT_PATH,
-        locale,
-        kind: MEMBER_ACCOUNT_PAGE_KIND,
-        title: template.title,
-        description: template.description,
-        sections: template.sections,
-        // 账户页对搜索引擎没有内容，收录它只会把登录墙送进搜索结果
-        settings: { noindex: true },
-        visibility: "public",
-        path: MEMBER_ACCOUNT_PATH,
-        alternates: siteLocaleAlternates(
-          MEMBER_ACCOUNT_PATH,
-          site,
-          request.url,
-        ),
-        updated_at: new Date().toISOString(),
-      },
-      accountEntryHtml: accountEntry.html,
-      enabledEntitlements: entitlements,
-      contributed,
-    }),
+    (cspNonce) =>
+      renderMarketingHtml({
+        cspNonce,
+        origin: requestOrigin(request),
+        tenant_id: hostTenant.tenant_id,
+        tenant_slug: hostTenant.tenant_slug,
+        site,
+        page: {
+          slug: MEMBER_ACCOUNT_PATH,
+          locale,
+          kind: MEMBER_ACCOUNT_PAGE_KIND,
+          title: template.title,
+          description: template.description,
+          sections: template.sections,
+          // 账户页对搜索引擎没有内容，收录它只会把登录墙送进搜索结果
+          settings: { noindex: true },
+          visibility: "public",
+          path: MEMBER_ACCOUNT_PATH,
+          alternates: siteLocaleAlternates(
+            MEMBER_ACCOUNT_PATH,
+            site,
+            request.url,
+          ),
+          updated_at: new Date().toISOString(),
+        },
+        accountEntryHtml: accountEntry.html,
+        enabledEntitlements: entitlements,
+        contributed,
+      }),
+    { analytics: site.analytics },
   );
   return true;
 }

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { defineRoute } from "@rewindom/server-kernel/http/define-route.js";
 import { sendCodedError } from "@rewindom/server-kernel/http/route-error-handler.js";
+import { createJwtSigner } from "@rewindom/server-kernel/kernel/auth/jwt.js";
 import {
   buildMemberOAuthFrontendRedirect,
   mapOAuthErrorCode,
@@ -121,7 +122,7 @@ export async function siteMemberOAuthRoutes(
       const result = await SiteMemberOAuthService.exchangeCode({
         code: body.code ?? "",
         tenant,
-        jwtSign: app.jwt.sign.bind(app.jwt),
+        jwtSign: createJwtSigner(app),
       });
       setMemberAuthCookies(reply, result.tokens);
       return {

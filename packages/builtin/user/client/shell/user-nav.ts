@@ -1,6 +1,6 @@
+import { APP_NAV_SECTION_ORDER, type AppNavSection } from "@rewindom/client-kit";
 import { Users } from "lucide-react";
 
-import { APP_NAV_SECTION_ORDER, type AppNavSection } from "@rewindom/client-kit";
 
 /**
  * section label 与 `rbac` / `billing` 的一致，collectModuleNav 会合并为同一分组；

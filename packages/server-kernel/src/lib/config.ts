@@ -727,8 +727,29 @@ function resolveTenantGuardMode(): "off" | "audit" | "enforce" {
   );
 }
 
+/**
+ * 公开面 CSP 的模式。
+ *
+ * 默认 `report`（只报不拦），与限流的 `log_only` 同一个道理：策略配错的代价是
+ * 整站脚本被拦，比它防的问题严重得多。租户装了第三方统计（尤其 GTM，容器里
+ * 还能再装任意标签）时更需要先观察几天。
+ */
+function resolveSiteCspMode(): "off" | "report" | "enforce" {
+  const value = strEnv("SITE_CSP_MODE", "report").toLowerCase();
+  if (value === "off" || value === "report" || value === "enforce") {
+    return value;
+  }
+  throw new Error(
+    `SITE_CSP_MODE 取值非法：${value}（可选 off / report / enforce）`,
+  );
+}
+
 export const config = {
   server: buildServerConfig(),
+  site: {
+    /** 公开面（Marketing SSR）的 CSP：off / report / enforce，默认 report。 */
+    cspMode: resolveSiteCspMode(),
+  },
   frontend: {
     /** 产品站 / 默认租户前台（主域）。本地默认 localhost。 */
     url: strEnv("FRONTEND_URL", isProduction ? "" : "http://localhost:7300"),

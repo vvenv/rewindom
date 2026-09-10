@@ -90,7 +90,7 @@ tail -10000 /var/log/nginx/access.log | awk '$9 ~ /^[45]/ {print $1}' | sort | u
 | `/api/*` | 应用层（`registerEarlyMiddleware`，在认证之前） |
 | 官网 SSR（`/`、`/shop/*` 等） | 同上——SSR 走同一个 Fastify 进程 |
 | 静态资源（`/assets/*`） | **只能靠 nginx**，它们不经过 Node |
-| `/health`、CORS 预检 | 永不判定（健康检查被拦会引发滚动重启） |
+| `/health`、`/ready`、CORS 预检 | 永不判定（健康检查被拦会引发滚动重启） |
 
 判定挂在认证之前：被封的 IP 不该先跑一遍 JWT 验签、租户查库、权限计算再被拒。
 为此给 `ServerAppModule` 加了 `registerEarlyMiddleware` 扩展点，组装层在

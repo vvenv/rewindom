@@ -14,6 +14,7 @@ import {
 } from "../shared/section-schema.js";
 import {
   parseSiteAnalytics,
+  normalizeSiteAnalytics,
   renderSiteAnalyticsBodyHtml,
   renderSiteAnalyticsHtml,
 } from "../shared/site-analytics.js";
@@ -206,6 +207,11 @@ export function toPublicMarketingSite(
       useDraftChrome || useDraftContent
         ? ""
         : renderSiteAnalyticsBodyHtml(site.analytics),
+    // CSP 要按供应商算来源，所以配置本身也要带上；草稿预览与上面两项一致地留空
+    analytics:
+      useDraftChrome || useDraftContent
+        ? { scripts: [] }
+        : normalizeSiteAnalytics(site.analytics),
     default_locale,
     locale: current,
     available_locales: availableLocales(pages, default_locale),

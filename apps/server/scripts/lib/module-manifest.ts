@@ -27,7 +27,7 @@ export const SERVER_MODULE_MANIFEST = [
   {
     id: "error-log",
     kind: "infrastructure",
-    requires: ["rbac"],
+    requires: ["rbac", "background-job"],
   },
   {
     id: "slow-query",

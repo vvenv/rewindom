@@ -1,8 +1,9 @@
 import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
-import jwt from "@fastify/jwt";
 import multipart from "@fastify/multipart";
 import { sendCodedError } from "@rewindom/server-kernel/http/coded-error.js";
+import { registerJwt } from "@rewindom/server-kernel/kernel/auth/jwt.js";
+import { registerOpsProbeRoutes } from "@rewindom/server-kernel/kernel/routes/ops-probe.routes.js";
 import { config } from "@rewindom/server-kernel/lib/config.js";
 import { translateForRequest } from "@rewindom/server-kernel/lib/i18n/translate.js";
 import { setupPrisma } from "@rewindom/server-kernel/lib/prisma.js";
@@ -120,9 +121,7 @@ export async function buildApp(): Promise<FastifyInstance> {
     },
   });
 
-  await app.register(jwt, {
-    secret: config.auth.jwtSecret,
-  });
+  await registerJwt(app, config.auth.jwtSecret);
 
   await requestTimingMiddleware(app);
 
@@ -160,10 +159,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await registerModuleMiddleware(app);
   await errorHandlerMiddleware(app);
   await registerAllRoutes(app);
-
-  app.get("/health", async () => {
-    return { status: "ok" };
-  });
+  await registerOpsProbeRoutes(app);
 
   app.setNotFoundHandler(async (_request, reply) => {
     return sendCodedError(reply, 404, "common.endpoint_not_found");

@@ -1,6 +1,6 @@
+import { APP_NAV_SECTION_ORDER, type AppNavSection } from "@rewindom/client-kit";
 import { ShieldBan } from "lucide-react";
 
-import { APP_NAV_SECTION_ORDER, type AppNavSection } from "@rewindom/client-kit";
 
 /**
  * label / title 用 `namespace:key`，由侧栏按当前语言解析。

@@ -61,12 +61,15 @@ server {
 
     client_max_body_size 100m;
 
+    include /etc/nginx/security-headers.conf;
+
     gzip on;
     gzip_vary on;
     gzip_proxied any;
     gzip_comp_level 6;
     gzip_min_length 1024;
-    gzip_types text/plain text/css text/xml text/html application/json application/javascript application/xml+rss application/atom+xml image/svg+xml;
+    # text/html 是 nginx 恒含项，再列一次会在每次启动刷 duplicate MIME 警告
+    gzip_types text/plain text/css text/xml application/json application/javascript application/xml+rss application/atom+xml image/svg+xml;
 
     location ~ ^/api/(documents|search) {
         proxy_pass http://app_backend;
@@ -98,33 +101,49 @@ server {
         proxy_set_header Host $host;
     }
 
+    location = /ready {
+        proxy_pass http://app_backend;
+        proxy_set_header Host $host;
+    }
+
     location ^~ /assets/ {
         expires 1y;
         add_header Cache-Control "public, max-age=31536000, immutable" always;
+        include /etc/nginx/security-headers.conf;
         try_files $uri =404;
     }
 
     # 店面：整段 /shop/* 走 Fastify SSR（不能只精确匹配 /shop，否则详情页会掉进 CMS）。
     # 必须写在应用壳层 location 之前。
     location ~ ^/shop(/|$) {
+        # 应用壳层 CSP（构建时按内联脚本 hash 生成）。只有 nginx 直出 HTML 的
+        # location 挂它；命中 418 转 @tenant_ssr 时这里的 add_header 不生效，
+        # 那条响应的策略由应用自己发。
+        include /etc/nginx/csp-app.conf;
         error_page 418 = @tenant_ssr;
         if ($use_tenant_ssr = 1) {
             return 418;
         }
         try_files $uri /index.html;
         add_header Cache-Control "no-cache" always;
+        include /etc/nginx/security-headers.conf;
     }
 
     # 会员的登录 / 注册 / 我的账户 / 我的订单：租户可排版的 SSR 模板页，必须进后端
     # （其余 /member/* —— OAuth 回调 —— 仍是 SPA）。
     # 必须与 `SITE_SSR_EXCEPTION_PATHS`（packages/builtin/marketing/shared/site-locale.ts）一致。
     location ~ ^/member/(login|register|account|billing|orders)$ {
+        # 应用壳层 CSP（构建时按内联脚本 hash 生成）。只有 nginx 直出 HTML 的
+        # location 挂它；命中 418 转 @tenant_ssr 时这里的 add_header 不生效，
+        # 那条响应的策略由应用自己发。
+        include /etc/nginx/csp-app.conf;
         error_page 418 = @tenant_ssr;
         if ($use_tenant_ssr = 1) {
             return 418;
         }
         try_files $uri /index.html;
         add_header Cache-Control "no-cache" always;
+        include /etc/nginx/security-headers.conf;
     }
 
     # 应用壳层路径：仍走 SPA，不进 Marketing SSR。
@@ -134,11 +153,24 @@ server {
     # 再被下面的 `location /` 接住。租户 Host 上那条 location 会反代 Marketing SSR，
     # 于是 `/login` `/app` 变成官网 404，而不是 React 壳。
     location ~ ^/(app|login|register|auth|member|platform|shop)(/|$) {
+        # 应用壳层 CSP（构建时按内联脚本 hash 生成）。只有 nginx 直出 HTML 的
+        # location 挂它；命中 418 转 @tenant_ssr 时这里的 add_header 不生效，
+        # 那条响应的策略由应用自己发。
+        include /etc/nginx/csp-app.conf;
         try_files $uri @spa;
         add_header Cache-Control "no-cache" always;
+        include /etc/nginx/security-headers.conf;
     }
 
     location @spa {
+        # 这个 location 原本一条 add_header 都没有，靠继承 server 级那组安全头。
+        # 一旦下面 include 了带 add_header 的 CSP，继承就整组失效——必须把
+        # security-headers 也显式 include 回来。
+        include /etc/nginx/security-headers.conf;
+        # 应用壳层 CSP（构建时按内联脚本 hash 生成）。只有 nginx 直出 HTML 的
+        # location 挂它；命中 418 转 @tenant_ssr 时这里的 add_header 不生效，
+        # 那条响应的策略由应用自己发。
+        include /etc/nginx/csp-app.conf;
         try_files /index.html =404;
     }
 
@@ -153,12 +185,17 @@ server {
 
     # 平台控制台 Host：静态 SPA（/ → index.html，前端可进 /platform）。
     location / {
+        # 应用壳层 CSP（构建时按内联脚本 hash 生成）。只有 nginx 直出 HTML 的
+        # location 挂它；命中 418 转 @tenant_ssr 时这里的 add_header 不生效，
+        # 那条响应的策略由应用自己发。
+        include /etc/nginx/csp-app.conf;
         error_page 418 = @tenant_ssr;
         if ($use_tenant_ssr = 1) {
             return 418;
         }
         try_files $uri /index.html;
         add_header Cache-Control "no-cache" always;
+        include /etc/nginx/security-headers.conf;
     }
 
     # sitemap / robots / manifest：租户 Host 走 SSR；平台控制台 Host 若有静态文件则直接返回。
@@ -169,6 +206,7 @@ server {
         }
         expires 1h;
         add_header Cache-Control "public, max-age=3600" always;
+        include /etc/nginx/security-headers.conf;
         try_files $uri =404;
     }
 }

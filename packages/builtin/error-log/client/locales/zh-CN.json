@@ -77,5 +77,40 @@
     "title": "近期错误",
     "viewAll": "全部",
     "empty": "近期没有错误"
+  },
+  "chart": {
+    "loading": "加载中...",
+    "noData": "暂无数据"
+  },
+  "health": {
+    "postgres": "PostgreSQL",
+    "redis": "Redis",
+    "ok": "正常",
+    "error": "异常",
+    "required": "关键",
+    "optional": "可选",
+    "latency": "{{ms}}ms",
+    "checkedAt": "探测于 {{time}}",
+    "overall": {
+      "ok": "全部正常，可以接流量",
+      "degraded": "降级运行：缓存或队列不可用，本实例仍可处理请求",
+      "error": "无法接流量：关键依赖不可用"
+    }
+  },
+  "monitor": {
+    "title": "系统状态",
+    "description": "存活只看进程；就绪只看能不能接请求。缓存故障是降级，不会把实例摘出负载。",
+    "viewAll": "查看全部",
+    "loadFailed": "加载错误统计失败：{{message}}",
+    "healthLoadFailed": "探测服务健康失败：{{message}}",
+    "total": "错误日志总数",
+    "errors": "错误",
+    "warnings": "警告",
+    "selectedRange": "所选时间范围内",
+    "allTime": "全部时间",
+    "topRoutes": "报错路由 Top 10",
+    "topErrorCodes": "错误代码 Top 10",
+    "countLabel": "次数",
+    "countUnit": "{{value}} 次"
   }
 }

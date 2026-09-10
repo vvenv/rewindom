@@ -1,6 +1,6 @@
+import { APP_NAV_SECTION_ORDER, type AppNavSection } from "@rewindom/client-kit";
 import { Globe, Image as ImageIcon } from "lucide-react";
 
-import { APP_NAV_SECTION_ORDER, type AppNavSection } from "@rewindom/client-kit";
 
 /**
  * 「站点」分组：一项一类**内容集合**（页面、媒体、文档、表单提交）——租户在那里

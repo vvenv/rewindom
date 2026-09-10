@@ -59,3 +59,6 @@ release/
 
 # rewindom export backup (transient)
 .cache/
+
+# 构建生成的应用壳层 CSP（apps/client postbuild）
+apps/client/csp-app.conf

@@ -362,6 +362,12 @@ export interface PublicMarketingSite {
    */
   analytics_html: string;
   /**
+   * 归一化后的统计配置。渲染用不到它（HTML 已经拼好了），CSP 用得到：
+   * GTM / Clarity 的脚本地址是**内联加载器动态注入**的，页面 HTML 里看不见，
+   * 只能从配置知道要放行哪些来源。与 `analytics_html` 同步——草稿预览下同为空。
+   */
+  analytics: SiteAnalytics;
+  /**
    * GTM 的 `<noscript>` iframe，紧挨 `<body>` 开头。
    * 没有 GTM 时是空串。
    */

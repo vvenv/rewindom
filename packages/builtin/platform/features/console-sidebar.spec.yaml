@@ -2,7 +2,7 @@
 
 module: platform
 surfaces: [platform]
-goal: 平台侧栏加宽到与租户后台同档；首页入口从「监控」改为「概览」；访问控制并入运维分组；缩短过长子项标题
+goal: 平台侧栏加宽到与租户后台同档；首页入口从「监控」改为「概览」；访问控制并入运维分组；子项用完整名称，不压成两字
 gold: packages/builtin/platform/client/components/PlatformLayout.tsx
 touch:
   - packages/builtin/platform/features/console-sidebar.spec.yaml

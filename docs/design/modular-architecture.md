@@ -437,10 +437,39 @@ class AuthenticatedOnlyAuthz implements AuthzProvider {
 
 ### 5.3 `background-job`
 
-**职责**：BullMQ 任务、 `BackgroundJob` 表、任务列表 API/UI。
+**职责**：BullMQ 任务、 `BackgroundJob` 表、任务列表 API/UI，以及平台侧的**定时任务运行态**
+（`GET /api/platform/scheduled-jobs` + `/platform` 区块）。
 
 - 各业务模块通过 `registerJobs` 注册 job handler
 - 内核 `bootstrap` 仅调用 `JobRegistry.start()`，不 import 具体 job
+
+#### 节奏归注册表，不归模块
+
+`registerJobs` 里**声明**节奏，不要自己 `setInterval`：
+
+```ts
+ctx.registry.register({
+  id: "slow-query-cleanup",
+  moduleId: "slow-query",
+  label: "Slow query log cleanup",
+  schedules: [
+    { kind: "interval", every_ms: 30 * 60_000 },   // 也支持 initial_delay_ms / run_on_start
+    { kind: "daily", hour: 8, minute: 35 },
+  ],
+  run: () => SlowQueryService.cleanupOldLogs(days),
+});
+```
+
+注册表负责计时、重叠时跳过、计耗时、记成败，并广播 `JobRunSample`。因此：
+
+- 模块**不再**自己 `catch` 再 `app.log.error`——抛出去就行，注册表统一打日志
+- 失败会被 `error-log` 订阅走，落成一条 `job:<id>` 的 ErrorLog（可翻旧账）
+- `/platform` 能看到每个任务的上次运行、耗时、连续失败数
+
+只有没有「一轮」概念的东西才用命令式 `start` / `stop`：进程事件监听器、停机前
+flush 内存计数、关连接池。两者可以并存（`schedules` + `stop`）。
+
+运行态是**进程内存**，重启即清零，也不跨实例聚合。要持久痕迹只有 ErrorLog。
 
 ### 5.4 `error-log` / `slow-query` / `slow-request` / `notification`
 
@@ -599,7 +628,7 @@ modules/<id>/prisma/schema.prisma                # 外部业务模块
 
 内核 `registerAllRoutes` 固定注册：
 
-- `/api/auth`、`/api/public`、`/health`
+- `/api/auth`、`/api/public`、`/health`、`/ready`
 - 内核级 `/api/users`（若未迁入模块）、平台租户管理等
 
 其余全部由 `ModuleLoader.registerRoutes` 追加。

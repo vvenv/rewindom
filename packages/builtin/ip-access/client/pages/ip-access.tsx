@@ -38,6 +38,12 @@ export function IpAccess() {
     sortDir,
   });
 
+  /*
+   * 先取出来，别在 `isLoading && …` 的右侧再读一次 `data`：useQuery 的返回值是按
+   * isLoading 判别的联合类型，那一侧的 `data` 会被收窄成 never，`data?.items` 直接报错。
+   */
+  const rules = data?.items ?? [];
+
   return (
     <PageLayout
       icon={ShieldBan}
@@ -64,8 +70,8 @@ export function IpAccess() {
         />
         <IpRulesTable
           scope="tenant"
-          rules={data?.items ?? []}
-          isLoading={isLoading && (data?.items.length ?? 0) === 0}
+          rules={rules}
+          isLoading={isLoading && rules.length === 0}
           error={error}
           page={page}
           pageSize={pageSize}

@@ -106,6 +106,8 @@ export async function renderDocLibrary(input: {
   tenantSlug: string;
   origin: string;
   site: PublicMarketingSite | null;
+  /** 本次响应的 CSP nonce，透传给 renderMarketingHtml（见 SitePathHandlerInput）。 */
+  cspNonce?: string;
   accountEntryHtml: string;
   enabledEntitlements: ReadonlySet<string>;
   path: string;
@@ -155,6 +157,7 @@ export async function renderDocLibrary(input: {
       homeLayoutKey: input.homeLayoutKey,
     });
     return renderMarketingHtml({
+    cspNonce: input.cspNonce,
       origin: input.origin,
       tenant_id: input.tenantId,
       tenant_slug: input.tenantSlug,
@@ -236,6 +239,7 @@ async function renderDocsPath(
     input.locale,
   );
   return renderDocLibrary({
+    cspNonce: input.cspNonce,
     tenantId: input.tenantId,
     tenantSlug: input.tenantSlug,
     origin: input.origin,

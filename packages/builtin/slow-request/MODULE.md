@@ -32,7 +32,7 @@
 | `SLOW_REQUEST_FLUSH_INTERVAL_MS` | `2000` | 定时 flush |
 | `SLOW_REQUEST_RETENTION_DAYS` | `14` | 自动清理保留天数 |
 
-`/health` 与 CORS `OPTIONS` 不采集。响应头带 `X-Response-Time`。
+`/health`、`/ready` 与 CORS `OPTIONS` 不采集。响应头带 `X-Response-Time`。
 
 ## 如何单独测试
 

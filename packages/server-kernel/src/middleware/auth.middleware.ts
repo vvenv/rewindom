@@ -20,10 +20,9 @@ import {
   resolveRequestHostname,
   type HostTenantContext,
 } from "../lib/host-tenant.js";
+import { isOpsProbePath } from "../lib/ops-probe-path.js";
 import { prisma } from "../lib/prisma.js";
 import { updateRequestContext } from "../lib/request-context.js";
-
-import { isAttachmentContentRequest } from "./attachment-content-cache.js";
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 
@@ -200,16 +199,12 @@ export async function authMiddleware(app: FastifyInstance) {
         return;
       }
 
-      if (request.url === "/health") return;
+      if (isOpsProbePath(request.url)) return;
 
       const downloadToken = (request.query as { download_token?: unknown })
         .download_token;
       const requestPath = request.url.split("?")[0] ?? "";
       if (isPlatformBackupDownloadTokenBypass(requestPath, downloadToken)) {
-        return;
-      }
-
-      if (isAttachmentContentRequest(request.method, request.url)) {
         return;
       }
 

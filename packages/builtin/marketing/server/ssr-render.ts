@@ -228,6 +228,16 @@ export function renderMarketingHtml(input: {
   canonicalPath?: string;
   /** 为 true 时不发 `<link rel="alternate" hreflang>`（语言切换器仍用 `page.alternates`）。 */
   omitHreflang?: boolean;
+  /**
+   * 本次响应的 CSP nonce，盖在页面自己的两个内联脚本上（JSON-LD、明暗模式）。
+   *
+   * 统计脚本不走这里：它们的内容由配置唯一决定，用 hash 放行（见 site-csp.ts）。
+   * 分工的理由是缓存——SSR 响应发的是 `public, max-age=60`，
+   * 每请求变的 nonce 一旦被缓存就是一份失效的策略。
+   *
+   * 留空时不写 nonce 属性：直接调用本函数的测试与旧路径不受影响。
+   */
+  cspNonce?: string;
 }): string {
   const {
     origin,
@@ -237,6 +247,7 @@ export function renderMarketingHtml(input: {
     enabledEntitlements,
     contributed,
     isDefaultTenant,
+    cspNonce = "",
   } = input;
   const page = pageAtServedPath(
     input.page,
@@ -448,6 +459,9 @@ export function renderMarketingHtml(input: {
   collectSectionTypes(site.footer, usedSectionTypes);
   collectSectionTypes(page.sections, usedSectionTypes);
 
+  // 属性值走 escapeHtml：nonce 是我们自己生成的 base64，但拼进属性的东西一律转义
+  const nonceAttr = cspNonce ? ` nonce="${escapeHtml(cspNonce)}"` : "";
+
   const html = `<!DOCTYPE html>
 <html lang="${escapeHtml(locale)}">
 <head>
@@ -462,8 +476,8 @@ export function renderMarketingHtml(input: {
   <link rel="canonical" href="${escapeHtml(canonical)}" />
   ${alternateLinks}
   ${socialMeta}
-  <script type="application/ld+json">${jsonLd}</script>
-  <script>${marketingSiteColorModeScript()}</script>
+  <script type="application/ld+json"${nonceAttr}>${jsonLd}</script>
+  <script${nonceAttr}>${marketingSiteColorModeScript()}</script>
   <style>${siteCss(site.theme_settings, usedSectionTypes)}</style>
   ${site.analytics_html}
 </head>

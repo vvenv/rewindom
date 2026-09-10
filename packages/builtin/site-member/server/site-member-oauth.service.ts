@@ -8,6 +8,7 @@ import {
   buildGoogleAuthorizeUrl,
   GoogleOAuthService,
 } from "@rewindom/server-kernel/kernel/auth/google-oauth.service.js";
+import { REFRESH_TOKEN_TTL_SECONDS } from "@rewindom/server-kernel/kernel/auth/jwt.js";
 import {
   buildMicrosoftAuthorizeUrl,
   MicrosoftOAuthService,
@@ -36,7 +37,7 @@ import type { SiteMemberProfile } from "../shared/site-member.js";
 import type { JwtSignPayload } from "@rewindom/server-kernel/kernel/auth/auth.service.js";
 
 const EXCHANGE_CODE_TTL_MS = 2 * 60 * 1000;
-const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const REFRESH_TOKEN_TTL_MS = REFRESH_TOKEN_TTL_SECONDS * 1000;
 
 type JwtSign = (payload: JwtSignPayload) => string;
 

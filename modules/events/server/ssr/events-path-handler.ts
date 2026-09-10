@@ -168,6 +168,7 @@ async function renderEntityIndex(
   const href = entityIndexPath();
 
   return renderEventsTemplatePage({
+    cspNonce: input.cspNonce,
     request: input,
     tenantId: input.tenantId,
     tenantSlug: input.tenantSlug,
@@ -198,6 +199,7 @@ async function renderEntity(
   const t = translator(locale);
   const href = entityPath(entity.slug);
   return renderEventsTemplatePage({
+    cspNonce: input.cspNonce,
     request: input,
     tenantId: input.tenantId,
     tenantSlug: input.tenantSlug,
@@ -243,6 +245,7 @@ async function renderTopic(
   const pagePath = topicPath(topic);
 
   return renderEventsTemplatePage({
+    cspNonce: input.cspNonce,
     request: input,
     tenantId: input.tenantId,
     tenantSlug: input.tenantSlug,
@@ -279,6 +282,7 @@ async function renderListing(
 
   const listing = eventsListingPreset(source, topic);
   return renderEventsTemplatePage({
+    cspNonce: input.cspNonce,
     request: input,
     tenantId: input.tenantId,
     tenantSlug: input.tenantSlug,
@@ -340,6 +344,7 @@ async function renderDetail(
     summary: detail.summary,
   });
   return renderEventsTemplatePage({
+    cspNonce: input.cspNonce,
     request: input,
     tenantId: input.tenantId,
     tenantSlug: input.tenantSlug,

@@ -1,10 +1,22 @@
 # 生产 Docker Compose — 与宿主机 Nginx + Certbot 配合（见 scripts/docker-deploy-remote.sh）
 # 本地验证: docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
 
+# 容器名带前缀：prod 与 test 部署在同一台机器上时，写死的 container_name 会直接撞车
+# （卷和网络靠 compose project 名已经隔开了，只有容器名是全局唯一的）。
+# CONTAINER_PREFIX 由部署脚本按环境写进 env 文件：production=rewindom，test=rewindom-test。
+
+# 日志轮转：docker 默认 json-file 不限大小，而这台机器上应用和数据库同盘——
+# 日志把盘吃满时先挂的是 Postgres，比任何一次发布事故都严重。
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: rewindom-postgres
+    container_name: ${CONTAINER_PREFIX:-rewindom}-postgres
     environment:
       POSTGRES_USER: rewindom
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -16,11 +28,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 15
+    logging: *default-logging
     restart: unless-stopped
 
   redis:
     image: redis:7-alpine
-    container_name: rewindom-redis
+    container_name: ${CONTAINER_PREFIX:-rewindom}-redis
     command: >
       sh -c 'if [ -n "$${REDIS_PASSWORD}" ]; then
         exec redis-server --requirepass "$${REDIS_PASSWORD}";
@@ -36,6 +49,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    logging: *default-logging
     restart: unless-stopped
 
   app:
@@ -43,7 +57,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile
       target: app
-    container_name: rewindom-app
+    container_name: ${CONTAINER_PREFIX:-rewindom}-app
     environment:
       NODE_ENV: production
       PORT: 3700
@@ -80,6 +94,9 @@ services:
       IP_ACCESS_LOGIN_FAILURE_THRESHOLD: ${IP_ACCESS_LOGIN_FAILURE_THRESHOLD:-10}
       IP_ACCESS_LOGIN_FAILURE_WINDOW_MINUTES: ${IP_ACCESS_LOGIN_FAILURE_WINDOW_MINUTES:-15}
       IP_ACCESS_NGINX_EXPORT_PATH: ${IP_ACCESS_NGINX_EXPORT_PATH:-/data/ip-access/blocklist.conf}
+      # 公开面 CSP：默认 report（只报不拦）。切 enforce 前先看几天违规，
+      # 尤其是用了 GTM 的站点——容器里可以再装任意第三方标签，来源不可预知。
+      SITE_CSP_MODE: ${SITE_CSP_MODE:-report}
       SINGLE_TENANT: ${SINGLE_TENANT:-false}
       TENANT_BASE_DOMAIN: ${TENANT_BASE_DOMAIN:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
@@ -153,6 +170,23 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    # /ready 只把 Postgres 当硬依赖。写在这里是为了让 web 的 depends_on 有东西可等，
+    # 否则 nginx 会在 app 还在跑 migrate 时就开始往里送流量。
+    # 镜像里没有 curl，用 node 自带的 fetch。
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3700/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      # migrate deploy 可能跑一会儿，别在它做完之前就判死刑
+      start_period: 90s
+    logging: *default-logging
     restart: unless-stopped
 
   web:
@@ -160,7 +194,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile
       target: web
-    container_name: rewindom-web
+    container_name: ${CONTAINER_PREFIX:-rewindom}-web
     environment:
       # nginx map：仅平台控制台 Host 走静态 SPA；产品主域与其它 Host 反代 Marketing SSR
       APP_DOMAIN: ${APP_DOMAIN}
@@ -172,7 +206,9 @@ services:
     ports:
       - "127.0.0.1:${APP_PORT:-3700}:80"
     depends_on:
-      - app
+      app:
+        condition: service_healthy
+    logging: *default-logging
     restart: unless-stopped
 
 volumes:

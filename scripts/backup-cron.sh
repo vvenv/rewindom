@@ -101,6 +101,10 @@ sync_backup_script() {
     if [ -f "${source_lib_dir}/log.sh" ]; then
         install -m 755 "${source_lib_dir}/log.sh" "${APP_OPS_DIR}/lib/log.sh"
     fi
+    # backup.sh 依赖的拓扑探测库，漏传则备份直接起不来
+    if [ -f "${source_lib_dir}/stack.sh" ]; then
+        install -m 755 "${source_lib_dir}/stack.sh" "${APP_OPS_DIR}/lib/stack.sh"
+    fi
     log_info "已同步备份脚本 -> ${BACKUP_SCRIPT}"
 }
 
@@ -156,6 +160,11 @@ install_cron() {
     (crontab -l 2>/dev/null; echo "0 8 * * * flock -n ${LOCK_FILE} bash ${BACKUP_SCRIPT} --env ${ENVIRONMENT} >> ${LOG_FILE} 2>&1 ${CRON_TAG}") | crontab -
     (crontab -l 2>/dev/null; echo "0 9 * * 0 find ${BACKUP_DIR} -name \"app_backup_*.dump\" -mtime +30 -delete ${CRON_TAG}") | crontab -
     (crontab -l 2>/dev/null; echo "0 9 * * 0 find ${BACKUP_DIR} -name \"app_redis_*.rdb.gz\" -mtime +30 -delete ${CRON_TAG}") | crontab -
+    # 附件/导出件的备份（backup.sh 的第三类产物）同样要进保留策略，
+    # 否则它是唯一一类只增不减的文件，几个月后把备份盘填满
+    (crontab -l 2>/dev/null; echo "0 9 * * 0 find ${BACKUP_DIR} -name \"app_data_*.tar.gz\" -mtime +30 -delete ${CRON_TAG}") | crontab -
+    # 中断留下的半成品（*.partial）不该攒着
+    (crontab -l 2>/dev/null; echo "0 9 * * 0 find ${BACKUP_DIR} -name \"*.partial\" -mtime +1 -delete ${CRON_TAG}") | crontab -
 
     log_info "已安装 $ENVIRONMENT 环境备份定时任务"
     log_info "备份脚本: $BACKUP_SCRIPT"

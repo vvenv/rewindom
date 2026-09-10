@@ -37,7 +37,7 @@ export interface ServerAppModule extends ModuleManifestBase {
      * JWT 验签、租户查库和权限计算再被拒。
      *
      * 这里注册的 hook 对**所有**进入 Fastify 的请求生效，包括官网 SSR，
-     * 不只是 `/api`。因此实现必须自己短路掉 `/health` 与 CORS 预检。
+     * 不只是 `/api`。因此实现必须自己短路掉 `/health`、`/ready` 与 CORS 预检。
      */
     registerEarlyMiddleware?: (
       app: FastifyInstance,
@@ -51,6 +51,15 @@ export interface ServerAppModule extends ModuleManifestBase {
       app: FastifyInstance,
       ctx: ServerModuleContext,
     ) => Promise<void>;
+    /**
+     * 注册周期任务。**声明** `schedules` + `run`，不要自己 `setInterval`——
+     * 注册表负责计时、重叠跳过、计耗时、记成败，并把结果广播给订阅者
+     * （`error-log` 据此把失败落成 `job:<id>`）。自己起定时器等于把运行态
+     * 埋进日志里，平台监控页看不见。
+     *
+     * 没有「一轮」概念的东西（进程事件监听器、停机前 flush、关连接池）才用
+     * 命令式 `start` / `stop`；两者可并存。
+     */
     registerJobs?: (ctx: JobRegistryContext) => void;
     onBoot?: (ctx: BootContext) => Promise<void>;
     registerProviders?: (registry: ProviderRegistry) => void;
