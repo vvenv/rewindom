@@ -43,8 +43,11 @@ jobs:
     timeout-minutes: 30
 
     steps:
+      # 无条件 checkout：下一步用的是**本地** composite action
+      # （./.github/actions/...），没有工作区就找不到 action.yml。
+      # 原来只在 sync-env 时 checkout，于是 status / logs / health-check /
+      # restart / backup 这几个任务从来就跑不起来。
       - name: Checkout code
-        if: inputs.task == 'sync-env'
         uses: actions/checkout@v6
         with:
           ref: main

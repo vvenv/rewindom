@@ -36,6 +36,10 @@ jobs:
     timeout-minutes: 10
 
     steps:
+      # 下一步用本地 composite action，必须先 checkout
+      - name: Checkout code
+        uses: actions/checkout@v6
+
       - name: Validate deploy secrets
         uses: ./.github/actions/validate-deploy-secrets
         with:
