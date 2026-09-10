@@ -2,7 +2,7 @@
  * 判定钩子的端到端测试：起一个真的 Fastify，发真的 HTTP 请求。
  *
  * 单测判定函数已经覆盖了优先级；这里要验的是那些只有装到框架上才成立的性质——
- * 拿到的 IP 是不是可信的那个、`/health` 会不会被自己拦掉、名单挂了会不会全站 403。
+ * 拿到的 IP 是不是可信的那个、`/health` / `/ready` 会不会被自己拦掉、名单挂了会不会全站 403。
  */
 import Fastify, { type FastifyInstance } from "fastify";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -90,6 +90,7 @@ async function buildApp(trustProxy: boolean | string): Promise<FastifyInstance> 
   const app = Fastify({ logger: false, trustProxy });
   await ipAccessMiddleware(app);
   app.get("/health", async () => ({ status: "ok" }));
+  app.get("/ready", async () => ({ status: "ok" }));
   app.get("/api/thing", async () => ({ ok: true }));
   app.get("/", async () => ({ ssr: true }));
   await app.ready();
@@ -139,6 +140,16 @@ describe("ipAccessMiddleware", () => {
     app = await buildApp(true);
 
     expect((await app.inject({ method: "GET", url: "/health" })).statusCode).toBe(
+      200,
+    );
+    expect(mockMatchRules).not.toHaveBeenCalled();
+  });
+
+  it("never blocks /ready", async () => {
+    mockMatchRules.mockResolvedValue({ matched: [blockRule()], exempt: false });
+    app = await buildApp(true);
+
+    expect((await app.inject({ method: "GET", url: "/ready" })).statusCode).toBe(
       200,
     );
     expect(mockMatchRules).not.toHaveBeenCalled();
@@ -296,6 +307,12 @@ describe("ipAccessMiddleware", () => {
     it("does not count /health against any budget", async () => {
       app = await buildApp(true);
       await app.inject({ method: "GET", url: "/health" });
+      expect(mockConsumeRateLimit).not.toHaveBeenCalled();
+    });
+
+    it("does not count /ready against any budget", async () => {
+      app = await buildApp(true);
+      await app.inject({ method: "GET", url: "/ready" });
       expect(mockConsumeRateLimit).not.toHaveBeenCalled();
     });
   });

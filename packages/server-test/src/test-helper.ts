@@ -1,6 +1,6 @@
+import { registerJwt } from "@rewindom/server-kernel/kernel/auth/jwt.js";
 import { randomUUID } from "node:crypto";
 
-import FastifyJWT from "@fastify/jwt";
 import {
   invalidatePlatformAdminPermissionCache,
   invalidateUserPermissionCache,
@@ -372,7 +372,7 @@ async function buildBaseTestApp(
 ): Promise<TestApp> {
   const app = Fastify({ logger: false });
   app.decorate("prisma", prismaMock as unknown as TestApp["prisma"]);
-  await app.register(FastifyJWT, { secret: "test-secret" });
+  await registerJwt(app, "test-secret");
   await authMiddleware(app);
   if (!options.skipPermission) {
     const registry = new ProviderRegistry();

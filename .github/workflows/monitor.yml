@@ -1,0 +1,64 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: Monitor
+
+# 定时健康检查。跑挂了 GitHub 就会发失败通知——这是在不引入任何监控厂商的前提下
+# 能拿到的最实在的一层告警。
+#
+# 它守的四件事都属于「平时毫无感觉、出事那天才知道」的那一类：
+#   应用不接流量 / 容器掉了 / 磁盘写满 / **备份静默停掉**。
+# 最后一条是这个工作流存在的主要理由：备份坏掉不会有任何征兆。
+on:
+  schedule:
+    - cron: "17 * * * *" # 每小时（错开整点，避开 GitHub 的调度高峰）
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "目标环境"
+        required: true
+        default: "production"
+        type: choice
+        options:
+          - production
+          - test
+
+concurrency:
+  group: monitor-${{ inputs.environment || 'production' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  healthcheck:
+    name: "Health · ${{ inputs.environment || 'production' }}"
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'production' }}
+    timeout-minutes: 10
+
+    steps:
+      - name: Validate deploy secrets
+        uses: ./.github/actions/validate-deploy-secrets
+        with:
+          environment: ${{ inputs.environment || 'production' }}
+          ssh_host: ${{ secrets.DEPLOY_HOST }}
+          ssh_user: ${{ secrets.DEPLOY_SSH_USER }}
+          ssh_key: ${{ secrets.DEPLOY_SSH_KEY }}
+          ssh_password: ${{ secrets.DEPLOY_SSH_PASSWORD }}
+
+      - name: Run health check
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_SSH_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          password: ${{ secrets.DEPLOY_SSH_PASSWORD }}
+          command_timeout: 5m
+          script: |
+            set -euo pipefail
+            ENVIRONMENT="${{ inputs.environment || 'production' }}"
+            # 脚本由部署同步到这里（见 docker-deploy-remote.sh 的运维脚本同步）
+            if [ ! -x /etc/rewindom/scripts/healthcheck.sh ]; then
+              echo "::error::/etc/rewindom/scripts/healthcheck.sh 不存在——先跑一次 pnpm deploy 同步运维脚本"
+              exit 1
+            fi
+            bash /etc/rewindom/scripts/healthcheck.sh --env "$ENVIRONMENT"

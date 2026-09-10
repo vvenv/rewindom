@@ -77,5 +77,40 @@
     "title": "Recent errors",
     "viewAll": "View all",
     "empty": "No recent errors"
+  },
+  "chart": {
+    "loading": "Loading…",
+    "noData": "No data"
+  },
+  "health": {
+    "postgres": "PostgreSQL",
+    "redis": "Redis",
+    "ok": "OK",
+    "error": "Down",
+    "required": "Required",
+    "optional": "Optional",
+    "latency": "{{ms}}ms",
+    "checkedAt": "Checked {{time}}",
+    "overall": {
+      "ok": "All systems operational",
+      "degraded": "Degraded: cache or jobs are down; this instance can still serve requests",
+      "error": "Not ready: a required dependency is down"
+    }
+  },
+  "monitor": {
+    "title": "System status",
+    "description": "Liveness is the process. Readiness is whether this instance can serve traffic. A cache outage is degraded, not a drain.",
+    "viewAll": "View all",
+    "loadFailed": "Failed to load error stats: {{message}}",
+    "healthLoadFailed": "Failed to probe service health: {{message}}",
+    "total": "Error log total",
+    "errors": "Errors",
+    "warnings": "Warnings",
+    "selectedRange": "Selected range",
+    "allTime": "All time",
+    "topRoutes": "Top 10 routes",
+    "topErrorCodes": "Top 10 error codes",
+    "countLabel": "Count",
+    "countUnit": "{{value}}"
   }
 }

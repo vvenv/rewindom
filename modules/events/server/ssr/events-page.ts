@@ -34,6 +34,8 @@ export async function renderEventsTemplatePage(input: {
   tenantId: string;
   tenantSlug: string;
   siteName: string;
+  /** 本次响应的 CSP nonce，透传给 renderMarketingHtml（见 SitePathHandlerInput）。 */
+  cspNonce?: string;
   origin: string;
   locale: AppLocale;
   kind: string;
@@ -141,6 +143,7 @@ export async function renderEventsTemplatePage(input: {
   const description = input.description || template.description || undefined;
 
   return renderMarketingHtml({
+    cspNonce: input.cspNonce,
     origin: input.origin,
     tenant_id: input.tenantId,
     tenant_slug: input.tenantSlug,

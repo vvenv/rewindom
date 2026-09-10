@@ -14,6 +14,7 @@
  */
 
 import { CaptchaService } from "@rewindom/server-kernel/kernel/auth/captcha.service.js";
+import { createJwtSigner } from "@rewindom/server-kernel/kernel/auth/jwt.js";
 import { siteOAuthEnabledFlags } from "@rewindom/server-kernel/kernel/auth/oauth-credentials.js";
 import { AppError } from "@rewindom/server-kernel/lib/app-errors.js";
 import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
@@ -62,6 +63,7 @@ import {
   requestOrigin,
   safeRedirect,
   sendHtml,
+  sendSiteHtml,
 } from "./member-ssr-common.js";
 import { SiteMemberAuthService } from "./site-member-auth.service.js";
 import { resolveMemberSsrSession } from "./site-member-ssr-session.js";
@@ -244,32 +246,35 @@ async function renderAuthPage(
     homeLayoutKey: home.homeLayoutKey,
   });
 
-  sendHtml(
+  sendSiteHtml(
     reply,
     state.status,
-    renderMarketingHtml({
-      origin: requestOrigin(request),
-      tenant_id: hostTenant.tenant_id,
-      tenant_slug: hostTenant.tenant_slug,
-      site,
-      page: {
-        slug: spec.path,
-        locale,
-        kind: spec.kind,
-        title: template.title,
-        description: template.description,
-        sections: template.sections,
-        // 认证页不该被收录：它对搜索引擎没有内容，收进去只会分走登录入口的权重
-        settings: { noindex: true },
-        visibility: "public",
-        path: spec.path,
-        alternates: siteLocaleAlternates(spec.path, site, request.url),
-        updated_at: new Date().toISOString(),
-      },
-      accountEntryHtml: accountEntry.html,
-      enabledEntitlements: entitlements,
-      contributed,
-    }),
+    (cspNonce) =>
+      renderMarketingHtml({
+        cspNonce,
+        origin: requestOrigin(request),
+        tenant_id: hostTenant.tenant_id,
+        tenant_slug: hostTenant.tenant_slug,
+        site,
+        page: {
+          slug: spec.path,
+          locale,
+          kind: spec.kind,
+          title: template.title,
+          description: template.description,
+          sections: template.sections,
+          // 认证页不该被收录：它对搜索引擎没有内容，收进去只会分走登录入口的权重
+          settings: { noindex: true },
+          visibility: "public",
+          path: spec.path,
+          alternates: siteLocaleAlternates(spec.path, site, request.url),
+          updated_at: new Date().toISOString(),
+        },
+        accountEntryHtml: accountEntry.html,
+        enabledEntitlements: entitlements,
+        contributed,
+      }),
+    { analytics: site.analytics },
   );
 }
 
@@ -318,7 +323,7 @@ async function handleSubmit(
         ? await SiteMemberAuthService.login(
             { email, password },
             tenant,
-            app.jwt.sign.bind(app.jwt),
+            createJwtSigner(app),
           )
         : await SiteMemberAuthService.register(
             {
@@ -327,7 +332,7 @@ async function handleSubmit(
               ...(displayName ? { display_name: displayName } : {}),
             },
             tenant,
-            app.jwt.sign.bind(app.jwt),
+            createJwtSigner(app),
           );
 
     if (spec.mode === "register") {

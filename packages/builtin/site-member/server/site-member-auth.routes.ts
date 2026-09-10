@@ -1,6 +1,7 @@
 import { sendCodedError } from "@rewindom/server-kernel/http/coded-error.js";
 import { defineRoute } from "@rewindom/server-kernel/http/define-route.js";
 import { CaptchaService } from "@rewindom/server-kernel/kernel/auth/captcha.service.js";
+import { createJwtSigner } from "@rewindom/server-kernel/kernel/auth/jwt.js";
 import {
   platformOAuthEnabledFlags,
   siteOAuthEnabledFlags,
@@ -126,7 +127,7 @@ export async function siteMemberAuthRoutes(
       const result = await SiteMemberAuthService.register(
         body,
         tenant,
-        app.jwt.sign.bind(app.jwt),
+        createJwtSigner(app),
       );
 
       // AuditLog.user_id 外键指向 User 表，会员 id 放进去会违反约束；
@@ -160,7 +161,7 @@ export async function siteMemberAuthRoutes(
       const result = await SiteMemberAuthService.login(
         body,
         tenant,
-        app.jwt.sign.bind(app.jwt),
+        createJwtSigner(app),
       );
       issueSessionCookies(reply, result.tokens);
       return toSessionResponse(result);
@@ -181,7 +182,7 @@ export async function siteMemberAuthRoutes(
       try {
         const tokens = await SiteMemberAuthService.refresh(
           refreshToken,
-          app.jwt.sign.bind(app.jwt),
+          createJwtSigner(app),
           app.jwt.verify.bind(app.jwt),
         );
         issueSessionCookies(reply, tokens);

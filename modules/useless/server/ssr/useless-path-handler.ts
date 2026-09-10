@@ -35,6 +35,7 @@ async function renderUselessThingFallback(
     );
     const title = useless.thing?.title;
     return renderUselessTemplatePage({
+    cspNonce: input.cspNonce,
       tenantId: input.tenantId,
       tenantSlug: input.tenantSlug,
       origin: input.origin,

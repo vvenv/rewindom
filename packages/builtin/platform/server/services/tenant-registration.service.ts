@@ -2,6 +2,7 @@ import {
   AuthService,
   type JwtSignPayload,
 } from "@rewindom/server-kernel/kernel/auth/auth.service.js";
+import { refreshTokenExpiryDate } from "@rewindom/server-kernel/kernel/auth/jwt.js";
 import {
   AppError,
   ConflictError,
@@ -125,7 +126,7 @@ async function issueRegistrationTokens(
     jwtSign,
   );
 
-  const refreshTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const refreshTokenExpiry = refreshTokenExpiryDate();
   await prisma.refreshToken.create({
     data: {
       user_id: user.id,

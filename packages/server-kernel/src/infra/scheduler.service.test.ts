@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
+import { getMsUntilLocalTime } from "../lib/schedule-time.js";
 import { JobRegistry } from "../runtime/job-registry.js";
 
 import {
-  getMsUntilLocalTime,
   startBackgroundScheduler,
   stopBackgroundScheduler,
 } from "./scheduler.service.js";
@@ -34,20 +34,6 @@ describe("scheduler.service", () => {
   afterEach(() => {
     vi.useRealTimers();
     stopBackgroundScheduler();
-  });
-
-  describe("getMsUntilLocalTime", () => {
-    it("should return delay until next occurrence today when time not passed", () => {
-      vi.setSystemTime(new Date(2026, 5, 13, 1, 0, 0));
-
-      expect(getMsUntilLocalTime(3, 0)).toBe(2 * 60 * 60 * 1000);
-    });
-
-    it("should schedule next day when time already passed", () => {
-      vi.setSystemTime(new Date(2026, 5, 13, 12, 0, 0));
-
-      expect(getMsUntilLocalTime(3, 0)).toBe(15 * 60 * 60 * 1000);
-    });
   });
 
   describe("startBackgroundScheduler", () => {

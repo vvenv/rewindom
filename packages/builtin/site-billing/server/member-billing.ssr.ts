@@ -42,6 +42,7 @@ import {
   formBodyParser,
   requestOrigin,
   sendHtml,
+  sendSiteHtml,
 } from "../../site-member/server/member-ssr-common.js";
 import { resolveMemberSsrSession } from "../../site-member/server/site-member-ssr-session.js";
 import { MEMBER_BILLING_PAGE_KIND } from "../shared/account-section.js";
@@ -258,36 +259,40 @@ async function renderBillingPage(
     homeLayoutKey: home.homeLayoutKey,
   });
 
-  sendHtml(
+  sendSiteHtml(
     reply,
     state.status,
-    renderMarketingHtml({
-      origin: requestOrigin(request),
-      tenant_id: hostTenant.tenant_id,
-      tenant_slug: hostTenant.tenant_slug,
-      site,
-      page: {
-        slug: MEMBER_BILLING_PATH,
-        locale,
-        kind: MEMBER_BILLING_PAGE_KIND,
-        title: template.title,
-        description: template.description,
-        sections: template.sections,
-        // 账单页对搜索引擎没有内容，收录它只会把登录墙送进搜索结果
-        settings: { noindex: true },
-        visibility: "public",
-        path: MEMBER_BILLING_PATH,
-        alternates: siteLocaleAlternates(
-          MEMBER_BILLING_PATH,
-          site,
-          request.url,
-        ),
-        updated_at: new Date().toISOString(),
-      },
-      accountEntryHtml: accountEntry.html,
-      enabledEntitlements: entitlements,
-      contributed,
-    }),
+    (cspNonce) =>
+      renderMarketingHtml({
+        cspNonce,
+        origin: requestOrigin(request),
+        tenant_id: hostTenant.tenant_id,
+        tenant_slug: hostTenant.tenant_slug,
+        site,
+        page: {
+          slug: MEMBER_BILLING_PATH,
+          locale,
+          kind: MEMBER_BILLING_PAGE_KIND,
+          title: template.title,
+          description: template.description,
+          sections: template.sections,
+          // 账单页对搜索引擎没有内容，收录它只会把登录墙送进搜索结果
+          settings: { noindex: true },
+          visibility: "public",
+          path: MEMBER_BILLING_PATH,
+          alternates: siteLocaleAlternates(
+            MEMBER_BILLING_PATH,
+            site,
+            request.url,
+          ),
+          updated_at: new Date().toISOString(),
+        },
+        accountEntryHtml: accountEntry.html,
+        enabledEntitlements: entitlements,
+        contributed,
+      }),
+    // 会员侧的 sendHtml 恒发 private, no-store，无需再传缓存开关
+    { analytics: site.analytics },
   );
   return true;
 }

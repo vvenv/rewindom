@@ -43,6 +43,11 @@ import {
   resolveSectionContexts,
 } from "./section-context-providers.js";
 import { resolveSiteAccountEntry } from "./site-account-entry.js";
+import {
+  buildSiteCspPolicy,
+  createCspNonce,
+  siteCspHeaderName,
+} from "./site-csp.js";
 import { resolveSectionEntitlements } from "./site-entitlements.js";
 import { resolveSiteMemberSsrSession } from "./site-member-ssr-session.js";
 import { findSiteRedirect } from "./site-redirect.service.js";
@@ -52,6 +57,7 @@ import {
   getPublishedSitemapEntries,
   getSiteChromeOrFallback,
   resolveVisitorHomePath,
+  getSiteAnalyticsConfig,
   resolveVisitorPageLocale,
 } from "./site.service.js";
 import { resolveContributedSitemapEntries } from "./sitemap-providers.js";
@@ -80,6 +86,31 @@ async function ensureHostTenant(request: FastifyRequest): Promise<void> {
   request.hostTenantContext = await resolveHostTenant(hostname);
 }
 
+/**
+ * 渲染并发送一个带 CSP 的站点页面。
+ *
+ * nonce 只在这里生成一次，**同时**交给渲染函数和响应头——这是唯一能保证两边
+ * 对得上的写法。若让调用方各自生成，某天一处改了另一处没改，页面自己的内联
+ * 脚本就会被自己的策略拦掉，而且只在 enforce 模式下才暴露。
+ */
+export function sendSiteHtml(
+  reply: FastifyReply,
+  status: number,
+  render: (cspNonce: string) => string,
+  options?: { privateCache?: boolean; analytics?: unknown },
+): void {
+  const nonce = createCspNonce();
+  const html = render(nonce);
+  const headerName = siteCspHeaderName();
+  if (headerName) {
+    void reply.header(
+      headerName,
+      buildSiteCspPolicy({ nonce, analytics: options?.analytics }),
+    );
+  }
+  sendHtml(reply, status, html, options);
+}
+
 function sendHtml(
   reply: FastifyReply,
   status: number,
@@ -103,8 +134,17 @@ function sendHtml(
 function sendPathHandlerResult(
   reply: FastifyReply,
   result: NonNullable<SitePathRenderResult>,
+  csp?: { cspNonce: string; analytics?: unknown },
 ): void {
   if (!isSitePathResponse(result)) {
+    // 只有 HTML 需要 CSP；feed / og 图那条分支不发
+    const headerName = csp ? siteCspHeaderName() : null;
+    if (headerName && csp) {
+      void reply.header(
+        headerName,
+        buildSiteCspPolicy({ nonce: csp.cspNonce, analytics: csp.analytics }),
+      );
+    }
     sendHtml(reply, 200, result);
     return;
   }
@@ -158,8 +198,10 @@ function pathHandlerInput(input: {
   homePath: string;
   homeLayoutKey: string;
   accountEntryHtml: string;
+  cspNonce: string;
 }): SitePathHandlerInput {
   return {
+    cspNonce: input.cspNonce,
     tenantId: input.hostTenant.tenant_id,
     tenantSlug: input.hostTenant.tenant_slug,
     origin: requestOrigin(input.request),
@@ -243,20 +285,23 @@ async function renderNotFound(
       }),
     ]);
 
-    sendHtml(
+    sendSiteHtml(
       reply,
       404,
-      renderMarketingHtml({
-        origin: requestOrigin(request),
-        tenant_id: hostTenant.tenant_id,
-        tenant_slug: hostTenant.tenant_slug,
-        site,
-        contributed,
-        page,
-        accountEntryHtml: accountEntry.html,
-        enabledEntitlements,
-        isDefaultTenant: hostTenant.tenant_id === DEFAULT_TENANT_ID,
-      }),
+      (cspNonce) =>
+        renderMarketingHtml({
+          cspNonce,
+          origin: requestOrigin(request),
+          tenant_id: hostTenant.tenant_id,
+          tenant_slug: hostTenant.tenant_slug,
+          site,
+          contributed,
+          page,
+          accountEntryHtml: accountEntry.html,
+          enabledEntitlements,
+          isDefaultTenant: hostTenant.tenant_id === DEFAULT_TENANT_ID,
+        }),
+      { analytics: site.analytics },
     );
     return;
   }
@@ -287,24 +332,27 @@ async function renderNotFound(
     }),
   ]);
 
-  sendHtml(
+  sendSiteHtml(
     reply,
     404,
-    renderMarketingHtml({
-      origin: requestOrigin(request),
-      tenant_id: hostTenant.tenant_id,
-      tenant_slug: hostTenant.tenant_slug,
-      site: custom.site,
-      contributed,
-      // 404 页不该被收录：它会出现在无数个不存在的地址上
-      page: {
-        ...custom.page,
-        settings: { ...custom.page.settings, noindex: true },
-      },
-      accountEntryHtml: accountEntry.html,
-      enabledEntitlements,
-      isDefaultTenant: hostTenant.tenant_id === DEFAULT_TENANT_ID,
-    }),
+    (cspNonce) =>
+      renderMarketingHtml({
+        cspNonce,
+        origin: requestOrigin(request),
+        tenant_id: hostTenant.tenant_id,
+        tenant_slug: hostTenant.tenant_slug,
+        site: custom.site,
+        contributed,
+        // 404 页不该被收录：它会出现在无数个不存在的地址上
+        page: {
+          ...custom.page,
+          settings: { ...custom.page.settings, noindex: true },
+        },
+        accountEntryHtml: accountEntry.html,
+        enabledEntitlements,
+        isDefaultTenant: hostTenant.tenant_id === DEFAULT_TENANT_ID,
+      }),
+    { analytics: custom.site.analytics },
   );
 }
 
@@ -410,6 +458,9 @@ async function renderLogicalPath(
     ) {
       return true;
     }
+    // 贡献 handler 渲染出的也是站点页面，同样要带 CSP：nonce 在这里生成一次，
+    // 一份进 handler 的入参（落到 HTML 上），一份进响应头。
+    const cspNonce = createCspNonce();
     const pageLocale = await resolveVisitorPageLocale(
       hostTenant.tenant_id,
       locale,
@@ -428,6 +479,7 @@ async function renderLogicalPath(
       homePath,
       homeLayoutKey,
       accountEntryHtml: accountEntry.html,
+      cspNonce,
     });
     const canonical = handler.canonicalRedirect?.(input);
     if (canonical && canonical !== servedPath) {
@@ -447,7 +499,10 @@ async function renderLogicalPath(
       );
       return true;
     }
-    sendPathHandlerResult(reply, rendered);
+    sendPathHandlerResult(reply, rendered, {
+      cspNonce,
+      analytics: await getSiteAnalyticsConfig(hostTenant.tenant_id),
+    });
     return true;
   }
 
@@ -469,6 +524,7 @@ async function renderLogicalPath(
       homeLayoutKey,
     });
     if (fallback) {
+      const fallbackCspNonce = createCspNonce();
       const pageLocale = await resolveVisitorPageLocale(
         hostTenant.tenant_id,
         locale,
@@ -488,10 +544,14 @@ async function renderLogicalPath(
           homePath,
           homeLayoutKey,
           accountEntryHtml: accountEntry.html,
+          cspNonce: fallbackCspNonce,
         }),
       );
       if (rendered !== null) {
-        sendPathHandlerResult(reply, rendered);
+        sendPathHandlerResult(reply, rendered, {
+          cspNonce: fallbackCspNonce,
+          analytics: await getSiteAnalyticsConfig(hostTenant.tenant_id),
+        });
         return true;
       }
     }
@@ -585,25 +645,28 @@ async function renderLogicalPath(
   // 未登录才锁门；已登录 cookie 会话直接渲染正文。
   const memberGate = requiresMember && !memberAuthenticated;
 
-  sendHtml(
+  sendSiteHtml(
     reply,
     200,
-    renderMarketingHtml({
-      origin: requestOrigin(request),
-      tenant_id: hostTenant.tenant_id,
-      tenant_slug: hostTenant.tenant_slug,
-      site: result.site,
-      page: result.page,
-      servedPath,
-      memberGate,
-      accountEntryHtml: accountEntry.html,
-      enabledEntitlements,
-      contributed,
-      isDefaultTenant: hostTenant.tenant_id === DEFAULT_TENANT_ID,
-    }),
+    (cspNonce) =>
+      renderMarketingHtml({
+        cspNonce,
+        origin: requestOrigin(request),
+        tenant_id: hostTenant.tenant_id,
+        tenant_slug: hostTenant.tenant_slug,
+        site: result.site,
+        page: result.page,
+        servedPath,
+        memberGate,
+        accountEntryHtml: accountEntry.html,
+        enabledEntitlements,
+        contributed,
+        isDefaultTenant: hostTenant.tenant_id === DEFAULT_TENANT_ID,
+      }),
     {
       // 登录态页头 / 解锁正文因人而异，禁止公共缓存。
       privateCache: memberAuthenticated || requiresMember,
+      analytics: result.site.analytics,
     },
   );
   return true;

@@ -27,6 +27,8 @@ import { normalizeLocale, type AppLocale } from "@rewindom/module-sdk";
 
 export async function renderShopTemplatePage(input: {
   tenantId: string;
+  /** 本次响应的 CSP nonce，透传给 renderMarketingHtml（见 SitePathHandlerInput）。 */
+  cspNonce?: string;
   tenantSlug: string;
   siteName: string;
   origin: string;
@@ -112,6 +114,7 @@ export async function renderShopTemplatePage(input: {
   });
 
   return renderMarketingHtml({
+    cspNonce: input.cspNonce,
     origin: input.origin,
     tenant_id: input.tenantId,
     tenant_slug: input.tenantSlug,

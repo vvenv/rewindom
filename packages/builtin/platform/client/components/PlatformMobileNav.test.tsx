@@ -21,8 +21,8 @@ const platformNavEntries = [
     label: "租户",
     icon: Building2,
     children: [
-      { to: "/platform/tenants", label: "租户", end: true },
-      { to: "/platform/users", label: "用户", end: true },
+      { to: "/platform/tenants", label: "租户管理", end: true },
+      { to: "/platform/users", label: "跨租户用户", end: true },
     ],
   },
   {

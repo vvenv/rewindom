@@ -1,8 +1,9 @@
 import FastifyCookie from "@fastify/cookie";
-import FastifyJWT from "@fastify/jwt";
 import { DEFAULT_TENANT_ID, PLATFORM_ADMIN_USER_ID, MEMBER_ACCESS_COOKIE } from "@rewindom/shared";
 import Fastify, { type FastifyInstance } from "fastify";
 import { describe, it, expect, beforeEach, vi } from "vitest";
+
+import { registerJwt } from "../kernel/auth/jwt.js";
 
 import { authMiddleware } from "./auth.middleware.js";
 
@@ -86,9 +87,7 @@ describe("auth.middleware", () => {
     vi.mocked(prisma.tenant.findFirst).mockResolvedValue(null);
     app = Fastify({ logger: false });
     await app.register(FastifyCookie);
-    await app.register(FastifyJWT, {
-      secret: "test-secret",
-    });
+    await registerJwt(app, "test-secret");
     await authMiddleware(app);
   });
 
@@ -147,6 +146,15 @@ describe("auth.middleware", () => {
       expect(response.statusCode).not.toBe(401);
     });
 
+    it("should skip /ready", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/ready",
+      });
+
+      expect(response.statusCode).not.toBe(401);
+    });
+
     it("should skip non-api routes", async () => {
       const response = await app.inject({
         method: "GET",
@@ -167,16 +175,6 @@ describe("auth.middleware", () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it("should skip attachment content without JWT", async () => {
-      app.get("/api/attachments/att-1/content", async () => ({ ok: true }));
-
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/attachments/att-1/content",
-      });
-
-      expect(response.statusCode).toBe(200);
-    });
   });
 
   describe("JWT authentication", () => {

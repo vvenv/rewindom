@@ -373,6 +373,7 @@ export function useSiteEditor(pageId: string | undefined) {
         // 预览不发分析脚本：自己人改稿的点击不该混进访客数据里
         analytics_html: "",
         analytics_body_html: "",
+        analytics: { scripts: [] },
         primary_color: theme.primary_color ?? null,
         theme_settings: { ...theme, logo_url: previewLogoUrl },
         default_locale: defaultLocale,

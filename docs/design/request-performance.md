@@ -48,7 +48,7 @@ model SlowRequestLog {
 2. `onSend` 写 `X-Response-Time`
 3. `onResponse` 调用 `setRequestTimingRecorder` 注入的回调
 
-组装层 `server-assembly.ts` 把回调接到 `SlowRequestService.enqueue`。未达阈值、`/health`、`OPTIONS` 不入队。缓冲 + 定时 flush，写入失败只打 warn，不阻塞响应。
+组装层 `server-assembly.ts` 把回调接到 `SlowRequestService.enqueue`。未达阈值、`/health`、`/ready`、`OPTIONS` 不入队。缓冲 + 定时 flush，写入失败只打 warn，不阻塞响应。
 
 ## API
 

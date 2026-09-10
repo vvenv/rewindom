@@ -1,7 +1,7 @@
-
 import { parseSortDir } from "@rewindom/server-kernel/http/list-sort.js";
 import { parsePagination } from "@rewindom/server-kernel/http/pagination.js";
 import { handleRouteError } from "@rewindom/server-kernel/http/route-error-handler.js";
+import { checkDependencies } from "@rewindom/server-kernel/lib/dependency-health.js";
 import { loadTenantLabelsBySlugs } from "@rewindom/server-kernel/lib/tenant-labels.js";
 import { success } from "@rewindom/shared";
 
@@ -105,6 +105,21 @@ export async function registerPlatformErrorLogRoutes(
         err,
         "[platformRoutes] 获取错误统计失败",
         "GET_PLATFORM_ERROR_STATS_FAILED",
+      );
+    }
+  });
+
+  app.get("/error-logs/health", async (_request, reply) => {
+    try {
+      // GET 不做写入：翻转落库由 30s 任务负责，探针保持无副作用。
+      const snapshot = await checkDependencies();
+      return reply.send(success(snapshot));
+    } catch (err) {
+      return handleRouteError(
+        reply,
+        err,
+        "[platformRoutes] 探测依赖健康失败",
+        "GET_PLATFORM_SYSTEM_HEALTH_FAILED",
       );
     }
   });

@@ -296,8 +296,9 @@ pm2 status
 # Docker 状态
 docker-compose ps
 
-# 健康检查
+# 健康检查（/health 存活；/ready 能否接流量，失败 503）
 curl http://localhost:3000/health
+curl -i http://localhost:3000/ready
 ```
 
 ## 性能问题

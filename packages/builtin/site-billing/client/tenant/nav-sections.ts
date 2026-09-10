@@ -1,6 +1,6 @@
+import { APP_NAV_SECTION_ORDER, type AppNavSection } from "@rewindom/client-kit";
 import { CreditCard, Receipt } from "lucide-react";
 
-import { APP_NAV_SECTION_ORDER, type AppNavSection } from "@rewindom/client-kit";
 
 /** 挂在「受众」分组，紧邻会员——它管的是那批会员的钱。 */
 export const SITE_BILLING_NAV_SECTIONS: AppNavSection[] = [

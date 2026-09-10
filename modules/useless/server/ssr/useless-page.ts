@@ -31,6 +31,8 @@ import type { SitePathHandlerInput } from "@rewindom/builtin/marketing/shared/si
 export async function renderUselessTemplatePage(input: {
   tenantId: string;
   tenantSlug: string;
+  /** 本次响应的 CSP nonce，透传给 renderMarketingHtml（见 SitePathHandlerInput）。 */
+  cspNonce?: string;
   origin: string;
   locale: AppLocale;
   kind: string;
@@ -98,6 +100,7 @@ export async function renderUselessTemplatePage(input: {
   });
 
   return renderMarketingHtml({
+    cspNonce: input.cspNonce,
     origin: input.origin,
     tenant_id: input.tenantId,
     tenant_slug: input.tenantSlug,

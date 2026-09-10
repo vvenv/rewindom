@@ -4,6 +4,7 @@ import {
   AuthService,
   type JwtSignPayload,
 } from "@rewindom/server-kernel/kernel/auth/auth.service.js";
+import { REFRESH_TOKEN_TTL_SECONDS } from "@rewindom/server-kernel/kernel/auth/jwt.js";
 import {
   ConflictError,
   UnauthorizedError,
@@ -24,7 +25,7 @@ import type {
 } from "../shared/site-member.js";
 
 /** 与工作台会话保持一致：refresh 7 天，access 15 分钟。 */
-const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const REFRESH_TOKEN_TTL_MS = REFRESH_TOKEN_TTL_SECONDS * 1000;
 export const SITE_MEMBER_ACCESS_TOKEN_TTL_SECONDS = 900;
 
 const MAX_FAILED_ATTEMPTS = 5;

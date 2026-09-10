@@ -55,6 +55,7 @@ jobs:
           environment: ${{ inputs.environment }}
           ssh_host: ${{ secrets.DEPLOY_HOST }}
           ssh_user: ${{ secrets.DEPLOY_SSH_USER }}
+          ssh_key: ${{ secrets.DEPLOY_SSH_KEY }}
           ssh_password: ${{ secrets.DEPLOY_SSH_PASSWORD }}
           require_app_secrets: ${{ inputs.task == 'sync-env' && 'true' || 'false' }}
           db_password: ${{ secrets.DB_PASSWORD }}
@@ -69,6 +70,7 @@ jobs:
           env_only: "true"
           ssh_host: ${{ secrets.DEPLOY_HOST }}
           ssh_user: ${{ secrets.DEPLOY_SSH_USER }}
+          ssh_key: ${{ secrets.DEPLOY_SSH_KEY }}
           ssh_password: ${{ secrets.DEPLOY_SSH_PASSWORD }}
           db_password: ${{ secrets.DB_PASSWORD }}
           jwt_secret: ${{ secrets.JWT_SECRET }}
@@ -90,6 +92,8 @@ jobs:
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_SSH_USER }}
+          # key 留空时 appleboy/ssh-action 会回落到 password，两种都配得通
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
           password: ${{ secrets.DEPLOY_SSH_PASSWORD }}
           command_timeout: 20m
           script: |
@@ -118,9 +122,16 @@ jobs:
                 docker compose -f docker-compose.prod.yml logs --tail="$LINES"
                 ;;
               health-check)
-                PORT="$(grep '^APP_PORT=' .env.production .env.test 2>/dev/null | head -1 | cut -d= -f2)"
-                PORT="${PORT:-3700}"
-                curl -fsS "http://127.0.0.1:${PORT}/health"
+                # 用统一的健康检查脚本：除了探针，还看容器、磁盘和**备份新鲜度**。
+                # 原来只 curl 一下 /health——那只能证明进程还活着。
+                if [ -x /etc/rewindom/scripts/healthcheck.sh ]; then
+                  bash /etc/rewindom/scripts/healthcheck.sh --env "$ENVIRONMENT"
+                else
+                  echo "healthcheck.sh 未同步，退回最小探针（先跑一次 pnpm deploy）"
+                  PORT="$(grep '^APP_PORT=' .env.production .env.test 2>/dev/null | head -1 | cut -d= -f2)"
+                  PORT="${PORT:-3700}"
+                  curl -fsS "http://127.0.0.1:${PORT}/ready"
+                fi
                 ;;
               restart)
                 docker compose -f docker-compose.prod.yml restart
@@ -134,10 +145,14 @@ jobs:
                 docker compose -f docker-compose.prod.yml down
                 ;;
               backup)
-                if [ -f scripts/backup.sh ]; then
+                # 备份脚本装在 /etc/rewindom/scripts（backup-cron.sh install 同步过去的），
+                # 不在部署目录下。之前这里找的是 ./scripts/backup.sh，永远命不中。
+                if [ -f /etc/rewindom/scripts/backup.sh ]; then
+                  bash /etc/rewindom/scripts/backup.sh --env "$ENVIRONMENT"
+                elif [ -f scripts/backup.sh ]; then
                   bash scripts/backup.sh --env "$ENVIRONMENT"
                 else
-                  echo "backup.sh 未找到，请在服务器安装备份脚本"
+                  echo "backup.sh 未找到：请先跑 ./scripts/backup-cron.sh install --env $ENVIRONMENT"
                   exit 1
                 fi
                 ;;

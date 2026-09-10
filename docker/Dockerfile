@@ -99,6 +99,11 @@ FROM nginx:1.27-alpine AS web
 
 # 官方镜像会对 /etc/nginx/templates/*.template 做 envsubst → conf.d/
 COPY docker/nginx/default.conf.template /etc/nginx/templates/default.conf.template
+# 安全响应头片段：被 default.conf 的 server 与各 location include（见文件内注释）
+COPY docker/nginx/security-headers.conf /etc/nginx/security-headers.conf
+# 应用壳层 CSP：client 的 postbuild 按 dist/index.html 的内联脚本算 hash 生成，
+# 所以只能从 builder 阶段取，不能从构建上下文拷
+COPY --from=builder /app/apps/client/csp-app.conf /etc/nginx/csp-app.conf
 # 官方镜像启动前会跑 /docker-entrypoint.d/*.sh；这一支保证 IP 封禁片段一定存在
 COPY docker/nginx/entrypoint.d/20-ip-access-stub.sh /docker-entrypoint.d/20-ip-access-stub.sh
 COPY --from=builder /app/apps/client/dist /usr/share/nginx/html

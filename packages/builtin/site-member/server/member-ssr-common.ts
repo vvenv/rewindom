@@ -15,6 +15,12 @@ import {
 import { translateServerMessage } from "@rewindom/server-kernel/lib/i18n/registry.js";
 import { type AppLocale } from "@rewindom/shared";
 
+import {
+  buildSiteCspPolicy,
+  createCspNonce,
+  siteCspHeaderName,
+} from "../../marketing/server/site-csp.js";
+
 import type { FastifyReply, FastifyRequest } from "fastify";
 
 /** 登录后回哪儿：只认站内相对路径（`//evil.com` 是一个协议相对的**站外**地址）。 */
@@ -36,6 +42,31 @@ export async function ensureHostTenant(request: FastifyRequest): Promise<void> {
   request.hostTenantContext = await resolveHostTenant(
     resolveRequestHostname(request.headers),
   );
+}
+
+/**
+ * 渲染并发送带 CSP 的会员页。与 marketing 的同名函数同构：
+ * nonce 只生成一次，**同时**交给渲染函数和响应头，两边不可能对不上。
+ *
+ * 会员页是登录态，本来就是 `private, no-store`，不存在「nonce 被缓存」的问题；
+ * 统计脚本仍按站点配置算 hash / 来源。
+ */
+export function sendSiteHtml(
+  reply: FastifyReply,
+  status: number,
+  render: (cspNonce: string) => string,
+  options?: { analytics?: unknown },
+): void {
+  const nonce = createCspNonce();
+  const html = render(nonce);
+  const headerName = siteCspHeaderName();
+  if (headerName) {
+    void reply.header(
+      headerName,
+      buildSiteCspPolicy({ nonce, analytics: options?.analytics }),
+    );
+  }
+  sendHtml(reply, status, html);
 }
 
 export function sendHtml(

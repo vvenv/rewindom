@@ -30,6 +30,7 @@ function site(
     ]),
     analytics_html: "",
     analytics_body_html: "",
+        analytics: { scripts: [] },
     pages: [],
   };
 }

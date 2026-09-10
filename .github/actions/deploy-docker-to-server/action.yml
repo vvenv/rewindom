@@ -12,6 +12,10 @@ inputs:
   ssh_user:
     description: SSH username
     required: true
+  ssh_key:
+    description: SSH private key (设了就优先于密码)
+    required: false
+    default: ""
   ssh_password:
     description: SSH password
     required: true
@@ -62,7 +66,32 @@ inputs:
 runs:
   using: composite
   steps:
+    # 密钥优先：deploy-remote.sh 是「先试密钥，失败再用密码」，
+    # 所以把私钥放进 ~/.ssh 就够了，不必改部署脚本本身。
+    # 没配 DEPLOY_SSH_KEY 时这一步整个跳过，行为与从前一致。
+    - name: Set up SSH key
+      if: inputs.ssh_key != ''
+      shell: bash
+      env:
+        SSH_KEY: ${{ inputs.ssh_key }}
+        SSH_HOST: ${{ inputs.ssh_host }}
+      run: |
+        set -euo pipefail
+        mkdir -p ~/.ssh
+        chmod 700 ~/.ssh
+        printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
+        chmod 600 ~/.ssh/id_deploy
+        {
+          printf 'Host %s\n' "$SSH_HOST"
+          printf '  IdentityFile ~/.ssh/id_deploy\n'
+          printf '  IdentitiesOnly yes\n'
+        } >> ~/.ssh/config
+        chmod 600 ~/.ssh/config
+        # 固定主机指纹，避免回落到交互式确认（BatchMode 下那等于直接失败）
+        ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
     - name: Install sshpass
+      if: inputs.ssh_password != ''
       shell: bash
       run: |
         if ! command -v sshpass >/dev/null 2>&1; then

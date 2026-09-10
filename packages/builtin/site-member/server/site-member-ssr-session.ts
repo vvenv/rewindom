@@ -1,3 +1,4 @@
+import { createJwtSigner } from "@rewindom/server-kernel/kernel/auth/jwt.js";
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 import { isSiteMemberActor, type AuthActorType } from "@rewindom/shared";
@@ -82,7 +83,7 @@ async function trySilentRefresh(
   try {
     const tokens = await SiteMemberAuthService.refresh(
       refresh,
-      request.server.jwt.sign.bind(request.server.jwt),
+      createJwtSigner(request.server),
       request.server.jwt.verify.bind(request.server.jwt),
     );
     setMemberAuthCookies(reply, tokens);

@@ -49,6 +49,9 @@ sync_remote_scripts() {
   _run_scp "$ROOT/scripts/backup.sh"  "${DEPLOY_SSH_USER}@${DEPLOY_HOST}:${APP_OPS_DIR}/backup.sh"
   _run_scp "$ROOT/scripts/restore.sh" "${DEPLOY_SSH_USER}@${DEPLOY_HOST}:${APP_OPS_DIR}/restore.sh"
   _run_scp "$ROOT/scripts/lib/log.sh" "${DEPLOY_SSH_USER}@${DEPLOY_HOST}:${APP_OPS_DIR}/lib/log.sh"
+  # backup.sh / restore.sh 都 source 它来判断「数据库在容器里还是宿主机上」；
+  # 漏传这一个文件，服务器上的备份会以 "No such file" 直接失败
+  _run_scp "$ROOT/scripts/lib/stack.sh" "${DEPLOY_SSH_USER}@${DEPLOY_HOST}:${APP_OPS_DIR}/lib/stack.sh"
   _run_ssh "chmod +x '${APP_OPS_DIR}/backup.sh' '${APP_OPS_DIR}/restore.sh'"
 }
 
@@ -84,7 +87,9 @@ cmd_pull() {
 
   if [ "$fresh" = "1" ]; then
     log_info "在远程触发新备份..."
-    _run_ssh "bash '${APP_OPS_DIR}/backup.sh' --env '${env}'"
+    # --skip-data：这条路径是「把库拉到开发机」，附件卷可能有几十 GB，
+    # 拉它既慢又用不上。服务器上的定时备份仍然会完整备份 /data。
+    _run_ssh "bash '${APP_OPS_DIR}/backup.sh' --env '${env}' --skip-data"
   fi
 
   local pg_remote redis_remote pg_local redis_local
@@ -191,7 +196,7 @@ main() {
   case "$subcmd" in
     pull) cmd_pull "$@" ;;
     push) cmd_push "$@" ;;
-    *)    log_die "未知子命令: $subcmd（可用: pull | push）" ;;
+    *)    log_die "未知子命令: ${subcmd}（可用: pull | push）" ;;
   esac
 }
 

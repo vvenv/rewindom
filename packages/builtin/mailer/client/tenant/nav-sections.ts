@@ -1,6 +1,6 @@
+import { APP_NAV_SECTION_ORDER, type AppNavSection } from "@rewindom/client-kit";
 import { Send } from "lucide-react";
 
-import { APP_NAV_SECTION_ORDER, type AppNavSection } from "@rewindom/client-kit";
 
 /** 与系统管理组同 label，collectModuleNav 会合并进同一分组。 */
 export const MAILER_NAV_SECTIONS: AppNavSection[] = [

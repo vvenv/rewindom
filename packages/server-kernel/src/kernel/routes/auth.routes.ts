@@ -27,6 +27,7 @@ import {
   buildGoogleAuthorizeUrl,
   GoogleOAuthService,
 } from "../auth/google-oauth.service.js";
+import { createJwtSigner } from "../auth/jwt.js";
 import {
   buildMicrosoftAuthorizeUrl,
   MicrosoftOAuthService,
@@ -87,7 +88,7 @@ export async function authRoutes(app: FastifyInstance) {
 
       const result = await AuthService.login(
         { username, password },
-        app.jwt.sign.bind(app.jwt),
+        createJwtSigner(app),
         { hostTenant: request.hostTenantContext ?? null },
       );
 
@@ -144,7 +145,7 @@ export async function authRoutes(app: FastifyInstance) {
 
       const tokens = await AuthService.refresh(
         refreshToken,
-        app.jwt.sign.bind(app.jwt),
+        createJwtSigner(app),
         app.jwt.verify.bind(app.jwt),
       );
 
@@ -220,7 +221,7 @@ export async function authRoutes(app: FastifyInstance) {
             password,
             captcha_token,
           },
-          app.jwt.sign.bind(app.jwt),
+          createJwtSigner(app),
           getClientIp(request) ?? undefined,
           request.headers["user-agent"] ?? "",
           { hostTenant: request.hostTenantContext ?? null },
@@ -448,7 +449,7 @@ export async function authRoutes(app: FastifyInstance) {
           state: memberState,
           request,
           reply,
-          jwtSign: app.jwt.sign.bind(app.jwt),
+          jwtSign: createJwtSigner(app),
         });
       }
 
@@ -502,7 +503,7 @@ export async function authRoutes(app: FastifyInstance) {
           code: query.code,
           callbackUrl,
           credentials,
-          jwtSign: app.jwt.sign.bind(app.jwt),
+          jwtSign: createJwtSigner(app),
           registry: app.registry,
           ip: getClientIp(request) ?? undefined,
           userAgent: request.headers["user-agent"] ?? "",

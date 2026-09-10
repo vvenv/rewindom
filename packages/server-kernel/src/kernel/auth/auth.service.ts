@@ -15,6 +15,7 @@ import {
 import { config } from "../../lib/config.js";
 import { prisma } from "../../lib/prisma.js";
 
+import { refreshTokenExpiryDate } from "./jwt.js";
 import {
   buildPlatformAdminUser,
   findPlatformAdminByUsername,
@@ -163,7 +164,7 @@ export class AuthService {
         );
 
         const refreshTokenExpiry = new Date(
-          Date.now() + 7 * 24 * 60 * 60 * 1000,
+          refreshTokenExpiryDate(),
         );
         await prisma.platformAdminRefreshToken.create({
           data: {
@@ -287,7 +288,7 @@ export class AuthService {
       jwtSign,
     );
 
-    const refreshTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const refreshTokenExpiry = refreshTokenExpiryDate();
     await prisma.refreshToken.create({
       data: {
         user_id: user.id,
@@ -360,7 +361,7 @@ export class AuthService {
         data: { revoked: true },
       });
 
-      const refreshTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      const refreshTokenExpiry = refreshTokenExpiryDate();
       await prisma.platformAdminRefreshToken.create({
         data: {
           admin_id: storedToken.admin.id,
@@ -411,7 +412,7 @@ export class AuthService {
       data: { revoked: true },
     });
 
-    const refreshTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const refreshTokenExpiry = refreshTokenExpiryDate();
     await prisma.refreshToken.create({
       data: {
         user_id: storedToken.user.id,
@@ -522,7 +523,7 @@ export class AuthService {
       jwtSign,
     );
 
-    const refreshTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const refreshTokenExpiry = refreshTokenExpiryDate();
     await prisma.refreshToken.create({
       data: {
         user_id: user.id,

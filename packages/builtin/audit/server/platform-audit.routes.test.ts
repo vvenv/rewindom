@@ -1,4 +1,4 @@
-import FastifyJWT from "@fastify/jwt";
+import { registerJwt } from "@rewindom/server-kernel/kernel/auth/jwt.js";
 import { authMiddleware } from "@rewindom/server-kernel/middleware/auth.middleware.js";
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { PLATFORM_ADMIN_USER_ID } from "@rewindom/shared";
@@ -33,7 +33,7 @@ import { registerPlatformAuditRoutes } from "./platform-audit.routes.js";
 
 async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({ logger: false });
-  await app.register(FastifyJWT, { secret: "test-secret" });
+  await registerJwt(app, "test-secret");
   await authMiddleware(app);
   await app.register(
     async (platformApp) => {

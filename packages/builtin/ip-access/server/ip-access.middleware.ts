@@ -14,6 +14,7 @@ import {
   resolveHostTenant,
   resolveRequestHostname,
 } from "@rewindom/server-kernel/lib/host-tenant.js";
+import { isOpsProbePath } from "@rewindom/server-kernel/lib/ops-probe-path.js";
 
 import { matchRules } from "./ip-access.cache.js";
 import { decideIpAccess } from "./ip-access.decision.js";
@@ -31,13 +32,13 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 /**
  * 永不判定的路径。
  *
- * `/health` 必须放行：容器编排靠它判存活，被自己的封禁名单拦下会引发滚动重启。
+ * `/health` 与 `/ready` 必须放行：容器编排靠它们判存活 / 就绪，
+ * 被自己的封禁名单拦下会引发滚动重启。
  * CORS 预检不带凭证也不产生副作用，拦它只会把正常用户的报错变得难以定位。
  */
 function isExemptRequest(request: FastifyRequest): boolean {
   if (request.method === "OPTIONS") return true;
-  const path = request.url.split("?")[0] ?? "";
-  return path === "/health";
+  return isOpsProbePath(request.url);
 }
 
 /**

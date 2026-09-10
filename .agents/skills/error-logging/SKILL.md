@@ -48,5 +48,8 @@ DELETE /api/error-logs/:id                   # 记审计
 
 ## 注意
 
-- 目前**没有自动清理任务**，`ERROR_LOG_RETENTION_DAYS` 未被读取；要补就照抄 `slow-query/server/scheduler-jobs.ts`
+- 目前**有**自动清理任务，按 `ERROR_LOG_RETENTION_DAYS`（默认 30）跑
+- 进程级 `unhandledRejection` / `uncaughtException` 与 Postgres/Redis 状态翻转也会落库
+- `GET /health` 是存活探针（不打依赖）；`GET /ready` 只回答能不能接流量：Postgres 失败才 503，Redis 失败仍 200（降级）
+- 依赖明细只给已登录平台管理员（`GET /api/platform/error-logs/health`，`ok` / `degraded` / `error`）。不要接到登录页。
 - `request_body` 可能含敏感信息，用 `ERROR_LOG_INCLUDE_REQUEST_BODY=false` 关闭采集

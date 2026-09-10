@@ -32,6 +32,7 @@ describe("request-timing.middleware", () => {
     await requestTimingMiddleware(app);
     app.get("/api/notes/:noteId", async () => ({ ok: true }));
     app.get("/health", async () => ({ status: "ok" }));
+    app.get("/ready", async () => ({ status: "ok" }));
     await app.ready();
   });
 
@@ -61,6 +62,11 @@ describe("request-timing.middleware", () => {
 
   it("skips /health", async () => {
     await app.inject({ method: "GET", url: "/health" });
+    expect(recorder).not.toHaveBeenCalled();
+  });
+
+  it("skips /ready", async () => {
+    await app.inject({ method: "GET", url: "/ready" });
     expect(recorder).not.toHaveBeenCalled();
   });
 

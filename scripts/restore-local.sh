@@ -13,9 +13,14 @@
 #   ./scripts/restore-local.sh --latest --no-safety-backup
 #   ./scripts/restore-local.sh --latest --db-name app_test  # 还原到其他本地库
 #
+# 目标库是「应用真正在读的那个库」:
+#   开发库跑在 Docker 里（docker-compose.dev.yml，映射到 5433），而本脚本原先用裸
+#   `psql`——那连的是本机 5432 上的 postgres，跟应用毫无关系。还原会「成功」，
+#   数据却进了一个没人读的库。现在统一走 scripts/lib/stack.sh 探测拓扑：
+#   dev 容器在跑就 docker exec，没有容器才退回本机 psql。
+#
 # 与 restore.sh（服务器版）的区别:
-#   - 不要求 root，以当前 macOS 用户运行（需为 postgres superuser，Homebrew 默认满足）
-#   - 无 sudo -u postgres；systemctl → brew services
+#   - 不要求 root，以当前用户运行
 #   - 备份来源: ./backups/<env>/（db:pull 产物）
 #   - 安全备份目录: ./backups/local-safety/
 #   - 目标库默认 rewindom（--db-name 覆盖），应用用户恒为 rewindom
@@ -23,7 +28,7 @@
 # 行为:
 #   - 默认还原前对本地目标库做安全备份（app_backup_safety_<ts>.dump）
 #   - PG: 终止连接 → DROP/CREATE DATABASE → pg_restore → re-own 给 rewindom
-#   - Redis: brew services stop → 替换 dump.rdb → brew services start
+#   - Redis: 停服（容器或 brew）→ 替换 dump.rdb → 启服
 #   - 破坏性操作前要求交互确认（大写 YES），非交互需 --yes
 
 set -euo pipefail
@@ -32,6 +37,13 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # shellcheck source=lib/log.sh
 source "${SCRIPT_DIR}/lib/log.sh"
+
+# 开发栈的容器名（docker-compose.dev.yml）；没有容器时 stack.sh 自动退回本机命令
+: "${STACK_PG_CONTAINER:=rewindom-dev-postgres}"
+: "${STACK_REDIS_CONTAINER:=rewindom-dev-redis}"
+export STACK_PG_CONTAINER STACK_REDIS_CONTAINER
+# shellcheck source=lib/stack.sh
+source "${SCRIPT_DIR}/lib/stack.sh"
 
 BACKUP_ENV="production"
 DB_NAME="rewindom"
@@ -83,20 +95,32 @@ parse_args() {
   SAFETY_DIR="$ROOT/backups/local-safety"
 }
 
-# 校验本地前置：psql/pg_restore/pg_dump 可用，当前用户是 superuser，rewindom 角色存在
+# 校验前置：能连上目标 postgres、当前角色是 superuser、rewindom 角色存在。
+# 容器模式下 psql / pg_dump / pg_restore 都在容器里，不要求本机装客户端。
 check_prereqs() {
-  command -v psql >/dev/null 2>&1 || log_die "未安装 psql (Homebrew: brew install postgresql@18)"
-  command -v pg_restore >/dev/null 2>&1 || log_die "未安装 pg_restore"
-  command -v pg_dump >/dev/null 2>&1 || log_die "未安装 pg_dump"
+  case "$(stack_pg_mode)" in
+    docker)
+      log_info "开发库拓扑: 容器 ${STACK_PG_CONTAINER}"
+      ;;
+    host)
+      log_warn "未发现开发库容器 ${STACK_PG_CONTAINER}，回退到本机 postgres"
+      log_warn "（应用读的是 DATABASE_URL 指向的库——确认这两者是同一个，否则还原会进错地方）"
+      command -v pg_restore >/dev/null 2>&1 || log_die "未安装 pg_restore"
+      command -v pg_dump >/dev/null 2>&1 || log_die "未安装 pg_dump"
+      ;;
+    *)
+      log_die "既没有开发库容器（先跑 pnpm db:up），本机也没有 psql"
+      ;;
+  esac
 
   local is_super
-  is_super="$(psql -d postgres -tAc "SELECT rolsuper FROM pg_roles WHERE rolname=current_user" 2>/dev/null | tr -d '[:space:]')"
+  is_super="$(stack_psql -d postgres -tAc "SELECT rolsuper FROM pg_roles WHERE rolname=current_user" 2>/dev/null | tr -d '[:space:]')"
   if [ "$is_super" != "t" ]; then
     log_die "当前 postgres 用户无 superuser 权限，无法 DROP/CREATE DATABASE（Homebrew 默认 superuser 为当前 macOS 用户）"
   fi
 
   local has_role
-  has_role="$(psql -d postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" 2>/dev/null | tr -d '[:space:]')"
+  has_role="$(stack_psql -d postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" 2>/dev/null | tr -d '[:space:]')"
   if [ "$has_role" != "1" ]; then
     log_die "postgres 角色 '$DB_USER' 不存在，请先创建（参考 bootstrap-ci.sh 或 psql -c 'CREATE USER $DB_USER'）"
   fi
@@ -187,12 +211,12 @@ pre_restore_safety_backup() {
   local timestamp safety_file tmp_file
   timestamp="$(date +%Y%m%d_%H%M%S)"
   safety_file="$SAFETY_DIR/app_backup_safety_${timestamp}.dump"
-  tmp_file="$(mktemp "${SAFETY_DIR}/.safety_XXXXXX.dump")"
+  tmp_file="${safety_file}.partial"
   trap 'rm -f "$tmp_file"' EXIT
 
-  log_info "生成还原前安全备份（本地 $DB_NAME）..."
+  log_info "生成还原前安全备份（本地 ${DB_NAME}）..."
   # 目标库可能不存在或为空，pg_dump 失败时跳过
-  if ! pg_dump --format=custom --no-owner --no-acl -f "$tmp_file" "$DB_NAME" 2>/dev/null; then
+  if ! stack_pg_dump --format=custom --no-owner --no-acl "$DB_NAME" > "$tmp_file" 2>/dev/null; then
     rm -f "$tmp_file"
     trap - EXIT
     log_warn "安全备份失败（库可能不存在或为空），继续还原"
@@ -211,47 +235,46 @@ restore_pg() {
   log_info "还原 PostgreSQL: $PG_FILE → 本地 $DB_NAME"
 
   # 完整性校验
-  if ! pg_restore -l "$PG_FILE" >/dev/null 2>&1; then
+  if ! stack_pg_restore -l < "$PG_FILE" >/dev/null 2>&1; then
     log_die "备份文件不可读或损坏: $PG_FILE"
   fi
 
   log_info "终止到 $DB_NAME 的现有连接..."
-  psql -d postgres -tAc \
+  stack_psql -d postgres -tAc \
     "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DB_NAME' AND pid <> pg_backend_pid();" \
     >/dev/null 2>&1 || true
 
   # DROP DATABASE WITH (FORCE)（PG13+）；CREATE 后为空库，避免扩展依赖冲突
   # CREATE 时直接 OWNER 给 DB_USER，省去后续 ALTER DATABASE
   log_info "重建本地数据库 $DB_NAME..."
-  psql -d postgres -v ON_ERROR_STOP=1 -c "DROP DATABASE IF EXISTS \"$DB_NAME\" WITH (FORCE);"
-  psql -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE \"$DB_NAME\" OWNER \"$DB_USER\";"
+  stack_psql -d postgres -v ON_ERROR_STOP=1 -c "DROP DATABASE IF EXISTS \"$DB_NAME\" WITH (FORCE);"
+  stack_psql -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE \"$DB_NAME\" OWNER \"$DB_USER\";"
 
   log_info "pg_restore 载入..."
-  if ! pg_restore \
+  if ! stack_pg_restore \
       --no-owner \
       --no-acl \
       --exit-on-error \
-      --dbname="$DB_NAME" \
-      "$PG_FILE"; then
+      --dbname="$DB_NAME" < "$PG_FILE"; then
     log_die "pg_restore 失败（安全备份见 $SAFETY_DIR/app_backup_safety_*.dump）"
   fi
 
-  log_info "把对象所有权归还给 $DB_USER（Prisma migration 需要）..."
+  log_info "把对象所有权归还给 ${DB_USER}（Prisma migration 需要）..."
   # schema 归属 + 默认权限（连到目标库执行）
-  psql -d "$DB_NAME" -v ON_ERROR_STOP=1 \
+  stack_psql -d "$DB_NAME" -v ON_ERROR_STOP=1 \
     -c "ALTER SCHEMA public OWNER TO \"$DB_USER\";" \
     -c "GRANT ALL ON SCHEMA public TO \"$DB_USER\";" \
     -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO \"$DB_USER\";" \
     -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO \"$DB_USER\";"
   # 把 public 下已还原的表/视图/序列 re-own 给应用用户
   # （生成 ALTER 语句再执行；不在 DO block 内用 psql 变量——psql 不在 dollar-quote 内做变量替换）
-  psql -d "$DB_NAME" -tAc \
+  stack_psql -d "$DB_NAME" -tAc \
     "SELECT 'ALTER ' || CASE WHEN relkind='S' THEN 'SEQUENCE' ELSE 'TABLE' END \
        || ' public.' || quote_ident(relname) \
        || ' OWNER TO ' || quote_ident('$DB_USER') || ';' \
      FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace \
      WHERE n.nspname='public' AND relkind IN ('r','p','v','m','f','S');" \
-    | psql -d "$DB_NAME"
+    | stack_psql -d "$DB_NAME"
 
   log_success "PostgreSQL 还原完成"
 }
@@ -263,37 +286,38 @@ restore_redis() {
   [ -f "$REDIS_FILE" ] || log_die "Redis 备份文件不存在: $REDIS_FILE"
   log_info "还原 Redis: $REDIS_FILE"
 
-  command -v redis-cli >/dev/null 2>&1 || log_die "未安装 redis-cli"
-  command -v brew >/dev/null 2>&1 || log_die "未安装 Homebrew（本脚本用 brew services 管理 Redis）"
-
-  # 停服前先取 dir / dbfilename
-  local redis_dir redis_dbfile redis_rdb
-  redis_dir="$(redis-cli CONFIG GET dir 2>/dev/null | tail -1 | tr -d '[:space:]')"
-  redis_dbfile="$(redis-cli CONFIG GET dbfilename 2>/dev/null | tail -1 | tr -d '[:space:]')"
-  redis_rdb="${redis_dir}/${redis_dbfile}"
-  if [ -z "$redis_dir" ] || [ -z "$redis_dbfile" ]; then
-    log_die "无法获取 Redis dir/dbfilename 配置"
+  # 与 PG 同理：开发 Redis 也在容器里，`brew services stop redis` 停的是另一个进程
+  if [ "$(stack_redis_mode)" = "none" ]; then
+    log_die "既没有 ${STACK_REDIS_CONTAINER} 容器（先跑 pnpm db:up），本机也没有 redis-cli"
   fi
 
-  log_info "停止 Redis (brew services stop redis)..."
-  brew services stop redis >/dev/null 2>&1 || true
+  # 路径要在停服之前问
+  local rdb tmp
+  rdb="$(stack_redis_rdb_path)" || log_die "无法获取 Redis dir/dbfilename 配置"
 
-  gunzip -c "$REDIS_FILE" > "$redis_rdb"
-  # macOS 当前用户即 redis 进程用户，无需 chown
-  chmod 640 "$redis_rdb" 2>/dev/null || true
+  log_info "停止 Redis..."
+  stack_redis_stop
 
-  log_info "启动 Redis (brew services start redis)..."
-  if ! brew services start redis >/dev/null 2>&1; then
-    log_die "brew services start redis 失败"
-  fi
+  tmp="$(mktemp)"
+  # shellcheck disable=SC2064
+  trap "rm -f '$tmp'" EXIT
+  gunzip -c "$REDIS_FILE" > "$tmp"
+  stack_redis_write_rdb "$tmp" "$rdb" || log_die "写入 RDB 失败: $rdb"
+  rm -f "$tmp"
+  trap - EXIT
+
+  log_info "启动 Redis..."
+  stack_redis_start
   sleep 1
-  if ! redis-cli PING >/dev/null 2>&1; then
-    log_die "Redis 启动后 PING 失败，请检查 brew services info redis"
+  if ! stack_redis_cli PING >/dev/null 2>&1; then
+    log_die "Redis 启动后 PING 失败"
   fi
   log_success "Redis 还原完成"
 }
 
 main() {
+  # 先固化拓扑：还原 Redis 会 docker stop，中途重新探测会把模式翻成 host
+  stack_init
   parse_args "$@"
   check_prereqs
 
@@ -314,7 +338,7 @@ main() {
     log_die "未指定要还原的内容：使用 --file/--latest 还原 PG，或 --redis-file/--only-redis 还原 Redis"
   fi
 
-  log_info "本地还原 | 备份目录: $BACKUP_DIR | 目标库: $DB_NAME | 应用用户: $DB_USER"
+  log_info "本地还原 | 备份目录: $BACKUP_DIR | 目标库: $DB_NAME | 应用用户: $DB_USER | 拓扑: $(stack_pg_mode)"
   [ -n "$PG_FILE" ] && log_info "PG 备份: $PG_FILE"
   [ -n "$REDIS_FILE" ] && log_info "Redis 备份: $REDIS_FILE"
 

@@ -12,6 +12,16 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=lib/log.sh
 source "${SCRIPT_DIR}/lib/log.sh"
 
+# 数据库可能跑在容器里（开发是 rewindom-dev-postgres，服务器是 rewindom-postgres）。
+# 服务器上 DATABASE_URL 里的主机名 `postgres` 只在 docker 网络内可解析，宿主机上
+# 连不通；旧的兜底 `sudo -u postgres psql` 更是找不到服务端——两条路都是断的。
+if [ -z "${STACK_PG_CONTAINER:-}" ] \
+  && [ "$(docker inspect -f '{{.State.Running}}' rewindom-dev-postgres 2>/dev/null)" = "true" ]; then
+    STACK_PG_CONTAINER=rewindom-dev-postgres
+    export STACK_PG_CONTAINER
+fi
+# shellcheck source=lib/stack.sh
+source "${SCRIPT_DIR}/lib/stack.sh"
 
 # 解析命令行参数
 parse_args() {
@@ -73,24 +83,46 @@ load_env() {
     fi
 }
 
-# psql 包装器：优先使用 DATABASE_URL，否则回退到生产环境的 sudo -u postgres
-psql_exec() {
-    if [ -n "$DATABASE_URL" ]; then
-        psql "$DATABASE_URL" "$@"
-    else
-        # 生产环境（Linux）：需要 root 权限通过 postgres 用户连接
-        if [ "$EUID" -ne 0 ]; then
-            log_error "未检测到 DATABASE_URL，需要使用 root 用户运行此脚本"
-            exit 1
-        fi
-        # 根据环境确定数据库名称
-        if [ "$ENVIRONMENT" = "test" ]; then
-            DB_NAME="app_test"
-        else
-            DB_NAME="rewindom"
-        fi
-        sudo -u postgres psql -d $DB_NAME "$@"
+# 连接方式只解析一次（每次调用都探测一遍太浪费）。
+# 顺序：DATABASE_URL 能真连上 → 容器 → 宿主机 postgres。
+# DATABASE_URL 排第一是因为它是应用的真相源；先探一次「真的连得上」再用它，
+# 否则服务器上那个只在 docker 网络内可解析的主机名会让整条路径卡死。
+PSQL_MODE=""
+
+resolve_psql_mode() {
+    if [ -n "$PSQL_MODE" ]; then
+        return
     fi
+    stack_init
+    if [ -n "${DATABASE_URL:-}" ] && command -v psql >/dev/null 2>&1 \
+        && psql "$DATABASE_URL" -tAc 'SELECT 1' >/dev/null 2>&1; then
+        PSQL_MODE="url"
+    elif [ "$(stack_pg_mode)" = "docker" ]; then
+        PSQL_MODE="container"
+        log_info "DATABASE_URL 不可直连，改走容器 ${STACK_PG_CONTAINER}"
+    elif [ "${EUID:-$(id -u)}" -eq 0 ]; then
+        PSQL_MODE="host"
+    else
+        log_error "连不上数据库：DATABASE_URL 不通，也没有可用的 postgres 容器"
+        log_error "（开发机先跑 pnpm db:up；服务器确认 ${STACK_PG_CONTAINER} 在运行）"
+        exit 1
+    fi
+}
+
+psql_exec() {
+    resolve_psql_mode
+    case "$PSQL_MODE" in
+        url)       psql "$DATABASE_URL" "$@" ;;
+        container) stack_psql -d "$(stack_pg_db_name "rewindom")" "$@" ;;
+        host)
+            if [ "$ENVIRONMENT" = "test" ]; then
+                DB_NAME="app_test"
+            else
+                DB_NAME="rewindom"
+            fi
+            sudo -u postgres psql -d "$DB_NAME" "$@"
+            ;;
+    esac
 }
 
 # 生成 bcrypt 哈希（使用 node）

@@ -29,6 +29,14 @@ docker_remote_dir_for_env() {
   esac
 }
 
+# 容器名前缀：与部署目录一样按环境分开，否则两套栈会抢同一个 container_name
+docker_container_prefix_for_env() {
+  case "${1:-production}" in
+    test) echo "rewindom-test" ;;
+    *) echo "rewindom" ;;
+  esac
+}
+
 docker_remote_env_basename_for_env() {
   case "${1:-production}" in
     test) echo ".env.test" ;;
@@ -282,6 +290,7 @@ docker_write_remote_env_file() {
     printf 'APP_DOMAIN=%s\n' "$domain"
     printf 'APP_PORT=%s\n' "$port"
     printf 'DB_PASSWORD=%s\n' "$DB_PASSWORD"
+    printf 'CONTAINER_PREFIX=%s\n' "$(docker_container_prefix_for_env "$environment")"
   } >>"$output"
   chmod 600 "$output"
 }
@@ -290,6 +299,7 @@ docker_remote_compose_up() {
   local remote_dir="$1"
   local env_file="$2"
   local pull_base="${3:-0}"
+  local container_prefix="${4:-rewindom}"
   local build_cmd="docker compose -f docker-compose.prod.yml --env-file '${env_file}' build"
   if [ "$pull_base" = "1" ]; then
     build_cmd="${build_cmd} --pull"
@@ -315,6 +325,15 @@ cat > \"\$job\" <<'JOB'
 #!/bin/bash
 set +e
 cd '${remote_dir}'
+# 构建前把当前跑着的镜像另打一个 :rollback 标签。
+# 部署是「服务器上从源码 build」，没有镜像仓库——回滚本来意味着重新构建上一个
+# commit，十几分钟起。留一份上一版镜像，回滚就变成改标签 + up -d（秒级）。
+# 整段用 || true 兜住：它只是保险，绝不能反过来把部署搞挂。
+for c in ${container_prefix}-app ${container_prefix}-web; do
+  img=\$(docker inspect -f '{{.Config.Image}}' \"\$c\" 2>/dev/null) || continue
+  [ -n \"\$img\" ] || continue
+  docker tag \"\$img\" \"\${img%:*}:rollback\" 2>/dev/null || true
+done
 ${build_cmd}
 b=\$?
 if [ \"\$b\" -eq 0 ]; then
@@ -367,18 +386,35 @@ APP_OPS_DIR="/etc/rewindom/scripts"
 # 把 Docker 清理脚本同步到服务器并安装每天 04:15 的 cron（幂等）。
 # 失败不阻断部署：清理是磁盘卫生，构建/启动才是主路径。
 docker_ensure_prune_cron() {
-  log_info "同步 Docker 清理脚本并确保定时任务..."
+  log_info "同步运维脚本并确保定时任务..."
   if ! _run_ssh "mkdir -p '${APP_OPS_DIR}/lib'"; then
     log_warn "无法创建 ${APP_OPS_DIR}，跳过 Docker 清理定时任务"
     return 0
   fi
-  if ! _run_scp "$ROOT/scripts/docker-prune.sh" "${DEPLOY_SSH_USER}@${DEPLOY_HOST}:${APP_OPS_DIR}/docker-prune.sh" \
-    || ! _run_scp "$ROOT/scripts/docker-prune-cron.sh" "${DEPLOY_SSH_USER}@${DEPLOY_HOST}:${APP_OPS_DIR}/docker-prune-cron.sh" \
-    || ! _run_scp "$ROOT/scripts/lib/log.sh" "${DEPLOY_SSH_USER}@${DEPLOY_HOST}:${APP_OPS_DIR}/lib/log.sh"; then
-    log_warn "同步 Docker 清理脚本失败，跳过定时任务"
+  # 运维脚本整组同步，而不只是清理那两个。
+  # backup.sh / restore.sh / healthcheck.sh 从前只有手工跑 backup-cron.sh install
+  # 或 db-remote.sh 时才会上服务器——于是服务器上跑的常常是几个月前的版本，
+  # 而 Ops workflow 的 backup / health-check 任务找的正是这个目录。
+  local ops_script failed=0
+  for ops_script in docker-prune.sh docker-prune-cron.sh backup.sh restore.sh healthcheck.sh; do
+    if ! _run_scp "$ROOT/scripts/${ops_script}" \
+      "${DEPLOY_SSH_USER}@${DEPLOY_HOST}:${APP_OPS_DIR}/${ops_script}"; then
+      failed=1
+      break
+    fi
+  done
+  for ops_script in log.sh stack.sh; do
+    if ! _run_scp "$ROOT/scripts/lib/${ops_script}" \
+      "${DEPLOY_SSH_USER}@${DEPLOY_HOST}:${APP_OPS_DIR}/lib/${ops_script}"; then
+      failed=1
+      break
+    fi
+  done
+  if [ "$failed" -ne 0 ]; then
+    log_warn "同步运维脚本失败，跳过定时任务"
     return 0
   fi
-  if ! _run_ssh "chmod +x '${APP_OPS_DIR}/docker-prune.sh' '${APP_OPS_DIR}/docker-prune-cron.sh' && bash '${APP_OPS_DIR}/docker-prune-cron.sh' install"; then
+  if ! _run_ssh "chmod +x '${APP_OPS_DIR}'/*.sh && bash '${APP_OPS_DIR}/docker-prune-cron.sh' install"; then
     log_warn "安装 Docker 清理定时任务失败"
   fi
 }
@@ -474,7 +510,8 @@ rm -f docker-compose.prod.yml .dockerignore package.json pnpm-lock.yaml pnpm-wor
 tar -xzf rewindom-docker-src.tar.gz
 rm -f rewindom-docker-src.tar.gz
 "
-    docker_remote_compose_up "$remote_dir" "$remote_env_file" "$pull_base"
+    docker_remote_compose_up "$remote_dir" "$remote_env_file" "$pull_base" \
+      "$(docker_container_prefix_for_env "$environment")"
   else
     log_info "重启 Docker 栈以应用环境变量..."
     _run_ssh "set -euo pipefail

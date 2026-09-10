@@ -13,11 +13,11 @@ import { AlertTriangle, ShieldBan } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
-import { collectIpAccessAlerts } from "../lib/ip-access-status.js";
 import {
   useExportEdgeBlocklist,
   useIpAccessStatus,
 } from "../hooks/useIpRules.js";
+import { collectIpAccessAlerts } from "../lib/ip-access-status.js";
 
 import { TrafficSourcesSection } from "./TrafficSourcesPanel.js";
 

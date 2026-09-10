@@ -1,4 +1,4 @@
-import FastifyJWT from "@fastify/jwt";
+import { registerJwt } from "@rewindom/server-kernel/kernel/auth/jwt.js";
 import { authMiddleware } from "@rewindom/server-kernel/middleware/auth.middleware.js";
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { PLATFORM_ADMIN_USER_ID } from "@rewindom/shared";
@@ -11,6 +11,10 @@ vi.mock("./error.service.js", () => ({
     getErrorLogsCount: vi.fn().mockResolvedValue(0),
     getErrorStats: vi.fn().mockResolvedValue({}),
   },
+}));
+
+vi.mock("@rewindom/server-kernel/lib/dependency-health.js", () => ({
+  checkDependencies: vi.fn(),
 }));
 
 vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
@@ -29,12 +33,14 @@ vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   },
 }));
 
+import { checkDependencies } from "@rewindom/server-kernel/lib/dependency-health.js";
+
 import { ErrorService } from "./error.service.js";
 import { registerPlatformErrorLogRoutes } from "./platform-error-log.routes.js";
 
 async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({ logger: false });
-  await app.register(FastifyJWT, { secret: "test-secret" });
+  await registerJwt(app, "test-secret");
   await authMiddleware(app);
   await app.register(
     async (platformApp) => {
@@ -109,5 +115,40 @@ describe("platform error-log routes", () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.json().data.total).toBe(42);
+  });
+
+  it("GET /error-logs/health 返回依赖探测结果", async () => {
+    vi.mocked(checkDependencies).mockResolvedValueOnce({
+      status: "degraded",
+      ready: true,
+      checked_at: "2026-09-09T00:00:00.000Z",
+      checks: [
+        {
+          name: "postgres",
+          status: "ok",
+          required: true,
+          latency_ms: 2,
+        },
+        {
+          name: "redis",
+          status: "error",
+          required: false,
+          latency_ms: 30,
+          error: "timeout",
+        },
+      ],
+    });
+
+    const app = await buildApp();
+    const response = await app.inject({
+      method: "GET",
+      url: "/api/platform/error-logs/health",
+      headers: { authorization: `Bearer ${platformToken(app)}` },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json().data.status).toBe("degraded");
+    expect(response.json().data.ready).toBe(true);
+    expect(response.json().data.checks).toHaveLength(2);
   });
 });

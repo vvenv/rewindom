@@ -1,6 +1,9 @@
 name: Test
 
 on:
+  push:
+    branches: [main]
+  pull_request:
   schedule:
     - cron: "0 1 * * *" # 每天 09:00 (UTC+8)
   workflow_dispatch:
@@ -17,21 +20,17 @@ env:
   PNPM_VERSION: "11.22.0"
 
 jobs:
-  test:
-    name: ${{ matrix.package }}
+  # 合并门禁。
+  #
+  # 这里跑的是**全仓**，不是挑几个包：测试的主体在 packages/builtin（2000+ 用例）、
+  # modules/events、server-kernel 里，而旧的 server/client/shared 三包矩阵只覆盖到
+  # 两百多个用例——96% 的测试从来没进过 CI，等于没有门禁。
+  #
+  # 全套用例不连数据库（prisma 在测试里是 mock 的），所以不需要 service 容器。
+  check:
+    name: lint + typecheck + test
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - package: server
-            filter: server
-          - package: client
-            filter: client
-          - package: shared
-            filter: shared
+    timeout-minutes: 30
 
     steps:
       - name: Checkout code
@@ -46,93 +45,32 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run tests with coverage
-        run: pnpm --filter ${{ matrix.filter }} test:coverage
+      - name: Lint
+        run: pnpm lint
 
-      - name: Upload coverage
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ matrix.package }}-coverage
-          path: ${{ matrix.package == 'shared' && 'packages/shared/coverage/lcov.info' || format('apps/{0}/coverage/lcov.info', matrix.package) }}
-          retention-days: 1
+      - name: Typecheck
+        run: pnpm typecheck
 
-  upload-coverage:
-    name: Upload coverage
-    needs: test
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
+      - name: Test
+        run: pnpm test
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Download server coverage
-        uses: actions/download-artifact@v8
-        with:
-          name: server-coverage
-          path: apps/server/coverage
-
-      - name: Download client coverage
-        uses: actions/download-artifact@v8
-        with:
-          name: client-coverage
-          path: apps/client/coverage
-
-      - name: Download shared coverage
-        uses: actions/download-artifact@v8
-        with:
-          name: shared-coverage
-          path: packages/shared/coverage
-
-      - name: Verify and rewrite coverage paths
+      # scripts/ 下的 python 测试（acme-helper、ip-access-report）此前从未进过 CI。
+      # 它们守的是宿主机侧的运维脚本，坏掉时的表现是「证书签不下来」「报告是空的」，
+      # 都属于出事当天才会发现的那一类。
+      - name: Test ops scripts (python)
         run: |
-          declare -A coverage_roots=(
-            [server]="apps/server"
-            [client]="apps/client"
-            [shared]="packages/shared"
-          )
-          for package in server client shared; do
-            root="${coverage_roots[$package]}"
-            file="${root}/coverage/lcov.info"
-            if [ ! -s "$file" ]; then
-              echo "::error::Missing or empty coverage report: $file"
-              exit 1
-            fi
-            sed -i "s|^SF:src/|SF:${root}/src/|" "$file"
+          set -euo pipefail
+          for f in scripts/*.test.py; do
+            echo "--- $f"
+            python3 "$f"
           done
 
-      - name: Upload server coverage
-        uses: codecov/codecov-action@v7
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: apps/server/coverage/lcov.info
-          disable_search: true
-          flags: server
-          name: server-coverage
-          fail_ci_if_error: true
-
-      - name: Upload client coverage
-        uses: codecov/codecov-action@v7
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: apps/client/coverage/lcov.info
-          disable_search: true
-          flags: client
-          name: client-coverage
-          fail_ci_if_error: true
-
-      - name: Upload shared coverage
-        uses: codecov/codecov-action@v7
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: packages/shared/coverage/lcov.info
-          disable_search: true
-          flags: shared
-          name: shared-coverage
-          fail_ci_if_error: true
-
-  # 内核 + 基础设施模块的隔离 smoke test：守护「不启用业务模块也能跑通」，
-  # 即 kernel / infra 未偷偷依赖 module-rewindom。rewindom 上游仓有自己的 CI。
+  # 内核 + 基础设施模块的隔离 smoke：守护「不启用业务模块也能跑通」，
+  # 即 kernel / infra 未偷偷依赖某个业务域。
+  #
+  # 旧版本指向 `packages/modules/notes/server` 和 `packages/modules/rbac/server`——
+  # 两个路径都不存在（实际在 modules/note 与 packages/builtin/rbac），
+  # 于是这个 job 每次必挂，整个 Test workflow 也因此被关掉了半年。
   kernel-infra-smoke:
     name: kernel + infra smoke
     runs-on: ubuntu-latest
@@ -154,9 +92,71 @@ jobs:
       - name: Generate Prisma client
         run: pnpm --filter server exec prisma generate
 
-      - name: Run kernel + infra smoke tests
+      - name: Kernel
+        run: pnpm --filter @rewindom/server-kernel exec vitest --run
+
+      - name: Infra module (rbac)
+        run: pnpm --filter @rewindom/builtin exec vitest --run rbac/server
+
+      - name: Business module in isolation (note)
+        run: pnpm --filter @rewindom/note exec vitest --run
+
+  coverage:
+    name: Coverage
+    # 覆盖率只在 main 与每日定时上报：PR 上跑一遍全量测试已经是门禁，
+    # 再传一次 coverage 只是多花几分钟。
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: server
+            filter: server
+            root: apps/server
+          - package: client
+            filter: client
+            root: apps/client
+          - package: shared
+            filter: "@rewindom/shared"
+            root: packages/shared
+          - package: server-kernel
+            filter: "@rewindom/server-kernel"
+            root: packages/server-kernel
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          pnpm-version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests with coverage
+        run: pnpm --filter ${{ matrix.filter }} test:coverage
+
+      - name: Rewrite coverage paths
         run: |
-          pnpm --filter server exec vitest --run \
-            ../../packages/server-kernel/src \
-            ../../packages/modules/notes/server \
-            ../../packages/modules/rbac/server
+          file="${{ matrix.root }}/coverage/lcov.info"
+          if [ ! -s "$file" ]; then
+            echo "::error::Missing or empty coverage report: $file"
+            exit 1
+          fi
+          sed -i "s|^SF:src/|SF:${{ matrix.root }}/src/|" "$file"
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ${{ matrix.root }}/coverage/lcov.info
+          disable_search: true
+          flags: ${{ matrix.package }}
+          name: ${{ matrix.package }}-coverage
+          fail_ci_if_error: true

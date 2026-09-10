@@ -170,9 +170,30 @@ try {
 | `ERROR_LOG_INCLUDE_REQUEST_BODY` | `true` | 是否采集 `request_body` |
 | `ERROR_LOG_INCLUDE_REQUEST_PARAMS` | `true` | 是否采集 `request_params` |
 | `ERROR_LOG_INCLUDE_REQUEST_QUERY` | `true` | 是否采集 `request_query` |
-| `ERROR_LOG_RETENTION_DAYS` | `30` | 见下方「数据清理」——目前只被配置测试读取 |
+| `ERROR_LOG_RETENTION_DAYS` | `30` | 自动清理保留天数（每 30 分钟 + 每天 08:30） |
 
 请求体可能含密码、令牌等敏感信息。生产环境按需关闭 `ERROR_LOG_INCLUDE_REQUEST_BODY`，或在写入前自行脱敏。
+
+HTTP error-handler **看不到**事件循环上的未处理异常。`error-log` 在 `registerJobs` 里挂：
+
+- `unhandledRejection` / `uncaughtException` → `ErrorLog`（`route` 为 `process:…`）
+- 每 30 秒探测 Postgres / Redis，只在状态翻转时落库（`service:postgres` / `service:redis`）
+- 订阅内核 `JobRegistry`，定时任务失败落 `job:<任务 id>`（`JobFailed` / `JobRecovered`），
+  同指纹 60 秒内只留一条。任务的实时运行态在 `background-job` 的 `/platform` 区块，
+  只存在于进程内存；这张表是它唯一能翻旧账的地方
+
+### 探针语义（K8s / Amazon：存活浅、就绪只回答能不能接流量）
+
+| 探针 | 问什么 | 失败时 | 打依赖？ |
+| --- | --- | --- | --- |
+| `GET /health` | 进程还活着吗 | Docker 重启容器 | **否**。依赖挂了重启解决不了 |
+| `GET /ready` | 这个实例能不能接 HTTP | 编排摘掉流量（503）。body 只有 `{ status: "ok" \| "error" }` | 只把 **Postgres** 当硬依赖。Redis 是缓存/队列，失败仍 200（降级，避免共享缓存闪断把全部实例同时摘光） |
+
+已登录平台管理员看 `GET /api/platform/error-logs/health`：`status` 为 `ok` / `degraded` / `error`，并带 `ready`、每项 `required`、时延、错误原文。游客 / 登录页不展示这些。GET 探针无副作用；翻转落库只走 30s 任务。结果缓存 2s，避免探针与控制台轮询同时打库。
+
+Postgres 完全不可用时登录会失败（鉴权要查库），控制台也打不开。这是门禁。Redis 挂了仍可登录，首页显示降级。
+
+Docker 存活检查继续用 `/health`，不要改成 `/ready`。
 
 ## API
 
@@ -187,6 +208,8 @@ try {
 | DELETE | `/:id` | 登录 | 删除单条；非系统管理员只能删自己的 |
 
 三个 DELETE 都记审计日志（`ERROR_LOG_CLEANUP` / `ERROR_LOG_DELETE`）。
+
+平台：`GET /api/platform/error-logs`、`/stats` 以及 `GET /api/platform/error-logs/health`（Postgres / Redis 实时探测，始终 HTTP 200，`status` 在 body）。
 
 ### 列表
 
@@ -282,24 +305,23 @@ DELETE /api/error-logs/cleanup/my?days=30
 
 | 文件 | 职责 |
 | --- | --- |
-| `pages/error-logs.tsx` | 页面外壳 |
+| `pages/error-logs.tsx` | 平台列表外壳 |
 | `components/ErrorLogsTable.tsx` | 列表 |
 | `components/ErrorLogFilters.tsx` | 筛选，URL 参数同步 |
 | `components/ErrorLogSheet.tsx` | 详情抽屉；四个 jsonb 字段由内部 `JsonField` 统一渲染，值为 `null` 时整块不显示 |
+| `components/ErrorLogMonitorSection.tsx` | 平台 `/platform` 监控区块：依赖健康 + 错误 KPI / 图 |
 
 URL 查询参数与 API 同名、一律 snake_case：`user_id`、`start_date`、`page_size`。
 
 ## 数据清理
 
-**目前没有自动清理任务。** `ERROR_LOG_RETENTION_DAYS` 已在配置里定义，但除配置测试外无人读取——清理只能靠 `DELETE /api/error-logs/cleanup` 手动触发。
-
-对照组：`slow-query` 模块有 `scheduler-jobs.ts`，每 30 分钟按 `SLOW_QUERY_RETENTION_DAYS` 自动清理。error-log 要补自动清理的话，照抄那个文件即可。
+`registerJobs` 注册 `error-log-cleanup`：每 30 分钟以及每天 08:30 按 `ERROR_LOG_RETENTION_DAYS`（默认 30）调用 `ErrorService.cleanupOldLogs`。手动 `DELETE /api/error-logs/cleanup` 仍然可用。
 
 ## 表增长与后续演进
 
 `ErrorLog` 是持续增长的日志表。按优先级：
 
-1. 先补自动清理（见上）——保留窗口是最便宜的手段
+1. 自动清理（已有）——保留窗口是最便宜的手段
 2. 再考虑按 `created_at` 声明式分区 + BRIN 索引
 3. 再考虑拆到独立 Postgres 实例
 4. 聚合分析成为主要场景后才考虑列存（ClickHouse 一类），而不是换文档数据库

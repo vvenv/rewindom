@@ -17,6 +17,14 @@
 import type { AppLocale } from "@rewindom/shared";
 
 export interface SitePathHandlerInput {
+  /**
+   * 本次响应的 CSP nonce。渲染站点页面（`renderMarketingHtml`）的 handler 必须
+   * 原样传下去，否则页面自己的内联脚本会被自己的策略拦掉。
+   *
+   * 由 SSR 统一生成并同时写进响应头，handler 只管转发——两边因此不可能对不上。
+   * 不渲染 HTML 的 handler（feed、og 图）用不到它。
+   */
+  cspNonce?: string;
   tenantId: string;
   tenantSlug: string;
   origin: string;

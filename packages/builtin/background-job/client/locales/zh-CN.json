@@ -45,5 +45,38 @@
       "error": "失败",
       "cancelled": "已取消"
     }
+  },
+  "scheduledJobs": {
+    "title": "定时任务",
+    "description": "各模块注册的周期任务。运行态只存在于当前进程，重启即清零；要翻旧账去错误日志看 job: 开头的记录。",
+    "total": "任务总数",
+    "failing": "失败中",
+    "failingHint": "上一轮失败且尚未恢复",
+    "since": "统计自 {{time}}",
+    "empty": "当前进程没有注册周期任务",
+    "neverRan": "尚未运行",
+    "loadFailed": "加载定时任务失败：{{message}}",
+    "streak": "已连续失败 {{count}} 轮",
+    "skipped": "上一轮未跑完被跳过 {{count}} 次",
+    "column": {
+      "job": "任务",
+      "schedule": "节奏",
+      "lastRun": "上次运行",
+      "duration": "耗时",
+      "status": "状态"
+    },
+    "status": {
+      "ok": "正常",
+      "recovering": "重试中",
+      "failing": "失败",
+      "idle": "待运行"
+    },
+    "schedule": {
+      "everySeconds": "每 {{count}} 秒",
+      "everyMinutes": "每 {{count}} 分钟",
+      "everyHours": "每 {{count}} 小时",
+      "daily": "每天 {{time}}",
+      "separator": "，"
+    }
   }
 }

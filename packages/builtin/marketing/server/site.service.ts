@@ -46,6 +46,7 @@ import {
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
 import {
   normalizeSiteAnalytics,
+  type SiteAnalytics,
   renderSiteAnalyticsBodyHtml,
   renderSiteAnalyticsHtml,
 } from "../shared/site-analytics.js";
@@ -1439,6 +1440,23 @@ export async function resolveVisitorPageLocale(
  * 贡献路径没有英文 MarketingPage 也能渲染，页头导航仍该是英文。CMS 正文缺译文
  * 的回落留在 `getPublishedPublicPage` 的 `effectiveLocale`。
  */
+/**
+ * 只取本租户的统计配置，供 CSP 计算用。
+ *
+ * 不复用 `getPublishedPublicSite`：那会把整站 chrome、页面目录一起读出来，
+ * 而这里只需要一列。贡献 handler（店面 / 文档 / 事件）那条路径每个请求都要算
+ * 一次策略，多读一整个站点对象不值得。
+ */
+export async function getSiteAnalyticsConfig(
+  tenantId: string,
+): Promise<SiteAnalytics> {
+  const site = await prisma.marketingSite.findFirst({
+    where: withTenantScope(tenantId, {}),
+    select: { analytics: true },
+  });
+  return normalizeSiteAnalytics(site?.analytics);
+}
+
 export async function getPublishedPublicSite(
   tenant_id: string,
   tenant_slug: string,
@@ -1501,6 +1519,7 @@ export async function getSiteChromeOrFallback(
     // 会员登录这类页面同样是公开面，访客的一次访问不该因为官网没发布就不算数
     analytics_html: renderSiteAnalyticsHtml(site?.analytics),
     analytics_body_html: renderSiteAnalyticsBodyHtml(site?.analytics),
+    analytics: normalizeSiteAnalytics(site?.analytics),
     default_locale: defaultLocale,
     locale: effective,
     available_locales: [defaultLocale],
