@@ -185,14 +185,47 @@ setup_ssh_key() {
         || log_die "ssh-copy-id 失败"
     fi
 
-    # 装完必须验证：装上了但登不进去（权限、SELinux、AuthorizedKeysFile 配置）
-    # 是常见情形，不验证就上传等于把一把打不开门的钥匙交给 CI。
-    ssh -i "$key" -o BatchMode=yes -o ConnectTimeout=8 "${user}@${host}" true 2>/dev/null \
-      || log_die "公钥装上了但密钥登录仍然不通，先手工排查再上传"
+    # 装完必须验证：装上了但登不进去是常见情形，不验证就上传等于把一把
+    # 打不开门的钥匙交给 CI，而你要到下次部署失败才发现。
+    if ! ssh -i "$key" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=8 \
+        "${user}@${host}" true 2>/dev/null; then
+      diagnose_key_auth "$key" "$user" "$host"
+    fi
     log_success "密钥登录已验证可用"
   fi
 
   SSH_KEY_FILE="$key"
+}
+
+# 验证失败时给出**可执行的**下一步，而不是一句「请手工排查」。
+#
+# 最常见的两类原因表现完全不同，值得分开说：
+#   服务器压根不提供 publickey  → sshd 配置问题，改 sshd_config
+#   提供了但这把钥匙被拒        → authorized_keys / 权限 / SELinux
+diagnose_key_auth() {
+  local key="$1" user="$2" host="$3" methods
+
+  methods="$(ssh -v -i "$key" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=8 \
+    "${user}@${host}" true 2>&1 | grep -m1 "Authentications that can continue" || true)"
+
+  log_error "密钥登录不通，未上传 DEPLOY_SSH_KEY。"
+  if [ -n "$methods" ] && ! printf '%s' "$methods" | grep -q "publickey"; then
+    log_error "原因：服务器**不提供** publickey 认证（${methods#*: }）——"
+    log_error "      公钥装进去了，但 sshd 不接受公钥登录，客户端连试的机会都没有。"
+    log_error ""
+    log_error "在服务器上（保持当前会话别断，免得把自己锁在外面）："
+    log_error "  grep -rniE '^[[:space:]]*PubkeyAuthentication' /etc/ssh/sshd_config /etc/ssh/sshd_config.d/"
+    log_error "  # 把找到的那处改成 yes（注意 sshd_config.d/ 下的覆盖优先级更高）"
+    log_error "  sshd -t && systemctl reload sshd    # 先语法检查再重载"
+    log_error ""
+    log_error "改完重跑：./scripts/setup-actions-secrets.sh --setup-ssh"
+  else
+    log_error "原因：服务器提供了 publickey，但这把钥匙被拒。多半是权限或路径："
+    log_error "  ls -ld ~/.ssh && ls -l ~/.ssh/authorized_keys   # 需 700 / 600，家目录不能组可写"
+    log_error "  grep -i AuthorizedKeysFile /etc/ssh/sshd_config"
+    log_error "  restorecon -Rv ~/.ssh                            # RHEL 系的 SELinux 上下文"
+  fi
+  exit 1
 }
 
 main() {
