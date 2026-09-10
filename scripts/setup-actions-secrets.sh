@@ -24,6 +24,7 @@
 #   ./scripts/setup-actions-secrets.sh --dry-run          # 先看会写哪些
 #   ./scripts/setup-actions-secrets.sh
 #   ./scripts/setup-actions-secrets.sh --ssh-key ~/.ssh/id_ed25519
+#   ./scripts/setup-actions-secrets.sh --setup-ssh    # 装公钥 + 验证 + 上传私钥，一条龙
 #   ./scripts/setup-actions-secrets.sh --file .env.test --env test
 
 set -euo pipefail
@@ -36,6 +37,8 @@ source "${SCRIPT_DIR}/lib/log.sh"
 ENV_FILE="${ROOT}/.env.production"
 GH_ENV="production"
 SSH_KEY_FILE=""
+SETUP_SSH=0
+DEPLOY_KEY_DEFAULT="${HOME}/.ssh/rewindom_deploy"
 DRY_RUN=0
 
 # workflows 通过 secrets.* 取的键（见 .github/workflows/*.yml）
@@ -85,6 +88,7 @@ parse_args() {
       --file)     ENV_FILE="$2"; shift 2 ;;
       --env)      GH_ENV="$2"; shift 2 ;;
       --ssh-key)  SSH_KEY_FILE="$2"; shift 2 ;;
+      --setup-ssh) SETUP_SSH=1; shift ;;
       --dry-run)  DRY_RUN=1; shift ;;
       --help|-h)  usage ;;
       *)          log_die "未知参数: $1" ;;
@@ -139,9 +143,65 @@ set_variable() {
   fi
 }
 
+# 把公钥装到服务器，并验证密钥登录真的通了。
+#
+# 装公钥需要先用密码登一次——这一步只能在**你自己的**进程里做。
+# 优先用 .env.production 里已有的 DEPLOY_SSH_PASSWORD（与 deploy-remote.sh 同一套做法），
+# 没有 sshpass 就回落到 ssh-copy-id 交互提示。
+setup_ssh_key() {
+  local key="${SSH_KEY_FILE:-$DEPLOY_KEY_DEFAULT}"
+  local host user password
+
+  host="$(env_value DEPLOY_HOST)" || log_die "env 文件里没有 DEPLOY_HOST"
+  user="$(env_value DEPLOY_SSH_USER)" || log_die "env 文件里没有 DEPLOY_SSH_USER"
+
+  if [ ! -f "$key" ]; then
+    log_info "生成部署专用密钥: ${key}"
+    # 无口令：CI 里没人能输入口令。用专用密钥而不是个人密钥，
+    # 万一泄露只波及部署，不波及你的其它服务器。
+    ssh-keygen -t ed25519 -f "$key" -N "" -C "github-actions@rewindom" >/dev/null
+  fi
+  [ -f "${key}.pub" ] || log_die "找不到公钥: ${key}.pub"
+
+  if [ "$DRY_RUN" = "1" ]; then
+    log_info "[dry-run] 会把 ${key}.pub 装到 ${user}@<host>，再上传 ${key} 为 DEPLOY_SSH_KEY"
+    SSH_KEY_FILE="$key"
+    return 0
+  fi
+
+  if ssh -i "$key" -o BatchMode=yes -o ConnectTimeout=8 \
+      -o StrictHostKeyChecking=accept-new "${user}@${host}" true 2>/dev/null; then
+    log_success "密钥登录已可用，跳过安装"
+  else
+    log_info "安装公钥到服务器（需要密码认证一次）..."
+    password="$(env_value DEPLOY_SSH_PASSWORD || true)"
+    if [ -n "${password:-}" ] && command -v sshpass >/dev/null 2>&1; then
+      SSHPASS="$password" sshpass -e ssh-copy-id -i "${key}.pub" \
+        -o StrictHostKeyChecking=accept-new "${user}@${host}" >/dev/null 2>&1 \
+        || log_die "ssh-copy-id 失败（密码不对？服务器禁了密码登录？）"
+    else
+      log_warn "没有 sshpass 或 env 里没有密码——下面会提示你输入服务器密码"
+      ssh-copy-id -i "${key}.pub" -o StrictHostKeyChecking=accept-new "${user}@${host}" \
+        || log_die "ssh-copy-id 失败"
+    fi
+
+    # 装完必须验证：装上了但登不进去（权限、SELinux、AuthorizedKeysFile 配置）
+    # 是常见情形，不验证就上传等于把一把打不开门的钥匙交给 CI。
+    ssh -i "$key" -o BatchMode=yes -o ConnectTimeout=8 "${user}@${host}" true 2>/dev/null \
+      || log_die "公钥装上了但密钥登录仍然不通，先手工排查再上传"
+    log_success "密钥登录已验证可用"
+  fi
+
+  SSH_KEY_FILE="$key"
+}
+
 main() {
   parse_args "$@"
   check_prereqs
+
+  if [ "$SETUP_SSH" = "1" ]; then
+    setup_ssh_key
+  fi
 
   log_info "来源: ${ENV_FILE}"
   log_info "目标: GitHub 环境 ${GH_ENV}"
