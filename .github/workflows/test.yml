@@ -54,6 +54,11 @@ jobs:
       - name: Test
         run: pnpm test
 
+      # 打包单独跑：typecheck 看不到打包器的问题（rolldown/vite 的解析、
+      # 产物组装脚本），而 pre-push 钩子已经不跑测试了，CI 得把这一步接住。
+      - name: Build
+        run: pnpm build
+
       # scripts/ 下的 python 测试（acme-helper、ip-access-report）此前从未进过 CI。
       # 它们守的是宿主机侧的运维脚本，坏掉时的表现是「证书签不下来」「报告是空的」，
       # 都属于出事当天才会发现的那一类。
