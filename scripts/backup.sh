@@ -34,10 +34,31 @@ source "${SCRIPT_DIR}/lib/log.sh"
 # shellcheck source=lib/stack.sh
 source "${SCRIPT_DIR}/lib/stack.sh"
 
+# 配置文件。**cron 跑起来的进程环境几乎是空的**——没有它，
+# BACKUP_OFFSITE_DEST 这类变量永远读不到，异地备份就成了「文档里有、实际不跑」。
+# 手工执行时进程环境优先（下面用 : "${VAR:=...}" 而不是直接赋值）。
+BACKUP_ENV_FILE="${BACKUP_ENV_FILE:-/etc/rewindom/backup.env}"
+if [ -f "$BACKUP_ENV_FILE" ]; then
+  # 进程环境优先于文件：`set -a; source` 会**无条件覆盖**，
+  # 手工执行时命令行上传的值会被文件里的旧值吃掉。先记下再放回。
+  _preset_offsite="${BACKUP_OFFSITE_DEST:-}"
+  _preset_dir="${BACKUP_DIR:-}"
+  _preset_compress="${DATABASE_BACKUP_COMPRESS:-}"
+  # shellcheck disable=SC1090
+  set -a
+  source "$BACKUP_ENV_FILE"
+  set +a
+  if [ -n "$_preset_offsite" ]; then BACKUP_OFFSITE_DEST="$_preset_offsite"; fi
+  if [ -n "$_preset_dir" ]; then BACKUP_DIR="$_preset_dir"; fi
+  if [ -n "$_preset_compress" ]; then DATABASE_BACKUP_COMPRESS="$_preset_compress"; fi
+  unset _preset_offsite _preset_dir _preset_compress
+fi
+
 ENVIRONMENT="production"
 SKIP_DATA=0
 DATABASE_BACKUP_COMPRESS="${DATABASE_BACKUP_COMPRESS:-6}"
-BACKUP_OFFSITE_DEST="${BACKUP_OFFSITE_DEST:-}"
+# 进程环境 > backup.env > 空
+: "${BACKUP_OFFSITE_DEST:=}"
 
 usage() {
   sed -n '3,30p' "$0"

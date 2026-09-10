@@ -166,6 +166,9 @@ jobs:
           platform_admin_username: ${{ secrets.PLATFORM_ADMIN_USERNAME }}
           platform_admin_password: ${{ secrets.PLATFORM_ADMIN_PASSWORD }}
           log_level: ${{ secrets.LOG_LEVEL }}
+          # 非机密，走 variables（Settings → Secrets and variables → Actions → Variables）
+          site_csp_mode: ${{ vars.SITE_CSP_MODE }}
+          backup_offsite_dest: ${{ vars.BACKUP_OFFSITE_DEST }}
 
   publish:
     name: Publish
