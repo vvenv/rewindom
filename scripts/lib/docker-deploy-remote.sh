@@ -385,10 +385,14 @@ APP_OPS_DIR="/etc/rewindom/scripts"
 
 # 把 Docker 清理脚本同步到服务器并安装每天 04:15 的 cron（幂等）。
 # 失败不阻断部署：清理是磁盘卫生，构建/启动才是主路径。
-docker_ensure_prune_cron() {
-  log_info "同步运维脚本并确保定时任务..."
+# 同步运维脚本并确保定时任务就位（清理 + 备份）。
+# environment 显式传参：原来靠 bash 动态作用域从调用方读，改个调用点就会静默失效。
+docker_ensure_ops_scripts() {
+  local environment="${1:-production}"
+
+  log_info "同步运维脚本并确保定时任务（清理 + 备份）..."
   if ! _run_ssh "mkdir -p '${APP_OPS_DIR}/lib'"; then
-    log_warn "无法创建 ${APP_OPS_DIR}，跳过 Docker 清理定时任务"
+    log_warn "无法创建 ${APP_OPS_DIR}，跳过运维脚本同步与定时任务"
     return 0
   fi
   # 运维脚本整组同步，而不只是清理那两个。
@@ -426,6 +430,15 @@ docker_ensure_prune_cron() {
 
   if ! _run_ssh "chmod +x '${APP_OPS_DIR}'/*.sh && bash '${APP_OPS_DIR}/docker-prune-cron.sh' install"; then
     log_warn "安装 Docker 清理定时任务失败"
+  fi
+
+  # 定时备份也在每次部署时确保装好（install 是幂等的：先清同标签条目再写）。
+  #
+  # 为什么放在部署里而不是「记得手动跑一次」：这台机器的备份曾经**静默停了 20 天**
+  # ——生产搬进容器那天旧脚本就失效了，而 cron 每天照跑、日志里只有一行失败，
+  # 没人看。靠人记得装一次的东西，迟早会有一次没装。
+  if ! _run_ssh "bash '${APP_OPS_DIR}/backup-cron.sh' install --env '${environment}'"; then
+    log_warn "安装备份定时任务失败——请手工确认 ${APP_OPS_DIR}/backup-cron.sh install"
   fi
 }
 
@@ -491,7 +504,7 @@ docker_deploy() {
   fi
 
   _run_ssh "mkdir -p '${remote_dir}'"
-  docker_ensure_prune_cron
+  docker_ensure_ops_scripts "$environment"
   docker_remote_prune --skip-builder
 
   local remote_env
