@@ -259,12 +259,18 @@ docker compose -f docker-compose.prod.yml --env-file .env.production up -d --no-
 ### 备份
 
 ```bash
-# 安装每日定时备份（每天 08:00，含 30 天保留策略）
-./scripts/backup-cron.sh install --env production
-
 # 手动跑一次
 bash /etc/rewindom/scripts/backup.sh --env production
+
+# 查看定时任务（每天 08:00，含 30 天保留策略）
+./scripts/backup-cron.sh status
 ```
+
+> 定时备份由 **`pnpm deploy` 自动装好**，不需要记得手动跑。
+>
+> 这不是为了省事：这台机器的备份曾经**静默停了 20 天**——生产搬进容器那天旧脚本
+> 就失效了，而 cron 每天照跑、日志里只有一行失败，没人看。靠人记得装一次的东西，
+> 迟早会有一次没装。
 
 备份**三样**东西，缺一不可：
 
