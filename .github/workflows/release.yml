@@ -132,6 +132,25 @@ jobs:
         with:
           ref: ${{ needs.plan.outputs.ref }}
 
+      # workflow_dispatch 的 prepare 是 --prepare-only：版本号要等部署成功才提交。
+      # 但 getAppVersion() 读的是镜像里的 package.json，必须在打 tarball 前写进工作树，
+      # 否则线上会继续显示旧版本。不 commit，失败时 main 上的版本号不变。
+      # tag push 时树上往往已经是该版本，再写一次是幂等的。
+      - name: Stamp release version
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.plan.outputs.version }}"
+          VERSION="${VERSION#v}"
+          if [ -z "$VERSION" ]; then
+            echo "::error::plan.outputs.version 为空，无法写入部署版本"
+            exit 1
+          fi
+          chmod +x scripts/lib/version.sh
+          # shellcheck source=scripts/lib/version.sh
+          source scripts/lib/version.sh
+          sync_package_versions "$VERSION"
+          echo "Stamped v${VERSION} into package.json files for deploy"
+
       - name: Validate deploy secrets
         uses: ./.github/actions/validate-deploy-secrets
         with:

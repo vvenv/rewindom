@@ -1,7 +1,8 @@
 #!/bin/bash
 # 非交互式升版本：检查 → 同步 package.json → commit → tag → push
 # 供 GitHub Actions workflow_dispatch 调用；也可本地手动执行。
-# CI 发布流程使用 --prepare-only，在 build/deploy 成功后再由 publish job 提交版本。
+# CI 发布流程使用 --prepare-only：deploy job 只把版本写进工作树再打包，
+# 成功后再由 publish job 提交版本。
 #
 # 用法:
 #   ./scripts/bump-version.sh patch
