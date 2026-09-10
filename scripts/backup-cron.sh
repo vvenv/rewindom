@@ -97,15 +97,29 @@ sync_backup_script() {
     fi
 
     mkdir -p "$APP_OPS_DIR/lib"
-    install -m 755 "$source" "$BACKUP_SCRIPT"
-    if [ -f "${source_lib_dir}/log.sh" ]; then
-        install -m 755 "${source_lib_dir}/log.sh" "${APP_OPS_DIR}/lib/log.sh"
-    fi
+
+    # 源与目标可能是**同一个文件**：部署已经把运维脚本同步到 APP_OPS_DIR，
+    # 并且就在那里执行本脚本。`install` 对同一文件会直接报错，配上 set -e
+    # 整个安装就失败了——表现是「备份定时任务没装上」，而那正是本脚本存在的意义。
+    install_if_different() {
+        local src="$1" dest="$2"
+        [ -f "$src" ] || return 0
+        if [ "$src" -ef "$dest" ]; then
+            return 0
+        fi
+        install -m 755 "$src" "$dest"
+    }
+
+    install_if_different "$source" "$BACKUP_SCRIPT"
+    install_if_different "${source_lib_dir}/log.sh" "${APP_OPS_DIR}/lib/log.sh"
     # backup.sh 依赖的拓扑探测库，漏传则备份直接起不来
-    if [ -f "${source_lib_dir}/stack.sh" ]; then
-        install -m 755 "${source_lib_dir}/stack.sh" "${APP_OPS_DIR}/lib/stack.sh"
+    install_if_different "${source_lib_dir}/stack.sh" "${APP_OPS_DIR}/lib/stack.sh"
+
+    if [ "$source" -ef "$BACKUP_SCRIPT" ]; then
+        log_info "备份脚本已在 ${APP_OPS_DIR}，无需复制"
+    else
+        log_info "已同步备份脚本 -> ${BACKUP_SCRIPT}"
     fi
-    log_info "已同步备份脚本 -> ${BACKUP_SCRIPT}"
 }
 
 ensure_cron_service() {
