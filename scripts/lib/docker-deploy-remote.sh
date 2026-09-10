@@ -414,6 +414,16 @@ docker_ensure_prune_cron() {
     log_warn "同步运维脚本失败，跳过定时任务"
     return 0
   fi
+  # 备份的运行时配置。cron 的进程环境是空的，BACKUP_OFFSITE_DEST 只有写进文件
+  # 才读得到——否则「配了异地备份」这件事只存在于文档里。
+  if [ -n "${BACKUP_OFFSITE_DEST:-}" ]; then
+    if _run_ssh "printf 'BACKUP_OFFSITE_DEST=%s\n' '${BACKUP_OFFSITE_DEST}' > /etc/rewindom/backup.env && chmod 600 /etc/rewindom/backup.env"; then
+      log_info "已写入异地备份配置 → /etc/rewindom/backup.env"
+    else
+      log_warn "写入 /etc/rewindom/backup.env 失败，异地备份不会生效"
+    fi
+  fi
+
   if ! _run_ssh "chmod +x '${APP_OPS_DIR}'/*.sh && bash '${APP_OPS_DIR}/docker-prune-cron.sh' install"; then
     log_warn "安装 Docker 清理定时任务失败"
   fi

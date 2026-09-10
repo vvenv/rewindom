@@ -371,6 +371,24 @@ bash /etc/rewindom/scripts/healthcheck.sh --env production
 Secrets，工作流会把它装进 runner 的 `~/.ssh` 并固定主机指纹。两个都配时密钥优先；
 只配密码时行为与从前完全一致。
 
+### Variables（非机密，同样按 environment 配）
+
+| Variable | 说明 |
+| --- | --- |
+| `SITE_CSP_MODE` | 公开面 CSP：`off` / `report` / `enforce`。留空即用默认 `report` |
+| `BACKUP_OFFSITE_DEST` | 备份异地目标（`s3://…` 或 rclone 远端）。部署时写进服务器 `/etc/rewindom/backup.env` |
+
+这两项都不是机密（一个是枚举值，一个是路径），放 Variables 而不是 Secrets——
+Variables 在日志里可见、可审计，也不会因为「看起来像密钥」被误当成需要轮换的东西。
+
+> `BACKUP_OFFSITE_DEST` 必须落到**文件**里才有用：cron 拉起 `backup.sh` 时进程环境
+> 几乎是空的，只靠 CI 的环境变量传不过去。`/etc/rewindom/backup.env` 由部署自动写入，
+> 手工执行时命令行/进程环境的值仍然优先。
+>
+> 上传凭据（AWS key、rclone 配置）**不走 CI**：它们应当留在服务器上
+> （`~/.aws/credentials`、`~/.config/rclone/rclone.conf`，或用实例角色），
+> 这样凭据既不过 GitHub，也不出现在任何日志里。
+
 ## 环境变量
 
 | 变量                           | 说明                                                                                                             |

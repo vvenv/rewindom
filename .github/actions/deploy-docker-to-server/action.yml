@@ -59,6 +59,14 @@ inputs:
   platform_admin_password:
     required: false
     default: ""
+  site_csp_mode:
+    description: 公开面 CSP 模式（off/report/enforce）；留空用 compose 默认 report
+    required: false
+    default: ""
+  backup_offsite_dest:
+    description: 备份异地目标（s3:// 或 rclone 远端）；写进服务器 /etc/rewindom/backup.env
+    required: false
+    default: ""
   log_level:
     required: false
     default: ""
@@ -119,6 +127,7 @@ runs:
         PLATFORM_ADMIN_USERNAME: ${{ inputs.platform_admin_username }}
         PLATFORM_ADMIN_PASSWORD: ${{ inputs.platform_admin_password }}
         LOG_LEVEL: ${{ inputs.log_level }}
+        SITE_CSP_MODE: ${{ inputs.site_csp_mode }}
       run: |
         set -euo pipefail
         case "$ENVIRONMENT" in
@@ -136,6 +145,7 @@ runs:
           printf 'APP_DOMAIN=%s\n' "$APP_DOMAIN"
           [ -n "$APP_PORT" ] && printf 'APP_PORT=%s\n' "$APP_PORT"
           [ -n "$SSL_EMAIL" ] && printf 'SSL_EMAIL=%s\n' "$SSL_EMAIL"
+          [ -n "$SITE_CSP_MODE" ] && printf 'SITE_CSP_MODE=%s\n' "$SITE_CSP_MODE"
           [ -n "$OPENAI_API_KEY" ] && printf 'OPENAI_API_KEY=%s\n' "$OPENAI_API_KEY"
           [ -n "$OPENAI_BASE_URL" ] && printf 'OPENAI_BASE_URL=%s\n' "$OPENAI_BASE_URL"
           [ -n "$OPENAI_MODEL" ] && printf 'OPENAI_MODEL=%s\n' "$OPENAI_MODEL"
@@ -147,6 +157,11 @@ runs:
 
     - name: Deploy via Docker
       shell: bash
+      env:
+        # 备份的异地目标不是机密（是个路径），走 variables 即可。
+        # 部署脚本会把它写进服务器的 /etc/rewindom/backup.env——
+        # cron 跑备份时进程环境是空的，只有落到文件里才读得到。
+        BACKUP_OFFSITE_DEST: ${{ inputs.backup_offsite_dest }}
       run: |
         set -euo pipefail
         chmod +x scripts/docker-deploy-remote.sh
