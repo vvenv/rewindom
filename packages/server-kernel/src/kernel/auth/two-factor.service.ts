@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import { Secret, TOTP } from "otpauth";
 import QRCode from "qrcode";
 
+import { Prisma } from "../../generated/prisma/client/client.js";
 import {
   NotFoundError,
   UnauthorizedError,
@@ -64,7 +65,9 @@ function generateRecoveryCodes(): string[] {
 }
 
 async function hashRecoveryCodes(codes: string[]): Promise<string[]> {
-  return Promise.all(codes.map((code) => bcrypt.hash(code, BCRYPT_SALT_ROUNDS)));
+  return Promise.all(
+    codes.map((code) => bcrypt.hash(code, BCRYPT_SALT_ROUNDS)),
+  );
 }
 
 function parseRecoveryHashes(value: unknown): string[] {
@@ -173,12 +176,10 @@ export class TwoFactorService {
     const secret = decryptTenantSecret(row.totp_secret_encrypted);
     const recoveryHashes = parseRecoveryHashes(row.totp_recovery_codes);
     const totpOk = this.verifyTotp(secret, code);
-    let remaining = recoveryHashes;
     let recoveryOk = false;
     if (!totpOk) {
       const matched = await this.consumeRecoveryCode(recoveryHashes, code);
       recoveryOk = matched.ok;
-      remaining = matched.remaining;
     }
     if (!totpOk && !recoveryOk) {
       throw new UnauthorizedError("auth.2fa_code_invalid");
@@ -187,7 +188,7 @@ export class TwoFactorService {
     await this.writeRow(userId, actorType, {
       totp_secret_encrypted: null,
       totp_enabled: false,
-      totp_recovery_codes: null,
+      totp_recovery_codes: Prisma.DbNull,
     });
   }
 
@@ -372,7 +373,7 @@ export class TwoFactorService {
     data: {
       totp_secret_encrypted?: string | null;
       totp_enabled?: boolean;
-      totp_recovery_codes?: unknown;
+      totp_recovery_codes?: Prisma.InputJsonValue | typeof Prisma.DbNull;
     },
   ): Promise<void> {
     if (actorType === "tenant_user") {
