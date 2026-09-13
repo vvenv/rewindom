@@ -17,7 +17,7 @@ import { buildRegisterInput, validateRegisterForm } from "../lib/register-form.j
 export function Register() {
   const { t } = useTranslation(["shell", "common"]);
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { establishSession } = useAuth();
   const navigate = useNavigate();
   const {
     data: {
@@ -81,19 +81,12 @@ export function Register() {
         tenant_slug: string;
         user_id: string;
         username: string;
-        access_token: string;
-        refresh_token: string;
         expires_in: number;
       }>("/auth/register", input, undefined, true);
 
       toast.success(t("auth.registerSuccess"));
 
-      await login({
-        username: hostLockedTenant
-          ? result.username
-          : `${result.username}@${result.tenant_slug}`,
-        password: form.password,
-      });
+      await establishSession();
 
       // 注册即自动登录，与登录页同一落地逻辑：`/app` → 默认首页
       navigate(APP_HOME_ENTRY_PATH);

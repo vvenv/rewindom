@@ -33,6 +33,7 @@ export async function dashboardPreferenceRoutes(app: FastifyInstance) {
   defineRoute(app, {
     method: "PUT",
     url: "/preferences",
+    // audit:skip -- 用户自己的卡片显隐与排序，不是对租户数据的写操作；每次拖拽都留痕会把审计淹掉
     onRequest: [app.authenticate],
     context: "[dashboardRoutes] 保存工作台偏好失败",
     errorCode: "SAVE_DASHBOARD_PREFERENCE_FAILED",
@@ -48,6 +49,7 @@ export async function dashboardPreferenceRoutes(app: FastifyInstance) {
   defineRoute(app, {
     method: "DELETE",
     url: "/preferences",
+    // audit:skip -- 同上，重置的也只是本人的界面偏好
     onRequest: [app.authenticate],
     context: "[dashboardRoutes] 重置工作台偏好失败",
     errorCode: "RESET_DASHBOARD_PREFERENCE_FAILED",

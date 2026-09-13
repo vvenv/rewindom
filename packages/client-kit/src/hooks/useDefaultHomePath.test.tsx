@@ -22,8 +22,6 @@ vi.mock("./usePublicConfig.js", () => ({
 function wrapperWithUser(user: User | null) {
   const value = {
     user,
-    accessToken: user ? "token" : null,
-    refreshToken: user ? "refresh" : null,
     isAuthenticated: Boolean(user),
     isLoading: false,
   } as AuthContextType;
@@ -36,7 +34,18 @@ function wrapperWithUser(user: User | null) {
 }
 
 function userWithActor(actorType: AuthActorType): User {
-  return { id: "u1", username: "u", actor_type: actorType } as User;
+  return {
+    id: "u1",
+    username: "u",
+    actor_type: actorType,
+    is_system_admin: false,
+    enabled: true,
+    tenant_id: actorType === "tenant_user" ? "t1" : null,
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
+    last_login_at: null,
+    last_access_at: null,
+  };
 }
 
 describe("useDefaultHomePath", () => {

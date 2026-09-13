@@ -7,6 +7,8 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: rewindom-dev-postgres
+    # Docker 默认 /dev/shm=64MB，并行查询易触发 53100 shared memory 错误
+    shm_size: 256mb
     environment:
       POSTGRES_USER: rewindom
       POSTGRES_PASSWORD: ${DB_PASSWORD:-dev-password}

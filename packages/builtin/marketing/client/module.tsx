@@ -2,6 +2,7 @@ import { TENANT_MARKETING_ENTITLEMENT } from "../shared/entitlements.js";
 
 import { MARKETING_I18N } from "./i18n.js";
 import "./lib/page-presets.js";
+import { MARKETING_COMMAND_ACTIONS } from "./tenant/command-actions.js";
 import { MARKETING_DASHBOARD_WIDGETS } from "./tenant/dashboard-widgets.js";
 import { SITE_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderSiteRoutes } from "./tenant/routes.js";
@@ -21,5 +22,6 @@ export const marketingClientModule: ClientAppModule = {
     renderRoutes: renderSiteRoutes,
     nav: SITE_NAV_SECTIONS,
     dashboardWidgets: MARKETING_DASHBOARD_WIDGETS,
+    commandActions: MARKETING_COMMAND_ACTIONS,
   },
 };

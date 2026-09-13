@@ -18,6 +18,7 @@ import {
   userPermissionCacheKey,
   type AuthActorType,
 } from "@rewindom/shared";
+import cookie from "@fastify/cookie";
 import Fastify, { type FastifyInstance } from "fastify";
 import { vi } from "vitest";
 
@@ -372,6 +373,7 @@ async function buildBaseTestApp(
 ): Promise<TestApp> {
   const app = Fastify({ logger: false });
   app.decorate("prisma", prismaMock as unknown as TestApp["prisma"]);
+  await app.register(cookie);
   await registerJwt(app, "test-secret");
   await authMiddleware(app);
   if (!options.skipPermission) {

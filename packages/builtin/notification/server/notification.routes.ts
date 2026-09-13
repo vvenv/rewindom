@@ -60,6 +60,7 @@ export async function notificationRoutes(app: FastifyInstance) {
   defineRoute(app, {
     method: "PATCH",
     url: "/:notificationId/read",
+    // audit:skip -- 阅读状态是本人的界面状态，不是业务写操作
     onRequest: [app.authenticate],
     context: "[notificationRoutes] 标记通知已读失败",
     errorCode: "MARK_NOTIFICATION_READ_FAILED",
@@ -81,6 +82,7 @@ export async function notificationRoutes(app: FastifyInstance) {
   defineRoute(app, {
     method: "POST",
     url: "/read-all",
+    // audit:skip -- 同上，一次标记全部已读仍只影响本人
     onRequest: [app.authenticate],
     context: "[notificationRoutes] 全部标记已读失败",
     errorCode: "MARK_ALL_NOTIFICATIONS_READ_FAILED",

@@ -20,6 +20,7 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "marketing.audit.redirect_deleted": "删除官网重定向",
       "marketing.audit.asset_uploaded": "上传官网媒体",
       "marketing.audit.asset_replaced": "替换官网媒体",
+      "marketing.audit.asset_updated": "编辑官网媒体信息",
       "marketing.audit.asset_deleted": "删除官网媒体",
       "marketing.audit.page_version_restored":
         "恢复官网页面到第 {{version}} 版",
@@ -117,6 +118,7 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "marketing.audit.redirect_deleted": "Deleted a redirect",
       "marketing.audit.asset_uploaded": "Uploaded a media file",
       "marketing.audit.asset_replaced": "Replaced a media file",
+      "marketing.audit.asset_updated": "Edited media details",
       "marketing.audit.asset_deleted": "Deleted a media file",
       "marketing.audit.page_version_restored":
         "Restored page to version {{version}}",

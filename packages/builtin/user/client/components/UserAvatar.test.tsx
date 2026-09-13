@@ -18,22 +18,21 @@ function createMockAuthContext(
       actor_type: "tenant_user",
       is_system_admin: false,
       enabled: true,
+      tenant_id: "t1",
       created_at: "2024-01-01T00:00:00Z",
       updated_at: "2024-01-01T00:00:00Z",
       last_login_at: "2024-01-01T00:00:00Z",
       last_access_at: "2024-01-01T00:00:00Z",
     },
-    accessToken: null,
-    refreshToken: null,
     isAuthenticated: true,
     isLoading: false,
     login: vi.fn(),
+    establishSession: vi.fn(),
     logout: vi.fn(),
-    refreshAccessToken: vi.fn(),
     changePassword: vi.fn(),
     getCurrentUser: vi.fn(),
     ...overrides,
-  } as unknown as AuthContextType;
+  };
 }
 
 vi.mock("@rewindom/client-kit", async (importOriginal) => ({

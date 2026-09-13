@@ -55,6 +55,7 @@ describe("Auth Routes", () => {
           actor_type: "tenant_user",
           is_system_admin: false,
           enabled: true,
+          tenant_id: "tenant-1",
           created_at: new Date(),
           updated_at: new Date(),
           last_login_at: null,
@@ -72,10 +73,13 @@ describe("Auth Routes", () => {
 
       expect(response.statusCode).toBe(200);
       const { data } = JSON.parse(response.payload);
-      expect(data.tokens).toHaveProperty("accessToken");
-      expect(data.tokens).toHaveProperty("refreshToken");
+      expect(data.tokens).toBeUndefined();
+      expect(data.expires_in).toBe(900);
       expect(data.user).toHaveProperty("id", testUser.id);
       expect(data.user).toHaveProperty("username", testUser.username);
+      expect(data.user).toHaveProperty("tenant_id", "tenant-1");
+      const setCookie = response.headers["set-cookie"];
+      expect(setCookie).toBeDefined();
     });
 
     it("should return 400 if username or password is missing", async () => {
@@ -258,14 +262,14 @@ describe("Auth Routes", () => {
       expect(response.statusCode).toBe(401);
     });
 
-    it("should return 400 if refresh token is missing", async () => {
+    it("should logout without refresh token in body", async () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/auth/logout",
         headers: authHeaders(testUser),
         payload: {},
       });
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(200);
     });
 
     it("should return 500 on unexpected logout error", async () => {
@@ -393,6 +397,7 @@ describe("Auth Routes", () => {
         actor_type: "tenant_user",
         is_system_admin: false,
         enabled: true,
+        tenant_id: "tenant-1",
         created_at: new Date(),
         updated_at: new Date(),
         last_login_at: null,

@@ -47,6 +47,8 @@ export type UserMinAggregateOutputType = {
   last_access_at: Date | null
   failed_login_attempts: number | null
   locked_until: Date | null
+  totp_secret_encrypted: string | null
+  totp_enabled: boolean | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -62,6 +64,8 @@ export type UserMaxAggregateOutputType = {
   last_access_at: Date | null
   failed_login_attempts: number | null
   locked_until: Date | null
+  totp_secret_encrypted: string | null
+  totp_enabled: boolean | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -77,6 +81,9 @@ export type UserCountAggregateOutputType = {
   last_access_at: number
   failed_login_attempts: number
   locked_until: number
+  totp_secret_encrypted: number
+  totp_enabled: number
+  totp_recovery_codes: number
   _all: number
 }
 
@@ -102,6 +109,8 @@ export type UserMinAggregateInputType = {
   last_access_at?: true
   failed_login_attempts?: true
   locked_until?: true
+  totp_secret_encrypted?: true
+  totp_enabled?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -117,6 +126,8 @@ export type UserMaxAggregateInputType = {
   last_access_at?: true
   failed_login_attempts?: true
   locked_until?: true
+  totp_secret_encrypted?: true
+  totp_enabled?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -132,6 +143,9 @@ export type UserCountAggregateInputType = {
   last_access_at?: true
   failed_login_attempts?: true
   locked_until?: true
+  totp_secret_encrypted?: true
+  totp_enabled?: true
+  totp_recovery_codes?: true
   _all?: true
 }
 
@@ -234,6 +248,9 @@ export type UserGroupByOutputType = {
   last_access_at: Date | null
   failed_login_attempts: number
   locked_until: Date | null
+  totp_secret_encrypted: string | null
+  totp_enabled: boolean
+  totp_recovery_codes: runtime.JsonValue | null
   _count: UserCountAggregateOutputType | null
   _avg: UserAvgAggregateOutputType | null
   _sum: UserSumAggregateOutputType | null
@@ -272,6 +289,9 @@ export type UserWhereInput = {
   last_access_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   failed_login_attempts?: Prisma.IntFilter<"User"> | number
   locked_until?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  totp_secret_encrypted?: Prisma.StringNullableFilter<"User"> | string | null
+  totp_enabled?: Prisma.BoolFilter<"User"> | boolean
+  totp_recovery_codes?: Prisma.JsonNullableFilter<"User">
   tenant?: Prisma.XOR<Prisma.TenantScalarRelationFilter, Prisma.TenantWhereInput>
   refresh_tokens?: Prisma.RefreshTokenListRelationFilter
   oauth_accounts?: Prisma.OAuthAccountListRelationFilter
@@ -295,6 +315,9 @@ export type UserOrderByWithRelationInput = {
   last_access_at?: Prisma.SortOrderInput | Prisma.SortOrder
   failed_login_attempts?: Prisma.SortOrder
   locked_until?: Prisma.SortOrderInput | Prisma.SortOrder
+  totp_secret_encrypted?: Prisma.SortOrderInput | Prisma.SortOrder
+  totp_enabled?: Prisma.SortOrder
+  totp_recovery_codes?: Prisma.SortOrderInput | Prisma.SortOrder
   tenant?: Prisma.TenantOrderByWithRelationInput
   refresh_tokens?: Prisma.RefreshTokenOrderByRelationAggregateInput
   oauth_accounts?: Prisma.OAuthAccountOrderByRelationAggregateInput
@@ -322,6 +345,9 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   last_access_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   failed_login_attempts?: Prisma.IntFilter<"User"> | number
   locked_until?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  totp_secret_encrypted?: Prisma.StringNullableFilter<"User"> | string | null
+  totp_enabled?: Prisma.BoolFilter<"User"> | boolean
+  totp_recovery_codes?: Prisma.JsonNullableFilter<"User">
   tenant?: Prisma.XOR<Prisma.TenantScalarRelationFilter, Prisma.TenantWhereInput>
   refresh_tokens?: Prisma.RefreshTokenListRelationFilter
   oauth_accounts?: Prisma.OAuthAccountListRelationFilter
@@ -345,6 +371,9 @@ export type UserOrderByWithAggregationInput = {
   last_access_at?: Prisma.SortOrderInput | Prisma.SortOrder
   failed_login_attempts?: Prisma.SortOrder
   locked_until?: Prisma.SortOrderInput | Prisma.SortOrder
+  totp_secret_encrypted?: Prisma.SortOrderInput | Prisma.SortOrder
+  totp_enabled?: Prisma.SortOrder
+  totp_recovery_codes?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _avg?: Prisma.UserAvgOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
@@ -368,6 +397,9 @@ export type UserScalarWhereWithAggregatesInput = {
   last_access_at?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   failed_login_attempts?: Prisma.IntWithAggregatesFilter<"User"> | number
   locked_until?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  totp_secret_encrypted?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  totp_enabled?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  totp_recovery_codes?: Prisma.JsonNullableWithAggregatesFilter<"User">
 }
 
 export type UserCreateInput = {
@@ -382,6 +414,9 @@ export type UserCreateInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
   refresh_tokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   oauth_accounts?: Prisma.OAuthAccountCreateNestedManyWithoutUserInput
@@ -405,6 +440,9 @@ export type UserUncheckedCreateInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
   oauth_accounts?: Prisma.OAuthAccountUncheckedCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -426,6 +464,9 @@ export type UserUpdateInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
   refresh_tokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
   oauth_accounts?: Prisma.OAuthAccountUpdateManyWithoutUserNestedInput
@@ -449,6 +490,9 @@ export type UserUncheckedUpdateInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   oauth_accounts?: Prisma.OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -471,6 +515,9 @@ export type UserCreateManyInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type UserUpdateManyMutationInput = {
@@ -485,6 +532,9 @@ export type UserUpdateManyMutationInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type UserUncheckedUpdateManyInput = {
@@ -500,6 +550,9 @@ export type UserUncheckedUpdateManyInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type UserNullableScalarRelationFilter = {
@@ -540,6 +593,9 @@ export type UserCountOrderByAggregateInput = {
   last_access_at?: Prisma.SortOrder
   failed_login_attempts?: Prisma.SortOrder
   locked_until?: Prisma.SortOrder
+  totp_secret_encrypted?: Prisma.SortOrder
+  totp_enabled?: Prisma.SortOrder
+  totp_recovery_codes?: Prisma.SortOrder
 }
 
 export type UserAvgOrderByAggregateInput = {
@@ -559,6 +615,8 @@ export type UserMaxOrderByAggregateInput = {
   last_access_at?: Prisma.SortOrder
   failed_login_attempts?: Prisma.SortOrder
   locked_until?: Prisma.SortOrder
+  totp_secret_encrypted?: Prisma.SortOrder
+  totp_enabled?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -574,6 +632,8 @@ export type UserMinOrderByAggregateInput = {
   last_access_at?: Prisma.SortOrder
   failed_login_attempts?: Prisma.SortOrder
   locked_until?: Prisma.SortOrder
+  totp_secret_encrypted?: Prisma.SortOrder
+  totp_enabled?: Prisma.SortOrder
 }
 
 export type UserSumOrderByAggregateInput = {
@@ -734,6 +794,9 @@ export type UserCreateWithoutAudit_logsInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
   refresh_tokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   oauth_accounts?: Prisma.OAuthAccountCreateNestedManyWithoutUserInput
@@ -756,6 +819,9 @@ export type UserUncheckedCreateWithoutAudit_logsInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
   oauth_accounts?: Prisma.OAuthAccountUncheckedCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -792,6 +858,9 @@ export type UserUpdateWithoutAudit_logsInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
   refresh_tokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
   oauth_accounts?: Prisma.OAuthAccountUpdateManyWithoutUserNestedInput
@@ -814,6 +883,9 @@ export type UserUncheckedUpdateWithoutAudit_logsInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   oauth_accounts?: Prisma.OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -834,6 +906,9 @@ export type UserCreateWithoutBackground_jobsInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
   refresh_tokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   oauth_accounts?: Prisma.OAuthAccountCreateNestedManyWithoutUserInput
@@ -856,6 +931,9 @@ export type UserUncheckedCreateWithoutBackground_jobsInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
   oauth_accounts?: Prisma.OAuthAccountUncheckedCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -892,6 +970,9 @@ export type UserUpdateWithoutBackground_jobsInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
   refresh_tokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
   oauth_accounts?: Prisma.OAuthAccountUpdateManyWithoutUserNestedInput
@@ -914,6 +995,9 @@ export type UserUncheckedUpdateWithoutBackground_jobsInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   oauth_accounts?: Prisma.OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -934,6 +1018,9 @@ export type UserCreateWithoutDashboard_preferencesInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
   refresh_tokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   oauth_accounts?: Prisma.OAuthAccountCreateNestedManyWithoutUserInput
@@ -956,6 +1043,9 @@ export type UserUncheckedCreateWithoutDashboard_preferencesInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
   oauth_accounts?: Prisma.OAuthAccountUncheckedCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -992,6 +1082,9 @@ export type UserUpdateWithoutDashboard_preferencesInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
   refresh_tokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
   oauth_accounts?: Prisma.OAuthAccountUpdateManyWithoutUserNestedInput
@@ -1014,6 +1107,9 @@ export type UserUncheckedUpdateWithoutDashboard_preferencesInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   oauth_accounts?: Prisma.OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -1034,6 +1130,9 @@ export type UserCreateWithoutRefresh_tokensInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
   oauth_accounts?: Prisma.OAuthAccountCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
@@ -1056,6 +1155,9 @@ export type UserUncheckedCreateWithoutRefresh_tokensInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   oauth_accounts?: Prisma.OAuthAccountUncheckedCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
@@ -1092,6 +1194,9 @@ export type UserUpdateWithoutRefresh_tokensInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
   oauth_accounts?: Prisma.OAuthAccountUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
@@ -1114,6 +1219,9 @@ export type UserUncheckedUpdateWithoutRefresh_tokensInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   oauth_accounts?: Prisma.OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
@@ -1134,6 +1242,9 @@ export type UserCreateWithoutOauth_accountsInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
   refresh_tokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
@@ -1156,6 +1267,9 @@ export type UserUncheckedCreateWithoutOauth_accountsInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
@@ -1192,6 +1306,9 @@ export type UserUpdateWithoutOauth_accountsInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
   refresh_tokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
@@ -1214,6 +1331,9 @@ export type UserUncheckedUpdateWithoutOauth_accountsInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
@@ -1234,6 +1354,9 @@ export type UserCreateWithoutTenantInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   oauth_accounts?: Prisma.OAuthAccountCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
@@ -1255,6 +1378,9 @@ export type UserUncheckedCreateWithoutTenantInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
   oauth_accounts?: Prisma.OAuthAccountUncheckedCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -1306,6 +1432,9 @@ export type UserScalarWhereInput = {
   last_access_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   failed_login_attempts?: Prisma.IntFilter<"User"> | number
   locked_until?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  totp_secret_encrypted?: Prisma.StringNullableFilter<"User"> | string | null
+  totp_enabled?: Prisma.BoolFilter<"User"> | boolean
+  totp_recovery_codes?: Prisma.JsonNullableFilter<"User">
 }
 
 export type UserCreateWithoutNotificationsInput = {
@@ -1320,6 +1449,9 @@ export type UserCreateWithoutNotificationsInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
   refresh_tokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   oauth_accounts?: Prisma.OAuthAccountCreateNestedManyWithoutUserInput
@@ -1342,6 +1474,9 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
   oauth_accounts?: Prisma.OAuthAccountUncheckedCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
@@ -1378,6 +1513,9 @@ export type UserUpdateWithoutNotificationsInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
   refresh_tokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
   oauth_accounts?: Prisma.OAuthAccountUpdateManyWithoutUserNestedInput
@@ -1400,6 +1538,9 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   oauth_accounts?: Prisma.OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -1420,6 +1561,9 @@ export type UserCreateWithoutUser_rolesInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
   refresh_tokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   oauth_accounts?: Prisma.OAuthAccountCreateNestedManyWithoutUserInput
@@ -1442,6 +1586,9 @@ export type UserUncheckedCreateWithoutUser_rolesInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
   oauth_accounts?: Prisma.OAuthAccountUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
@@ -1478,6 +1625,9 @@ export type UserUpdateWithoutUser_rolesInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
   refresh_tokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
   oauth_accounts?: Prisma.OAuthAccountUpdateManyWithoutUserNestedInput
@@ -1500,6 +1650,9 @@ export type UserUncheckedUpdateWithoutUser_rolesInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   oauth_accounts?: Prisma.OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
@@ -1520,6 +1673,9 @@ export type UserCreateManyTenantInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type UserUpdateWithoutTenantInput = {
@@ -1534,6 +1690,9 @@ export type UserUpdateWithoutTenantInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
   oauth_accounts?: Prisma.OAuthAccountUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
@@ -1555,6 +1714,9 @@ export type UserUncheckedUpdateWithoutTenantInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   oauth_accounts?: Prisma.OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
@@ -1576,6 +1738,9 @@ export type UserUncheckedUpdateManyWithoutTenantInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 
@@ -1676,6 +1841,9 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   last_access_at?: boolean
   failed_login_attempts?: boolean
   locked_until?: boolean
+  totp_secret_encrypted?: boolean
+  totp_enabled?: boolean
+  totp_recovery_codes?: boolean
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   refresh_tokens?: boolean | Prisma.User$refresh_tokensArgs<ExtArgs>
   oauth_accounts?: boolean | Prisma.User$oauth_accountsArgs<ExtArgs>
@@ -1700,6 +1868,9 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   last_access_at?: boolean
   failed_login_attempts?: boolean
   locked_until?: boolean
+  totp_secret_encrypted?: boolean
+  totp_enabled?: boolean
+  totp_recovery_codes?: boolean
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1716,6 +1887,9 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   last_access_at?: boolean
   failed_login_attempts?: boolean
   locked_until?: boolean
+  totp_secret_encrypted?: boolean
+  totp_enabled?: boolean
+  totp_recovery_codes?: boolean
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1732,9 +1906,12 @@ export type UserSelectScalar = {
   last_access_at?: boolean
   failed_login_attempts?: boolean
   locked_until?: boolean
+  totp_secret_encrypted?: boolean
+  totp_enabled?: boolean
+  totp_recovery_codes?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "username" | "password" | "is_system_admin" | "enabled" | "created_at" | "updated_at" | "last_login_at" | "last_access_at" | "failed_login_attempts" | "locked_until", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "username" | "password" | "is_system_admin" | "enabled" | "created_at" | "updated_at" | "last_login_at" | "last_access_at" | "failed_login_attempts" | "locked_until" | "totp_secret_encrypted" | "totp_enabled" | "totp_recovery_codes", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   refresh_tokens?: boolean | Prisma.User$refresh_tokensArgs<ExtArgs>
@@ -1781,6 +1958,15 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     last_access_at: Date | null
     failed_login_attempts: number
     locked_until: Date | null
+    /**
+     * TOTP 密钥（AES-GCM，复用 TENANT_SECRET_ENCRYPTION_KEY）；未开启时可为 pending 态密文
+     */
+    totp_secret_encrypted: string | null
+    totp_enabled: boolean
+    /**
+     * bcrypt 哈希数组（JSON string[]）；明文恢复码只在生成时返回一次
+     */
+    totp_recovery_codes: runtime.JsonValue | null
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -2224,6 +2410,9 @@ export interface UserFieldRefs {
   readonly last_access_at: Prisma.FieldRef<"User", 'DateTime'>
   readonly failed_login_attempts: Prisma.FieldRef<"User", 'Int'>
   readonly locked_until: Prisma.FieldRef<"User", 'DateTime'>
+  readonly totp_secret_encrypted: Prisma.FieldRef<"User", 'String'>
+  readonly totp_enabled: Prisma.FieldRef<"User", 'Boolean'>
+  readonly totp_recovery_codes: Prisma.FieldRef<"User", 'Json'>
 }
     
 

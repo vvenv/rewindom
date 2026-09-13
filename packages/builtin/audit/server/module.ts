@@ -28,6 +28,13 @@ export const auditServerModule: ServerAppModule = {
       );
     },
     onBoot: async (ctx) => {
+      const outbox = ctx.registry.getOutboxProvider();
+
+      // 重投用的是同一条写入路径：投递箱只负责「再喊一次」，不另写一份落库逻辑。
+      outbox?.onMessage("audit.log", async (payload) => {
+        await AuditService.log(payload as unknown as AuditLogInput);
+      });
+
       ctx.events.on("audit.log", async (payload) => {
         try {
           // 内核事件契约刻意用 string 表达 action/scope（内核不依赖 audit 枚举），
@@ -35,6 +42,29 @@ export const auditServerModule: ServerAppModule = {
           await AuditService.log(payload as AuditLogInput);
         } catch (err) {
           ctx.log.warn({ err }, "[audit] event handler failed");
+
+          /*
+           * 审计是「所有写操作都必须留痕」的硬规则，而 EventBus 对 handler 抛错
+           * 的处理是吞掉——一次数据库抖动就能让那条记录永久消失，只剩上面这行
+           * warn。交给投递箱退避重试；没装 outbox 模块时维持旧行为（就是丢）。
+           */
+          if (!outbox) {
+            return;
+          }
+          try {
+            await outbox.enqueue({
+              topic: "audit.log",
+              payload: payload as never,
+              tenant_id: null,
+              last_error: err instanceof Error ? err.message : String(err),
+            });
+          } catch (enqueueErr) {
+            // 连投递箱都写不进去，多半是同一个库出了问题，只能留证据
+            ctx.log.error(
+              { err: enqueueErr },
+              "[audit] 转投递箱失败，该条审计已丢失",
+            );
+          }
         }
       });
     },

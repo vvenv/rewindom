@@ -15,6 +15,7 @@ import { Outlet, useNavigate } from "react-router";
 import { useAppShellConfig } from "../contexts/app-shell-context.js";
 
 import { AppMobileHeader } from "./AppMobileHeader.js";
+import { CommandPaletteProvider } from "./CommandPalette.js";
 import { ShellProviders } from "./ShellProviders.js";
 import { ShellSlotList } from "./ShellSlotList.js";
 import { DesktopSidebar, MobileNavDrawer, MobileTabBar } from "./Sidebar.js";
@@ -133,11 +134,13 @@ export function AppLayout() {
           {/* 徽标注册表要同时覆盖顶栏/侧边栏与移动端 tab bar，故提到骨架之外 */}
           <NavBadgeRegistryProvider>
             <NavBadgeContributors />
-            <AppShellFrame
-              impersonating={impersonating}
-              mobileNavOpen={mobileNavOpen}
-              onMobileNavOpenChange={setMobileNavOpen}
-            />
+            <CommandPaletteProvider>
+              <AppShellFrame
+                impersonating={impersonating}
+                mobileNavOpen={mobileNavOpen}
+                onMobileNavOpenChange={setMobileNavOpen}
+              />
+            </CommandPaletteProvider>
           </NavBadgeRegistryProvider>
         </ShellProviders>
       </ShellLayoutProvider>

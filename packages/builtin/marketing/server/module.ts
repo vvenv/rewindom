@@ -49,6 +49,7 @@ export const marketingServerModule: ServerAppModule = {
       { action: "SITE_REDIRECT_DELETE", label: "删除官网重定向" },
       { action: "SITE_ASSET_UPLOAD", label: "上传官网媒体" },
       { action: "SITE_ASSET_REPLACE", label: "替换官网媒体" },
+      { action: "SITE_ASSET_UPDATE", label: "编辑官网媒体信息" },
       { action: "SITE_ASSET_DELETE", label: "删除官网媒体" },
       { action: "SITE_PAGE_VERSION_RESTORE", label: "恢复官网页面历史版本" },
     ],

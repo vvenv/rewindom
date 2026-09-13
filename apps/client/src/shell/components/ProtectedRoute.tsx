@@ -3,14 +3,13 @@ import {
   useTenantEntitlements,
   useDefaultHomePath,
   ExternalOrNavigate,
-  isTenantAccessToken,
 } from "@rewindom/client-kit";
 import { isPlatformAdminActor } from "@rewindom/shared";
 import { Spinner } from "@rewindom/ui/spinner";
 import { Navigate, Outlet, useLocation } from "react-router";
 
 export function ProtectedRoute() {
-  const { isAuthenticated, isLoading, user, accessToken } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
   const entitlements = useTenantEntitlements();
   const platformHome = useDefaultHomePath();
@@ -27,11 +26,7 @@ export function ProtectedRoute() {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Prefer JWT actor (matches Authorization); AuthContext.user can lag after token swap.
-  if (
-    isPlatformAdminActor(user?.actor_type) ||
-    (accessToken !== null && !isTenantAccessToken(accessToken))
-  ) {
+  if (isPlatformAdminActor(user?.actor_type)) {
     return <ExternalOrNavigate to={platformHome} replace />;
   }
 

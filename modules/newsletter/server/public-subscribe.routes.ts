@@ -41,6 +41,7 @@ export async function publicNewsletterRoutes(
   defineRoute(app, {
     method: "POST",
     url: "/subscribe",
+    // audit:skip -- 访客自助订阅，订阅记录本身就是这件事的证据
     context: "PublicNewsletterSubscribe",
     errorCode: "PUBLIC_NEWSLETTER_SUBSCRIBE_FAILED",
     handler: async (request, reply) => {

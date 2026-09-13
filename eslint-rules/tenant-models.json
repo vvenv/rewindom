@@ -31,6 +31,7 @@
   "note": "tenant_id",
   "notification": "tenant_id",
   "notificationLog": "tenant_id",
+  "outboxMessage": "tenant_id",
   "payment": "tenant_id",
   "role": "tenant_id",
   "shopCart": "tenant_id",

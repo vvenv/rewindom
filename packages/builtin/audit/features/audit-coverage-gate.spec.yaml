@@ -1,0 +1,51 @@
+# 增量功能契约 —— 审计覆盖闸门可信化
+#
+# 跨模块：闸门本身在 audit 的语义域内，落盘放这里；被改动的写路由分布在
+# shop / marketing 与若干 infra 模块。
+
+module: audit
+surfaces: [tenant, platform]
+goal: 让 `check:modules` 的审计一节重新有信号——噪音归零，真缺口补齐
+gold: modules/shop/server/order/shop-admin.routes.ts # 已有的 SHOP_ORDER_FULFILL 写法
+
+problem: |
+  `check:modules` 长期报 24 条「写路由没有审计事件」。其中约 14 条是规则误报
+  （用户自己的界面偏好、通知已读、访客公开接口），另外约 10 条是真缺口
+  ——包括 shop 的运费区/费率增删改、订单完成、以及 Stripe 回调把订单标成已付款。
+
+  两者混在一起的后果是：所有人（和 Agent）学会了整节忽略。警告不归零就不是闸门。
+
+# ---------- 两半 ----------
+approach:
+  - 显式豁免：路由块内写 `// audit:skip -- 理由`，检查器据此跳过；
+    只写 `audit:skip` 不给理由的，改报「豁免必须写理由」
+  - 补齐真缺口：按各模块既有写法 emit，动作进 manifest / AuditAction 枚举，
+    detail_key 两种语言都要有
+
+touch:
+  - scripts/verify-module.mjs
+  - packages/builtin/audit/shared/audit.ts
+  - packages/builtin/audit/client/locales/
+  - packages/builtin/marketing/server/site.routes.ts
+  - modules/shop/server/module.ts
+  - modules/shop/server/i18n.ts
+  - modules/shop/server/catalog/catalog.routes.ts
+  - modules/shop/server/order/shop-admin.routes.ts
+  - packages/builtin/dashboard/server/dashboard-preference.routes.ts
+  - packages/builtin/notification/server/notification.routes.ts
+  - packages/builtin/site-member/server/
+  - packages/builtin/translation/server/public-translation.routes.ts
+  - modules/newsletter/server/public-subscribe.routes.ts
+  - modules/events/server/follow/follow.routes.ts
+  - modules/site-form/server/public-form.routes.ts
+
+out_of_scope:
+  - 审计 actor 三分（user / system / ai）——需要加列与前端筛选，另起一轮
+  - 字段级 diff——本仓没有 repository 收口，要么上 Prisma 扩展、要么逐路由写，都不是这一轮
+  - 会员侧（site-member）登录审计：租户审计是「后台操作」语义，会员行为是另一套
+
+i18n: code
+acceptance:
+  - pnpm check:modules # 审计一节 0 warn
+  - pnpm check:i18n
+  - pnpm --filter @rewindom/shop test

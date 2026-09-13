@@ -5,6 +5,7 @@ import type {
   AppMobileHeaderState,
   AppNavItem,
   AppNavSection,
+  CommandAction,
   HomePathCandidate,
   MobileTabItem,
   PlatformNavEntry,
@@ -30,6 +31,8 @@ export interface AppShellConfig {
     route: Pick<AppNavItem, "path" | "end" | "activePrefix">,
   ) => boolean;
   getAppNavItems: () => AppNavItem[];
+  /** 命令面板的非导航动作；导航项由 `getNavSections` 供给，不在此重复。 */
+  getCommandActions: () => readonly CommandAction[];
   resolveMobileHeaderState: (pathname: string) => AppMobileHeaderState;
   /** 登录落地页候选；禁用的 `tenantModule` 会被跳过。 */
   homePathCandidates: readonly HomePathCandidate[];

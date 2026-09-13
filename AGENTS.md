@@ -36,6 +36,7 @@
 | Client 启用模块   | `apps/client/src/enabled-modules.ts`                                          |
 | 官网（租户 CMS）  | `packages/builtin/marketing/`（主域=默认租户 SSR；平台控制台见 `PLATFORM_URL`） |
 | 工作台卡片        | 各模块 `client.dashboardWidgets` → `packages/builtin/dashboard` 聚合渲染（含用户级显隐/排序）|
+| 命令面板（⌘K）    | 侧栏导航项自动收录 + 各模块 `client.commandActions` 补非导航去处 → 壳层 `CommandPalette` |
 | 登录落地页        | `apps/client/src/home-path-candidates.ts`（默认 `/app/dashboard`；入口统一走 `/app`） |
 | 内核路由          | `packages/server-kernel/src/kernel/kernel-routes.ts`                          |
 | App Shell（前端） | `packages/client-kit/` + `apps/client/src/app-shell-routes.tsx`               |

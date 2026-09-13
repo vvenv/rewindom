@@ -170,6 +170,7 @@ export async function followRoutes(app: FastifyInstance): Promise<void> {
   defineRoute(app, {
     method: "POST",
     url: "/entity/:entityId/seen",
+    // audit:skip -- 阅读位置，不是业务写操作
     context: "EventEntityMarkSeen",
     errorCode: "EVENT_ENTITY_MARK_SEEN_FAILED",
     preHandler: [app.requirePermission("events.follow")],
@@ -186,6 +187,7 @@ export async function followRoutes(app: FastifyInstance): Promise<void> {
   defineRoute(app, {
     method: "POST",
     url: "/:eventId/seen",
+    // audit:skip -- 同上
     context: "EventMarkSeen",
     errorCode: "EVENT_MARK_SEEN_FAILED",
     preHandler: [app.requirePermission("events.follow")],

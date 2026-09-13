@@ -180,13 +180,7 @@ export {
   ACCESS_TOKEN_KEY,
   REFRESH_TOKEN_KEY,
 } from "./lib/auth-token-storage.js";
-export {
-  readTenantIdFromAccessToken,
-  readStoredTenantQueryScope,
-  readActorTypeFromAccessToken,
-  isTenantAccessToken,
-  useTenantQueryScope,
-} from "./tenant-query-scope.js";
+export { useTenantQueryScope } from "./tenant-query-scope.js";
 export {
   TenantFilterProvider,
   useTenantFilter,
@@ -264,14 +258,14 @@ export {
   getClientTenantCatalog,
 } from "./lib/tenant-catalog";
 export * from "./lib/environment";
-export { AuthProvider, AuthContext } from "./contexts/AuthContext";
+export { AuthProvider, AuthContext, isLoginRequires2fa } from "./contexts/AuthContext";
+export type { AuthContextType, LoginResult } from "./contexts/AuthContext";
 export { ConfirmProvider, ConfirmContext } from "./contexts/ConfirmContext";
 export {
   NavBadgeRegistryProvider,
   useNavBadgeCount,
   useNavBadgeRegistry,
 } from "./contexts/nav-badge-context";
-export type { AuthContextType } from "./contexts/AuthContext";
 export type { ConfirmContextValue } from "./contexts/ConfirmContext";
 
 // 原 @rewindom/client-api

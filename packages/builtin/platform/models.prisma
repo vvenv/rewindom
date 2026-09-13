@@ -20,6 +20,9 @@ model PlatformAdmin {
   last_access_at        DateTime?
   failed_login_attempts Int       @default(0)
   locked_until          DateTime?
+  totp_secret_encrypted String?
+  totp_enabled          Boolean   @default(false)
+  totp_recovery_codes   Json?
 
   admin_roles    PlatformAdminRole[]
   refresh_tokens PlatformAdminRefreshToken[]

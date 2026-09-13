@@ -52,6 +52,7 @@ import { getUserDisplayProfile } from "../lib/user-display.js";
 import { userMenuUsageSlot } from "../shell/user-menu-slots.js";
 
 import { ChangePasswordDialog } from "./ChangePasswordDialog.js";
+import { TwoFactorSetupDialog } from "./TwoFactorSetupDialog.js";
 
 interface UserAvatarProps {
   showLabel?: boolean;
@@ -244,8 +245,22 @@ export function UserAvatar({
                 </DropdownMenuItem>
               }
             />
+            <DropdownMenuItem asChild onSelect={(e) => e.preventDefault()}>
+              <TwoFactorSetupDialog className="relative flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none" />
+            </DropdownMenuItem>
           </>
         )}
+        {!impersonating &&
+          (user.actor_type === "platform_admin" ||
+            user.actor_type === "tenant_user") &&
+          !isRegularUser(user, impersonating) && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild onSelect={(e) => e.preventDefault()}>
+                <TwoFactorSetupDialog className="relative flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none" />
+              </DropdownMenuItem>
+            </>
+          )}
         <DropdownMenuSeparator />
         <PreferenceToggleRow
           icon={<Languages className="size-4" />}
@@ -295,7 +310,7 @@ export function UserAvatar({
         {impersonating ? (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={exitImpersonation}>
+            <DropdownMenuItem onClick={() => void exitImpersonation()}>
               <ArrowLeft className="size-4" />
               <span>{tShell("backToPlatform")}</span>
             </DropdownMenuItem>

@@ -435,6 +435,7 @@ export const ModelName = {
   Note: 'Note',
   Notification: 'Notification',
   NotificationLog: 'NotificationLog',
+  OutboxMessage: 'OutboxMessage',
   AppSetting: 'AppSetting',
   PlatformAdmin: 'PlatformAdmin',
   PlatformAdminRole: 'PlatformAdminRole',
@@ -485,7 +486,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "content" | "contentTemplate" | "contentAsset" | "dashboardPreference" | "errorLog" | "eventFeed" | "eventSignal" | "newsEvent" | "eventEntity" | "eventEntityLink" | "eventEntityFollow" | "eventRevision" | "eventTimelineEntry" | "eventFollow" | "ipAccessRule" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "mailDelivery" | "marketingSite" | "marketingPage" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "newsletterSubscriber" | "newsletterSubscription" | "newsletterDigestRun" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "shopSetting" | "shopProduct" | "shopCollection" | "shopCollectionProduct" | "shopDiscount" | "shopVariant" | "shopCart" | "shopCartItem" | "shopShippingZone" | "shopShippingRate" | "shopOrder" | "shopOrderLine" | "shopShipment" | "shopPayment" | "memberPlan" | "memberSubscription" | "memberPayment" | "siteDocCategory" | "siteDoc" | "siteFormSubmission" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "slowRequestLog" | "todo" | "thing"
+    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "content" | "contentTemplate" | "contentAsset" | "dashboardPreference" | "errorLog" | "eventFeed" | "eventSignal" | "newsEvent" | "eventEntity" | "eventEntityLink" | "eventEntityFollow" | "eventRevision" | "eventTimelineEntry" | "eventFollow" | "ipAccessRule" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "mailDelivery" | "marketingSite" | "marketingPage" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "newsletterSubscriber" | "newsletterSubscription" | "newsletterDigestRun" | "note" | "notification" | "notificationLog" | "outboxMessage" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "shopSetting" | "shopProduct" | "shopCollection" | "shopCollectionProduct" | "shopDiscount" | "shopVariant" | "shopCart" | "shopCartItem" | "shopShippingZone" | "shopShippingRate" | "shopOrder" | "shopOrderLine" | "shopShipment" | "shopPayment" | "memberPlan" | "memberSubscription" | "memberPayment" | "siteDocCategory" | "siteDoc" | "siteFormSubmission" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "slowRequestLog" | "todo" | "thing"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3298,6 +3299,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.NotificationLogCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.NotificationLogCountAggregateOutputType> | number
+        }
+      }
+    }
+    OutboxMessage: {
+      payload: Prisma.$OutboxMessagePayload<ExtArgs>
+      fields: Prisma.OutboxMessageFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OutboxMessageFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxMessagePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OutboxMessageFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxMessagePayload>
+        }
+        findFirst: {
+          args: Prisma.OutboxMessageFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxMessagePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OutboxMessageFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxMessagePayload>
+        }
+        findMany: {
+          args: Prisma.OutboxMessageFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxMessagePayload>[]
+        }
+        create: {
+          args: Prisma.OutboxMessageCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxMessagePayload>
+        }
+        createMany: {
+          args: Prisma.OutboxMessageCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OutboxMessageCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxMessagePayload>[]
+        }
+        delete: {
+          args: Prisma.OutboxMessageDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxMessagePayload>
+        }
+        update: {
+          args: Prisma.OutboxMessageUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxMessagePayload>
+        }
+        deleteMany: {
+          args: Prisma.OutboxMessageDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OutboxMessageUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OutboxMessageUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxMessagePayload>[]
+        }
+        upsert: {
+          args: Prisma.OutboxMessageUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxMessagePayload>
+        }
+        aggregate: {
+          args: Prisma.OutboxMessageAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOutboxMessage>
+        }
+        groupBy: {
+          args: Prisma.OutboxMessageGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OutboxMessageGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OutboxMessageCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OutboxMessageCountAggregateOutputType> | number
         }
       }
     }
@@ -6391,7 +6466,10 @@ export const UserScalarFieldEnum = {
   last_login_at: 'last_login_at',
   last_access_at: 'last_access_at',
   failed_login_attempts: 'failed_login_attempts',
-  locked_until: 'locked_until'
+  locked_until: 'locked_until',
+  totp_secret_encrypted: 'totp_secret_encrypted',
+  totp_enabled: 'totp_enabled',
+  totp_recovery_codes: 'totp_recovery_codes'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -6618,6 +6696,24 @@ export const NotificationLogScalarFieldEnum = {
 export type NotificationLogScalarFieldEnum = (typeof NotificationLogScalarFieldEnum)[keyof typeof NotificationLogScalarFieldEnum]
 
 
+export const OutboxMessageScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  topic: 'topic',
+  payload: 'payload',
+  status: 'status',
+  attempts: 'attempts',
+  next_attempt_at: 'next_attempt_at',
+  locked_at: 'locked_at',
+  last_error: 'last_error',
+  dedupe_key: 'dedupe_key',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type OutboxMessageScalarFieldEnum = (typeof OutboxMessageScalarFieldEnum)[keyof typeof OutboxMessageScalarFieldEnum]
+
+
 export const AppSettingScalarFieldEnum = {
   key: 'key',
   value: 'value',
@@ -6639,7 +6735,10 @@ export const PlatformAdminScalarFieldEnum = {
   last_login_at: 'last_login_at',
   last_access_at: 'last_access_at',
   failed_login_attempts: 'failed_login_attempts',
-  locked_until: 'locked_until'
+  locked_until: 'locked_until',
+  totp_secret_encrypted: 'totp_secret_encrypted',
+  totp_enabled: 'totp_enabled',
+  totp_recovery_codes: 'totp_recovery_codes'
 } as const
 
 export type PlatformAdminScalarFieldEnum = (typeof PlatformAdminScalarFieldEnum)[keyof typeof PlatformAdminScalarFieldEnum]
@@ -7514,6 +7613,7 @@ export type GlobalOmitConfig = {
   note?: Prisma.NoteOmit
   notification?: Prisma.NotificationOmit
   notificationLog?: Prisma.NotificationLogOmit
+  outboxMessage?: Prisma.OutboxMessageOmit
   appSetting?: Prisma.AppSettingOmit
   platformAdmin?: Prisma.PlatformAdminOmit
   platformAdminRole?: Prisma.PlatformAdminRoleOmit

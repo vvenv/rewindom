@@ -4,6 +4,7 @@ import {
   APP_NAV_SECTION_ORDER,
   type ClientAppModule,
   type AppNavSection,
+  type CommandAction,
   type DashboardWidget,
   type PlatformDashboardSection,
   type TenantSettingsPanel,
@@ -111,6 +112,23 @@ export function collectDashboardWidgets(
     for (const widget of module.client?.dashboardWidgets ?? []) {
       if (!byId.has(widget.id)) {
         byId.set(widget.id, widget);
+      }
+    }
+  }
+  return [...byId.values()];
+}
+
+/**
+ * 汇总各模块贡献给命令面板的动作。同 id 只保留先注册的那个，与上面的收集器一致。
+ */
+export function collectCommandActions(
+  modules: readonly ClientAppModule[],
+): readonly CommandAction[] {
+  const byId = new Map<string, CommandAction>();
+  for (const module of modules) {
+    for (const action of module.client?.commandActions ?? []) {
+      if (!byId.has(action.id)) {
+        byId.set(action.id, action);
       }
     }
   }

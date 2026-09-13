@@ -66,6 +66,11 @@ model User {
   last_access_at        DateTime?
   failed_login_attempts Int       @default(0)
   locked_until          DateTime?
+  /// TOTP 密钥（AES-GCM，复用 TENANT_SECRET_ENCRYPTION_KEY）；未开启时可为 pending 态密文
+  totp_secret_encrypted String?
+  totp_enabled          Boolean   @default(false)
+  /// bcrypt 哈希数组（JSON string[]）；明文恢复码只在生成时返回一次
+  totp_recovery_codes   Json?
 
   tenant          Tenant           @relation(fields: [tenant_id], references: [id])
   refresh_tokens  RefreshToken[]

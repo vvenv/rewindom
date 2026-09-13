@@ -118,6 +118,7 @@ export function buildPlatformAdminUser(admin: {
   actor_type: AuthActorType;
   is_system_admin: boolean;
   enabled: boolean;
+  tenant_id: null;
   created_at: Date;
   updated_at: Date;
   last_login_at: Date | null;
@@ -129,6 +130,7 @@ export function buildPlatformAdminUser(admin: {
     actor_type: "platform_admin",
     is_system_admin: admin.is_system_admin,
     enabled: admin.enabled,
+    tenant_id: null,
     created_at: admin.created_at,
     updated_at: admin.updated_at,
     last_login_at: admin.last_login_at,

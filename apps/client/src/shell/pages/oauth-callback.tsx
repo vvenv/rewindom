@@ -12,14 +12,11 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 
 import { AuthPageShell } from "../components/AuthPageShell.js";
-import {
-  parseOAuthHashTokens,
-  resolveOAuthErrorI18nKey,
-} from "../lib/oauth-callback.js";
+import { resolveOAuthErrorI18nKey } from "../lib/oauth-callback.js";
 
 export function OAuthCallback() {
   const { t } = useTranslation(["shell", "common"]);
-  const { loginWithTokens } = useAuth();
+  const { establishSession } = useAuth();
   const navigate = useNavigate();
   const {
     data: { platform_url },
@@ -38,19 +35,7 @@ export function OAuthCallback() {
       return;
     }
 
-    const tokens = parseOAuthHashTokens(window.location.hash);
-    if (!tokens) {
-      setError(t("auth.oauth.missingTokens"));
-      return;
-    }
-
-    window.history.replaceState(
-      null,
-      "",
-      `${window.location.pathname}${window.location.search}`,
-    );
-
-    void loginWithTokens(tokens)
+    void establishSession()
       .then((user) => {
         if (isPlatformAdminActor(user.actor_type)) {
           goToPlatformConsole(platform_url);
@@ -63,7 +48,7 @@ export function OAuthCallback() {
           err instanceof Error ? err.message : t("auth.oauth.failed"),
         );
       });
-  }, [loginWithTokens, navigate, platform_url, t]);
+  }, [establishSession, navigate, platform_url, t]);
 
   return (
     <AuthPageShell>

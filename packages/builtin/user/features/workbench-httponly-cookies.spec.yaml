@@ -1,0 +1,30 @@
+# 工作台 JWT → HttpOnly cookie（对齐站点会员）
+
+module: user
+surfaces: [tenant, platform]
+goal: >
+  工作台会话从 localStorage Bearer 改为 HttpOnly cookie（SameSite=Lax）；
+  Bearer 仍可用于脚本/测试；模拟登录的平台会话备份改走专用 HttpOnly cookie。
+gold: packages/builtin/site-member/server/member-auth-cookies.ts
+touch:
+  - packages/shared/src/
+  - packages/server-kernel/src/kernel/
+  - packages/server-kernel/src/middleware/auth.middleware.ts
+  - packages/client-kit/src/
+  - packages/builtin/platform/client/
+  - packages/builtin/platform/server/routes/tenant.routes.ts
+  - packages/server-kernel/src/kernel/routes/auth.routes.ts
+  - packages/server-test/src/test-helper.ts
+  - packages/server-test/package.json
+  - apps/client/src/shell/
+out_of_scope:
+  - 2FA / TOTP
+  - 站点会员 cookie 实现改动
+  - 双提交 CSRF token（沿用 SameSite=Lax）
+  - 审计 actor triad / field diffs
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/shared test -- workbench-cookies
+  - pnpm --filter @rewindom/client-kit test
+  - pnpm --filter @rewindom/server-kernel exec vitest run src/kernel src/middleware
+  - node scripts/verify-module.mjs user

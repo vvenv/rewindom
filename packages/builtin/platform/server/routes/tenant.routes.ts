@@ -4,6 +4,12 @@ import {
   sendCodedError,
 } from "@rewindom/server-kernel/http/route-error-handler.js";
 import { createJwtSigner } from "@rewindom/server-kernel/kernel/auth/jwt.js";
+import {
+  readWorkbenchAccessCookie,
+  readWorkbenchRefreshCookie,
+  setWorkbenchAuthCookies,
+  setWorkbenchImpersonationReturnCookie,
+} from "@rewindom/server-kernel/kernel/auth/workbench-auth-cookies.js";
 import { hasErrorCode } from "@rewindom/server-kernel/lib/app-errors.js";
 import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
 import { getServerTenantCatalog } from "@rewindom/server-kernel/runtime/tenant-catalog.js";
@@ -369,7 +375,18 @@ export async function registerTenantRoutes(
           userAgent: request.headers["user-agent"],
         });
 
-        return reply.send(success(result));
+        const currentAccess = readWorkbenchAccessCookie(request);
+        const currentRefresh = readWorkbenchRefreshCookie(request);
+        if (currentAccess && currentRefresh) {
+          setWorkbenchImpersonationReturnCookie(reply, {
+            accessToken: currentAccess,
+            refreshToken: currentRefresh,
+          });
+        }
+        setWorkbenchAuthCookies(reply, result.tokens);
+
+        const { tokens: _tokens, ...session } = result;
+        return reply.send(success(session));
       } catch (err) {
         return handleRouteError(
           reply,

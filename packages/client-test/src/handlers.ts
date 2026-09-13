@@ -12,6 +12,7 @@ export const defaultHandlers = [
         actor_type: "tenant_user",
         is_system_admin: false,
         enabled: true,
+        tenant_id: "tenant1",
         last_login_at: null,
         last_access_at: null,
         created_at: new Date().toISOString(),

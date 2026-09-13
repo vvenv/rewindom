@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import {
+  ACCESS_TOKEN_TTL_SECONDS,
   InvalidLoginIdentifierError,
   InvalidTenantSlugError,
   isRegularUser,
@@ -20,6 +21,10 @@ import { emitAuditLog } from "../../runtime/audit-log-emit.js";
 import { emitDomainEventSafe } from "../../runtime/domain-event-emit.js";
 import { AuthService } from "../auth/auth.service.js";
 import {
+  TWO_FACTOR_CHALLENGE_TTL_SECONDS,
+  TwoFactorService,
+} from "../auth/two-factor.service.js";
+import {
   buildGithubAuthorizeUrl,
   GithubOAuthService,
 } from "../auth/github-oauth.service.js";
@@ -28,6 +33,13 @@ import {
   GoogleOAuthService,
 } from "../auth/google-oauth.service.js";
 import { createJwtSigner } from "../auth/jwt.js";
+import {
+  clearWorkbenchAuthCookies,
+  clearWorkbenchImpersonationReturnCookie,
+  readWorkbenchImpersonationReturnCookie,
+  readWorkbenchRefreshCookie,
+  setWorkbenchAuthCookies,
+} from "../auth/workbench-auth-cookies.js";
 import {
   buildMicrosoftAuthorizeUrl,
   MicrosoftOAuthService,
@@ -114,7 +126,43 @@ export async function authRoutes(app: FastifyInstance) {
         username: result.user.username,
       });
 
-      return reply.send({ data: result });
+      if (
+        await TwoFactorService.isEnabled(
+          result.user.id,
+          result.user.actor_type,
+        )
+      ) {
+        await AuthService.logout(result.tokens.refreshToken);
+        const challenge_token = TwoFactorService.createChallengeToken(
+          {
+            userId: result.user.id,
+            actor_type:
+              result.user.actor_type === "platform_admin"
+                ? "platform_admin"
+                : "tenant_user",
+            is_system_admin: result.user.is_system_admin,
+            tenant_id: result.user.tenant_id ?? undefined,
+            tenant_slug: result.tenant_slug ?? undefined,
+          },
+          createJwtSigner(app),
+        );
+        return reply.send({
+          data: {
+            requires_2fa: true,
+            challenge_token,
+            expires_in: TWO_FACTOR_CHALLENGE_TTL_SECONDS,
+          },
+        });
+      }
+
+      setWorkbenchAuthCookies(reply, result.tokens);
+      return reply.send({
+        data: {
+          user: result.user,
+          tenant_slug: result.tenant_slug,
+          expires_in: ACCESS_TOKEN_TTL_SECONDS,
+        },
+      });
     } catch (error) {
       // 凭证类失败上报给访问控制做爆破计数。内核不认识 ip-access，走事件总线。
       if (error instanceof AppError || error instanceof InvalidLoginIdentifierError) {
@@ -137,7 +185,10 @@ export async function authRoutes(app: FastifyInstance) {
   // Refresh token - POST /api/auth/refresh
   app.post("/refresh", async (request, reply) => {
     try {
-      const { refreshToken } = request.body as RefreshBody;
+      const body = (request.body as RefreshBody | undefined) ?? undefined;
+      const refreshToken =
+        readWorkbenchRefreshCookie(request) ||
+        (typeof body?.refreshToken === "string" ? body.refreshToken : "");
 
       if (!refreshToken) {
         return handleValidationError(reply, "auth.refresh_required");
@@ -149,9 +200,12 @@ export async function authRoutes(app: FastifyInstance) {
         app.jwt.verify.bind(app.jwt),
       );
 
+      setWorkbenchAuthCookies(reply, tokens);
+      // cookie 模式客户端不读 body；Bearer 脚本仍可读 tokens。
       return reply.send({ data: tokens });
     } catch (error) {
       if (error instanceof AppError && error.code) {
+        clearWorkbenchAuthCookies(reply);
         return sendCodedError(reply, error.status, error.code, error.params);
       }
       app.log.error(error);
@@ -164,14 +218,15 @@ export async function authRoutes(app: FastifyInstance) {
     onRequest: [app.authenticate],
     handler: async (request: FastifyRequest, reply) => {
       try {
-        const { refreshToken } = request.body as RefreshBody;
+        const body = (request.body as RefreshBody | undefined) ?? undefined;
+        const refreshToken =
+          readWorkbenchRefreshCookie(request) ||
+          (typeof body?.refreshToken === "string" ? body.refreshToken : "");
         const { userId, username } = request.authUser!;
 
-        if (!refreshToken) {
-          return handleValidationError(reply, "auth.refresh_required");
+        if (refreshToken) {
+          await AuthService.logout(refreshToken);
         }
-
-        await AuthService.logout(refreshToken);
 
         try {
           await emitAuditLog(app.events, {
@@ -188,9 +243,11 @@ export async function authRoutes(app: FastifyInstance) {
           app.log.error({ error: auditError }, "记录审计日志失败");
         }
 
+        clearWorkbenchAuthCookies(reply);
         return reply.send({ data: null });
       } catch (error) {
         app.log.error(error);
+        clearWorkbenchAuthCookies(reply);
         return sendCodedError(reply, 500, "common.internal_error");
       }
     },
@@ -227,15 +284,14 @@ export async function authRoutes(app: FastifyInstance) {
           { hostTenant: request.hostTenantContext ?? null },
         );
 
+      setWorkbenchAuthCookies(reply, result.tokens);
       return reply.code(201).send(
         success({
           tenant_id: result.tenant_id,
           tenant_slug: result.tenant_slug,
           user_id: result.user_id,
           username: result.username,
-          access_token: result.tokens.accessToken,
-          refresh_token: result.tokens.refreshToken,
-          expires_in: 900,
+          expires_in: ACCESS_TOKEN_TTL_SECONDS,
         }),
       );
     } catch (err) {
@@ -334,6 +390,139 @@ export async function authRoutes(app: FastifyInstance) {
         return sendCodedError(reply, 500, "common.internal_error");
       }
     },
+  });
+
+  app.get("/2fa/status", {
+    onRequest: [app.authenticate],
+    handler: async (request: FastifyRequest, reply) => {
+      try {
+        const { userId, actor_type } = request.authUser!;
+        const status = await TwoFactorService.getStatus(userId, actor_type);
+        return reply.send({ data: status });
+      } catch (error) {
+        if (error instanceof AppError && error.code) {
+          return sendCodedError(reply, error.status, error.code, error.params);
+        }
+        app.log.error(error);
+        return sendCodedError(reply, 500, "common.internal_error");
+      }
+    },
+  });
+
+  app.post("/2fa/setup", {
+    onRequest: [app.authenticate],
+    handler: async (request: FastifyRequest, reply) => {
+      try {
+        const { userId, actor_type, username } = request.authUser!;
+        const setup = await TwoFactorService.startSetup(
+          userId,
+          actor_type,
+          username,
+        );
+        return reply.send({ data: setup });
+      } catch (error) {
+        if (error instanceof AppError && error.code) {
+          return sendCodedError(reply, error.status, error.code, error.params);
+        }
+        app.log.error(error);
+        return sendCodedError(reply, 500, "common.internal_error");
+      }
+    },
+  });
+
+  app.post("/2fa/confirm", {
+    onRequest: [app.authenticate],
+    handler: async (request: FastifyRequest, reply) => {
+      try {
+        const { code } = request.body as { code?: string };
+        if (!code) {
+          return handleValidationError(reply, "auth.2fa_code_required");
+        }
+        const { userId, actor_type } = request.authUser!;
+        await TwoFactorService.confirmSetup(userId, actor_type, code);
+        return reply.send({ data: { enabled: true } });
+      } catch (error) {
+        if (error instanceof AppError && error.code) {
+          return sendCodedError(reply, error.status, error.code, error.params);
+        }
+        app.log.error(error);
+        return sendCodedError(reply, 500, "common.internal_error");
+      }
+    },
+  });
+
+  app.post("/2fa/disable", {
+    onRequest: [app.authenticate],
+    handler: async (request: FastifyRequest, reply) => {
+      try {
+        const { code } = request.body as { code?: string };
+        if (!code) {
+          return handleValidationError(reply, "auth.2fa_code_required");
+        }
+        const { userId, actor_type } = request.authUser!;
+        await TwoFactorService.disable(userId, actor_type, code);
+        return reply.send({ data: { enabled: false } });
+      } catch (error) {
+        if (error instanceof AppError && error.code) {
+          return sendCodedError(reply, error.status, error.code, error.params);
+        }
+        app.log.error(error);
+        return sendCodedError(reply, 500, "common.internal_error");
+      }
+    },
+  });
+
+  app.post("/2fa/verify", async (request, reply) => {
+    try {
+      const { challenge_token, code } = request.body as {
+        challenge_token?: string;
+        code?: string;
+      };
+      if (!challenge_token || !code) {
+        return handleValidationError(reply, "auth.2fa_verify_required");
+      }
+      const result = await TwoFactorService.verifyAndIssueSession(
+        challenge_token,
+        code,
+        createJwtSigner(app),
+        app.jwt.verify.bind(app.jwt),
+      );
+      setWorkbenchAuthCookies(reply, result.tokens);
+      return reply.send({
+        data: {
+          user: result.user,
+          tenant_slug: result.tenant_slug,
+          expires_in: ACCESS_TOKEN_TTL_SECONDS,
+        },
+      });
+    } catch (error) {
+      if (error instanceof AppError && error.code) {
+        return sendCodedError(reply, error.status, error.code, error.params);
+      }
+      app.log.error(error);
+      return sendCodedError(reply, 500, "common.internal_error");
+    }
+  });
+
+  // 退出模拟登录：用 HttpOnly return cookie 恢复平台会话。
+  // 不可挂 /api/platform（模拟中是租户 JWT，会被中间件拒）。
+  app.post("/exit-impersonation", async (request, reply) => {
+    try {
+      const backup = readWorkbenchImpersonationReturnCookie(request);
+      if (!backup) {
+        return sendCodedError(
+          reply,
+          400,
+          "auth.impersonation_return_missing",
+        );
+      }
+      setWorkbenchAuthCookies(reply, backup);
+      clearWorkbenchImpersonationReturnCookie(reply);
+      return reply.send({ data: { restored: true } });
+    } catch (error) {
+      app.log.error(error);
+      return sendCodedError(reply, 500, "common.internal_error");
+    }
   });
 
   type WorkspaceOAuthService =
@@ -525,6 +714,31 @@ export async function authRoutes(app: FastifyInstance) {
           app.log.error({ error: auditError }, "记录 OAuth 审计日志失败");
         }
 
+        if (
+          await TwoFactorService.isEnabled(
+            result.user.id,
+            result.user.actor_type,
+          )
+        ) {
+          await AuthService.logout(result.tokens.refreshToken);
+          const challenge_token = TwoFactorService.createChallengeToken(
+            {
+              userId: result.user.id,
+              actor_type:
+                result.user.actor_type === "platform_admin"
+                  ? "platform_admin"
+                  : "tenant_user",
+              is_system_admin: result.user.is_system_admin,
+              tenant_slug: result.tenant_slug,
+            },
+            createJwtSigner(app),
+          );
+          const url = new URL("/auth/2fa", origin);
+          url.searchParams.set("challenge", challenge_token);
+          return reply.redirect(url.toString());
+        }
+
+        setWorkbenchAuthCookies(reply, result.tokens);
         return reply.redirect(
           provider.service.buildFrontendSuccessRedirect(result, origin),
         );

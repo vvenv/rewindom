@@ -37,6 +37,7 @@ import {
   useFilteredNavSections,
 } from "../hooks/useFilteredNavSections.js";
 
+import { CommandPaletteTrigger } from "./CommandPalette.js";
 import { ShellSlotList } from "./ShellSlotList.js";
 
 const SIDEBAR_ICON_BUTTON =
@@ -277,6 +278,7 @@ function SidebarGlobalActions({
         className,
       )}
     >
+      <CommandPaletteTrigger className={SIDEBAR_ICON_BUTTON} />
       <ShellSlotList
         components={shellContributions.sidebarToolbar}
         render={(Component, index) => <Component key={index} />}

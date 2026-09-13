@@ -263,6 +263,15 @@ export type Notification = Prisma.NotificationModel
  */
 export type NotificationLog = Prisma.NotificationLogModel
 /**
+ * Model OutboxMessage
+ * 一条待补偿投递的领域事件。
+ * 
+ * 只在**投递失败**时才有行：happy path 上 `EventBus` 的订阅者当场做完，这张表是空的。
+ * 成功重投后行被**删除**而不是标 done——消息本身是别处已有记录（审计行、通知行）的
+ * 副本，留着只会让表无限长，还要再配一个保留期清理任务。留下的只有死信。
+ */
+export type OutboxMessage = Prisma.OutboxMessageModel
+/**
  * Model AppSetting
  * 
  */

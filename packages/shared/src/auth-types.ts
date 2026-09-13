@@ -9,6 +9,11 @@ export interface User {
   actor_type: AuthActorType;
   is_system_admin: boolean;
   enabled: boolean;
+  /**
+   * 租户用户所属站点 id；平台管理员为 null。
+   * HttpOnly cookie 会话下前端无法解码 JWT，React Query 作用域靠此字段。
+   */
+  tenant_id: string | null;
   created_at: string;
   updated_at: string;
   last_login_at: string | null;
@@ -30,6 +35,22 @@ export interface LoginCredentials {
     y: number;
   } | null;
 }
+
+/** 密码登录在已开启 2FA 时返回此形态（不种 cookie）。 */
+export interface LoginRequires2fa {
+  requires_2fa: true;
+  challenge_token: string;
+  expires_in: number;
+}
+
+export interface LoginSessionResult {
+  requires_2fa?: false;
+  user: User;
+  tenant_slug: string | null;
+  expires_in: number;
+}
+
+export type LoginResponse = LoginRequires2fa | LoginSessionResult;
 
 export interface ChangePasswordData {
   oldPassword: string;

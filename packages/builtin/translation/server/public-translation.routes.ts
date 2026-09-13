@@ -100,6 +100,7 @@ export async function publicTranslationRoutes(
   defineRoute(app, {
     method: "POST",
     url: "/translation/translate",
+    // audit:skip -- 公开面访客翻译，无操作者；写进审计等于让访客流量灌满租户审计页
     context: "PublicTranslationTranslate",
     errorCode: "PUBLIC_TRANSLATION_FAILED",
     handler: async (request, reply) => {

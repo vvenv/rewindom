@@ -204,15 +204,14 @@ function oauthFrontendBase(requestOrigin?: string | null): string {
 }
 
 export function buildOAuthFrontendSuccessRedirect(
-  result: OAuthLoginResult,
+  _result: OAuthLoginResult,
   requestOrigin?: string | null,
 ): string {
-  const url = new URL("/auth/oauth/callback", oauthFrontendBase(requestOrigin));
-  const hash = new URLSearchParams({
-    access_token: result.tokens.accessToken,
-    refresh_token: result.tokens.refreshToken,
-  });
-  return `${url.toString()}#${hash.toString()}`;
+  // Cookie 已在 callback 响应里 Set-Cookie；落地页只负责拉 /auth/me。
+  return new URL(
+    "/auth/oauth/callback",
+    oauthFrontendBase(requestOrigin),
+  ).toString();
 }
 
 export function buildOAuthFrontendErrorRedirect(

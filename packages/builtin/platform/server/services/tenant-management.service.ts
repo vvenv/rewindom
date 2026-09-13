@@ -13,7 +13,7 @@ import {
 } from "@rewindom/server-kernel/lib/host-tenant.js";
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { emitDetachedDomainEventSafe } from "@rewindom/server-kernel/runtime/domain-event-emit.js";
-import { formatLoginIdentifier, generateRandomPassword, assertValidTenantSlug, DEFAULT_TENANT_SLUG, TENANT_SETTING_KEY_OPENAI } from "@rewindom/shared";
+import { formatLoginIdentifier, generateRandomPassword, assertValidTenantSlug, DEFAULT_TENANT_SLUG, TENANT_SETTING_KEY_OPENAI, type AuthTokens } from "@rewindom/shared";
 
 import { isValidPlanSlug, PRICING_PLANS, TENANT_FEATURES_STORAGE_KEY, TENANT_INITIAL_ADMIN_USERNAME, TENANT_LIMITS_STORAGE_KEY, type CreateTenantBody, type ImpersonateTenantResult, type PatchTenantBody, type PlanSlug, type PlatformUserSummary, type TenantAdminCredentials, type TenantCreated, type TenantIntegrationStatus, type TenantStats, type TenantSummary, type TenantStatus, type UpdateTenantPlanBody } from "../../shared/index.js";
 
@@ -521,7 +521,7 @@ export async function impersonateTenantAdmin(
   tenantId: string,
   jwtSign: (payload: JwtSignPayload) => string,
   userId?: string,
-): Promise<ImpersonateTenantResult> {
+): Promise<ImpersonateTenantResult & { tokens: AuthTokens }> {
   const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
   if (!tenant) {
     throw new NotFoundError("tenant.not_found");

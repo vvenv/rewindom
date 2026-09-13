@@ -67,6 +67,31 @@
     "noAccount": "Don't have an account?",
     "registerFree": "Register for free",
     "loginFailed": "Sign-in failed. Please try again.",
+    "twoFactor": {
+      "title": "Two-factor authentication",
+      "description": "Enter the 6-digit code from your authenticator app, or a recovery code.",
+      "codeLabel": "Authentication code",
+      "codePlaceholder": "123456",
+      "codeHint": "Recovery codes look like 123456-654321.",
+      "codeRequired": "Please enter an authentication code",
+      "verify": "Verify",
+      "verifyFailed": "Verification failed. Please try again.",
+      "back": "Back to sign-in",
+      "menu": "Two-factor authentication",
+      "enable": "Enable",
+      "disable": "Disable",
+      "enabled": "Enabled",
+      "disabled": "Not enabled",
+      "scanQr": "Scan this QR code with your authenticator app",
+      "manualSecret": "Or enter this key manually",
+      "recoveryCodes": "Save these recovery codes now. They will not be shown again.",
+      "confirmCode": "Confirm with a code from the app",
+      "setupFailed": "Could not start two-factor setup",
+      "confirmFailed": "Could not confirm two-factor setup",
+      "disableFailed": "Could not disable two-factor authentication",
+      "disableSuccess": "Two-factor authentication disabled",
+      "enableSuccess": "Two-factor authentication enabled"
+    },
     "oauth": {
       "or": "or",
       "continueWithGitHub": "Continue with GitHub",
@@ -163,6 +188,14 @@
       "verified": "Verified",
       "refresh": "Refresh captcha"
     }
+  },
+  "commandPalette": {
+    "title": "Command palette",
+    "description": "Search and jump to any page or action",
+    "placeholder": "Search pages and actions…",
+    "empty": "No matching results",
+    "actions": "Actions",
+    "open": "Open command palette (⌘K)"
   },
   "chrome": {
     "nav": "Navigation",

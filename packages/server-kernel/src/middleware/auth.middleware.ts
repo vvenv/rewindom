@@ -12,6 +12,7 @@ import {
   isApiKeyBlockedPath,
   isApiKeyToken,
   MEMBER_ACCESS_COOKIE,
+  WORKBENCH_ACCESS_COOKIE,
 } from "@rewindom/shared";
 
 import { sendCodedError } from "../http/coded-error.js";
@@ -27,8 +28,8 @@ import { updateRequestContext } from "../lib/request-context.js";
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 
 /**
- * 提取 access JWT：Bearer 优先（脚本/测试）；否则在会员 API 路径读 HttpOnly cookie。
- * 工作台路径不读会员 cookie，避免串会话。
+ * 提取 access JWT：Bearer 优先（脚本/测试）；否则读对应面的 HttpOnly cookie。
+ * 会员路径只读会员 cookie，工作台路径只读工作台 cookie，避免串会话。
  */
 function resolveAccessToken(
   request: FastifyRequest,
@@ -40,11 +41,10 @@ function resolveAccessToken(
     if (bearer) return bearer;
   }
 
-  if (!isSiteMemberApiPath(requestPath)) {
-    return null;
-  }
-
-  const cookieToken = request.cookies?.[MEMBER_ACCESS_COOKIE];
+  const cookieName = isSiteMemberApiPath(requestPath)
+    ? MEMBER_ACCESS_COOKIE
+    : WORKBENCH_ACCESS_COOKIE;
+  const cookieToken = request.cookies?.[cookieName];
   return typeof cookieToken === "string" && cookieToken.length > 0
     ? cookieToken
     : null;

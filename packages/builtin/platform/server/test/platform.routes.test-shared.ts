@@ -7,6 +7,7 @@ import {
   DEFAULT_TENANT_ID,
   PLATFORM_ADMIN_USER_ID,
 } from "@rewindom/shared";
+import cookie from "@fastify/cookie";
 import Fastify, { type FastifyInstance } from "fastify";
 import { vi } from "vitest";
 
@@ -28,6 +29,7 @@ installTestPermissionCatalog([
 
 export async function buildApp(): Promise<PlatformTestApp> {
   const app = Fastify({ logger: false });
+  await app.register(cookie);
   await registerJwt(app, "test-secret");
   await authMiddleware(app);
   const registry = new ProviderRegistry();

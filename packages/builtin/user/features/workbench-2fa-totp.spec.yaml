@@ -1,0 +1,37 @@
+# 工作台双因素认证（TOTP + 恢复码）
+
+module: user
+surfaces: [tenant, platform]
+goal: >
+  工作台账号（租户用户与平台管理员）可选开启 TOTP 双因素；
+  登录在密码/OAuth 通过后若已启用 2FA，需再提交验证码或恢复码才种会话 cookie。
+gold: packages/builtin/user/client/components/ChangePasswordDialog.tsx
+touch:
+  - packages/server-kernel/prisma/kernel.prisma
+  - apps/server/prisma/migrations/
+  - packages/server-kernel/src/kernel/auth/
+  - packages/server-kernel/src/kernel/routes/auth.routes.ts
+  - packages/server-kernel/src/lib/i18n/catalogs/
+  - packages/shared/src/auth-types.ts
+  - packages/client-kit/src/contexts/AuthContext.tsx
+  - packages/client-kit/src/i18n/shell/locales/
+  - packages/builtin/user/client/
+  - apps/client/src/shell/
+out_of_scope:
+  - WebAuthn / 硬件密钥
+  - 短信 / 邮件 OTP
+  - 强制全员开启 2FA 的租户策略
+  - 站点会员 2FA
+i18n: code
+models:
+  - User.totp_secret_encrypted
+  - User.totp_enabled
+  - User.totp_recovery_codes
+  - PlatformAdmin.totp_secret_encrypted
+  - PlatformAdmin.totp_enabled
+  - PlatformAdmin.totp_recovery_codes
+acceptance:
+  - pnpm --filter @rewindom/server-kernel exec vitest run src/kernel/auth
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'user/*'
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs user

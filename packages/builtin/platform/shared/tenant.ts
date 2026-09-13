@@ -94,10 +94,6 @@ export interface ImpersonateTenantResult {
     updated_at: string;
     last_login_at: string | null;
   };
-  tokens: {
-    accessToken: string;
-    refreshToken: string;
-  };
   tenant_slug: string;
   tenant_name: string;
   login_identifier: string;

@@ -269,7 +269,19 @@ describe("platform-tenant routes", () => {
     const { impersonateTenantAdmin } =
       await import("../services/tenant-management.service.js");
     vi.mocked(impersonateTenantAdmin).mockResolvedValueOnce({
-      access_token: "new-token",
+      user: {
+        id: "u-1",
+        username: "admin",
+        actor_type: "tenant_user",
+        is_system_admin: true,
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        last_login_at: null,
+      },
+      tokens: { accessToken: "impersonation-access", refreshToken: "impersonation-refresh" },
+      tenant_slug: "acme",
+      tenant_name: "Acme",
       login_identifier: "admin@acme",
     } as never);
 
@@ -281,7 +293,10 @@ describe("platform-tenant routes", () => {
     });
 
     expect(response.statusCode).toBe(200);
-    expect(response.json().data.access_token).toBe("new-token");
+    const { data } = response.json();
+    expect(data.login_identifier).toBe("admin@acme");
+    expect(data.tokens).toBeUndefined();
+    expect(response.headers["set-cookie"]).toBeDefined();
   });
 
   it("POST /tenants/:id/impersonate 租户不存在返回 404", async () => {

@@ -1,4 +1,9 @@
-import { type AuthActorType, type AuthTokens, type PublicConfig  } from "@rewindom/shared";
+import {
+  type AuthActorType,
+  type AuthTokens,
+  type JsonValue,
+  type PublicConfig,
+} from "@rewindom/shared";
 
 import type { HostTenantContext } from "../lib/host-tenant.js";
 import type { FastifyReply, FastifyRequest } from "fastify";
@@ -212,4 +217,39 @@ export interface MailProvider {
    * 为 false 时 `send()` 会抛，不会留下一条永远发不出去的 queued 记录。
    */
   isConfigured(tenant_id: string): Promise<boolean>;
+}
+
+// ---------------------------------------------------------------- 投递箱
+
+export interface OutboxEnqueueRequest {
+  /** 与 `DomainEventMap` 的事件名同形（`audit.log`），消费方按它认领。 */
+  topic: string;
+  payload: JsonValue;
+  tenant_id?: string | null;
+  /** 同 topic 下唯一；不传 = 不去重。 */
+  dedupe_key?: string | null;
+  /** 记下这次是因为什么失败才入队的，死信时平台管理员看的就是它。 */
+  last_error?: string;
+}
+
+/**
+ * 失败投递的补偿队列 —— 横切基础设施，由 `outbox` 模块实现。
+ *
+ * `EventBus` 对 handler 抛错的处理是**吞掉**（不得阻塞发布方）。订阅者若做的是
+ * 必须留下的事（写审计），就在自己的 catch 里把 payload 交给这里，由投递箱
+ * 退避重试、耗尽转死信。
+ *
+ * 走 ProviderRegistry 而不是直接 import `outbox`，理由同 `MailProvider`：
+ * 消费方跨层（infra 与业务模块都可能要），而契约必须留在内核。
+ * 拿不到 provider（模块没启用）时返回 null，调用方**维持原有行为**即可
+ * ——不要假装排上了队。
+ */
+export interface OutboxProvider {
+  enqueue(input: OutboxEnqueueRequest): Promise<{ id: string; deduped: boolean }>;
+  /**
+   * 登记某 topic 的重投逻辑。同 topic 只保留先注册的那个。
+   *
+   * 注册方与入队方通常是**同一个模块**：谁的副作用失败了，谁知道怎么重做。
+   */
+  onMessage(topic: string, handler: (payload: JsonValue) => Promise<void>): void;
 }

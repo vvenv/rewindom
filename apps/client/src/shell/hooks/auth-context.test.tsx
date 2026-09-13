@@ -1,20 +1,20 @@
 import { useContext } from "react";
 
-import { api, ApiError, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, AuthProvider, AuthContext   } from "@rewindom/client-kit";
+import {
+  api,
+  ApiError,
+  ACCESS_TOKEN_KEY,
+  REFRESH_TOKEN_KEY,
+  AuthProvider,
+  AuthContext,
+} from "@rewindom/client-kit";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-
-import type { AuthTokens } from "@rewindom/shared";
-
-
-
 
 function useAuth() {
   return useContext(AuthContext)!;
 }
 
-// mock 目标必须是 `api` 所在的具体模块：client-kit 内部走相对 import，
-// mock barrel 拦不到；且 barrel 自引会让 importActual 取到半初始化对象。
 vi.mock("@rewindom/client-kit/api.js", async (importActual) => {
   const actual = (await importActual()) as Record<string, unknown>;
   return {
@@ -30,14 +30,26 @@ vi.mock("@rewindom/client-kit/api.js", async (importActual) => {
   };
 });
 
+const mockUser = {
+  id: "u1",
+  username: "admin",
+  actor_type: "tenant_user" as const,
+  is_system_admin: false,
+  enabled: true,
+  tenant_id: "t1",
+  created_at: "2026-01-01T00:00:00.000Z",
+  updated_at: "2026-01-01T00:00:00.000Z",
+  last_login_at: null,
+  last_access_at: null,
+};
+
 describe("AuthContext", () => {
   const originalLocation = window.location;
 
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
-    // Mock API calls to prevent clearAuth from being called on mount
-    vi.mocked(api.get).mockResolvedValue({ id: "1", username: "test" });
+    vi.mocked(api.get).mockResolvedValue(mockUser);
     Object.defineProperty(window, "location", {
       value: { ...originalLocation, href: "http://localhost/" },
       writable: true,
@@ -53,90 +65,21 @@ describe("AuthContext", () => {
     });
   });
 
-  it("should initialize with no tokens when localStorage is empty", () => {
-    const { result } = renderHook(
-      () => {
-        const context = AuthContext;
-        return context;
-      },
-      {
-        wrapper: AuthProvider,
-      },
-    );
-
-    expect(result.current).toBeDefined();
-  });
-
-  it("should initialize with tokens from localStorage", async () => {
-    localStorage.setItem(ACCESS_TOKEN_KEY, "test-access");
-    localStorage.setItem(REFRESH_TOKEN_KEY, "test-refresh");
-
-    const { result } = renderHook(
-      () => {
-        const context = AuthContext;
-        return context;
-      },
-      {
-        wrapper: AuthProvider,
-      },
-    );
+  it("启动时应请求 /auth/me", async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
 
     await waitFor(() => {
       expect(api.get).toHaveBeenCalledWith("/auth/me");
-      expect(result.current).toBeDefined();
+      expect(result.current.isAuthenticated).toBe(true);
+      expect(result.current.user?.username).toBe("admin");
     });
   });
 
-  it("should throw error when used outside AuthProvider", () => {
-    // The AuthContext object itself exists, but using it via useContext outside provider should throw
-    // This test is checking the wrong thing - AuthContext is the context object, not undefined
-    expect(AuthContext).toBeDefined();
-  });
+  it("启动时清掉遗留 localStorage token", async () => {
+    localStorage.setItem(ACCESS_TOKEN_KEY, "legacy");
+    localStorage.setItem(REFRESH_TOKEN_KEY, "legacy");
 
-  it("should handle tokenRefreshed event", async () => {
-    const { result } = renderHook(
-      () => {
-        const context = AuthContext;
-        return context;
-      },
-      {
-        wrapper: AuthProvider,
-      },
-    );
-
-    const newTokens: AuthTokens = {
-      accessToken: "new-access",
-      refreshToken: "new-refresh",
-    };
-
-    act(() => {
-      window.dispatchEvent(
-        new CustomEvent("tokenRefreshed", { detail: newTokens }),
-      );
-    });
-
-    await waitFor(() => {
-      expect(result.current).toBeDefined();
-    });
-  });
-
-  it("should handle authLogout event", async () => {
-    localStorage.setItem(ACCESS_TOKEN_KEY, "test-access");
-    localStorage.setItem(REFRESH_TOKEN_KEY, "test-refresh");
-
-    renderHook(
-      () => {
-        const context = AuthContext;
-        return context;
-      },
-      {
-        wrapper: AuthProvider,
-      },
-    );
-
-    act(() => {
-      window.dispatchEvent(new CustomEvent("authLogout"));
-    });
+    renderHook(() => useAuth(), { wrapper: AuthProvider });
 
     await waitFor(() => {
       expect(localStorage.getItem(ACCESS_TOKEN_KEY)).toBeNull();
@@ -144,63 +87,36 @@ describe("AuthContext", () => {
     });
   });
 
-  it("should keep tokens when /auth/me returns 502 on init", async () => {
-    localStorage.setItem(ACCESS_TOKEN_KEY, "test-access");
-    localStorage.setItem(REFRESH_TOKEN_KEY, "test-refresh");
+  it("authLogout 事件应清除会话并跳转登录", async () => {
+    renderHook(() => useAuth(), { wrapper: AuthProvider });
+
+    await waitFor(() => {
+      expect(api.get).toHaveBeenCalled();
+    });
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent("authLogout"));
+    });
+
+    await waitFor(() => {
+      expect(window.location.href).toBe("/login");
+    });
+  });
+
+  it("/auth/me 502 时不应当作未登录", async () => {
     vi.mocked(api.get).mockRejectedValue(new ApiError("Bad Gateway", 502));
 
-    renderHook(
-      () => {
-        const context = AuthContext;
-        return context;
-      },
-      {
-        wrapper: AuthProvider,
-      },
-    );
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
 
     await waitFor(() => {
-      expect(api.get).toHaveBeenCalledWith("/auth/me");
+      expect(result.current.isLoading).toBe(false);
     });
 
-    expect(localStorage.getItem(ACCESS_TOKEN_KEY)).toBe("test-access");
-    expect(localStorage.getItem(REFRESH_TOKEN_KEY)).toBe(
-      "test-refresh",
-    );
+    expect(result.current.isAuthenticated).toBe(false);
   });
 
-  it("should clear auth on logout", async () => {
-    localStorage.setItem(ACCESS_TOKEN_KEY, "test-access");
-    localStorage.setItem(REFRESH_TOKEN_KEY, "test-refresh");
-
-    const { result } = renderHook(
-      () => {
-        const context = AuthContext;
-        return context;
-      },
-      {
-        wrapper: AuthProvider,
-      },
-    );
-
-    await waitFor(() => {
-      expect(result.current).toBeDefined();
-    });
-
-    expect(localStorage.getItem(ACCESS_TOKEN_KEY)).not.toBeNull();
-    expect(localStorage.getItem(REFRESH_TOKEN_KEY)).not.toBeNull();
-  });
-
-  it("login 成功后应设置 token 和用户信息", async () => {
-    const mockUser = { id: "u1", username: "admin" };
-    const mockTokens: AuthTokens = {
-      accessToken: "acc",
-      refreshToken: "ref",
-    };
-    vi.mocked(api.post).mockResolvedValueOnce({
-      user: mockUser,
-      tokens: mockTokens,
-    });
+  it("login 成功后应设置用户信息", async () => {
+    vi.mocked(api.post).mockResolvedValueOnce({ user: mockUser });
 
     const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
 
@@ -209,13 +125,21 @@ describe("AuthContext", () => {
     });
 
     expect(result.current.isAuthenticated).toBe(true);
-    expect(result.current.accessToken).toBe("acc");
-    expect(localStorage.getItem(ACCESS_TOKEN_KEY)).toBe("acc");
+    expect(result.current.user?.id).toBe("u1");
   });
 
-  it("logout 应清除 token", async () => {
-    localStorage.setItem(ACCESS_TOKEN_KEY, "acc");
-    localStorage.setItem(REFRESH_TOKEN_KEY, "ref");
+  it("establishSession 应拉 /auth/me", async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
+
+    await act(async () => {
+      await result.current.establishSession();
+    });
+
+    expect(api.get).toHaveBeenCalledWith("/auth/me");
+    expect(result.current.isAuthenticated).toBe(true);
+  });
+
+  it("logout 应调用接口并清除会话", async () => {
     vi.mocked(api.post).mockResolvedValue({});
 
     const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
@@ -224,63 +148,22 @@ describe("AuthContext", () => {
       await result.current.logout();
     });
 
+    expect(api.post).toHaveBeenCalledWith(
+      "/auth/logout",
+      {},
+      undefined,
+      true,
+    );
     expect(result.current.isAuthenticated).toBe(false);
-    expect(localStorage.getItem(ACCESS_TOKEN_KEY)).toBeNull();
   });
 
-  it("logout 在 api 失败时仍应清除 token", async () => {
-    localStorage.setItem(ACCESS_TOKEN_KEY, "acc");
-    localStorage.setItem(REFRESH_TOKEN_KEY, "ref");
+  it("logout 在 api 失败时仍应清除会话", async () => {
     vi.mocked(api.post).mockRejectedValue(new Error("network error"));
 
     const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
 
     await act(async () => {
       await result.current.logout();
-    });
-
-    expect(result.current.isAuthenticated).toBe(false);
-  });
-
-  it("refreshAccessToken 成功应更新 token", async () => {
-    localStorage.setItem(ACCESS_TOKEN_KEY, "old-acc");
-    localStorage.setItem(REFRESH_TOKEN_KEY, "old-ref");
-    const newTokens: AuthTokens = {
-      accessToken: "new-acc",
-      refreshToken: "new-ref",
-    };
-    vi.mocked(api.post).mockResolvedValueOnce(newTokens);
-
-    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
-
-    await act(async () => {
-      await result.current.refreshAccessToken();
-    });
-
-    expect(result.current.accessToken).toBe("new-acc");
-  });
-
-  it("refreshAccessToken 无 refreshToken 时应抛出错误", async () => {
-    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
-
-    await expect(
-      act(async () => {
-        await result.current.refreshAccessToken();
-      }),
-    ).rejects.toThrow("没有可用的刷新令牌");
-  });
-
-  it("refreshAccessToken 遇到 401 时应清除 auth", async () => {
-    localStorage.setItem(ACCESS_TOKEN_KEY, "acc");
-    localStorage.setItem(REFRESH_TOKEN_KEY, "ref");
-    vi.mocked(api.post).mockRejectedValueOnce(
-      new ApiError("Unauthorized", 401),
-    );
-
-    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
-
-    await act(async () => {
-      await result.current.refreshAccessToken().catch(() => {});
     });
 
     expect(result.current.isAuthenticated).toBe(false);
@@ -303,15 +186,14 @@ describe("AuthContext", () => {
     });
   });
 
-  it("init 时遇到 401 应清除 token", async () => {
-    localStorage.setItem(ACCESS_TOKEN_KEY, "acc");
-    localStorage.setItem(REFRESH_TOKEN_KEY, "ref");
+  it("init 时遇到 401 应标记未登录", async () => {
     vi.mocked(api.get).mockRejectedValue(new ApiError("Unauthorized", 401));
 
-    renderHook(() => useAuth(), { wrapper: AuthProvider });
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
 
     await waitFor(() => {
-      expect(localStorage.getItem(ACCESS_TOKEN_KEY)).toBeNull();
+      expect(result.current.isAuthenticated).toBe(false);
+      expect(result.current.isLoading).toBe(false);
     });
   });
 });

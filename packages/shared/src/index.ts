@@ -1,5 +1,7 @@
 export * from "./branding.js";
 export * from "./member-cookies.js";
+export * from "./workbench-cookies.js";
+export * from "./workbench-token-ttl.js";
 export * from "./api-response.js";
 export * from "./api-client.js";
 export * from "./auth-types.js";

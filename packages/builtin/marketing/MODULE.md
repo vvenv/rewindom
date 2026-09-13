@@ -34,6 +34,7 @@
 | 页头页脚 chrome                           | `shared/sections/_common/`                                                                   | 为新排法加枚举 / 读时升级层                    |
 | 模板页注册表                              | `shared/page-templates.ts`                                                                   | 业务方的 `*-page-templates.ts`（贡献方自己写） |
 | 编辑器 / 工作台                           | `client/pages/site-*.tsx`、`client/enhance/`                                                 | 公开站挂 React                                 |
+| ⌘K 里的站点去处                           | `client/tenant/command-actions.ts`                                                           | 为「能被搜到」往 `nav-sections.ts` 塞一项      |
 | 媒体库                                    | `client/components/media/`、`server/site-asset.service.ts`                                   | 改引用 URL 的扫描 / 多尺寸派生                 |
 | 外观字体                                  | `shared/theme-fonts.ts`；改目录跑 `assemble:site-fonts`；生产同步 `sync-site-fonts-to-s3.ts` | Google Fonts CDN、自定义上传、中文 webfont     |
 | 首页是哪一页                              | `shared/site-home.ts`、站点设置 Sheet                                                        | 两个下拉（版式 vs 改写 `/`）                   |

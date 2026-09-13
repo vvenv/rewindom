@@ -17,6 +17,7 @@ const testUser: User = {
   actor_type: "tenant_user",
   is_system_admin: false,
   enabled: true,
+  tenant_id: "t1",
   created_at: "2026-01-01T00:00:00.000Z",
   updated_at: "2026-01-01T00:00:00.000Z",
   last_login_at: null,
@@ -26,14 +27,11 @@ const testUser: User = {
 function createAuthWrapper(user: AuthContextType["user"] | null) {
   const value: AuthContextType = {
     user,
-    accessToken: user ? "token" : null,
-    refreshToken: user ? "refresh" : null,
     isAuthenticated: user != null,
     isLoading: false,
     login: vi.fn(),
-    loginWithTokens: vi.fn(),
+    establishSession: vi.fn(),
     logout: vi.fn(),
-    refreshAccessToken: vi.fn(),
     changePassword: vi.fn(),
     getCurrentUser: vi.fn(),
   };

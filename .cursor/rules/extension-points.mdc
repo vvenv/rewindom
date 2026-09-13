@@ -71,6 +71,7 @@ pnpm --filter server validate:module-deps
 | 场景 | 推荐 | 避免 |
 | --- | --- | --- |
 | 审计 | `events.emit('audit.log', payload)`；`audit` 在 `onBoot` 订阅 | kernel / 其他模块直接 import `AuditService` |
+| 订阅者失败不能丢 | catch 里交 `registry.getOutboxProvider()`（`outbox` 退避重投 → 死信） | 只 `log.warn` 了事——EventBus 会吞掉错误 |
 | 可替换横切能力 | `ProviderRegistry`（`AuthzProvider`、公开配置、租户 API Key 等） | 硬编码具体模块 service |
 | 同限界上下文内 | 包内 service 直接调用 | — |
 | 跨限界上下文读 | Provider 只读接口、模块对外 `shared` 类型 | 跨包 import `server/services` |

@@ -112,6 +112,7 @@ export async function siteMemberOAuthRoutes(
   defineRoute(app, {
     method: "POST",
     url: "/oauth/exchange",
+    // audit:skip -- 第三方登录换取会话，同 login 的理由
     context: "SiteMemberOAuthExchange",
     errorCode: "SITE_MEMBER_OAUTH_EXCHANGE_FAILED",
     handler: async (request, reply) => {

@@ -943,6 +943,13 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
         typeof alt === "string" ? alt : "",
       );
       if (!asset) return sendCodedError(reply, 404, "site.asset_not_found");
+      await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+        userId: request.authUser!.userId,
+        username: request.authUser!.username,
+        action: AuditAction.SITE_ASSET_UPDATE,
+        resource: id,
+        detail_key: "marketing.audit.asset_updated",
+      });
       return asset;
     },
   });

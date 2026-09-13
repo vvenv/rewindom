@@ -1,11 +1,9 @@
-import type { AuthTokens, User } from "@rewindom/shared";
+import type { User } from "@rewindom/shared";
 
 export interface AuthState {
   user: User | null;
-  accessToken: string | null;
-  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
 
-export type { AuthTokens, User };
+export type { User };

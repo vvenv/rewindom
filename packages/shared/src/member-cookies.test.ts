@@ -9,7 +9,7 @@ import {
 } from "./member-cookies.js";
 
 describe("member-cookies", () => {
-  describe("cookie 名(与工作台 localStorage 隔离)", () => {
+  describe("cookie 名(与工作台 cookie 隔离)", () => {
     it("access cookie 名以 STORAGE_PREFIX 拼接", () => {
       expect(MEMBER_ACCESS_COOKIE).toBe(`${STORAGE_PREFIX}_member_access`);
     });

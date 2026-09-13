@@ -13,16 +13,3 @@ const OAUTH_ERROR_I18N_KEYS: Record<string, string> = {
 export function resolveOAuthErrorI18nKey(errorCode: string): string {
   return OAUTH_ERROR_I18N_KEYS[errorCode] ?? "auth.oauth.failed";
 }
-
-export function parseOAuthHashTokens(hash: string): {
-  accessToken: string;
-  refreshToken: string;
-} | null {
-  const raw = hash.startsWith("#") ? hash.slice(1) : hash;
-  if (!raw) return null;
-  const params = new URLSearchParams(raw);
-  const accessToken = params.get("access_token");
-  const refreshToken = params.get("refresh_token");
-  if (!accessToken || !refreshToken) return null;
-  return { accessToken, refreshToken };
-}

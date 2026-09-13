@@ -33,6 +33,7 @@ export async function publicSiteFormRoutes(
   defineRoute(app, {
     method: "POST",
     url: "/submit",
+    // audit:skip -- 访客提交表单，提交记录本身就是这件事的证据
     context: "PublicSiteFormSubmit",
     errorCode: "PUBLIC_SITE_FORM_FAILED",
     handler: async (request, reply) => {

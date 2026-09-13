@@ -518,6 +518,8 @@ export const api: ApiClient = createApiClient({
   refreshBodyKey: "refreshToken",
   tokenRefreshedEvent: "tokenRefreshed",
   authLogoutEvent: "authLogout",
+  authMode: "cookie",
+  credentials: "include",
 });
 
 export const apiRequest: ApiClient["request"] = (

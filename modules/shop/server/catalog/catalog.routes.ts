@@ -220,12 +220,22 @@ export async function catalogRoutes(app: FastifyInstance): Promise<void> {
           product_id: string;
           variant_id: string;
         };
-        return await updateVariant({
+        const product = await updateVariant({
           tenant_id: request.tenantContext!.tenant_id,
           product_id,
           variant_id,
           body: request.body as UpdateShopVariantBody,
         });
+        // 变体是商品的一部分，沿用新增变体那条的动作：审计页看到的是「这件商品被改了」
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: "SHOP_PRODUCT_UPDATE",
+          resource: product.id,
+          detail_key: "shop.audit.product_updated",
+          detail_params: { slug: product.slug },
+        });
+        return product;
       } catch (err) {
         if (err instanceof AppError && err.code) {
           return sendCodedError(reply, err.status, err.code, err.params);
@@ -247,11 +257,20 @@ export async function catalogRoutes(app: FastifyInstance): Promise<void> {
           product_id: string;
           variant_id: string;
         };
-        return await deleteVariant({
+        const product = await deleteVariant({
           tenant_id: request.tenantContext!.tenant_id,
           product_id,
           variant_id,
         });
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: "SHOP_PRODUCT_UPDATE",
+          resource: product.id,
+          detail_key: "shop.audit.product_updated",
+          detail_params: { slug: product.slug },
+        });
+        return product;
       } catch (err) {
         if (err instanceof AppError && err.code) {
           return sendCodedError(reply, err.status, err.code, err.params);

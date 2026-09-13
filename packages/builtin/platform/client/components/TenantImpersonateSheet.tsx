@@ -1,11 +1,7 @@
 import { useEffect, useState, type SubmitEvent } from "react";
 
 
-import { ApiError, pauseTokenRefresh,
-  getStoredAccessToken,
-  getStoredRefreshToken,
-  setStoredAuthTokens,
-  APP_HOME_ENTRY_PATH } from "@rewindom/client-kit";
+import { ApiError, pauseTokenRefresh, APP_HOME_ENTRY_PATH } from "@rewindom/client-kit";
 import { Button } from "@rewindom/ui/button";
 import {
   Field,
@@ -39,8 +35,8 @@ import {
 } from "../hooks/usePlatformTenants.js";
 import {
   readImpersonationLastUserId,
-  saveImpersonationBackup,
   saveImpersonationLastUserId,
+  saveImpersonationMeta,
   type ImpersonationMeta,
 } from "../lib/impersonation-storage.js";
 
@@ -83,12 +79,6 @@ export function TenantImpersonateSheet({
 
   const handleConfirm = async (event: SubmitEvent): Promise<void> => {
     event.preventDefault();
-    const accessToken = getStoredAccessToken();
-    const refreshToken = getStoredRefreshToken();
-    if (!accessToken || !refreshToken) {
-      toast.error(t("tenants.impersonate.sessionExpired"));
-      return;
-    }
 
     onActingChange?.(true);
     const unpauseTokenRefresh = pauseTokenRefresh();
@@ -97,18 +87,13 @@ export function TenantImpersonateSheet({
         id: tenant.id,
         userId: selectedUserId || undefined,
       });
-      if (!result.tokens?.accessToken || !result.tokens?.refreshToken) {
-        toast.error(t("tenants.impersonate.invalidResponse"));
-        return;
-      }
 
       const meta: ImpersonationMeta = {
         tenant_slug: result.tenant_slug,
         tenant_name: result.tenant_name,
         login_identifier: result.login_identifier,
       };
-      saveImpersonationBackup({ accessToken, refreshToken }, meta);
-      setStoredAuthTokens(result.tokens);
+      saveImpersonationMeta(meta);
       setOpen(false);
       window.location.replace(APP_HOME_ENTRY_PATH);
     } catch (err) {

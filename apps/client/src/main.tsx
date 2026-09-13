@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 
-import { clearImpersonationBackup } from "@rewindom/builtin/platform/client/lib/impersonation-storage.js";
+import { clearImpersonationMeta } from "@rewindom/builtin/platform/client/lib/impersonation-storage.js";
 import {
   AuthProvider,
   ConfirmProvider,
@@ -53,7 +53,7 @@ async function boot(): Promise<void> {
           <QueryClientProvider client={queryClient}>
             <TooltipProvider>
               <ConfirmProvider>
-                <AuthProvider onLogout={clearImpersonationBackup}>
+                <AuthProvider onLogout={clearImpersonationMeta}>
                   <LocaleProvider>
                     <App />
                   </LocaleProvider>

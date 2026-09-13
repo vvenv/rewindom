@@ -7,6 +7,7 @@ import {
   isAppNavItemActive,
   isNavRouteActive,
 } from "@/app-nav";
+import { collectCommandActions } from "@/collect-modules";
 import { HOME_PATH_CANDIDATES } from "@/home-path-candidates";
 import {
   AppShellConfigProvider,
@@ -29,6 +30,7 @@ export function buildAppShellConfig(
     filterMobileTabPaths,
     isNavRouteActive,
     getAppNavItems,
+    getCommandActions: () => collectCommandActions(modules),
     resolveMobileHeaderState: (pathname) =>
       resolveMobileHeaderState(
         pathname,

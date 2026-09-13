@@ -89,6 +89,7 @@ export const ModelName = {
   Note: 'Note',
   Notification: 'Notification',
   NotificationLog: 'NotificationLog',
+  OutboxMessage: 'OutboxMessage',
   AppSetting: 'AppSetting',
   PlatformAdmin: 'PlatformAdmin',
   PlatformAdminRole: 'PlatformAdminRole',
@@ -603,7 +604,10 @@ export const UserScalarFieldEnum = {
   last_login_at: 'last_login_at',
   last_access_at: 'last_access_at',
   failed_login_attempts: 'failed_login_attempts',
-  locked_until: 'locked_until'
+  locked_until: 'locked_until',
+  totp_secret_encrypted: 'totp_secret_encrypted',
+  totp_enabled: 'totp_enabled',
+  totp_recovery_codes: 'totp_recovery_codes'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -830,6 +834,24 @@ export const NotificationLogScalarFieldEnum = {
 export type NotificationLogScalarFieldEnum = (typeof NotificationLogScalarFieldEnum)[keyof typeof NotificationLogScalarFieldEnum]
 
 
+export const OutboxMessageScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  topic: 'topic',
+  payload: 'payload',
+  status: 'status',
+  attempts: 'attempts',
+  next_attempt_at: 'next_attempt_at',
+  locked_at: 'locked_at',
+  last_error: 'last_error',
+  dedupe_key: 'dedupe_key',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type OutboxMessageScalarFieldEnum = (typeof OutboxMessageScalarFieldEnum)[keyof typeof OutboxMessageScalarFieldEnum]
+
+
 export const AppSettingScalarFieldEnum = {
   key: 'key',
   value: 'value',
@@ -851,7 +873,10 @@ export const PlatformAdminScalarFieldEnum = {
   last_login_at: 'last_login_at',
   last_access_at: 'last_access_at',
   failed_login_attempts: 'failed_login_attempts',
-  locked_until: 'locked_until'
+  locked_until: 'locked_until',
+  totp_secret_encrypted: 'totp_secret_encrypted',
+  totp_enabled: 'totp_enabled',
+  totp_recovery_codes: 'totp_recovery_codes'
 } as const
 
 export type PlatformAdminScalarFieldEnum = (typeof PlatformAdminScalarFieldEnum)[keyof typeof PlatformAdminScalarFieldEnum]

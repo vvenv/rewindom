@@ -1,0 +1,61 @@
+# 模块契约 —— outbox（事务性投递箱）
+#
+# 非 CRUD 模块：没有 client 面、没有租户路由、没有权限，因此不走 `gen:module`
+# 的生成路径（那套模板产出的是「列表 + 表单」的业务模块）。本文件仍然落盘，
+# 因为它是这个包存在理由与边界的唯一契约。
+
+id: outbox
+label: Outbox
+description: 领域事件的持久化投递箱——handler 失败不再静默丢失，落库重试，耗尽转死信
+kind: infrastructure
+placement: packages/builtin/outbox
+surfaces: [] # 无 HTTP 面：入队只能由服务端代码调用，没有 API 入口
+requires: [] # 消费方一律经 ProviderRegistry，不写 requires（同 mailer）
+
+# ---------- 解决什么 ----------
+problem: |
+  `EventBus.emitLoose` 对 handler 抛错的处理是**吞掉**（注释写着「不得阻塞发布方」）。
+  对审计这类订阅者来说，一次数据库抖动就等于那条审计记录永久消失，只在日志里留一行 warn。
+  仓库规则要求「所有写操作必须记审计」，而当前实现没有任何补偿路径。
+
+  本模块提供补偿：失败的投递落库排队，按退避梯度重试，耗尽后进死信并写一条 ErrorLog
+  给平台管理员看得见。
+
+# ---------- 不做什么（v1） ----------
+out_of_scope:
+  - 出站 webhook 订阅者（本仓目前只有入站 webhook）
+  - 把现有 `events.emit` 调用点改成事务内入队（那要逐个改发布方，另起一轮）
+  - 租户可见的投递箱 UI（死信经 error-log 的平台页可见即可）
+  - 跨实例分布式锁（单进程部署；`processing` 超时回收已覆盖进程崩溃）
+
+# ---------- 数据模型 ----------
+models:
+  - name: OutboxMessage
+    fields:
+      - { name: tenant_id, type: String, required: false }
+      - { name: topic, type: String, required: true }
+      - { name: payload, type: Json, required: true }
+      - { name: status, type: String, required: true, default: pending } # pending | processing | dead
+      - { name: attempts, type: Int, required: true, default: 0 }
+      - { name: next_attempt_at, type: DateTime, required: true }
+      - { name: locked_at, type: DateTime, required: false }
+      - { name: last_error, type: String, required: false }
+      - { name: dedupe_key, type: String, required: false }
+    indexes:
+      - [status, next_attempt_at]
+      - [topic]
+      - [tenant_id]
+
+# ---------- 扩展点 ----------
+providers:
+  - OutboxProvider # 内核契约；`enqueue` 给发布方，`onMessage` 给消费方
+jobs:
+  - id: outbox-drain
+    schedule: interval 30s（run_on_start）
+
+# ---------- 首个接入方 ----------
+first_consumer: audit
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'outbox/*'
+  - pnpm check:modules
+  - pnpm check:deps

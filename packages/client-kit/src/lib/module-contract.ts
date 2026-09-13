@@ -65,6 +65,36 @@ export interface DashboardWidget {
   anyPermission?: readonly Permission[];
 }
 
+/**
+ * 命令面板（⌘K）里的一条动作，由**拥有该页面的模块自己声明**。
+ *
+ * 面板已自动收录所有导航项，这里补的是**存在但进不了侧栏**的去处：站点编辑器、
+ * 详情页下的子标签等。侧栏是有限的心流，面板不是——不要为了让某页「能被搜到」
+ * 而往导航里塞一条。
+ *
+ * 字段是 `AppNavItem` 可见性三件套的子集（`tenantModule` / `tenantFeature` /
+ * `anyPermission`），面板复用导航那套过滤，语义完全一致。
+ */
+export interface CommandAction {
+  /**
+   * 全局唯一，约定 `<moduleId>.<name>`；重复 id 只保留先注册的那个。
+   * 与 `DashboardWidget.id` 不同，这里不是用户偏好键，改名只影响 React key。
+   */
+  id: string;
+  /**
+   * `namespace:key`，与导航项同口径，由面板渲染时解析。
+   * 禁止在模块加载时 `t()`——那会锁死首屏语言。
+   */
+  label: string;
+  icon: LucideIcon;
+  path: string;
+  /** 升序，默认 100；相同值按 `ENABLED_CLIENT_MODULES` 的注册顺序。 */
+  order?: number;
+  tenantModule?: string;
+  tenantFeature?: TenantFeatureKey;
+  anyPermission?: readonly Permission[];
+}
+
 /** 平台监控页 `/platform` 上的全宽区块，由拥有数据的模块自己声明。 */
 export interface PlatformDashboardSectionProps {
   start_date?: string;
@@ -188,6 +218,8 @@ export interface ClientAppModule extends ModuleManifestBase {
     nav?: AppNavSection[];
     /** 本模块贡献给 `/dashboard` 工作台的卡片。 */
     dashboardWidgets?: readonly DashboardWidget[];
+    /** 本模块贡献给命令面板（⌘K）的动作；导航项无需在此重复声明。 */
+    commandActions?: readonly CommandAction[];
     /**
      * 本模块贡献给平台监控页 `/platform` 的全宽区块（KPI + 图）。
      * 与 `dashboardWidgets` 不同：无用户级显隐/排序，platform 只提供骨架。

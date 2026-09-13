@@ -4,6 +4,7 @@ import type {
   MailProvider,
   MemberMenuLinksProvider,
   MemberOAuthCallbackProvider,
+  OutboxProvider,
   PublicConfigProvider,
   SiteMemberSessionProvider,
   TenantApiKeyAuthProvider,
@@ -90,6 +91,11 @@ export class ProviderRegistry {
    * 而不是收下请求再无声地发不出去。
    */
   private mail: MailProvider | null = null;
+  /**
+   * 失败投递的补偿队列。null = 没装 `outbox` 模块，订阅者维持「失败即丢」的旧行为，
+   * 不要在没有队列的情况下假装排上了队。
+   */
+  private outbox: OutboxProvider | null = null;
   /** 列表而非单值：专有名词来自多个业务域，后注册的不该顶掉先注册的。 */
   private translationTerms: TranslationTermsProvider[] = [];
 
@@ -163,5 +169,13 @@ export class ProviderRegistry {
 
   getMailProvider(): MailProvider | null {
     return this.mail;
+  }
+
+  setOutboxProvider(provider: OutboxProvider): void {
+    this.outbox = provider;
+  }
+
+  getOutboxProvider(): OutboxProvider | null {
+    return this.outbox;
   }
 }

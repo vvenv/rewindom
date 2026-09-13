@@ -17,6 +17,9 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: ${CONTAINER_PREFIX:-rewindom}-postgres
+    # Docker 默认 /dev/shm=64MB；并行查询扩 DSM 时会报
+    # "could not resize shared memory segment … No space left on device"（53100）。
+    shm_size: 256mb
     environment:
       POSTGRES_USER: rewindom
       POSTGRES_PASSWORD: ${DB_PASSWORD}

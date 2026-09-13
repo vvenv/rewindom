@@ -671,6 +671,15 @@ events.on("note.created", (payload) => AuditService.log(...));
 
 事件名约定：`<resource>.<action>`，与审计 action 对齐。Handler 失败不阻塞发布方主事务（见 `EventBus.emit`）。
 
+**代价与补偿**：不阻塞发布方意味着 handler 抛错会被**吞掉**——订阅者若做的是必须留下的事
+（写审计），一次数据库抖动就让它永久消失，只剩一行 warn。这类订阅者应在自己的 catch 里把
+payload 交给 `OutboxProvider`（`outbox` 模块，经 ProviderRegistry 取），由投递箱按
+1m / 5m / 15m / 1h / 6h 退避重投，耗尽转死信。
+
+覆盖面要说清楚：投递箱接住的是「**handler 抛错**」与「**派发器中途崩溃**」，**不是**
+「业务已提交、进程在 emit 之前就崩了」——那要求发布方在自己的事务里写队列行，是另一回事。
+详见 `packages/builtin/outbox/MODULE.md`。
+
 ---
 
 ## 10. 客户端扩展点
@@ -792,6 +801,40 @@ client: {
 与 `dashboardWidgets` 的区别：监控区块是全宽 KPI+图，平台管理员不做用户级显隐/排序。
 组装层同样依赖倒置（`prepareAppRoutes` → `registerPlatformDashboardSectionsProvider`）。
 列表页（`/platform/slow-query-logs` 等）只留筛选 + 表，图表不上第二遍。
+
+### 10.5.3 命令面板动作（`commandActions`）
+
+租户工作台的 ⌘K / Ctrl-K 面板（壳层 `CommandPalette`）。候选有两个来源：
+
+1. **所有侧栏导航项**——自动收录，模块无需重复声明；
+2. **各模块 `client.commandActions`**——补那些**存在但进不了侧栏**的去处。
+
+```typescript
+// <module>/client/module.tsx
+client: {
+  commandActions: [
+    {
+      id: "marketing.site-theme", // 约定 `<moduleId>.<name>`，重复 id 只保留先注册的
+      label: "marketing:cms.settingsSectionTheme", // `namespace:key`，渲染时才解析
+      icon: Palette,
+      path: "/app/site/editor?scope=theme",
+      tenantModule: "tenant-marketing", // 与导航项同义的可见性三件套
+      anyPermission: ["site.read"],
+    },
+  ],
+}
+```
+
+可见性**必须**与侧栏同源：动作在壳层被包成一个合成 `AppNavSection` 走
+`filterAppNavSections`（见 `shell/lib/command-actions.ts`）。两边各写一份的后果是
+模块被平台关掉后侧栏消失、⌘K 里却还搜得到，点进去撞 403。
+
+匹配是子串而非模糊打分：候选量级只有几十条，而模糊排序会把「删除」这类危险入口
+排到毫不相干的查询前面。组装层注入同样依赖倒置（`buildAppShellConfig` →
+`getCommandActions` → `collectCommandActions`）。
+
+**不要为了「让某页能被搜到」往导航里塞一条**——侧栏是有限的心流，面板不是。
+首个贡献方是 marketing 的站点外观（`nav-sections.ts` 已说明编辑器为何不进侧栏）。
 
 ### 10.6 `ClientShellContributions`
 

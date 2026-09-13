@@ -67,6 +67,31 @@
     "noAccount": "还没有账号？",
     "registerFree": "免费注册",
     "loginFailed": "登录失败，请重试",
+    "twoFactor": {
+      "title": "双因素认证",
+      "description": "请输入认证器中的 6 位验证码，或使用一次性恢复码。",
+      "codeLabel": "验证码",
+      "codePlaceholder": "123456",
+      "codeHint": "恢复码格式类似 123456-654321。",
+      "codeRequired": "请输入验证码",
+      "verify": "验证",
+      "verifyFailed": "验证失败，请重试",
+      "back": "返回登录",
+      "menu": "双因素认证",
+      "enable": "开启",
+      "disable": "关闭",
+      "enabled": "已开启",
+      "disabled": "未开启",
+      "scanQr": "用认证器 App 扫描此二维码",
+      "manualSecret": "或手动输入密钥",
+      "recoveryCodes": "请立即保存这些恢复码，之后不会再显示。",
+      "confirmCode": "输入 App 中的验证码以确认开启",
+      "setupFailed": "无法开始双因素设置",
+      "confirmFailed": "无法确认双因素设置",
+      "disableFailed": "无法关闭双因素认证",
+      "disableSuccess": "已关闭双因素认证",
+      "enableSuccess": "已开启双因素认证"
+    },
     "oauth": {
       "or": "或",
       "continueWithGitHub": "使用 GitHub 登录",
@@ -162,6 +187,14 @@
       "verified": "验证成功",
       "refresh": "刷新验证码"
     }
+  },
+  "commandPalette": {
+    "title": "命令面板",
+    "description": "搜索并跳转到任意页面或操作",
+    "placeholder": "搜索页面与操作…",
+    "empty": "没有匹配的结果",
+    "actions": "操作",
+    "open": "打开命令面板（⌘K）"
   },
   "chrome": {
     "nav": "导航",

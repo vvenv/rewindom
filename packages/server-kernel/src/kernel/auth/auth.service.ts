@@ -102,6 +102,7 @@ export class AuthService {
       actor_type: AuthActorType;
       is_system_admin: boolean;
       enabled: boolean;
+      tenant_id: string | null;
       created_at: Date;
       updated_at: Date;
       last_login_at: Date | null;
@@ -301,9 +302,10 @@ export class AuthService {
       user: {
         id: user.id,
         username: user.username,
-        actor_type: "tenant_user",
+        actor_type: "tenant_user" as const,
         is_system_admin: user.is_system_admin,
         enabled: user.enabled,
+        tenant_id: tenant.id,
         created_at: user.created_at,
         updated_at: user.updated_at,
         last_login_at: user.last_login_at,
@@ -481,6 +483,7 @@ export class AuthService {
       actor_type: AuthActorType;
       is_system_admin: boolean;
       enabled: boolean;
+      tenant_id: string;
       created_at: Date;
       updated_at: Date;
       last_login_at: Date | null;
@@ -536,9 +539,10 @@ export class AuthService {
       user: {
         id: updated.id,
         username: updated.username,
-        actor_type: "tenant_user",
+        actor_type: "tenant_user" as const,
         is_system_admin: updated.is_system_admin,
         enabled: updated.enabled,
+        tenant_id: user.tenant_id,
         created_at: updated.created_at,
         updated_at: updated.updated_at,
         last_login_at: updated.last_login_at,
@@ -558,6 +562,7 @@ export class AuthService {
     actor_type: AuthActorType;
     is_system_admin: boolean;
     enabled: boolean;
+    tenant_id: string | null;
     created_at: Date;
     updated_at: Date;
     last_login_at: Date | null;
@@ -578,7 +583,7 @@ export class AuthService {
         },
       });
       if (!admin) throw new NotFoundError("user.not_found");
-      return { ...admin, actor_type: "platform_admin" };
+      return { ...admin, actor_type: "platform_admin", tenant_id: null };
     }
 
     const user = await prisma.user.findUnique({
@@ -588,6 +593,7 @@ export class AuthService {
         username: true,
         is_system_admin: true,
         enabled: true,
+        tenant_id: true,
         created_at: true,
         updated_at: true,
         last_login_at: true,

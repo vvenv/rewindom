@@ -1,0 +1,45 @@
+// packages/builtin/outbox/models.prisma
+// 由 apps/server/prisma/models/outbox.prisma 符号链接汇入
+
+/// 一条待补偿投递的领域事件。
+///
+/// 只在**投递失败**时才有行：happy path 上 `EventBus` 的订阅者当场做完，这张表是空的。
+/// 成功重投后行被**删除**而不是标 done——消息本身是别处已有记录（审计行、通知行）的
+/// 副本，留着只会让表无限长，还要再配一个保留期清理任务。留下的只有死信。
+model OutboxMessage {
+  id String @id @default(uuid())
+
+  /// null = 与租户无关的系统级投递（平台审计、内核事件）。
+  /// 不挂 Tenant relation：跨模块 Prisma relation 默认禁止，租户删除时由清理侧负责。
+  tenant_id String?
+
+  /// 与 `DomainEventMap` 的事件名同形（`audit.log`），消费方按它认领。
+  topic   String
+  payload Json
+
+  /// pending（等重投） | processing（已认领，正在跑） | dead（重试耗尽，等人看）
+  status String @default("pending")
+
+  attempts Int @default(0)
+
+  /// 到点才认领。首次入队即为 now：失败过一次的东西，不必再等一个周期。
+  next_attempt_at DateTime @default(now())
+
+  /// 认领时间。派发器崩在中途时，靠它把超时的 processing 回收成 pending——
+  /// 没有这一步，进程一崩那条消息就永远卡在 processing，比丢了还难发现。
+  locked_at DateTime?
+
+  last_error String?
+
+  /// 调用方给的稳定键，同 topic 下唯一。Postgres 里 NULL 互不相等，
+  /// 因此不传等于不去重（审计就是这种：每条都是独立事实）。
+  dedupe_key String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([topic, dedupe_key])
+  @@index([status, next_attempt_at])
+  @@index([topic])
+  @@index([tenant_id])
+}

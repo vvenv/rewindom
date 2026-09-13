@@ -1,7 +1,7 @@
 /**
  * 品牌常量。
  *
- * `STORAGE_PREFIX` 参与工作台认证 token 的 localStorage key 与会员 HttpOnly cookie 名。
+ * `STORAGE_PREFIX` 参与工作台 / 会员 HttpOnly cookie 名（及遗留 localStorage key）。
  */
 export const STORAGE_PREFIX = "rewindom";
 

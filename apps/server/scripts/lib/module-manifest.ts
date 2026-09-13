@@ -11,6 +11,11 @@ export const SERVER_MODULE_MANIFEST = [
     requires: ["rbac", "audit", "background-job"],
   },
   {
+    // 无 requires，也没人 requires 它：消费方经 ProviderRegistry 拿 OutboxProvider
+    id: "outbox",
+    kind: "infrastructure",
+  },
+  {
     id: "rbac",
     kind: "infrastructure",
   },

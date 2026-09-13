@@ -79,6 +79,7 @@
     "SITE_PAGE_UNPUBLISH": "Unpublish site page",
     "SITE_ASSET_UPLOAD": "Upload site media",
     "SITE_ASSET_REPLACE": "Replace site media",
+    "SITE_ASSET_UPDATE": "Edit site media details",
     "SITE_ASSET_DELETE": "Delete site media",
     "TODO_CREATE": "Create todo",
     "TODO_UPDATE": "Update todo",

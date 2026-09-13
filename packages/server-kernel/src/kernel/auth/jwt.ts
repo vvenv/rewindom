@@ -20,31 +20,29 @@
  * 租户 API Key 不受影响：它不是 JWT，验签失败后由 `auth.middleware` 的
  * `isApiKeyToken` 分支接住。
  */
+import {
+  ACCESS_TOKEN_TTL_SECONDS,
+  REFRESH_TOKEN_TTL_SECONDS,
+} from "@rewindom/shared";
 import fastifyJwt from "@fastify/jwt";
 
 import type { JwtSignPayload } from "./auth.service.js";
 import type { FastifyInstance } from "fastify";
 
-/**
- * Access token 存活时间（秒）。
- *
- * 短到泄露窗口有限，长到不至于让 refresh 变成每次请求。客户端有 401 → refresh
- * → 重放的拦截器（`client-kit/src/api.ts`），会员 SSR 也有静默 refresh，
- * 两条路径都不需要用户感知这个数字。
- */
-export const ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
+export { ACCESS_TOKEN_TTL_SECONDS, REFRESH_TOKEN_TTL_SECONDS };
 
-/**
- * Refresh token 存活时间（秒）。
- *
- * 与库里 `RefreshToken.expires_at` 用同一个常量：两处一旦写不一样，
- * 就会出现「JWT 还没过期但库里那行已经作废」这类只在边界上出现的怪事。
- */
-export const REFRESH_TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60;
+/** 2FA 挑战令牌存活时间（秒）。 */
+export const TWO_FACTOR_CHALLENGE_TTL_SECONDS = 5 * 60;
 
 /** 从现在起算的 refresh token 过期时刻，供写库用。 */
 export function refreshTokenExpiryDate(): Date {
   return new Date(Date.now() + REFRESH_TOKEN_TTL_SECONDS * 1000);
+}
+
+function ttlForJwtType(type: string): number {
+  if (type === "refresh") return REFRESH_TOKEN_TTL_SECONDS;
+  if (type === "2fa_challenge") return TWO_FACTOR_CHALLENGE_TTL_SECONDS;
+  return ACCESS_TOKEN_TTL_SECONDS;
 }
 
 /**
@@ -72,9 +70,6 @@ export function createJwtSigner(
 ): (payload: JwtSignPayload) => string {
   return (payload: JwtSignPayload): string =>
     app.jwt.sign(payload, {
-      expiresIn:
-        payload.type === "refresh"
-          ? REFRESH_TOKEN_TTL_SECONDS
-          : ACCESS_TOKEN_TTL_SECONDS,
+      expiresIn: ttlForJwtType(payload.type),
     });
 }

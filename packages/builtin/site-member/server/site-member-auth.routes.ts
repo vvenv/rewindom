@@ -149,6 +149,7 @@ export async function siteMemberAuthRoutes(
   defineRoute(app, {
     method: "POST",
     url: "/login",
+    // audit:skip -- 会员是站点访客，不是租户后台用户；租户审计只记后台操作，会员行为另有会员侧记录
     context: "SiteMemberLogin",
     errorCode: "SITE_MEMBER_LOGIN_FAILED",
     handler: async (request, reply) => {
@@ -171,6 +172,7 @@ export async function siteMemberAuthRoutes(
   defineRoute(app, {
     method: "POST",
     url: "/refresh",
+    // audit:skip -- 续签会话，无业务语义
     context: "SiteMemberRefresh",
     errorCode: "SITE_MEMBER_REFRESH_FAILED",
     handler: async (request, reply) => {
@@ -200,6 +202,7 @@ export async function siteMemberAuthRoutes(
   defineRoute(app, {
     method: "POST",
     url: "/logout",
+    // audit:skip -- 会员登出，同 login 的理由
     context: "SiteMemberLogout",
     errorCode: "SITE_MEMBER_LOGOUT_FAILED",
     handler: async (request, reply) => {
@@ -227,6 +230,7 @@ export async function siteMemberAuthRoutes(
   defineRoute(app, {
     method: "PATCH",
     url: "/profile",
+    // audit:skip -- 会员改自己的资料，属于会员侧数据，不是租户后台操作
     context: "SiteMemberUpdateProfile",
     errorCode: "SITE_MEMBER_PROFILE_UPDATE_FAILED",
     preHandler: [requireSiteMember],

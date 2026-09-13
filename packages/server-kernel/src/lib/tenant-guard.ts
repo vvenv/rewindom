@@ -59,6 +59,16 @@ const MODEL_POLICIES: Record<string, ModelPolicy> = {
     field: "tenant_id",
     reason: "tenant_id = null 表示平台全局规则，作用域由 service 显式指定",
   },
+  /*
+   * 派发器是**系统级**的：它必须看到所有租户的待投递消息。注入租户谓词会让它
+   * 只认当前上下文那一个租户，其余租户的消息永远排在队里没人重投——而且毫无动静。
+   * tenant_id 在这里只是排障用的归属信息，过滤由 service 的状态条件负责。
+   */
+  OutboxMessage: {
+    kind: "service_enforced",
+    field: "tenant_id",
+    reason: "系统级重投队列，派发器须跨租户扫描；tenant_id 仅作归属标记",
+  },
   Thing: { kind: "tenant_id" },
   ContentAsset: { kind: "tenant_id" },
   ContentTemplate: { kind: "tenant_id" },

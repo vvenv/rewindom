@@ -484,14 +484,32 @@ function checkAudit(mod, add) {
     for (const chunk of chunks) {
       const method = /method:\s*"(POST|PATCH|PUT|DELETE)"/u.exec(chunk)?.[1];
       if (!method) continue;
-      if (!/emitAuditLogFromRequestSafe|events\.emit\(/u.test(chunk)) {
-        const url = /url:\s*"([^"]*)"/u.exec(chunk)?.[1] ?? "?";
-        add(
-          "warn",
-          "audit",
-          `写路由 ${method} ${url} 没有审计事件（${path.relative(ROOT, file)}）`,
-        );
+      if (/emitAuditLogFromRequestSafe|events\.emit\(/u.test(chunk)) continue;
+
+      const url = /url:\s*"([^"]*)"/u.exec(chunk)?.[1] ?? "?";
+
+      /*
+       * 显式豁免。有些写路由本就不该进审计——用户自己的界面偏好、通知已读、
+       * 访客公开接口。以前它们和真缺口混在同一堆警告里，结果是整节被忽略；
+       * 闸门要有信号，噪音就得归零，而归零的方式是**写下理由**，不是放宽规则。
+       */
+      const skip = /audit:skip\s*(--\s*(?<reason>.*))?/u.exec(chunk);
+      if (skip) {
+        if (!skip.groups?.reason?.trim()) {
+          add(
+            "warn",
+            "audit",
+            `写路由 ${method} ${url} 的 audit:skip 没写理由（${path.relative(ROOT, file)}）`,
+          );
+        }
+        continue;
       }
+
+      add(
+        "warn",
+        "audit",
+        `写路由 ${method} ${url} 没有审计事件（${path.relative(ROOT, file)}）`,
+      );
     }
     if (declared.size === 0) continue;
     for (const action of all(/AuditAction\.([A-Z0-9_]+)/gu, text)) {

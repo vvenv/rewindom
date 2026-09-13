@@ -7,6 +7,7 @@ import { ipAccessServerModule } from "@rewindom/builtin/ip-access/server/index.j
 import { mailerServerModule } from "@rewindom/builtin/mailer/server/index.js";
 import { marketingServerModule } from "@rewindom/builtin/marketing/server/index.js";
 import { notificationServerModule } from "@rewindom/builtin/notification/server/index.js";
+import { outboxServerModule } from "@rewindom/builtin/outbox/server/index.js";
 import { platformServerModule } from "@rewindom/builtin/platform/server/index.js";
 import { rbacServerModule } from "@rewindom/builtin/rbac/server/index.js";
 import { siteBillingServerModule } from "@rewindom/builtin/site-billing/server/index.js";
@@ -22,6 +23,9 @@ import type { ServerAppModule } from "@rewindom/server-kernel/runtime/module-con
 
 export const ENABLED_SERVER_MODULES = [
   ipAccessServerModule,
+  // outbox 必须排在消费方（audit 等）之前：消费方在 onBoot 里取 OutboxProvider，
+  // 而 provider 是在本模块注册阶段才装进 registry 的。
+  outboxServerModule,
   rbacServerModule,
   auditServerModule,
   backgroundJobServerModule,

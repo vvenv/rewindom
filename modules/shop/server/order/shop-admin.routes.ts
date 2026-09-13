@@ -155,7 +155,19 @@ export async function shopAdminRoutes(app: FastifyInstance): Promise<void> {
     handler: async (request, reply) => {
       try {
         const { order_id } = request.params as { order_id: string };
-        return await completeOrder(request.tenantContext!.tenant_id, order_id);
+        const order = await completeOrder(
+          request.tenantContext!.tenant_id,
+          order_id,
+        );
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: "SHOP_ORDER_COMPLETE",
+          resource: order.id,
+          detail_key: "shop.audit.order_completed",
+          detail_params: { number: order.number },
+        });
+        return order;
       } catch (err) {
         if (err instanceof AppError && err.code) {
           return sendCodedError(reply, err.status, err.code, err.params);
@@ -247,11 +259,20 @@ export async function shopAdminRoutes(app: FastifyInstance): Promise<void> {
     handler: async (request, reply) => {
       try {
         const { zone_id } = request.params as { zone_id: string };
-        return await updateShippingZone(
+        const zone = await updateShippingZone(
           request.tenantContext!.tenant_id,
           zone_id,
           request.body as UpdateShopShippingZoneBody,
         );
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: "SHOP_SHIPPING_SAVE",
+          resource: zone_id,
+          detail_key: "shop.audit.shipping_saved",
+          detail_params: { name: zone.name },
+        });
+        return zone;
       } catch (err) {
         if (err instanceof AppError && err.code) {
           return sendCodedError(reply, err.status, err.code, err.params);
@@ -271,6 +292,13 @@ export async function shopAdminRoutes(app: FastifyInstance): Promise<void> {
       try {
         const { zone_id } = request.params as { zone_id: string };
         await deleteShippingZone(request.tenantContext!.tenant_id, zone_id);
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: "SHOP_SHIPPING_DELETE",
+          resource: zone_id,
+          detail_key: "shop.audit.shipping_zone_deleted",
+        });
         return { deleted: true };
       } catch (err) {
         if (err instanceof AppError && err.code) {
@@ -290,11 +318,20 @@ export async function shopAdminRoutes(app: FastifyInstance): Promise<void> {
     handler: async (request, reply) => {
       try {
         const { zone_id } = request.params as { zone_id: string };
-        return await createShippingRate(
+        const rate = await createShippingRate(
           request.tenantContext!.tenant_id,
           zone_id,
           request.body as CreateShopShippingRateBody,
         );
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: "SHOP_SHIPPING_SAVE",
+          resource: zone_id,
+          detail_key: "shop.audit.shipping_rate_saved",
+          detail_params: { name: rate.name },
+        });
+        return rate;
       } catch (err) {
         if (err instanceof AppError && err.code) {
           return sendCodedError(reply, err.status, err.code, err.params);
@@ -316,12 +353,21 @@ export async function shopAdminRoutes(app: FastifyInstance): Promise<void> {
           zone_id: string;
           rate_id: string;
         };
-        return await updateShippingRate(
+        const rate = await updateShippingRate(
           request.tenantContext!.tenant_id,
           zone_id,
           rate_id,
           request.body as UpdateShopShippingRateBody,
         );
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: "SHOP_SHIPPING_SAVE",
+          resource: rate_id,
+          detail_key: "shop.audit.shipping_rate_saved",
+          detail_params: { name: rate.name },
+        });
+        return rate;
       } catch (err) {
         if (err instanceof AppError && err.code) {
           return sendCodedError(reply, err.status, err.code, err.params);
@@ -348,6 +394,13 @@ export async function shopAdminRoutes(app: FastifyInstance): Promise<void> {
           zone_id,
           rate_id,
         );
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: "SHOP_SHIPPING_DELETE",
+          resource: rate_id,
+          detail_key: "shop.audit.shipping_rate_deleted",
+        });
         return { deleted: true };
       } catch (err) {
         if (err instanceof AppError && err.code) {
@@ -475,6 +528,8 @@ export async function shopWebhookRoutes(app: FastifyInstance): Promise<void> {
         return sendCodedError(reply, 400, "shop.webhook_invalid");
       }
 
+      let auditedOrderId: string | undefined;
+
       if (event.type === "checkout.session.completed") {
         const session = event.data.object;
         const orderId = session.metadata?.order_id;
@@ -488,6 +543,7 @@ export async function shopWebhookRoutes(app: FastifyInstance): Promise<void> {
             cart_id: session.metadata?.cart_id,
             raw_event: event,
           });
+          auditedOrderId = orderId;
         }
       } else if (
         event.type === "checkout.session.expired" ||
@@ -497,7 +553,25 @@ export async function shopWebhookRoutes(app: FastifyInstance): Promise<void> {
         const orderId = session.metadata?.order_id;
         if (orderId) {
           await cancelUnpaidOrder(tenantId, orderId);
+          auditedOrderId = orderId;
         }
+      }
+
+      /*
+       * 回调改的是订单的钱与状态，却没有操作者——不留痕的话「这单凭什么变成已付款 /
+       * 为什么被取消」在库外没有任何证据。操作者记成通道名，与 billing / site-billing
+       * 的 creem 回调同一写法。只有真的动了订单才记，其余事件类型是噪音。
+       */
+      if (auditedOrderId) {
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          username: "stripe-webhook",
+          action: "SHOP_WEBHOOK_SYNC",
+          resource: auditedOrderId,
+          detail_key: "shop.audit.webhook_synced",
+          detail_params: { event_type: event.type },
+          tenant_slug: null,
+          scope: "platform",
+        });
       }
 
       return { received: true };

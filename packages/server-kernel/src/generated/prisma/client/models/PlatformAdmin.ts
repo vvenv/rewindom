@@ -46,6 +46,8 @@ export type PlatformAdminMinAggregateOutputType = {
   last_access_at: Date | null
   failed_login_attempts: number | null
   locked_until: Date | null
+  totp_secret_encrypted: string | null
+  totp_enabled: boolean | null
 }
 
 export type PlatformAdminMaxAggregateOutputType = {
@@ -60,6 +62,8 @@ export type PlatformAdminMaxAggregateOutputType = {
   last_access_at: Date | null
   failed_login_attempts: number | null
   locked_until: Date | null
+  totp_secret_encrypted: string | null
+  totp_enabled: boolean | null
 }
 
 export type PlatformAdminCountAggregateOutputType = {
@@ -74,6 +78,9 @@ export type PlatformAdminCountAggregateOutputType = {
   last_access_at: number
   failed_login_attempts: number
   locked_until: number
+  totp_secret_encrypted: number
+  totp_enabled: number
+  totp_recovery_codes: number
   _all: number
 }
 
@@ -98,6 +105,8 @@ export type PlatformAdminMinAggregateInputType = {
   last_access_at?: true
   failed_login_attempts?: true
   locked_until?: true
+  totp_secret_encrypted?: true
+  totp_enabled?: true
 }
 
 export type PlatformAdminMaxAggregateInputType = {
@@ -112,6 +121,8 @@ export type PlatformAdminMaxAggregateInputType = {
   last_access_at?: true
   failed_login_attempts?: true
   locked_until?: true
+  totp_secret_encrypted?: true
+  totp_enabled?: true
 }
 
 export type PlatformAdminCountAggregateInputType = {
@@ -126,6 +137,9 @@ export type PlatformAdminCountAggregateInputType = {
   last_access_at?: true
   failed_login_attempts?: true
   locked_until?: true
+  totp_secret_encrypted?: true
+  totp_enabled?: true
+  totp_recovery_codes?: true
   _all?: true
 }
 
@@ -227,6 +241,9 @@ export type PlatformAdminGroupByOutputType = {
   last_access_at: Date | null
   failed_login_attempts: number
   locked_until: Date | null
+  totp_secret_encrypted: string | null
+  totp_enabled: boolean
+  totp_recovery_codes: runtime.JsonValue | null
   _count: PlatformAdminCountAggregateOutputType | null
   _avg: PlatformAdminAvgAggregateOutputType | null
   _sum: PlatformAdminSumAggregateOutputType | null
@@ -264,6 +281,9 @@ export type PlatformAdminWhereInput = {
   last_access_at?: Prisma.DateTimeNullableFilter<"PlatformAdmin"> | Date | string | null
   failed_login_attempts?: Prisma.IntFilter<"PlatformAdmin"> | number
   locked_until?: Prisma.DateTimeNullableFilter<"PlatformAdmin"> | Date | string | null
+  totp_secret_encrypted?: Prisma.StringNullableFilter<"PlatformAdmin"> | string | null
+  totp_enabled?: Prisma.BoolFilter<"PlatformAdmin"> | boolean
+  totp_recovery_codes?: Prisma.JsonNullableFilter<"PlatformAdmin">
   admin_roles?: Prisma.PlatformAdminRoleListRelationFilter
   refresh_tokens?: Prisma.PlatformAdminRefreshTokenListRelationFilter
 }
@@ -280,6 +300,9 @@ export type PlatformAdminOrderByWithRelationInput = {
   last_access_at?: Prisma.SortOrderInput | Prisma.SortOrder
   failed_login_attempts?: Prisma.SortOrder
   locked_until?: Prisma.SortOrderInput | Prisma.SortOrder
+  totp_secret_encrypted?: Prisma.SortOrderInput | Prisma.SortOrder
+  totp_enabled?: Prisma.SortOrder
+  totp_recovery_codes?: Prisma.SortOrderInput | Prisma.SortOrder
   admin_roles?: Prisma.PlatformAdminRoleOrderByRelationAggregateInput
   refresh_tokens?: Prisma.PlatformAdminRefreshTokenOrderByRelationAggregateInput
 }
@@ -299,6 +322,9 @@ export type PlatformAdminWhereUniqueInput = Prisma.AtLeast<{
   last_access_at?: Prisma.DateTimeNullableFilter<"PlatformAdmin"> | Date | string | null
   failed_login_attempts?: Prisma.IntFilter<"PlatformAdmin"> | number
   locked_until?: Prisma.DateTimeNullableFilter<"PlatformAdmin"> | Date | string | null
+  totp_secret_encrypted?: Prisma.StringNullableFilter<"PlatformAdmin"> | string | null
+  totp_enabled?: Prisma.BoolFilter<"PlatformAdmin"> | boolean
+  totp_recovery_codes?: Prisma.JsonNullableFilter<"PlatformAdmin">
   admin_roles?: Prisma.PlatformAdminRoleListRelationFilter
   refresh_tokens?: Prisma.PlatformAdminRefreshTokenListRelationFilter
 }, "id" | "username">
@@ -315,6 +341,9 @@ export type PlatformAdminOrderByWithAggregationInput = {
   last_access_at?: Prisma.SortOrderInput | Prisma.SortOrder
   failed_login_attempts?: Prisma.SortOrder
   locked_until?: Prisma.SortOrderInput | Prisma.SortOrder
+  totp_secret_encrypted?: Prisma.SortOrderInput | Prisma.SortOrder
+  totp_enabled?: Prisma.SortOrder
+  totp_recovery_codes?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.PlatformAdminCountOrderByAggregateInput
   _avg?: Prisma.PlatformAdminAvgOrderByAggregateInput
   _max?: Prisma.PlatformAdminMaxOrderByAggregateInput
@@ -337,6 +366,9 @@ export type PlatformAdminScalarWhereWithAggregatesInput = {
   last_access_at?: Prisma.DateTimeNullableWithAggregatesFilter<"PlatformAdmin"> | Date | string | null
   failed_login_attempts?: Prisma.IntWithAggregatesFilter<"PlatformAdmin"> | number
   locked_until?: Prisma.DateTimeNullableWithAggregatesFilter<"PlatformAdmin"> | Date | string | null
+  totp_secret_encrypted?: Prisma.StringNullableWithAggregatesFilter<"PlatformAdmin"> | string | null
+  totp_enabled?: Prisma.BoolWithAggregatesFilter<"PlatformAdmin"> | boolean
+  totp_recovery_codes?: Prisma.JsonNullableWithAggregatesFilter<"PlatformAdmin">
 }
 
 export type PlatformAdminCreateInput = {
@@ -351,6 +383,9 @@ export type PlatformAdminCreateInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   admin_roles?: Prisma.PlatformAdminRoleCreateNestedManyWithoutAdminInput
   refresh_tokens?: Prisma.PlatformAdminRefreshTokenCreateNestedManyWithoutAdminInput
 }
@@ -367,6 +402,9 @@ export type PlatformAdminUncheckedCreateInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   admin_roles?: Prisma.PlatformAdminRoleUncheckedCreateNestedManyWithoutAdminInput
   refresh_tokens?: Prisma.PlatformAdminRefreshTokenUncheckedCreateNestedManyWithoutAdminInput
 }
@@ -383,6 +421,9 @@ export type PlatformAdminUpdateInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   admin_roles?: Prisma.PlatformAdminRoleUpdateManyWithoutAdminNestedInput
   refresh_tokens?: Prisma.PlatformAdminRefreshTokenUpdateManyWithoutAdminNestedInput
 }
@@ -399,6 +440,9 @@ export type PlatformAdminUncheckedUpdateInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   admin_roles?: Prisma.PlatformAdminRoleUncheckedUpdateManyWithoutAdminNestedInput
   refresh_tokens?: Prisma.PlatformAdminRefreshTokenUncheckedUpdateManyWithoutAdminNestedInput
 }
@@ -415,6 +459,9 @@ export type PlatformAdminCreateManyInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type PlatformAdminUpdateManyMutationInput = {
@@ -429,6 +476,9 @@ export type PlatformAdminUpdateManyMutationInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type PlatformAdminUncheckedUpdateManyInput = {
@@ -443,6 +493,9 @@ export type PlatformAdminUncheckedUpdateManyInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type PlatformAdminCountOrderByAggregateInput = {
@@ -457,6 +510,9 @@ export type PlatformAdminCountOrderByAggregateInput = {
   last_access_at?: Prisma.SortOrder
   failed_login_attempts?: Prisma.SortOrder
   locked_until?: Prisma.SortOrder
+  totp_secret_encrypted?: Prisma.SortOrder
+  totp_enabled?: Prisma.SortOrder
+  totp_recovery_codes?: Prisma.SortOrder
 }
 
 export type PlatformAdminAvgOrderByAggregateInput = {
@@ -475,6 +531,8 @@ export type PlatformAdminMaxOrderByAggregateInput = {
   last_access_at?: Prisma.SortOrder
   failed_login_attempts?: Prisma.SortOrder
   locked_until?: Prisma.SortOrder
+  totp_secret_encrypted?: Prisma.SortOrder
+  totp_enabled?: Prisma.SortOrder
 }
 
 export type PlatformAdminMinOrderByAggregateInput = {
@@ -489,6 +547,8 @@ export type PlatformAdminMinOrderByAggregateInput = {
   last_access_at?: Prisma.SortOrder
   failed_login_attempts?: Prisma.SortOrder
   locked_until?: Prisma.SortOrder
+  totp_secret_encrypted?: Prisma.SortOrder
+  totp_enabled?: Prisma.SortOrder
 }
 
 export type PlatformAdminSumOrderByAggregateInput = {
@@ -540,6 +600,9 @@ export type PlatformAdminCreateWithoutAdmin_rolesInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.PlatformAdminRefreshTokenCreateNestedManyWithoutAdminInput
 }
 
@@ -555,6 +618,9 @@ export type PlatformAdminUncheckedCreateWithoutAdmin_rolesInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.PlatformAdminRefreshTokenUncheckedCreateNestedManyWithoutAdminInput
 }
 
@@ -586,6 +652,9 @@ export type PlatformAdminUpdateWithoutAdmin_rolesInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.PlatformAdminRefreshTokenUpdateManyWithoutAdminNestedInput
 }
 
@@ -601,6 +670,9 @@ export type PlatformAdminUncheckedUpdateWithoutAdmin_rolesInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refresh_tokens?: Prisma.PlatformAdminRefreshTokenUncheckedUpdateManyWithoutAdminNestedInput
 }
 
@@ -616,6 +688,9 @@ export type PlatformAdminCreateWithoutRefresh_tokensInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   admin_roles?: Prisma.PlatformAdminRoleCreateNestedManyWithoutAdminInput
 }
 
@@ -631,6 +706,9 @@ export type PlatformAdminUncheckedCreateWithoutRefresh_tokensInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  totp_secret_encrypted?: string | null
+  totp_enabled?: boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   admin_roles?: Prisma.PlatformAdminRoleUncheckedCreateNestedManyWithoutAdminInput
 }
 
@@ -662,6 +740,9 @@ export type PlatformAdminUpdateWithoutRefresh_tokensInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   admin_roles?: Prisma.PlatformAdminRoleUpdateManyWithoutAdminNestedInput
 }
 
@@ -677,6 +758,9 @@ export type PlatformAdminUncheckedUpdateWithoutRefresh_tokensInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totp_secret_encrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totp_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totp_recovery_codes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   admin_roles?: Prisma.PlatformAdminRoleUncheckedUpdateManyWithoutAdminNestedInput
 }
 
@@ -732,6 +816,9 @@ export type PlatformAdminSelect<ExtArgs extends runtime.Types.Extensions.Interna
   last_access_at?: boolean
   failed_login_attempts?: boolean
   locked_until?: boolean
+  totp_secret_encrypted?: boolean
+  totp_enabled?: boolean
+  totp_recovery_codes?: boolean
   admin_roles?: boolean | Prisma.PlatformAdmin$admin_rolesArgs<ExtArgs>
   refresh_tokens?: boolean | Prisma.PlatformAdmin$refresh_tokensArgs<ExtArgs>
   _count?: boolean | Prisma.PlatformAdminCountOutputTypeDefaultArgs<ExtArgs>
@@ -749,6 +836,9 @@ export type PlatformAdminSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   last_access_at?: boolean
   failed_login_attempts?: boolean
   locked_until?: boolean
+  totp_secret_encrypted?: boolean
+  totp_enabled?: boolean
+  totp_recovery_codes?: boolean
 }, ExtArgs["result"]["platformAdmin"]>
 
 export type PlatformAdminSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -763,6 +853,9 @@ export type PlatformAdminSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   last_access_at?: boolean
   failed_login_attempts?: boolean
   locked_until?: boolean
+  totp_secret_encrypted?: boolean
+  totp_enabled?: boolean
+  totp_recovery_codes?: boolean
 }, ExtArgs["result"]["platformAdmin"]>
 
 export type PlatformAdminSelectScalar = {
@@ -777,9 +870,12 @@ export type PlatformAdminSelectScalar = {
   last_access_at?: boolean
   failed_login_attempts?: boolean
   locked_until?: boolean
+  totp_secret_encrypted?: boolean
+  totp_enabled?: boolean
+  totp_recovery_codes?: boolean
 }
 
-export type PlatformAdminOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "username" | "password" | "is_system_admin" | "enabled" | "created_at" | "updated_at" | "last_login_at" | "last_access_at" | "failed_login_attempts" | "locked_until", ExtArgs["result"]["platformAdmin"]>
+export type PlatformAdminOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "username" | "password" | "is_system_admin" | "enabled" | "created_at" | "updated_at" | "last_login_at" | "last_access_at" | "failed_login_attempts" | "locked_until" | "totp_secret_encrypted" | "totp_enabled" | "totp_recovery_codes", ExtArgs["result"]["platformAdmin"]>
 export type PlatformAdminInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   admin_roles?: boolean | Prisma.PlatformAdmin$admin_rolesArgs<ExtArgs>
   refresh_tokens?: boolean | Prisma.PlatformAdmin$refresh_tokensArgs<ExtArgs>
@@ -806,6 +902,9 @@ export type $PlatformAdminPayload<ExtArgs extends runtime.Types.Extensions.Inter
     last_access_at: Date | null
     failed_login_attempts: number
     locked_until: Date | null
+    totp_secret_encrypted: string | null
+    totp_enabled: boolean
+    totp_recovery_codes: runtime.JsonValue | null
   }, ExtArgs["result"]["platformAdmin"]>
   composites: {}
 }
@@ -1242,6 +1341,9 @@ export interface PlatformAdminFieldRefs {
   readonly last_access_at: Prisma.FieldRef<"PlatformAdmin", 'DateTime'>
   readonly failed_login_attempts: Prisma.FieldRef<"PlatformAdmin", 'Int'>
   readonly locked_until: Prisma.FieldRef<"PlatformAdmin", 'DateTime'>
+  readonly totp_secret_encrypted: Prisma.FieldRef<"PlatformAdmin", 'String'>
+  readonly totp_enabled: Prisma.FieldRef<"PlatformAdmin", 'Boolean'>
+  readonly totp_recovery_codes: Prisma.FieldRef<"PlatformAdmin", 'Json'>
 }
     
 
