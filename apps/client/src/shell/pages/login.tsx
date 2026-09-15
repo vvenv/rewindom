@@ -7,7 +7,7 @@ import {
   goToPlatformConsole,
   isLoginRequires2fa,
 } from "@rewindom/client-kit";
-import { isPlatformAdminActor } from "@rewindom/shared";
+import { isPlatformAdminActor, type User } from "@rewindom/shared";
 import { toast } from "@rewindom/ui/toast";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
@@ -50,7 +50,7 @@ export function Login() {
   } = usePublicConfig();
   const hostLockedTenant = single_tenant || bound_tenant != null;
 
-  const finishLogin = (user: { actor_type: string }): void => {
+  const finishLogin = (user: User): void => {
     if (isPlatformAdminActor(user.actor_type)) {
       goToPlatformConsole(platform_url);
       return;

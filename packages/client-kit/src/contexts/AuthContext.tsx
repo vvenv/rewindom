@@ -8,6 +8,7 @@ import type {
   ChangePasswordData,
   LoginCredentials,
   LoginRequires2fa,
+  LoginResponse,
   User,
 } from "@rewindom/shared";
 
@@ -66,11 +67,13 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
 
   const login = useCallback(
     async (credentials: LoginCredentials): Promise<LoginResult> => {
-      const data = await api.post<
-        | { user: User; tenant_slug?: string | null; expires_in?: number }
-        | LoginRequires2fa
-      >("/auth/login", credentials, undefined, true);
-      if ("requires_2fa" in data && data.requires_2fa) {
+      const data = await api.post<LoginResponse>(
+        "/auth/login",
+        credentials,
+        undefined,
+        true,
+      );
+      if (data.requires_2fa) {
         return data;
       }
       setAuthUser(data.user);
