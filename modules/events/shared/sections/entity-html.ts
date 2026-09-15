@@ -18,10 +18,12 @@ import {
   settingBool,
   settingText,
 } from "@rewindom/builtin/marketing/shared/section-schema.js";
+import { siteHref } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
 import { eventCardHtml } from "./event-card-html.js";
 
 import type { SectionHtmlRenderer } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
+import type { PublicEntityView } from "../events-section-context.js";
 
 export const renderEventsEntityHtml: SectionHtmlRenderer = (section, ctx) => {
   const context = readEventsContext(ctx);
@@ -41,10 +43,41 @@ export const renderEventsEntityHtml: SectionHtmlRenderer = (section, ctx) => {
           .join("")}</ul>`
       : emptyHtml(settingText(s, "empty_text"));
 
-  return [`<section class="events-entity">`, list, `</section>`]
+  const related =
+    entity.related_entities.length > 0 ? relatedHtml(entity, ctx) : "";
+
+  return [`<section class="events-entity">`, list, related, `</section>`]
     .filter(Boolean)
     .join("");
 };
+
+/**
+ * 「这家常和谁一起出现」——同一事件里共现过的其他实体。
+ *
+ * 胶囊形状与枢纽 / 详情页一致（events-entity-chip），平铺不分组：相关是 Top N，
+ * 不是一整页要分类浏览。共现次数替了枢纽的分组计数。
+ *
+ * kind 放 title 里——hover 显示「公司 / 产品」，不占版面：枢纽靠分组标题承担
+ * kind，相关没有分组，但 Top 5 分类不重要，hover 给到就够。
+ */
+function relatedHtml(
+  entity: PublicEntityView,
+  ctx: Parameters<SectionHtmlRenderer>[1],
+): string {
+  const chips = entity.related_entities
+    .map(
+      (item) =>
+        `<li><a class="events-entity-chip" href="${escapeHtml(
+          siteHref(item.href, ctx),
+        )}" title="${escapeHtml(item.kind_label)}" translate="no">${escapeHtml(
+          item.name,
+        )}<span class="events-entity-count">${item.co_occurrence_count}</span></a></li>`,
+    )
+    .join("");
+  return `<section class="events-entity-related"><h2 class="events-entity-section-title">${escapeHtml(
+    entity.related_label,
+  )}</h2><ul class="events-entity-chips">${chips}</ul></section>`;
+}
 
 function emptyHtml(text: string): string {
   return text ? `<p class="events-empty">${escapeHtml(text)}</p>` : "";

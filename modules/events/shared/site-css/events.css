@@ -949,6 +949,20 @@
   color: var(--muted-fg);
 }
 
+/*
+ * 共现段：事件列表在上一段，这一段是「这家常和谁一起出现」——靠一根分隔线
+ * 提示读者下面是另一类信息（关系，不是事件）。胶囊复用 events-entity-chip，
+ * 不另起形状：枢纽 / 详情页 / 这里该是同一种东西。
+ */
+.events-entity-related {
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.events-entity-related .events-entity-section-title {
+  margin: 0 0 0.625rem;
+}
+
 /* 相关事件：不是同一件事，只是有关系。摆在来源之后。 */
 .events-related {
   display: flex;

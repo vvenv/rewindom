@@ -304,6 +304,13 @@ export interface PublicEntityRecord {
   event_count: number;
   profile: readonly EventPlacementFact[];
   events: readonly EventListItem[];
+  /** 共现过的其他实体。kind 是原始值，在这里落成 kind_label。 */
+  related_entities: readonly {
+    slug: string;
+    name: string;
+    kind: string;
+    co_occurrence_count: number;
+  }[];
 }
 
 /** 枢纽 / 预览接口给出的实体行 → 首页胶囊条。排序只在这里做一份。 */
@@ -345,6 +352,13 @@ export function toPublicEntity(
       t(fact.code, resolvePlacementParams(fact.params, t)),
     ),
     events: entity.events.map((item) => toPublicCard(item, t)),
+    related_label: t("entity.related"),
+    related_entities: entity.related_entities.map((item) => ({
+      href: entityPath(item.slug),
+      name: item.name,
+      kind_label: t(`entityKind.${item.kind}`),
+      co_occurrence_count: item.co_occurrence_count,
+    })),
   };
 }
 

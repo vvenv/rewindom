@@ -203,6 +203,23 @@ export interface PublicEntityView {
    */
   profile: string[];
   events: PublicEventCard[];
+  /**
+   * 已落成当前语言的「相关实体」段标题（「相关实体」）。
+   * `related_entities` 为空时整段不渲染，标题跟着一起留白。
+   */
+  related_label: string;
+  /**
+   * 同一事件里共现过的其他实体，按共现事件数降序。文案已落成当前语言。
+   * 空数组 = 不足两次共现或没有其他实体，整块不渲染——与 profile 同一条留白口径。
+   */
+  related_entities: {
+    href: string;
+    name: string;
+    /** 已落成当前语言的类型名（公司 / 产品 / 人物…），替代枢纽的分组标题 */
+    kind_label: string;
+    /** 与当前实体在同一事件里共现过几次 */
+    co_occurrence_count: number;
+  }[];
 }
 
 /** 实体枢纽的公开视图：按类型分组，组名与计数文案已落成当前语言。 */

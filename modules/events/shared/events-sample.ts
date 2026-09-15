@@ -268,6 +268,12 @@ export function sampleEntityData(t: EventsTranslate): {
   event_count: number;
   profile: { code: string; params?: Record<string, string | number> }[];
   events: EventListItem[];
+  related_entities: readonly {
+    slug: string;
+    name: string;
+    kind: string;
+    co_occurrence_count: number;
+  }[];
 } {
   const events = sampleEventList(t);
   return {
@@ -287,6 +293,21 @@ export function sampleEntityData(t: EventsTranslate): {
       { code: "profile.outageTotal", params: { minutes: 47 } },
     ],
     events,
+    // 样张要能看见共现段：空数组时整段不画，租户不会知道这一段存在
+    related_entities: [
+      {
+        slug: "anthropic-sample",
+        name: "Anthropic",
+        kind: "company",
+        co_occurrence_count: 4,
+      },
+      {
+        slug: "microsoft-sample",
+        name: "Microsoft",
+        kind: "company",
+        co_occurrence_count: 2,
+      },
+    ],
   };
 }
 

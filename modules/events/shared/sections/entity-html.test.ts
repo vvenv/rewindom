@@ -48,6 +48,8 @@ function entity(overrides: Partial<PublicEntityView> = {}): PublicEntityView {
     event_count: 2,
     profile: [],
     events: [card("a"), card("b")],
+    related_label: "相关实体",
+    related_entities: [],
     ...overrides,
   };
 }
@@ -143,5 +145,77 @@ describe("renderEventsEntityHtml", () => {
    */
   it("不自己画订阅入口——那由独立的订阅段负责", () => {
     expect(render(entity())).not.toContain("events-subscribe");
+  });
+
+  describe("related entities", () => {
+    /*
+     * 与 profile 同一条留白口径：空数组时整段不画——留白比编一句「暂无相关」强。
+     * 单次共现已经在 service 里过滤掉了，到渲染层都是 ≥2 次的有效共现。
+     */
+    it("没有共现实体时不画相关段", () => {
+      const html = render(entity({ related_entities: [] }));
+      expect(html).not.toContain("events-entity-related");
+    });
+
+    it("列出共现实体，链接指向实体页，按共现次数显示", () => {
+      const html = render(
+        entity({
+          related_entities: [
+            {
+              href: "/entities/anthropic",
+              name: "Anthropic",
+              kind_label: "公司",
+              co_occurrence_count: 4,
+            },
+            {
+              href: "/entities/microsoft",
+              name: "Microsoft",
+              kind_label: "公司",
+              co_occurrence_count: 2,
+            },
+          ],
+        }),
+      );
+      expect(html).toContain("events-entity-related");
+      expect(html).toContain("相关实体");
+      expect(html).toContain('href="/entities/anthropic"');
+      expect(html).toContain("Anthropic");
+      expect(html).toContain(">4<");
+      expect(html).toContain(">2<");
+    });
+
+    /* kind 放 title 里——hover 显示，不占版面 */
+    it("kind_label 放在 title attribute 里", () => {
+      const html = render(
+        entity({
+          related_entities: [
+            {
+              href: "/entities/anthropic",
+              name: "Anthropic",
+              kind_label: "公司",
+              co_occurrence_count: 4,
+            },
+          ],
+        }),
+      );
+      expect(html).toContain('title="公司"');
+    });
+
+    /* 实体名不翻译——专有名词原样保留，与枢纽胶囊同一条口径 */
+    it("实体名标 translate=no", () => {
+      const html = render(
+        entity({
+          related_entities: [
+            {
+              href: "/entities/anthropic",
+              name: "Anthropic",
+              kind_label: "公司",
+              co_occurrence_count: 4,
+            },
+          ],
+        }),
+      );
+      expect(html).toContain('translate="no"');
+    });
   });
 });

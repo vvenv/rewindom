@@ -444,7 +444,8 @@
     "unfollow": "取消关注 {{name}}"
   },
   "entity": {
-    "empty": "这个实体还没有关联的事件"
+    "empty": "这个实体还没有关联的事件",
+    "related": "相关实体"
   },
   "entityKind": {
     "company": "公司",

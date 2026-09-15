@@ -1,0 +1,97 @@
+# 实体页加「相关实体」段——按共现事件数排序的实体推荐。
+#
+# 与事件页的 Related Events 对称，但数据源不同：相关事件靠 centroid 语义相似度
+#（预计算，因为载入向量贵）；相关实体靠 EventEntityLink 自连接——同一件事里
+# 还出现了谁。那是可核对的计数，不是"猜你喜欢"。
+#
+# 读路径上算，不预计算、不加列：groupBy 轻量，且实体页是低频页面（vs 详情页
+# 每次刷新）。与 entity-profile 同一条理由——档案也是读路径上算的。
+#
+# 竞品的实体页是搜索结果，没有实体间的结构化关联。这一段把"这两家常一起
+# 出现"变成可浏览的关系，是实体页该有却还没有的那一层。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: 公开实体页在事件列表后面展示「相关实体」——同一事件里共现过的其他实体，按共现事件数降序，最多 5 条。
+gold: modules/events/shared/sections/entity-index-html.ts # 抄胶囊形状；entity-profile.service.ts 抄 groupBy + i18n code 口径
+touch:
+  - modules/events/features/entity-co-occurrence.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/server/event/entity-co-occurrence.service.ts # 新建，与 entity-profile.service.ts 对称
+  - modules/events/server/event/entity-co-occurrence.service.test.ts
+  - modules/events/server/ssr/public-events.service.ts # getPublicEntityBySlug 调用并装入 PublicEntityData
+  - modules/events/server/ssr/public-events.service.test.ts
+  - modules/events/shared/public-view.ts # PublicEntityRecord + toPublicEntity 映射
+  - modules/events/shared/events-section-context.ts # PublicEntityView 加字段
+  - modules/events/shared/sections/entity-html.ts # 加段渲染
+  - modules/events/shared/sections/entity-html.test.ts
+  - modules/events/shared/site-css/events.css
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 新表 / 新列 / migration / 预计算
+  - 事件详情页的实体区块（已有 entities 列表，不再加共现）
+  - 实体枢纽页 / 实体条带（首页那批，不做共现）
+  - 趋势箭头（↑↓→）——那是独立一期，不在本期
+  - 跨实体对比页（A 家 vs B 家）——独立一期
+  - 工作台实体管理页
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/event/entity-co-occurrence.service.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run shared/sections/entity-html.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run server/ssr/public-events.service.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+  - 在本地库上对若干实体核对共现计数（与手查 EventEntityLink 对齐）
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: [] # 公开面，沿用 path handler 的 entitlement 闸门
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. 查询是 EventEntityLink 自连接：
+#    先取当前实体关联的 event_id 集合（与事件列表同一个 eventFilter），
+#    再 groupBy entity_id，where event_id IN 集合 AND entity_id != 当前，
+#    _count event_id 降序，take 5。
+#    一次 groupBy 拿全部，不要按候选实体各查一次。
+#
+# 2. **过滤条件必须与实体页事件列表一致**（enabledTopicWhere）：
+#    档案数了 12 件、列表列 8 件、共现却引到被关掉主题的事件上，三个数对不上
+#    读者会以为页面坏了。与 entity-profile 第 3 条同一条硬约束。
+#
+# 3. **不加时间窗**。共现是结构性关系（"这两家常一起出现"），不是时序性的——
+#    事件本身随时间凉掉由 eventFilter 和实体页存在性兜住。
+#    与 related_events 不同：那条有 30 天候选窗因为向量比的是"这两件事像不像"，
+#    跨太久没意义；共现比的是"这两家有没有在同一件事里出现过"，时间不改变它。
+#
+# 4. **单条共现事件数 < 2 时跳过该实体**（与 entity-profile MIN_EVENTS=2 同口径）：
+#    "和它一起出现过 1 次"是噪音——实体抽取保守、长尾很长，一次共现大概率是巧合。
+#    整段少于 1 条有效共现实体时整段不渲染（留白，不写"暂无"——与势头角标、
+#    修订区块同一条口径）。
+#
+# 5. **读路径上算，不预计算**。groupBy 轻量，实体页低频。与 entity-profile 同一条
+#    （档案也是读路径上算的）。related_events 预计算是因为载入几 MB 向量贵，
+#    这里没有那个问题。
+#
+# 6. **不给段开关**。它是这个实体身份的延伸（"这家常和谁一起出现"），不是可关的
+#    板块——与 entity-profile 第 7 条同一条理由。
+#
+# 7. **胶囊形状与枢纽 / 详情页一致**（events-entity-chip），带共现次数。
+#    读者在三处看到的是同一种东西。
+#
+# 8. 与 entity-profile、why-trending 同一条：产出 i18n code + 参数，**不是自由文案**。
+#    只报计数，不写"这两家关系密切"这类判断——那是解读，不是事实。
+#
+# 9. 渲染在事件列表后面，不在名片里——名片是"这是谁"，共现是"它和谁有关"，
+#    两件事分两层。与 entity-profile 的档案放在正文段第一行不同：
+#    档案是身份的一部分，共现是关系，关系排在内容之后。
+#
+# ---------- 下一步（不在本期）----------
+# - 趋势箭头（↑↓→）：实体枢纽 / 条带上显示近 7 天 vs 上 7 天的提及频次变化。
+#   需要在 EventEntity 上加 mention_trend 列（与 has_velocity_baseline 同口径
+#   区分"说不出来"），是预计算，不在读路径上算。
+# - 跨实体对比页：A 家 vs B 家的累计档案对照。是独立一面，不是段。

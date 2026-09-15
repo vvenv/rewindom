@@ -444,7 +444,8 @@
     "unfollow": "Unfollow {{name}}"
   },
   "entity": {
-    "empty": "No events reference this entity yet"
+    "empty": "No events reference this entity yet",
+    "related": "Related entities"
   },
   "entityKind": {
     "company": "Company",

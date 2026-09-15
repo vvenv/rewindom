@@ -18,6 +18,7 @@ import {
 const t = (key: string, params?: Record<string, string | number>): string => {
   if (key === "entityKind.company") return "Company";
   if (key === "entityKind.product") return "Product";
+  if (key === "entity.related") return "Related entities";
   if (key === "kind.outage") return "Outage";
   if (key === "profile.window") {
     return `${params?.count} events in ${params?.days} days`;
@@ -125,6 +126,14 @@ describe("toPublicEntity", () => {
             placement: [],
           },
         ],
+        related_entities: [
+          {
+            slug: "anthropic",
+            name: "Anthropic",
+            kind: "company",
+            co_occurrence_count: 4,
+          },
+        ],
       },
       t,
     );
@@ -135,6 +144,15 @@ describe("toPublicEntity", () => {
     expect(view.events[0]?.href).toBe("/events/outage-1");
     expect(view.events[0]?.title).toBe("API outage");
     expect(view.icon_url).toBe("/events/icons/openai.com");
+    expect(view.related_label).toBe("Related entities");
+    expect(view.related_entities).toEqual([
+      {
+        href: "/entities/anthropic",
+        name: "Anthropic",
+        kind_label: "Company",
+        co_occurrence_count: 4,
+      },
+    ]);
   });
 
   it("sample entity has profile and events so editor preview is not blank", () => {

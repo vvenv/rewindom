@@ -20,6 +20,7 @@ import { listRelatedEvents } from "../event/related.service.js";
 import { getEventArticleImage } from "../event/article-image.js";
 import { getEventPlacementForDetail } from "../event/placement.service.js";
 import { getEntityProfile } from "../event/entity-profile.service.js";
+import { getEntityCoOccurrence } from "../event/entity-co-occurrence.service.js";
 import {
   listEventRevisions,
   publicRevisionSince,
@@ -413,6 +414,13 @@ export interface PublicEntityData {
   /** 累计档案，仍是 i18n code + 参数——落成文案在 path handler 那一步 */
   profile: EventPlacementFact[];
   events: EventListItem[];
+  /** 共现过的其他实体。kind 是原始值，落成 kind_label 在 path handler 那一步 */
+  related_entities: {
+    slug: string;
+    name: string;
+    kind: string;
+    co_occurrence_count: number;
+  }[];
 }
 
 /**
@@ -427,7 +435,8 @@ export async function getPublicEntityBySlug(
   const entity = await prisma.eventEntity.findFirst({
     where: withTenantScope(tenantId, { slug }),
     // normalized 已经在库里，取它就不用在这里再归一一次名字
-    select: { slug: true, name: true, kind: true, normalized: true },
+    // id 给共现查询用——EventEntityLink 按 entity_id 关联
+    select: { id: true, slug: true, name: true, kind: true, normalized: true },
   });
   if (!entity) {
     return null;
@@ -435,7 +444,7 @@ export async function getPublicEntityBySlug(
 
   const enabled = await getEnabledTopics(tenantId);
   const eventFilter = enabledTopicWhere(enabled);
-  const [links, eventCount, profile] = await Promise.all([
+  const [links, eventCount, profile, relatedEntities] = await Promise.all([
     prisma.eventEntityLink.findMany({
       where: withTenantScope(tenantId, {
         entity: { slug },
@@ -457,6 +466,12 @@ export async function getPublicEntityBySlug(
       entity_slug: slug,
       event_filter: eventFilter,
     }),
+    // 同一个 event_filter：共现引到被关掉主题的事件上，三个数对不上
+    getEntityCoOccurrence({
+      tenant_id: tenantId,
+      entity_id: entity.id,
+      event_filter: eventFilter,
+    }),
   ]);
 
   // 名片上的标志与卡片上的来源标出自同一张 EventFeed 快照，一次查询取回
@@ -474,6 +489,7 @@ export async function getPublicEntityBySlug(
       sourceIcons: icons.sources,
     }),
     profile,
+    related_entities: relatedEntities,
   };
 }
 
