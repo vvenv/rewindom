@@ -1,0 +1,88 @@
+# 增量功能契约 —— 站点级 Google AdSense（自动广告）
+#
+# 起因：yestino.com 要挂 AdSense（ca-pub-4673397527808150）。不要把脚本写死在
+# 某一个租户上——广告和访问分析一样是站点配置，任何租户都可以开。
+#
+# 为什么不是「允许租户粘一段 HTML 到 <head>」：那等于给站点管理员一个任意脚本
+# 注入位。这里只收发布商 ID（ca-pub-…），按官方 snippet 拼；整段 script 贴进来
+# 也可以，读入口抽出 ID。
+#
+# 这一轮只做 Auto ads + ads.txt。手动广告单元（<ins class="adsbygoogle"> +
+# data-ad-slot）要等租户有广告位 ID 再加 CMS 段，不在本 spec。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr, tenant]
+goal: 站点设置可填 Google AdSense 发布商 ID；公开面 SSR 在 <head> 发出官方 Auto ads snippet 与 google-adsense-account meta；配了就提供 /ads.txt；编辑器预览不发。
+gold: packages/builtin/marketing/shared/site-analytics.ts
+touch:
+  - packages/builtin/marketing/features/site-adsense.spec.yaml
+  - packages/builtin/marketing/models.prisma
+  - apps/server/prisma/migrations/
+  - packages/builtin/marketing/shared/site-ads.ts
+  - packages/builtin/marketing/shared/site-ads.test.ts
+  - packages/builtin/marketing/shared/site-cms.ts
+  - packages/builtin/marketing/shared/reserved-slugs.ts
+  - packages/builtin/marketing/server/site.mapper.ts
+  - packages/builtin/marketing/server/site.service.ts
+  - packages/builtin/marketing/server/ssr-render.ts
+  - packages/builtin/marketing/server/ssr-render.test.ts
+  - packages/builtin/marketing/server/ssr.routes.ts
+  - packages/builtin/marketing/server/site-csp.ts
+  - packages/builtin/marketing/server/site-csp.test.ts
+  - packages/builtin/marketing/server/site-csp-wiring.test.ts
+  - packages/builtin/marketing/client/hooks/use-site-settings-form.ts
+  - packages/builtin/marketing/client/hooks/use-site-editor.ts
+  - packages/builtin/marketing/client/lib/site-settings-form.ts
+  - packages/builtin/marketing/client/lib/site-settings-form.test.ts
+  - packages/builtin/marketing/client/components/settings/SiteAdsForm.tsx
+  - packages/builtin/marketing/client/components/settings/SiteSettingsForms.test.tsx
+  - packages/builtin/marketing/client/components/SiteSettingsSheet.tsx
+  - packages/builtin/marketing/client/components/settings/SiteHomeForm.test.tsx
+  - packages/builtin/marketing/client/components/TenantSiteView.test.tsx
+  - packages/builtin/marketing/server/render-page-sections-html.test.ts
+  - packages/builtin/marketing/client/locales/
+  - packages/builtin/marketing/MODULE.md
+  - apps/client/vite-marketing-ssr-proxy.ts
+  - apps/client/vite-marketing-ssr-proxy.test.ts
+  - apps/server/scripts/apply-yestino-ads.ts
+  - apps/server/scripts/apply-yestino-privacy.ts
+  - apps/server/scripts/seed-local-yestino.ts
+out_of_scope:
+  - 手动广告单元 / CMS 广告段（没有 data-ad-slot 之前不做）
+  - 同意横幅 / CMP / Google Consent Mode
+  - 其它广告网（只接 AdSense）
+  - 平台控制台 / 工作台页面的广告
+  - 把脚本写死进 yestino 的 SSR 分支
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared site-ads.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared site-analytics.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/server ssr-render.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/server site-csp.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client SiteSettingsForms.test.tsx
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client site-settings-form.test.ts
+  - pnpm check:i18n
+  - pnpm check:modules
+
+# ---------- 可选 ----------
+entitlement:
+permissions: [site.read, site.write]
+models:
+  - name: MarketingSite
+    scope: tenant
+    fields:
+      - { name: ads, type: Json, required: false }
+
+# ---------- 设计要点 ----------
+# 1. 一个 JSON 列 `{ google_adsense_publisher_id }`，与 analytics 同一口径：
+#    不进草稿 / 发布链——广告是站点配置不是内容，配完就该生效。
+# 2. 只收 ca-pub- + 数字。整段官方 <script> 贴进来就抽出 ID。非法值写入时丢掉。
+# 3. 公开面 snippet 是官方 Auto ads：meta google-adsense-account + adsbygoogle.js?client=。
+# 4. 配了发布商 ID 才提供 /ads.txt（google.com, pub-…, DIRECT, f08c47fec0942fa0）。
+#    没配返回 404，不要发空文件。
+# 5. 编辑器预览不发广告脚本（与分析同一条：自己人改稿不该刷展示）。
+# 6. CSP 按配置放行 googlesyndication / doubleclick / adtrafficquality；默认仍是 report。
+# 7. 隐私 / Cookie 披露页（`/privacy`、`/cookies` 及常见别名）不发 Auto ads。
+#    Google 要求这些页不挂广告标签，也不出 Funding Choices 同意窗。
+#    路径匹配在 `isSiteAdsExemptPath`：剥 locale 前缀后看第一段。

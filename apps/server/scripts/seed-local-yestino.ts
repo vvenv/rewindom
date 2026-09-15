@@ -30,26 +30,35 @@ interface Args {
   dryRun: boolean;
   skipBrand: boolean;
   skipAbout: boolean;
+  skipAds: boolean;
+  skipPrivacy: boolean;
+  skipChrome: boolean;
 }
 
 function parseArgs(argv: string[]): Args {
   let dryRun = false;
   let skipBrand = false;
   let skipAbout = false;
+  let skipAds = false;
+  let skipPrivacy = false;
+  let skipChrome = false;
   for (const token of argv) {
     if (token === "--dry-run") dryRun = true;
     else if (token === "--skip-brand") skipBrand = true;
     else if (token === "--skip-about") skipAbout = true;
+    else if (token === "--skip-ads") skipAds = true;
+    else if (token === "--skip-privacy") skipPrivacy = true;
+    else if (token === "--skip-chrome") skipChrome = true;
     else if (token === "--help" || token === "-h") {
       console.log(
-        "Usage: tsx scripts/seed-local-yestino.ts [--dry-run] [--skip-brand] [--skip-about]",
+        "Usage: tsx scripts/seed-local-yestino.ts [--dry-run] [--skip-brand] [--skip-about] [--skip-ads] [--skip-privacy] [--skip-chrome]",
       );
       process.exit(0);
     } else {
       throw new Error(`Unknown argument: ${token}`);
     }
   }
-  return { dryRun, skipBrand, skipAbout };
+  return { dryRun, skipBrand, skipAbout, skipAds, skipPrivacy, skipChrome };
 }
 
 function runSiblingScript(name: string, args: string[]): void {
@@ -134,6 +143,24 @@ async function main(): Promise<void> {
     runSiblingScript("apply-yestino-about.ts", childArgs);
   } else {
     console.log("[seed-local-yestino] skip about");
+  }
+
+  if (!args.skipAds) {
+    runSiblingScript("apply-yestino-ads.ts", childArgs);
+  } else {
+    console.log("[seed-local-yestino] skip ads");
+  }
+
+  if (!args.skipPrivacy) {
+    runSiblingScript("apply-yestino-privacy.ts", childArgs);
+  } else {
+    console.log("[seed-local-yestino] skip privacy");
+  }
+
+  if (!args.skipChrome) {
+    runSiblingScript("apply-yestino-chrome.ts", childArgs);
+  } else {
+    console.log("[seed-local-yestino] skip chrome");
   }
 
   console.log(

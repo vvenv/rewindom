@@ -374,6 +374,8 @@ export function useSiteEditor(pageId: string | undefined) {
         analytics_html: "",
         analytics_body_html: "",
         analytics: { scripts: [] },
+        ads_html: "",
+        ads: { google_adsense_publisher_id: "" },
         primary_color: theme.primary_color ?? null,
         theme_settings: { ...theme, logo_url: previewLogoUrl },
         default_locale: defaultLocale,

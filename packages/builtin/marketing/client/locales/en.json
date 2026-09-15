@@ -278,6 +278,7 @@
     "defaultLocaleConfirm": "Switch primary language",
     "toastSiteNameRequired": "Fill in the site name for the primary language ({{locale}}) first.",
     "toastAnalyticsIncomplete": "Finish every analytics script before saving. An empty ID turns that script off.",
+    "toastAdsIncomplete": "That publisher ID isn’t a ca-pub- value. Pasting the official snippet also works.",
     "settingsDiscardTitle": "Discard unsaved changes?",
     "settingsDiscardDescription": "Closing the sheet throws away what you just edited.",
     "settingsDiscardConfirm": "Discard",
@@ -421,7 +422,11 @@
     "fieldAnalyticsScriptUrl": "Script URL",
     "fieldAnalyticsScriptUrlHint": "Must be an https:// address. Leave the site unpublished-safe: an invalid URL simply turns analytics off.",
     "fieldAnalyticsScriptUrlHintPlausible": "Leave blank for Plausible Cloud; fill it in only when self-hosting.",
-    "fieldAnalyticsScriptUrlHintCloudflare": "Leave blank to use Cloudflare's official beacon."
+    "fieldAnalyticsScriptUrlHintCloudflare": "Leave blank to use Cloudflare's official beacon.",
+    "settingsSectionAds": "Ads",
+    "settingsSectionAdsHint": "Install Google AdSense Auto ads on the public site. The workspace and platform console never show ads. Saving a publisher ID also publishes /ads.txt.",
+    "fieldAdsensePublisherId": "AdSense publisher ID",
+    "fieldAdsensePublisherIdHint": "The ca-pub- ID from your AdSense account. Pasting the official snippet also works — the ID is extracted. Leave blank to turn ads off."
   },
   "starter": {
     "default": {

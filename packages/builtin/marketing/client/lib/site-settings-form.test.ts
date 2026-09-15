@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  adsReady,
   analyticsReady,
   pinToLocale,
   primaryText,
@@ -112,6 +113,16 @@ describe("analyticsReady", () => {
           },
         ],
       }),
+    ).toBe(true);
+  });
+});
+
+describe("adsReady", () => {
+  it("空可以存；垃圾字符串不能存；合法 ca-pub 可以存", () => {
+    expect(adsReady({ google_adsense_publisher_id: "" })).toBe(true);
+    expect(adsReady({ google_adsense_publisher_id: "hello" })).toBe(false);
+    expect(
+      adsReady({ google_adsense_publisher_id: "ca-pub-4673397527808150" }),
     ).toBe(true);
   });
 });

@@ -45,6 +45,9 @@ describe("vite marketing SSR proxy routing", () => {
     expect(
       shouldProxyDocumentToMarketingSsr("/robots.txt", "GET", "*/*"),
     ).toBe(true);
+    expect(shouldProxyDocumentToMarketingSsr("/ads.txt", "GET", "*/*")).toBe(
+      true,
+    );
     expect(shouldProxyDocumentToMarketingSsr("/llms.txt", "GET", "*/*")).toBe(
       true,
     );

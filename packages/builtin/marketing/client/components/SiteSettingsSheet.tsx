@@ -23,6 +23,7 @@ import { toast } from "sonner";
 
 import { useSiteSettingsForm } from "../hooks/use-site-settings-form.js";
 
+import { SiteAdsForm } from "./settings/SiteAdsForm.js";
 import { SiteAnalyticsForm } from "./settings/SiteAnalyticsForm.js";
 import { SiteBasicsForm } from "./settings/SiteBasicsForm.js";
 import { SiteHomeForm } from "./settings/SiteHomeForm.js";
@@ -40,7 +41,7 @@ interface SiteSettingsSheetProps {
 }
 
 /**
- * 站点设置：站名、语言、首页、发布、分析、重定向——挂在官网卡片上的 Sheet。
+ * 站点设置：站名、语言、首页、发布、分析、广告、重定向——挂在官网卡片上的 Sheet。
  *
  * 前五项是一张表单，底部保存 / 取消。重定向有自己的接口和新建 Sheet，不套进这张
  * `<form>`。外观不在这里——Logo / 配色走卡片上并列的「外观」入口。
@@ -105,6 +106,11 @@ export function SiteSettingsSheet({
     }
     if (status === "incomplete_analytics") {
       toast.error(t("cms.toastAnalyticsIncomplete"));
+      return;
+    }
+    if (status === "incomplete_ads") {
+      toast.error(t("cms.toastAdsIncomplete"));
+      return;
     }
   };
 
@@ -133,6 +139,7 @@ export function SiteSettingsSheet({
               <SiteHomeForm form={form} canWrite={canWrite} />
               <SiteVisibilityForm form={form} canWrite={canWrite} />
               <SiteAnalyticsForm form={form} canWrite={canWrite} />
+              <SiteAdsForm form={form} canWrite={canWrite} />
             </form>
             <div className="mt-8">
               <SiteRedirectsSection canWrite={canWrite} />

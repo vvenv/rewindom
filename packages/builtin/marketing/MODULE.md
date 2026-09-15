@@ -12,7 +12,7 @@
 
 | 面          | 路由                                                                                                              | 目录                                         | 守卫                                         |
 | ----------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | -------------------------------------------- |
-| 公开（SSR） | `/`、`/:slug`、嵌套路径（及 `/{locale}/…`）、`/sitemap.xml`、`/robots.txt`、`/llms.txt`、`/site.webmanifest`      | `server/ssr.routes.ts` + `client/enhance/`   | Host 绑定（含主域→default）+ 站点已发布      |
+| 公开（SSR） | `/`、`/:slug`、嵌套路径（及 `/{locale}/…`）、`/sitemap.xml`、`/robots.txt`、`/ads.txt`、`/llms.txt`、`/site.webmanifest`      | `server/ssr.routes.ts` + `client/enhance/`   | Host 绑定（含主域→default）+ 站点已发布      |
 | 租户中台    | `/app/site`、`/app/site/editor`（`?page=` 区块树；`?scope=theme` 外观，从卡片进入）；站点设置为官网卡片上的 Sheet | `client/tenant/` + `client/pages/site-*.tsx` | entitlement `tenant-marketing` + `site.read` |
 
 挂载点：`server.registerRoutes`（SSR + 公开 API）+ `client.renderRoutes`（CMS / 编辑器）。
@@ -1077,13 +1077,13 @@ site-docs 登记，会员页由 site-member 登记。文案在创建时展开成
 | 在哪                                     | 内容                                                                            |
 | ---------------------------------------- | ------------------------------------------------------------------------------- |
 | 编辑器主题设置层（页面行 → 主题设置）    | 主题包、站点 Logo、分享图、配色、字体、页宽、区块间距                           |
-| 站点设置 Sheet（官网卡片 →「站点设置」） | 基本信息、语言、首页、发布、访问分析、重定向（一张表单 + 底部保存；重定向除外） |
+| 站点设置 Sheet（官网卡片 →「站点设置」） | 基本信息、语言、首页、发布、访问分析、广告、重定向（一张表单 + 底部保存；重定向除外） |
 
 外观进编辑器而不是留在设置页，是因为它要**看着预览调**。它曾经是设置页的一个页签，
 又曾经是一张带只读预览的独立页——前者太深（官网 → 站点设置 → 外观），后者的预览是
 第四份实现且点不动。
 
-设置 Sheet 的分区上下排布（窄 Sheet 不用页签），前五项是**一张表单**，底部保存 / 取消：
+设置 Sheet 的分区上下排布（窄 Sheet 不用页签），前六项是**一张表单**，底部保存 / 取消：
 
 | 分区     | 字段                              | 提交                                                              |
 | -------- | --------------------------------- | ----------------------------------------------------------------- |
@@ -1092,6 +1092,7 @@ site-docs 登记，会员页由 site-member 登记。文案在创建时展开成
 | 首页     | 打开 `/` 时的版式或另一张页       | 版式仍立刻 `POST /site/home-layout`；其它页随保存 `{ home_path }` |
 | 发布     | 站点总开关                        | 下线先确认；保存时带 `{ published }`                              |
 | 访问分析 | 多条脚本（GA / GTM / Clarity / Plausible / Umami / Cloudflare / 自定义） | 随保存 `{ analytics: { scripts } }`；不完整的条目提交前拦住 |
+| 广告     | Google AdSense 发布商 ID（`ca-pub-…`） | 随保存 `{ ads: { google_adsense_publisher_id } }`；抽不出合法 ID 时提交前拦住 |
 | 重定向   | 旧地址 → 新地址                   | 不进这张 `<form>`，各自的 `/site/redirects` 接口                  |
 
 分析不能「加了脚本但没填完就存」：Cloudflare 还没填 token、GA 还没填衡量 ID 时，
@@ -1313,6 +1314,7 @@ URL 都会先规范化再查。来源写成 `/en/old` 或 `/old/` 与 `/old` 是
 | meta description    | 页面设置的描述（同一套插值），否则首页 tagline、内页 `{标题} — {tagline}` | 禁止多页共用一句光秃 tagline                                                                                                                               |
 | 首页 h1             | 不注入                                                                    | 页头品牌始终是链接；正文标题由 hero / page-header 段自己出                                                                                                 |
 | `/llms.txt`         | 现场拼                                                                    | 站点名 + 标语 + 链到 sitemap，和 robots.txt 一样是站点级                                                                                                   |
+| `/ads.txt`          | 现场拼                                                                    | 配了 AdSense 发布商 ID 才有；没配 404。Google 认证机构 ID 固定为 `f08c47fec0942fa0`                                                                        |
 | `/site.webmanifest` | 现场拼                                                                    | 名字取 `site_name`、主题色取 `primary_color`；图标只放 maskable，不回落 favicon                                                                            |
 | HSTS                | SSR `onRequest` + 宿主机 nginx                                            | 只在 https origin 上发；nginx 每次部署幂等补（certbot 写的 443 块自己不会带）                                                                              |
 
@@ -1374,6 +1376,18 @@ og:title 用完整页标题（社交卡片不必跟 SERP 一样短）；og:descr
 - 供应商决定 snippet 形状（plausible → `data-domain`，umami → `data-website-id`，
   cloudflare → `type=module` + `data-cf-beacon={"token"}`，GA / GTM / Clarity 用官方 snippet，
   custom 只有 src）
+
+### 广告（`shared/site-ads.ts`）
+
+`MarketingSite.ads` 一个 JSON 列：`{ google_adsense_publisher_id }`。
+公开面 SSR 在 `<head>` 里发 AdSense Auto ads 官方 snippet（`google-adsense-account` meta +
+`adsbygoogle.js?client=`）；配了发布商 ID 才提供 `/ads.txt`。编辑器预览恒不发。
+
+- 只收 **ca-pub- + 数字**。整段官方 `<script>` 贴进来就抽出 ID；非法值写入时丢掉
+- **不进草稿 / 发布链**：广告是站点配置不是内容，配完就该生效
+- **不做同意横幅 / CMP**：能不能装 AdSense 是站点自己的合规选择。同意窗走 AdSense 后台 Privacy & messaging
+- **隐私 / Cookie 披露页不发广告**：`/privacy`、`/cookies` 及常见别名（可带 locale 前缀）不输出 Auto ads，以满足 Google「披露页不挂广告标签」的要求
+- 这一轮只有 Auto ads。手动广告单元（CMS 段 + `data-ad-slot`）要等租户有广告位 ID 再加
 
 ## 表单段（贡献自 `site-form`）
 

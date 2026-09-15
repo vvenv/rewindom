@@ -65,6 +65,7 @@ export type MarketingSiteCountAggregateOutputType = {
   home_path: number
   home_layout_key: number
   analytics: number
+  ads: number
   created_at: number
   updated_at: number
   _all: number
@@ -112,6 +113,7 @@ export type MarketingSiteCountAggregateInputType = {
   home_path?: true
   home_layout_key?: true
   analytics?: true
+  ads?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -206,6 +208,7 @@ export type MarketingSiteGroupByOutputType = {
   home_path: string
   home_layout_key: string
   analytics: runtime.JsonValue
+  ads: runtime.JsonValue
   created_at: Date
   updated_at: Date
   _count: MarketingSiteCountAggregateOutputType | null
@@ -248,6 +251,7 @@ export type MarketingSiteWhereInput = {
   home_path?: Prisma.StringFilter<"MarketingSite"> | string
   home_layout_key?: Prisma.StringFilter<"MarketingSite"> | string
   analytics?: Prisma.JsonFilter<"MarketingSite">
+  ads?: Prisma.JsonFilter<"MarketingSite">
   created_at?: Prisma.DateTimeFilter<"MarketingSite"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"MarketingSite"> | Date | string
 }
@@ -269,6 +273,7 @@ export type MarketingSiteOrderByWithRelationInput = {
   home_path?: Prisma.SortOrder
   home_layout_key?: Prisma.SortOrder
   analytics?: Prisma.SortOrder
+  ads?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -293,6 +298,7 @@ export type MarketingSiteWhereUniqueInput = Prisma.AtLeast<{
   home_path?: Prisma.StringFilter<"MarketingSite"> | string
   home_layout_key?: Prisma.StringFilter<"MarketingSite"> | string
   analytics?: Prisma.JsonFilter<"MarketingSite">
+  ads?: Prisma.JsonFilter<"MarketingSite">
   created_at?: Prisma.DateTimeFilter<"MarketingSite"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"MarketingSite"> | Date | string
 }, "id" | "tenant_id">
@@ -314,6 +320,7 @@ export type MarketingSiteOrderByWithAggregationInput = {
   home_path?: Prisma.SortOrder
   home_layout_key?: Prisma.SortOrder
   analytics?: Prisma.SortOrder
+  ads?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.MarketingSiteCountOrderByAggregateInput
@@ -341,6 +348,7 @@ export type MarketingSiteScalarWhereWithAggregatesInput = {
   home_path?: Prisma.StringWithAggregatesFilter<"MarketingSite"> | string
   home_layout_key?: Prisma.StringWithAggregatesFilter<"MarketingSite"> | string
   analytics?: Prisma.JsonWithAggregatesFilter<"MarketingSite">
+  ads?: Prisma.JsonWithAggregatesFilter<"MarketingSite">
   created_at?: Prisma.DateTimeWithAggregatesFilter<"MarketingSite"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"MarketingSite"> | Date | string
 }
@@ -362,6 +370,7 @@ export type MarketingSiteCreateInput = {
   home_path?: string
   home_layout_key?: string
   analytics?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  ads?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -383,6 +392,7 @@ export type MarketingSiteUncheckedCreateInput = {
   home_path?: string
   home_layout_key?: string
   analytics?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  ads?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -404,6 +414,7 @@ export type MarketingSiteUpdateInput = {
   home_path?: Prisma.StringFieldUpdateOperationsInput | string
   home_layout_key?: Prisma.StringFieldUpdateOperationsInput | string
   analytics?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  ads?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -425,6 +436,7 @@ export type MarketingSiteUncheckedUpdateInput = {
   home_path?: Prisma.StringFieldUpdateOperationsInput | string
   home_layout_key?: Prisma.StringFieldUpdateOperationsInput | string
   analytics?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  ads?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -446,6 +458,7 @@ export type MarketingSiteCreateManyInput = {
   home_path?: string
   home_layout_key?: string
   analytics?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  ads?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -467,6 +480,7 @@ export type MarketingSiteUpdateManyMutationInput = {
   home_path?: Prisma.StringFieldUpdateOperationsInput | string
   home_layout_key?: Prisma.StringFieldUpdateOperationsInput | string
   analytics?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  ads?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -488,6 +502,7 @@ export type MarketingSiteUncheckedUpdateManyInput = {
   home_path?: Prisma.StringFieldUpdateOperationsInput | string
   home_layout_key?: Prisma.StringFieldUpdateOperationsInput | string
   analytics?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  ads?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -509,6 +524,7 @@ export type MarketingSiteCountOrderByAggregateInput = {
   home_path?: Prisma.SortOrder
   home_layout_key?: Prisma.SortOrder
   analytics?: Prisma.SortOrder
+  ads?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -556,6 +572,7 @@ export type MarketingSiteSelect<ExtArgs extends runtime.Types.Extensions.Interna
   home_path?: boolean
   home_layout_key?: boolean
   analytics?: boolean
+  ads?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["marketingSite"]>
@@ -577,6 +594,7 @@ export type MarketingSiteSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   home_path?: boolean
   home_layout_key?: boolean
   analytics?: boolean
+  ads?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["marketingSite"]>
@@ -598,6 +616,7 @@ export type MarketingSiteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   home_path?: boolean
   home_layout_key?: boolean
   analytics?: boolean
+  ads?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["marketingSite"]>
@@ -619,11 +638,12 @@ export type MarketingSiteSelectScalar = {
   home_path?: boolean
   home_layout_key?: boolean
   analytics?: boolean
+  ads?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type MarketingSiteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "site_name" | "tagline" | "theme_settings" | "theme_settings_draft" | "theme_key" | "default_locale" | "nav_json" | "footer_json" | "nav_draft_json" | "footer_draft_json" | "published" | "home_path" | "home_layout_key" | "analytics" | "created_at" | "updated_at", ExtArgs["result"]["marketingSite"]>
+export type MarketingSiteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "site_name" | "tagline" | "theme_settings" | "theme_settings_draft" | "theme_key" | "default_locale" | "nav_json" | "footer_json" | "nav_draft_json" | "footer_draft_json" | "published" | "home_path" | "home_layout_key" | "analytics" | "ads" | "created_at" | "updated_at", ExtArgs["result"]["marketingSite"]>
 
 export type $MarketingSitePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "MarketingSite"
@@ -645,6 +665,7 @@ export type $MarketingSitePayload<ExtArgs extends runtime.Types.Extensions.Inter
     home_path: string
     home_layout_key: string
     analytics: runtime.JsonValue
+    ads: runtime.JsonValue
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["marketingSite"]>
@@ -1086,6 +1107,7 @@ export interface MarketingSiteFieldRefs {
   readonly home_path: Prisma.FieldRef<"MarketingSite", 'String'>
   readonly home_layout_key: Prisma.FieldRef<"MarketingSite", 'String'>
   readonly analytics: Prisma.FieldRef<"MarketingSite", 'Json'>
+  readonly ads: Prisma.FieldRef<"MarketingSite", 'Json'>
   readonly created_at: Prisma.FieldRef<"MarketingSite", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"MarketingSite", 'DateTime'>
 }

@@ -1,12 +1,13 @@
 /* eslint-disable no-console */
 /**
- * 给官网补三样内容（纯 CMS 内容，不动代码）：
+ * 给官网补关于页内容（纯 CMS 内容，不动代码）：
  *
  * 1. `/about` 关于页（中英各一张，直接发布）
  * 2. 首页首屏（`events.hero`，`anchor: about-yestino`），排在「正在升温」之前
- * 3. 页脚一个指向 `/about` 的导航块
  *
- * 幂等：三样各自先检测再写，已存在的跳过；`--force` 只覆盖 1、2 的正文，
+ * 页脚「关于」入口改由 `apply-yestino-chrome.ts` 统一铺（和隐私并排），这里不再动页脚。
+ *
+ * 幂等：各自先检测再写，已存在的跳过；`--force` 只覆盖 1、2 的正文，
  * 不会重复插入。
  *
  * 首页与页脚直接写「线上 + 草稿」两列，**不走** `publishEditorDraft`——那条链
@@ -25,11 +26,9 @@ import {
   setPageStatus,
 } from "@rewindom/builtin/marketing/server/site.service.js";
 import {
-  createBlock,
   createSection,
   getSectionDefinition,
   parseSettingValues,
-  type SiteBlock,
   type SiteSection,
 } from "@rewindom/builtin/marketing/shared/section-schema.js";
 import { registerSectionDefinition } from "@rewindom/builtin/marketing/shared/sections/index.js";
@@ -41,7 +40,6 @@ import {
   DEFAULT_HOME_PATH,
   normalizeHomePath,
 } from "@rewindom/builtin/marketing/shared/site-home.js";
-import { parseNavItems } from "@rewindom/builtin/marketing/shared/site-nav.js";
 import { type Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
@@ -160,7 +158,7 @@ Yestino 是一台**事件雷达**。它持续扫描公开来源，发现同一�
 
 ## 订阅
 
-整站与单个主题都提供 RSS，页头和页脚的「订阅 RSS」就是入口。`,
+整站与单个主题都提供 RSS，首屏的「订阅 RSS」就是入口。`,
   en: `## What Yestino is
 
 Yestino is an **event radar**. It continuously scans public sources, merges different reports of the same story into **one event**, rebuilds that event's timeline, and keeps every source on the page as evidence.
@@ -185,7 +183,7 @@ The homepage has two sections: **Rising** is what has just started to break out,
 
 ## Subscribe
 
-RSS is available for the whole site and for individual topics — the "Subscribe via RSS" link in the header and footer is the entry point.`,
+RSS is available for the whole site and for individual topics — the "Subscribe via RSS" button on the homepage is the entry point.`,
 };
 
 /** 有联系方式才写这一段：公开页上放一个收不到信的地址比不放更糟。 */
@@ -228,8 +226,6 @@ const INTRO_CTA = i18n({ "zh-CN": "它是怎么工作的", en: "How it works" })
 
 /** 订阅是不需要账号的那条留存腿，首屏给它一个次按钮——地址不手填。 */
 const INTRO_SUBSCRIBE_CTA = i18n({ "zh-CN": "订阅 RSS", en: "Subscribe via RSS" });
-
-const FOOTER_LINK_LABEL = i18n({ "zh-CN": "关于", en: "About" });
 
 /* -------------------------------------------------------------------------- */
 /* 段 / 块构造                                                                 */
@@ -287,18 +283,6 @@ function buildIntroHero(): SiteSection {
   });
 }
 
-function buildFooterNavBlock(): SiteBlock {
-  return createBlock("footer", "chrome_nav", {
-    row: "1",
-    align: "center",
-    mobile: "pin",
-    display: "inline",
-    // 条目补全 id / source / children 再落库：读路径虽然会兜（`safeNavItems`），
-    // 但库里躺着半截结构会让编辑器里的这一条看起来是坏的
-    items: parseNavItems([{ href: ABOUT_PATH, label: FOOTER_LINK_LABEL }]),
-  });
-}
-
 /* -------------------------------------------------------------------------- */
 /* 读库容错                                                                    */
 /* -------------------------------------------------------------------------- */
@@ -327,39 +311,6 @@ function hasIntroHero(sections: readonly SiteSection[]): boolean {
       item?.type === INTRO_SECTION_TYPE &&
       item?.settings?.anchor === INTRO_ANCHOR,
   );
-}
-
-/** 页脚里已经有指向 `/about` 的入口吗（导航条目或按钮都算）。 */
-function hasAboutLink(sections: readonly SiteSection[]): boolean {
-  return sections.some((item) =>
-    (item?.blocks ?? []).some((block) => {
-      if (block?.settings?.href === ABOUT_PATH) return true;
-      const items = block?.settings?.items;
-      return (
-        Array.isArray(items) &&
-        items.some(
-          (entry) =>
-            typeof entry === "object" &&
-            entry !== null &&
-            (entry as { href?: unknown }).href === ABOUT_PATH,
-        )
-      );
-    }),
-  );
-}
-
-/**
- * 只认本脚本自己铺的那一块：`chrome_nav` 且**只有** `/about` 一条。
- * 租户后来在同一块里加了别的链接，就不再是我们的块，重铺时不能删。
- */
-function ownedRemoved(blocks: readonly SiteBlock[]): SiteBlock[] {
-  return blocks.filter((block) => {
-    if (block?.type !== "chrome_nav") return true;
-    const items = block?.settings?.items;
-    if (!Array.isArray(items) || items.length !== 1) return true;
-    const entry = items[0] as { href?: unknown } | null;
-    return entry?.href !== ABOUT_PATH;
-  });
 }
 
 /* -------------------------------------------------------------------------- */
@@ -512,53 +463,6 @@ async function applyIntroSection(args: Args, tenant_id: string): Promise<void> {
   }
 }
 
-async function applyFooterLink(args: Args, tenant_id: string): Promise<void> {
-  const site = await prisma.marketingSite.findUnique({
-    where: { tenant_id },
-    select: { footer_json: true, footer_draft_json: true },
-  });
-  if (!site) {
-    throw new Error("站点记录不存在");
-  }
-  const published = asSections(site.footer_json);
-  const draft = asSections(site.footer_draft_json);
-  const already = hasAboutLink(published) || hasAboutLink(draft);
-  if (already && !args.force) {
-    console.log("[footer] 页脚已有 /about 入口，跳过（--force 重铺）");
-    return;
-  }
-  if (published.length === 0 || draft.length === 0) {
-    console.log("[footer] 页脚为空，跳过（先在编辑器里建页脚）");
-    return;
-  }
-  if (args.dryRun) {
-    console.log(
-      `[footer] 将在页脚${already ? "重铺" : "加"}一个「关于」导航块`,
-    );
-    return;
-  }
-
-  const block = buildFooterNavBlock();
-  const append = (sections: SiteSection[]): SiteSection[] =>
-    sections.map((item, index) =>
-      index === 0
-        ? {
-            ...item,
-            blocks: [...ownedRemoved(item.blocks ?? []), block],
-          }
-        : item,
-    );
-
-  await prisma.marketingSite.update({
-    where: { tenant_id },
-    data: {
-      footer_json: append(published) as unknown as Prisma.InputJsonValue,
-      footer_draft_json: append(draft) as unknown as Prisma.InputJsonValue,
-    },
-  });
-  console.log("[footer] 已加「关于」导航块");
-}
-
 async function main(): Promise<void> {
   // `marketingPagePath` 要认得贡献的模板页 kind（`events_topic` → `/topics/:slug`）
   registerEventsPageTemplates();
@@ -584,7 +488,6 @@ async function main(): Promise<void> {
 
   await applyAboutPages(args, tenant.id);
   await applyIntroSection(args, tenant.id);
-  await applyFooterLink(args, tenant.id);
 
   console.log(
     `[apply-yestino-about] tenant=${tenant.slug} dry_run=${args.dryRun} force=${args.force}`,

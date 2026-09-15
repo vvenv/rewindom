@@ -2,6 +2,10 @@ import { type AppLocale } from "@rewindom/shared";
 
 import { readLocalizedSetting } from "../../shared/section-schema.js";
 import {
+  isSiteAdsReady,
+  type SiteAds,
+} from "../../shared/site-ads.js";
+import {
   isSiteAnalyticsReady,
   type SiteAnalytics,
 } from "../../shared/site-analytics.js";
@@ -68,4 +72,16 @@ export function sameAnalytics(a: SiteAnalytics, b: SiteAnalytics): boolean {
  */
 export function analyticsReady(value: SiteAnalytics): boolean {
   return isSiteAnalyticsReady(value);
+}
+
+export function sameAds(a: SiteAds, b: SiteAds): boolean {
+  return (
+    a.google_adsense_publisher_id.trim() ===
+    b.google_adsense_publisher_id.trim()
+  );
+}
+
+/** 空 = 关掉；填了但抽不出 ca-pub 就拦住，避免存下去变成没配。 */
+export function adsReady(value: SiteAds): boolean {
+  return isSiteAdsReady(value);
 }

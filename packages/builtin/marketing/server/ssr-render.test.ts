@@ -40,6 +40,8 @@ function site(overrides: Partial<PublicMarketingSite> = {}) {
     available_locales: ["zh-CN", "en"],
     analytics_html: "",
     analytics_body_html: "",
+    ads_html: "",
+    ads: { google_adsense_publisher_id: "" },
     header: [createSection("header")],
     footer: [createSection("footer")],
     pages: [],
@@ -536,6 +538,50 @@ describe("renderMarketingHtml analytics", () => {
     expect(body.indexOf("GTM-N7F8K2")).toBeLessThan(
       body.indexOf("marketing-site-root"),
     );
+  });
+});
+
+describe("renderMarketingHtml ads", () => {
+  it("puts the site's ads snippet in <head>", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
+      site: site({
+        ads_html: `<meta name="google-adsense-account" content="ca-pub-4673397527808150" />\n<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4673397527808150" crossorigin="anonymous"></script>`,
+      }),
+      page: page(),
+    });
+    const head = html.slice(0, html.indexOf("</head>"));
+    expect(head).toContain('name="google-adsense-account"');
+    expect(head).toContain("adsbygoogle.js?client=ca-pub-4673397527808150");
+  });
+
+  it("emits nothing when the site has no ads configured", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
+      site: site(),
+      page: page(),
+    });
+    expect(html).not.toContain("adsbygoogle");
+    expect(html).not.toContain("google-adsense-account");
+  });
+
+  it("omits Auto ads on privacy and cookie disclosure pages", () => {
+    const adsHtml = `<meta name="google-adsense-account" content="ca-pub-4673397527808150" />\n<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4673397527808150" crossorigin="anonymous"></script>`;
+    for (const path of ["/privacy", "/en/privacy", "/cookies"]) {
+      const html = renderMarketingHtml({
+        origin: ORIGIN,
+        tenant_id: "tenant-1",
+        tenant_slug: "acme",
+        site: site({ ads_html: adsHtml }),
+        page: page({ slug: "privacy", path }),
+      });
+      expect(html, path).not.toContain("adsbygoogle");
+      expect(html, path).not.toContain("google-adsense-account");
+    }
   });
 });
 

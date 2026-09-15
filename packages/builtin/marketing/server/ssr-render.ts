@@ -11,6 +11,7 @@ import {
   formatDocumentDescription,
   formatDocumentTitle,
 } from "../shared/seo-meta.js";
+import { isSiteAdsExemptPath } from "../shared/site-ads.js";
 import {
   type PublicMarketingPage,
   type PublicMarketingSite,
@@ -480,6 +481,7 @@ export function renderMarketingHtml(input: {
   <script${nonceAttr}>${marketingSiteColorModeScript()}</script>
   <style>${siteCss(site.theme_settings, usedSectionTypes)}</style>
   ${site.analytics_html}
+  ${isSiteAdsExemptPath(page.path) ? "" : site.ads_html}
 </head>
 <body>
   ${site.analytics_body_html}

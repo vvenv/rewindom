@@ -15,6 +15,7 @@ import {
   NOT_FOUND_PATH,
 } from "../shared/page-templates.js";
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
+import { renderSiteAdsTxt } from "../shared/site-ads.js";
 import {
   isSpaShellPath,
   parseMarketingSsrPath,
@@ -57,7 +58,7 @@ import {
   getPublishedSitemapEntries,
   getSiteChromeOrFallback,
   resolveVisitorHomePath,
-  getSiteAnalyticsConfig,
+  getSitePublicScriptsConfig,
   resolveVisitorPageLocale,
 } from "./site.service.js";
 import { resolveContributedSitemapEntries } from "./sitemap-providers.js";
@@ -97,7 +98,7 @@ export function sendSiteHtml(
   reply: FastifyReply,
   status: number,
   render: (cspNonce: string) => string,
-  options?: { privateCache?: boolean; analytics?: unknown },
+  options?: { privateCache?: boolean; analytics?: unknown; ads?: unknown },
 ): void {
   const nonce = createCspNonce();
   const html = render(nonce);
@@ -105,7 +106,11 @@ export function sendSiteHtml(
   if (headerName) {
     void reply.header(
       headerName,
-      buildSiteCspPolicy({ nonce, analytics: options?.analytics }),
+      buildSiteCspPolicy({
+        nonce,
+        analytics: options?.analytics,
+        ads: options?.ads,
+      }),
     );
   }
   sendHtml(reply, status, html, options);
@@ -134,7 +139,7 @@ function sendHtml(
 function sendPathHandlerResult(
   reply: FastifyReply,
   result: NonNullable<SitePathRenderResult>,
-  csp?: { cspNonce: string; analytics?: unknown },
+  csp?: { cspNonce: string; analytics?: unknown; ads?: unknown },
 ): void {
   if (!isSitePathResponse(result)) {
     // 只有 HTML 需要 CSP；feed / og 图那条分支不发
@@ -142,7 +147,11 @@ function sendPathHandlerResult(
     if (headerName && csp) {
       void reply.header(
         headerName,
-        buildSiteCspPolicy({ nonce: csp.cspNonce, analytics: csp.analytics }),
+        buildSiteCspPolicy({
+          nonce: csp.cspNonce,
+          analytics: csp.analytics,
+          ads: csp.ads,
+        }),
       );
     }
     sendHtml(reply, 200, result);
@@ -301,7 +310,7 @@ async function renderNotFound(
           enabledEntitlements,
           isDefaultTenant: hostTenant.tenant_id === DEFAULT_TENANT_ID,
         }),
-      { analytics: site.analytics },
+      { analytics: site.analytics, ads: site.ads },
     );
     return;
   }
@@ -352,7 +361,7 @@ async function renderNotFound(
         enabledEntitlements,
         isDefaultTenant: hostTenant.tenant_id === DEFAULT_TENANT_ID,
       }),
-    { analytics: custom.site.analytics },
+    { analytics: custom.site.analytics, ads: custom.site.ads },
   );
 }
 
@@ -501,7 +510,7 @@ async function renderLogicalPath(
     }
     sendPathHandlerResult(reply, rendered, {
       cspNonce,
-      analytics: await getSiteAnalyticsConfig(hostTenant.tenant_id),
+      ...(await getSitePublicScriptsConfig(hostTenant.tenant_id)),
     });
     return true;
   }
@@ -550,7 +559,7 @@ async function renderLogicalPath(
       if (rendered !== null) {
         sendPathHandlerResult(reply, rendered, {
           cspNonce: fallbackCspNonce,
-          analytics: await getSiteAnalyticsConfig(hostTenant.tenant_id),
+          ...(await getSitePublicScriptsConfig(hostTenant.tenant_id)),
         });
         return true;
       }
@@ -667,6 +676,7 @@ async function renderLogicalPath(
       // 登录态页头 / 解锁正文因人而异，禁止公共缓存。
       privateCache: memberAuthenticated || requiresMember,
       analytics: result.site.analytics,
+      ads: result.site.ads,
     },
   );
   return true;
@@ -677,7 +687,7 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
    * `www.<apex>` → `<apex>` 的 301。
    *
    * 挂在 SSR 插件作用域上：这里就是公开面的入口（`/`、`/*`、`/sitemap.xml`、
-   * `/robots.txt`、`/llms.txt`、`/site.webmanifest` 全在），而 `/api/*` 不在——
+   * `/robots.txt`、`/ads.txt`、`/llms.txt`、`/site.webmanifest` 全在），而 `/api/*` 不在——
    * 接口层不能做主机改写，301 会把 POST 变成 GET。
    */
   app.addHook("onRequest", async (request, reply) => {
@@ -729,6 +739,23 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
       .header("content-type", "text/plain; charset=utf-8")
       .header("cache-control", "public, max-age=3600")
       .send(renderRobotsTxt(requestOrigin(request)));
+  });
+
+  app.get("/ads.txt", async (request, reply) => {
+    await ensureHostTenant(request);
+    const hostTenant = request.hostTenantContext;
+    if (!hostTenant) {
+      return reply.status(404).send("Not Found");
+    }
+    const { ads } = await getSitePublicScriptsConfig(hostTenant.tenant_id);
+    const body = renderSiteAdsTxt(ads);
+    if (body === "") {
+      return reply.status(404).send("Not Found");
+    }
+    return reply
+      .header("content-type", "text/plain; charset=utf-8")
+      .header("cache-control", "public, max-age=3600")
+      .send(body);
   });
 
   app.get("/llms.txt", async (request, reply) => {

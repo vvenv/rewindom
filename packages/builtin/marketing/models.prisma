@@ -31,6 +31,9 @@ model MarketingSite {
   // 公开面的访问分析：{ provider, script_url, site_id }，见 `shared/site-analytics.ts`。
   // 不进草稿 / 发布链——分析是站点配置不是内容，配完就该生效。
   analytics      Json     @default("{}")
+  // 公开面广告：{ google_adsense_publisher_id }，见 `shared/site-ads.ts`。
+  // 同样不进草稿 / 发布链。
+  ads            Json     @default("{}")
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
 

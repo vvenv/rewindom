@@ -8,6 +8,7 @@ import {
   buildSiteCspPolicy,
   createCspNonce,
   sha256CspSource,
+  siteAdsCspSources,
   siteAnalyticsCspSources,
 } from "./site-csp.js";
 
@@ -122,6 +123,28 @@ describe("统计脚本的 CSP 来源", () => {
   });
 });
 
+describe("广告脚本的 CSP 来源", () => {
+  it("AdSense：放行 googlesyndication，并允许广告 iframe", () => {
+    const sources = siteAdsCspSources({
+      google_adsense_publisher_id: "ca-pub-4673397527808150",
+    });
+
+    expect(sources.script).toContain("https://pagead2.googlesyndication.com");
+    expect(sources.frame).toContain("https://googleads.g.doubleclick.net");
+    expect(sources.connect).toContain("https://pagead2.googlesyndication.com");
+  });
+
+  it("没配广告时不放行广告来源", () => {
+    expect(siteAdsCspSources({})).toEqual({
+      script: [],
+      connect: [],
+      img: [],
+      frame: [],
+      scriptHashes: [],
+    });
+  });
+});
+
 describe("站点 CSP 策略", () => {
   it("script-src 含本次 nonce，且不含 unsafe-inline", () => {
     const policy = buildSiteCspPolicy({ nonce: "N0NCE", analytics: undefined });
@@ -154,6 +177,20 @@ describe("站点 CSP 策略", () => {
   it("租户外链图片要放行，否则 logo / og 图全裂", () => {
     expect(directive(buildSiteCspPolicy({ nonce: "N" }), "img-src")).toContain(
       "https:",
+    );
+  });
+
+  it("广告来源并进 script-src / frame-src", () => {
+    const policy = buildSiteCspPolicy({
+      nonce: "N",
+      ads: { google_adsense_publisher_id: "ca-pub-4673397527808150" },
+    });
+
+    expect(directive(policy, "script-src")).toContain(
+      "https://pagead2.googlesyndication.com",
+    );
+    expect(directive(policy, "frame-src")).toContain(
+      "https://googleads.g.doubleclick.net",
     );
   });
 

@@ -14,6 +14,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { MARKETING_I18N } from "../../i18n.js";
 import { useSiteSettingsForm } from "../../hooks/use-site-settings-form.js";
 
+import { SiteAdsForm } from "./SiteAdsForm.js";
 import { SiteAnalyticsForm } from "./SiteAnalyticsForm.js";
 import { SiteBasicsForm } from "./SiteBasicsForm.js";
 import { SiteLocaleForm } from "./SiteLocaleForm.js";
@@ -57,6 +58,7 @@ function site(partial: Partial<MarketingSite> = {}): MarketingSite {
     theme_settings: {},
     theme_key: null,
     analytics: { scripts: [] },
+    ads: { google_adsense_publisher_id: "" },
     default_locale: "zh-CN",
     header: [],
     footer: [],
@@ -71,6 +73,7 @@ function site(partial: Partial<MarketingSite> = {}): MarketingSite {
 }
 
 const EMPTY_ANALYTICS = { scripts: [] };
+const EMPTY_ADS = { google_adsense_publisher_id: "" };
 
 function Harness({ value }: { value: MarketingSite }) {
   const form = useSiteSettingsForm(value);
@@ -86,6 +89,7 @@ function Harness({ value }: { value: MarketingSite }) {
       <SiteLocaleForm form={form} canWrite />
       <SiteVisibilityForm form={form} canWrite />
       <SiteAnalyticsForm form={form} canWrite />
+      <SiteAdsForm form={form} canWrite />
       <button type="submit">保存</button>
     </form>
   );
@@ -173,6 +177,7 @@ describe("基本信息", () => {
       published: true,
       home_path: "/",
       analytics: EMPTY_ANALYTICS,
+      ads: EMPTY_ADS,
     });
   });
 
@@ -338,6 +343,36 @@ describe("访问分析", () => {
             site_id: "G-ABC123",
           },
         ],
+      },
+    });
+  });
+});
+
+describe("广告", () => {
+  it("填了非法 ID 保存被拦住", async () => {
+    await renderForms();
+    fireEvent.change(screen.getByRole("textbox", { name: /AdSense 发布商 ID/ }), {
+      target: { value: "not-a-publisher" },
+    });
+    save();
+    expect(mutateMock).not.toHaveBeenCalled();
+  });
+
+  it("贴整段 snippet 再保存才提交", async () => {
+    await renderForms();
+    fireEvent.change(screen.getByRole("textbox", { name: /AdSense 发布商 ID/ }), {
+      target: {
+        value:
+          '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4673397527808150" crossorigin="anonymous"></script>',
+      },
+    });
+    save();
+
+    await waitFor(() => expect(mutateMock).toHaveBeenCalledTimes(1));
+    expect(mutateMock.mock.calls[0]?.[0]).toMatchObject({
+      ads: {
+        google_adsense_publisher_id:
+          '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4673397527808150" crossorigin="anonymous"></script>',
       },
     });
   });

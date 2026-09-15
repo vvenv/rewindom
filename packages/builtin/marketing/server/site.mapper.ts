@@ -13,6 +13,11 @@ import {
   parseSiteNameValue,
 } from "../shared/section-schema.js";
 import {
+  parseSiteAds,
+  normalizeSiteAds,
+  renderSiteAdsHtml,
+} from "../shared/site-ads.js";
+import {
   parseSiteAnalytics,
   normalizeSiteAnalytics,
   renderSiteAnalyticsBodyHtml,
@@ -91,6 +96,7 @@ export function toMarketingSite(
     home_path: record.home_path || "/",
     home_layout_key: record.home_layout_key || DEFAULT_HOME_LAYOUT_KEY,
     analytics: parseSiteAnalytics(record.analytics),
+    ads: parseSiteAds(record.ads),
     created_at: record.created_at.toISOString(),
     updated_at: record.updated_at.toISOString(),
   };
@@ -212,6 +218,12 @@ export function toPublicMarketingSite(
       useDraftChrome || useDraftContent
         ? { scripts: [] }
         : normalizeSiteAnalytics(site.analytics),
+    ads_html:
+      useDraftChrome || useDraftContent ? "" : renderSiteAdsHtml(site.ads),
+    ads:
+      useDraftChrome || useDraftContent
+        ? { google_adsense_publisher_id: "" }
+        : normalizeSiteAds(site.ads),
     default_locale,
     locale: current,
     available_locales: availableLocales(pages, default_locale),

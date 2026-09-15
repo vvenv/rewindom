@@ -45,6 +45,11 @@ import {
 } from "../shared/section-schema.js";
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
 import {
+  normalizeSiteAds,
+  renderSiteAdsHtml,
+  type SiteAds,
+} from "../shared/site-ads.js";
+import {
   normalizeSiteAnalytics,
   type SiteAnalytics,
   renderSiteAnalyticsBodyHtml,
@@ -426,6 +431,12 @@ export async function updateSite(
     data.analytics = normalizeSiteAnalytics(
       body.analytics,
     ) as unknown as Prisma.InputJsonValue;
+  }
+  /*
+   * 广告同样不进草稿 / 发布链。非法输入归一成「没配」。
+   */
+  if (body.ads !== undefined) {
+    data.ads = normalizeSiteAds(body.ads) as unknown as Prisma.InputJsonValue;
   }
 
   // 主题改动一律进**草稿**列，与页头页脚同一条发布链；线上那一列只有发布才动
@@ -1434,29 +1445,37 @@ export async function resolveVisitorPageLocale(
 }
 
 /**
+ * 只取本租户的统计 / 广告配置，供 CSP 计算用。
+ *
+ * 不复用 `getPublishedPublicSite`：那会把整站 chrome、页面目录一起读出来，
+ * 而这里只需要两列。贡献 handler（店面 / 文档 / 事件）那条路径每个请求都要算
+ * 一次策略，多读一整个站点对象不值得。
+ */
+export interface SitePublicScriptsConfig {
+  analytics: SiteAnalytics;
+  ads: SiteAds;
+}
+
+export async function getSitePublicScriptsConfig(
+  tenantId: string,
+): Promise<SitePublicScriptsConfig> {
+  const site = await prisma.marketingSite.findFirst({
+    where: withTenantScope(tenantId, {}),
+    select: { analytics: true, ads: true },
+  });
+  return {
+    analytics: normalizeSiteAnalytics(site?.analytics),
+    ads: normalizeSiteAds(site?.ads),
+  };
+}
+
+/**
  * 已发布站点的公开投影：**chrome 跟请求语言走**。
  *
  * 不要在这里做「一种语言都没有 CMS 页就整站回落默认语言」——`/en/shop` 这类
  * 贡献路径没有英文 MarketingPage 也能渲染，页头导航仍该是英文。CMS 正文缺译文
  * 的回落留在 `getPublishedPublicPage` 的 `effectiveLocale`。
  */
-/**
- * 只取本租户的统计配置，供 CSP 计算用。
- *
- * 不复用 `getPublishedPublicSite`：那会把整站 chrome、页面目录一起读出来，
- * 而这里只需要一列。贡献 handler（店面 / 文档 / 事件）那条路径每个请求都要算
- * 一次策略，多读一整个站点对象不值得。
- */
-export async function getSiteAnalyticsConfig(
-  tenantId: string,
-): Promise<SiteAnalytics> {
-  const site = await prisma.marketingSite.findFirst({
-    where: withTenantScope(tenantId, {}),
-    select: { analytics: true },
-  });
-  return normalizeSiteAnalytics(site?.analytics);
-}
-
 export async function getPublishedPublicSite(
   tenant_id: string,
   tenant_slug: string,
@@ -1520,6 +1539,8 @@ export async function getSiteChromeOrFallback(
     analytics_html: renderSiteAnalyticsHtml(site?.analytics),
     analytics_body_html: renderSiteAnalyticsBodyHtml(site?.analytics),
     analytics: normalizeSiteAnalytics(site?.analytics),
+    ads_html: renderSiteAdsHtml(site?.ads),
+    ads: normalizeSiteAds(site?.ads),
     default_locale: defaultLocale,
     locale: effective,
     available_locales: [defaultLocale],

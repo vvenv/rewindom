@@ -657,6 +657,7 @@ export const MarketingSiteScalarFieldEnum = {
   home_path: 'home_path',
   home_layout_key: 'home_layout_key',
   analytics: 'analytics',
+  ads: 'ads',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const

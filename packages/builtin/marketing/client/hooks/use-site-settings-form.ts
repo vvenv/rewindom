@@ -3,6 +3,10 @@ import { useEffect, useState } from "react";
 import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
 import {
+  EMPTY_SITE_ADS,
+  type SiteAds,
+} from "../../shared/site-ads.js";
+import {
   EMPTY_SITE_ANALYTICS,
   MAX_SITE_ANALYTICS_SCRIPTS,
   emptyAnalyticsScript,
@@ -11,9 +15,11 @@ import {
 } from "../../shared/site-analytics.js";
 import { siteLocaleOrder } from "../../shared/site-locale.js";
 import {
+  adsReady,
   analyticsReady,
   pinToLocale,
   primaryText,
+  sameAds,
   sameAnalytics,
   sameLocalizedText,
 } from "../lib/site-settings-form.js";
@@ -32,7 +38,7 @@ interface SaveOptions {
 }
 
 export type SiteSettingsCommitStatus =
-  "submitted" | "noop" | "empty_name" | "incomplete_analytics";
+  "submitted" | "noop" | "empty_name" | "incomplete_analytics" | "incomplete_ads";
 
 /**
  * 站点设置的本地草稿。控件只改这一份；点保存才 PATCH。
@@ -48,6 +54,7 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
 
   const savedLocale = normalizeLocale(site?.default_locale);
   const savedAnalytics = site?.analytics ?? EMPTY_SITE_ANALYTICS;
+  const savedAds = site?.ads ?? EMPTY_SITE_ADS;
 
   const [siteName, setSiteName] = useState<SiteLocalizedText>("");
   const [tagline, setTagline] = useState<SiteLocalizedText>("");
@@ -56,6 +63,7 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
   const [homePath, setHomePath] = useState("/");
   const [analytics, setAnalytics] =
     useState<SiteAnalytics>(EMPTY_SITE_ANALYTICS);
+  const [ads, setAds] = useState<SiteAds>(EMPTY_SITE_ADS);
   const [hydratedKey, setHydratedKey] = useState<string | null>(null);
 
   const hydrateFrom = (next: MarketingSite): void => {
@@ -66,6 +74,7 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
     setPublished(next.published);
     setHomePath(next.home_path || "/");
     setAnalytics(next.analytics ?? EMPTY_SITE_ANALYTICS);
+    setAds(next.ads ?? EMPTY_SITE_ADS);
     setHydratedKey(next.updated_at);
   };
 
@@ -90,6 +99,7 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
       published !== site.published ||
       (homePath || "/") !== (site.home_path || "/") ||
       !sameAnalytics(analytics, savedAnalytics) ||
+      !sameAds(ads, savedAds) ||
       !sameLocalizedText(siteName, site.site_name, savedLocales, savedLocale) ||
       !sameLocalizedText(tagline, site.tagline, savedLocales, savedLocale)),
   );
@@ -114,6 +124,7 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
     if (!dirty) return "noop";
     if (!primaryText(siteName, defaultLocale)) return "empty_name";
     if (!analyticsReady(analytics)) return "incomplete_analytics";
+    if (!adsReady(ads)) return "incomplete_ads";
     save(
       {
         site_name: siteName,
@@ -122,6 +133,7 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
         published,
         home_path: homePath,
         analytics,
+        ads,
       },
       options,
     );
@@ -205,6 +217,13 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
             i === index ? { ...script, site_id: next } : script,
           ),
         }));
+      },
+    },
+
+    ads: {
+      value: ads,
+      setPublisherId: (next: string): void => {
+        setAds({ google_adsense_publisher_id: next });
       },
     },
   };

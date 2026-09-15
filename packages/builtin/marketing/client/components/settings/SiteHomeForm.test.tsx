@@ -72,6 +72,7 @@ function site(): MarketingSite {
     theme_settings: {},
     theme_key: null,
     analytics: { scripts: [] },
+    ads: { google_adsense_publisher_id: "" },
     default_locale: "zh-CN",
     header: [],
     footer: [],

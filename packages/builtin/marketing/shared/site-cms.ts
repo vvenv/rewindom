@@ -4,6 +4,7 @@ import { getPageTemplateKind } from "./page-templates.js";
 import { normalizeSiteColor } from "./site-color.js";
 
 import type { LocalizedText, SiteSection } from "./section-schema.js";
+import type { SiteAds } from "./site-ads.js";
 import type { SiteAnalytics } from "./site-analytics.js";
 import type { ThemeSettings } from "./theme-sections.js";
 
@@ -163,6 +164,8 @@ export interface MarketingSite {
   home_layout_key: string;
   /** 公开面的访问分析脚本，见 `shared/site-analytics.ts`。 */
   analytics: SiteAnalytics;
+  /** 公开面广告，见 `shared/site-ads.ts`。 */
+  ads: SiteAds;
   created_at: string;
   updated_at: string;
 }
@@ -215,6 +218,8 @@ export interface UpdateMarketingSiteBody {
   home_path?: string;
   /** 访问分析；非法值在服务端归一成「没配」而不是报错，见 `site-analytics.ts`。 */
   analytics?: SiteAnalytics;
+  /** 广告；非法值在服务端归一成「没配」，见 `site-ads.ts`。 */
+  ads?: SiteAds;
 }
 
 export interface CreateMarketingPageBody {
@@ -372,6 +377,16 @@ export interface PublicMarketingSite {
    * 没有 GTM 时是空串。
    */
   analytics_body_html: string;
+  /**
+   * AdSense Auto ads 的 `<meta>` + `<script>`，已按发布商 ID 拼好。
+   * 编辑器预览恒为空串。
+   */
+  ads_html: string;
+  /**
+   * 归一化后的广告配置。CSP 用得到（广告 iframe 的来源不都出现在 HTML 里）。
+   * 与 `ads_html` 同步——草稿预览下同为空。
+   */
+  ads: SiteAds;
   /** `path` 是**逻辑路径**（不带 locale 前缀）；链接由渲染端按语言改写。 */
   pages: Array<{
     slug: string;

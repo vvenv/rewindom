@@ -30,7 +30,9 @@ function site(
     ]),
     analytics_html: "",
     analytics_body_html: "",
-        analytics: { scripts: [] },
+    analytics: { scripts: [] },
+    ads_html: "",
+    ads: { google_adsense_publisher_id: "" },
     pages: [],
   };
 }

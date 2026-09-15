@@ -71,6 +71,7 @@ export function shouldProxyDocumentToMarketingSsr(
   return (
     url === "/sitemap.xml" ||
     url === "/robots.txt" ||
+    url === "/ads.txt" ||
     url === "/llms.txt" ||
     url === "/site.webmanifest" ||
     isMarketingSsrResourcePath(url) ||

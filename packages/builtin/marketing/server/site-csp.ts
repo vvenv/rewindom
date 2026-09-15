@@ -35,6 +35,10 @@ import { createHash, randomBytes } from "node:crypto";
 import { config } from "@rewindom/server-kernel/lib/config.js";
 
 import {
+  normalizeSiteAds,
+  renderSiteAdsHtml,
+} from "../shared/site-ads.js";
+import {
   normalizeSiteAnalytics,
   renderSiteAnalyticsHtml,
   type SiteAnalyticsProvider,
@@ -56,6 +60,30 @@ const EMPTY_SOURCES: SiteCspSources = {
   frame: [],
   scriptHashes: [],
 };
+
+function mergeCspSources(...parts: SiteCspSources[]): SiteCspSources {
+  const merged: SiteCspSources = {
+    script: [],
+    connect: [],
+    img: [],
+    frame: [],
+    scriptHashes: [],
+  };
+  for (const part of parts) {
+    merged.script.push(...part.script);
+    merged.connect.push(...part.connect);
+    merged.img.push(...part.img);
+    merged.frame.push(...part.frame);
+    merged.scriptHashes.push(...part.scriptHashes);
+  }
+  return {
+    script: [...new Set(merged.script)],
+    connect: [...new Set(merged.connect)],
+    img: [...new Set(merged.img)],
+    frame: [...new Set(merged.frame)],
+    scriptHashes: [...new Set(merged.scriptHashes)],
+  };
+}
 
 /**
  * 各供应商除脚本地址之外还要打的地方（回传、像素、iframe）。
@@ -165,6 +193,59 @@ export function siteAnalyticsCspSources(input: unknown): SiteCspSources {
   };
 }
 
+/**
+ * Auto ads 会再注入 iframe / 额外脚本，页面 HTML 里看不见。
+ * 漏了的表现是「广告脚本能加载但格子是空的」。
+ *
+ * 来源对照 Google 的 AdSense CSP 说明
+ * https://support.google.com/adsense/answer/12675515
+ */
+const ADSENSE_EXTRA: Omit<SiteCspSources, "scriptHashes"> = {
+  script: [
+    "https://pagead2.googlesyndication.com",
+    "https://partner.googleadservices.com",
+    "https://tpc.googlesyndication.com",
+    "https://www.googletagservices.com",
+    "https://www.google.com",
+    "https://www.gstatic.com",
+  ],
+  connect: [
+    "https://pagead2.googlesyndication.com",
+    "https://googleads.g.doubleclick.net",
+    "https://*.adtrafficquality.google",
+    "https://www.google.com",
+  ],
+  img: [
+    "https://pagead2.googlesyndication.com",
+    "https://googleads.g.doubleclick.net",
+  ],
+  frame: [
+    "https://googleads.g.doubleclick.net",
+    "https://tpc.googlesyndication.com",
+    "https://pagead2.googlesyndication.com",
+    "https://www.google.com",
+    "https://www.googleadservices.com",
+    "https://ep1.adtrafficquality.google",
+    "https://ep2.adtrafficquality.google",
+  ],
+};
+
+export function siteAdsCspSources(input: unknown): SiteCspSources {
+  const ads = normalizeSiteAds(input);
+  if (ads.google_adsense_publisher_id === "") return EMPTY_SOURCES;
+
+  const head = renderSiteAdsHtml(ads);
+  return {
+    script: [
+      ...new Set([...externalScriptOrigins(head), ...ADSENSE_EXTRA.script]),
+    ],
+    connect: [...ADSENSE_EXTRA.connect],
+    img: [...ADSENSE_EXTRA.img],
+    frame: [...ADSENSE_EXTRA.frame],
+    scriptHashes: [],
+  };
+}
+
 /** 每响应一个 nonce。128 位随机，用 CSPRNG。 */
 export function createCspNonce(): string {
   return randomBytes(16).toString("base64");
@@ -174,8 +255,13 @@ export function buildSiteCspPolicy(input: {
   nonce: string;
   /** 站点的 `analytics` 原始配置（未渲染） */
   analytics?: unknown;
+  /** 站点的 `ads` 原始配置（未渲染） */
+  ads?: unknown;
 }): string {
-  const sources = siteAnalyticsCspSources(input.analytics);
+  const sources = mergeCspSources(
+    siteAnalyticsCspSources(input.analytics),
+    siteAdsCspSources(input.ads),
+  );
   const nonceSource = `'nonce-${input.nonce}'`;
 
   const directives: Array<[string, string[]]> = [
