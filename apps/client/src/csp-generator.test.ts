@@ -6,7 +6,6 @@ import {
   inlineStyles,
   renderConf,
   sha256Source,
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-expect-error —— 生成器是构建期脚本（.mjs），没有类型声明；这里只测行为
 } from "../scripts/gen-csp.mjs";
 

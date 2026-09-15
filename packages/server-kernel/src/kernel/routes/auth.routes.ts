@@ -21,10 +21,6 @@ import { emitAuditLog } from "../../runtime/audit-log-emit.js";
 import { emitDomainEventSafe } from "../../runtime/domain-event-emit.js";
 import { AuthService } from "../auth/auth.service.js";
 import {
-  TWO_FACTOR_CHALLENGE_TTL_SECONDS,
-  TwoFactorService,
-} from "../auth/two-factor.service.js";
-import {
   buildGithubAuthorizeUrl,
   GithubOAuthService,
 } from "../auth/github-oauth.service.js";
@@ -33,13 +29,6 @@ import {
   GoogleOAuthService,
 } from "../auth/google-oauth.service.js";
 import { createJwtSigner } from "../auth/jwt.js";
-import {
-  clearWorkbenchAuthCookies,
-  clearWorkbenchImpersonationReturnCookie,
-  readWorkbenchImpersonationReturnCookie,
-  readWorkbenchRefreshCookie,
-  setWorkbenchAuthCookies,
-} from "../auth/workbench-auth-cookies.js";
 import {
   buildMicrosoftAuthorizeUrl,
   MicrosoftOAuthService,
@@ -54,6 +43,17 @@ import {
   type OAuthProviderId,
 } from "../auth/oauth-common.js";
 import { resolvePlatformOAuthCredentials, type ResolvedOAuthCredentials  } from "../auth/oauth-credentials.js";
+import {
+  TWO_FACTOR_CHALLENGE_TTL_SECONDS,
+  TwoFactorService,
+} from "../auth/two-factor.service.js";
+import {
+  clearWorkbenchAuthCookies,
+  clearWorkbenchImpersonationReturnCookie,
+  readWorkbenchImpersonationReturnCookie,
+  readWorkbenchRefreshCookie,
+  setWorkbenchAuthCookies,
+} from "../auth/workbench-auth-cookies.js";
 
 import type { MemberOAuthCallbackState } from "../../runtime/provider-contracts.js";
 import type { FastifyInstance, FastifyRequest } from "fastify";

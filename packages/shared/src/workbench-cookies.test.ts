@@ -2,16 +2,16 @@ import { describe, it, expect } from "vitest";
 
 import { STORAGE_PREFIX } from "./branding.js";
 import {
+  MEMBER_ACCESS_COOKIE,
+  MEMBER_REFRESH_COOKIE,
+} from "./member-cookies.js";
+import {
   WORKBENCH_ACCESS_COOKIE,
   WORKBENCH_ACCESS_COOKIE_MAX_AGE,
   WORKBENCH_IMPERSONATION_RETURN_COOKIE,
   WORKBENCH_REFRESH_COOKIE,
   WORKBENCH_REFRESH_COOKIE_MAX_AGE,
 } from "./workbench-cookies.js";
-import {
-  MEMBER_ACCESS_COOKIE,
-  MEMBER_REFRESH_COOKIE,
-} from "./member-cookies.js";
 
 describe("workbench-cookies", () => {
   it("access / refresh / return 名互不相同且带前缀", () => {

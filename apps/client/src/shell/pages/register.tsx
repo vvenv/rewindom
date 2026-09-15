@@ -76,7 +76,7 @@ export function Register() {
       const input = buildRegisterInput(form, captchaData.token, {
         singleTenant: hostLockedTenant,
       });
-      const result = await api.post<{
+      await api.post<{
         tenant_id: string;
         tenant_slug: string;
         user_id: string;

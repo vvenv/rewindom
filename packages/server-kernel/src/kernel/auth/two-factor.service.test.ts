@@ -1,6 +1,5 @@
-import { describe, expect, it } from "vitest";
-
 import { Secret, TOTP } from "otpauth";
+import { describe, expect, it } from "vitest";
 
 import { TwoFactorService } from "./two-factor.service.js";
 

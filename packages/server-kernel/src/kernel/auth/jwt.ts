@@ -20,11 +20,11 @@
  * 租户 API Key 不受影响：它不是 JWT，验签失败后由 `auth.middleware` 的
  * `isApiKeyToken` 分支接住。
  */
+import fastifyJwt from "@fastify/jwt";
 import {
   ACCESS_TOKEN_TTL_SECONDS,
   REFRESH_TOKEN_TTL_SECONDS,
 } from "@rewindom/shared";
-import fastifyJwt from "@fastify/jwt";
 
 import type { JwtSignPayload } from "./auth.service.js";
 import type { FastifyInstance } from "fastify";
